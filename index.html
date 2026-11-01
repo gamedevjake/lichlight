@@ -287,10 +287,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tMap{background-image:url(assets/ui/v07101/hud/composed/hud_map_32_idle.png)}
 .btn.hud-off{display:none!important}
 #touch.editing .btn.learned{display:flex!important}
-/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt (420×202) and scale with an integer CSS transform. Not CSS zoom. v0.7.15 lets that integer grow past ×3 on a large desktop. v0.7.15.1 keeps ×2 on a short landscape phone: the pack may hang a few pixels past the glass, and #inv clips that from the center. */
+/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt (420×202) and scale with a CSS transform. Not CSS zoom. v0.7.15 lets the integer grow past ×3 on a large desktop. v0.7.15.2 uses a width-bound fractional scale on touch landscape (about 86% of the glass) and pins the tab bar to the top when the pack is taller than the screen. */
 #inv{background:rgba(6,4,6,.78);align-items:center;justify-content:center;padding:0;overflow:hidden}
 #satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:none;overflow:hidden;image-rendering:pixelated;background:transparent}
-#satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated}
+#satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated;image-rendering:crisp-edges}
 .sat-tabs{position:absolute;left:6px;top:0;right:6px;height:27px;display:flex;gap:1px;align-items:flex-start;z-index:4;pointer-events:none}
 .sat-tab{pointer-events:auto;position:relative;top:2px;height:16px;flex:0 0 var(--tw,48px);width:var(--tw,48px);min-width:var(--tw,48px);max-width:var(--tw,48px);margin:0;border:0;padding:0;cursor:pointer;color:transparent;font-size:0;line-height:0;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
 .sat-tab.on{top:0;height:23px;z-index:5}
@@ -613,7 +613,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.15.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.15.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -8940,18 +8940,31 @@ function satchelMetrics(vw, vh) {
   const fit = maxScale(1);
   const peek = maxScale(0.88);
   // 0.88 is the desktop target (1920×1080 → ×4, about 88%×75%) so the HUD still peeks.
-  // A phone whose ×2 pack already fits stays at that fit (the 88% test would shrink it
-  // and clip nothing). Wider screens may go to ×4+.
-  let scale = Math.max(peek, Math.min(fit, 3));
-  // v0.7.15.1: safe area / visualViewport on a landscape phone (S25 Ultra) can put CSS
-  // height just under 404. `202 * 2 ≤ ah` then fails and fit falls to ×1, even though
-  // the glass is still wide enough for the 840px pack. Floor at ×2 and let #inv clip
-  // the extra from the center (at most 24px a side). A tall desktop never enters this.
   let touchish = !!touchMode;
   try { if (matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0) touchish = true; } catch (e) {}
-  const shortLand = aw > ah && ah < 202 * 2;
-  const hang = 202 * 2 - ah;
-  if (PACK_B.panelW * 2 <= aw && hang > 0 && hang <= 48 && (touchish || shortLand)) scale = Math.max(scale, 2);
+  const aspect = aw / Math.max(1, ah);
+  const mobileLand = touchish && aspect >= 1.7;
+  const fitW = aw / PACK_B.panelW;
+  let scale, mode;
+  if (mobileLand) {
+    // v0.7.15.2: width-bound fractional scale, about 86% of the glass. Height may clip.
+    // The 2.2 floor is applied before the glass cap so a small phone stays inside the screen.
+    scale = (aw * 0.86) / PACK_B.panelW;
+    if (scale < 2.2) scale = 2.2;
+    if (scale > 3.4) scale = 3.4;
+    if (scale < 1) scale = 1;
+    if (scale > fitW) scale = fitW;
+    mode = 'mobile';
+  } else if (!touchish && aw >= 1024) {
+    scale = Math.max(peek, Math.min(fit, 3));
+    mode = 'desktop';
+  } else {
+    scale = Math.max(peek, Math.min(fit, 3));
+    // v0.7.15.1 ×2 floor. Touch landscape at aspect >= 1.7 takes the mobile path above.
+    const hang = 202 * 2 - ah;
+    if (PACK_B.panelW * 2 <= aw && hang > 0 && hang <= 48 && touchish) scale = Math.max(scale, 2);
+    mode = 'compact';
+  }
   let panelW = PACK_B.panelW, cw = PACK_B.cw, cols = PACK_B.cols, gridW = PACK_B.gridW, statW = PACK_B.statW, ccols = PACK_B.ccols;
   const hostName = String((typeof location !== 'undefined' && location.hostname) || '').toLowerCase();
   const fluidOk = !!window.LL_FLUID_SATCHEL && hostName !== 'github.io' && !hostName.endsWith('.github.io');
@@ -8967,16 +8980,27 @@ function satchelMetrics(vw, vh) {
     while (statW < 96 && cols > 3) { cols--; gridW = cols * 30 + 6; statW = cw - gridW - 6; }
     ccols = Math.max(2, Math.min(8, Math.floor((cw + 7) / 67)));
   }
-  return { scale, panelW, cw, cols, gridW, statW, statX: gridW + 6, ccols, tabs: satchelTabMode(panelW) };
+  return {
+    scale, panelW, cw, cols, gridW, statW, statX: gridW + 6, ccols,
+    tabs: satchelTabMode(panelW), mode, aw, ah, fitW, fitH: ah / 202
+  };
 }
 function sizeSatchel() {
   const host = $('satchel'), art = $('satArt'); if (!host || !art) return;
+  const prev = satM && satM.scale;
   const m = satM = satchelMetrics();
-  host.style.width = (m.panelW * m.scale) + 'px';
-  host.style.height = (202 * m.scale) + 'px';
+  // Width-bound scale is stable when only the URL bar changes the height.
+  // Skip a tiny width flicker while a satchel drag or a slot hold is active.
+  if (state === 'inv' && (window._satDrag || slotLP) && prev != null && Math.abs(m.scale - prev) < 0.02) m.scale = prev;
+  const sc = m.scale;
+  const scCss = (Math.abs(sc - Math.round(sc)) < 1e-6) ? String(Math.round(sc)) : sc.toFixed(4);
+  host.style.width = (m.panelW * sc) + 'px';
+  host.style.height = (202 * sc) + 'px';
   art.style.width = m.panelW + 'px';
   art.style.height = '202px';
-  art.style.transform = 'scale(' + m.scale + ')';
+  art.style.transformOrigin = '0 0';
+  art.style.transform = 'scale(' + scCss + ')';
+  art.style.imageRendering = 'pixelated';
   art.style.setProperty('--cols', m.cols);
   art.style.setProperty('--ccols', m.ccols);
   art.style.setProperty('--gridw', m.gridW + 'px');
@@ -8986,8 +9010,22 @@ function sizeSatchel() {
   host.dataset.statw = String(m.statW);
   host.dataset.gridw = String(m.gridW);
   host.dataset.panelw = String(m.panelW);
-  host.dataset.scale = String(m.scale);
+  host.dataset.scale = scCss;
   host.dataset.tabs = m.tabs;
+  host.dataset.mode = m.mode || '';
+  // Flex centers the margin box, so margin-top of half the overflow still leaves the
+  // tab strip above the glass. Pin the pack to the top and let #inv clip the bottom.
+  const hostH = 202 * sc;
+  if (m.mode === 'mobile' && hostH > m.ah) {
+    let topInset = 0;
+    const probe = $('safeProbe');
+    if (probe) topInset = parseFloat(getComputedStyle(probe).paddingTop) || 0;
+    host.style.alignSelf = 'flex-start';
+    host.style.marginTop = topInset ? (topInset + 'px') : '0px';
+  } else {
+    host.style.alignSelf = '';
+    host.style.marginTop = '';
+  }
   const grid = $('grid');
   if (grid) {
     grid.style.width = m.gridW + 'px';
@@ -9656,9 +9694,9 @@ function bindDragScroll(el) {
   if (!el || el.dataset.dragscroll) return;
   el.dataset.dragscroll = '1';
   let id = null, y0 = 0, top0 = 0;
-  el.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('button,a')) return; id = e.pointerId; y0 = e.clientY; top0 = el.scrollTop; });
+  el.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('button,a')) return; id = e.pointerId; y0 = e.clientY; top0 = el.scrollTop; window._satDrag = true; });
   el.addEventListener('pointermove', e => { if (e.pointerId !== id) return; const sc = (satM && satM.scale) || 1; el.scrollTop = top0 - (e.clientY - y0) / sc; });
-  const end = e => { if (e.pointerId === id) id = null; };
+  const end = e => { if (e.pointerId === id) { id = null; window._satDrag = false; } };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
 }
 function ensureHold711() {
