@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0715</title></head>
+<body>
+<iframe id="g" src="../index.html?v=0715a" style="width:1920px;height:1080px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function frac(px, view) { return px / view; }
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.15' && ver.indexOf('"0.7.15"') >= 0, (g && g.version) + ' ' + ver);
+  check('pack b constants', g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394);
+  check('fluid still gated', src.indexOf('LL_FLUID_SATCHEL') >= 0 && src.indexOf("hostName !== 'github.io'") >= 0 && src.indexOf(".github.io'") >= 0);
+  check('no scale special case', src.indexOf('w >= 1100 && h >= 640') < 0);
+
+  function expectScale(w0, h0, scale) {
+    g.touchMode = false;
+    const a = g.satchelMetrics(w0, h0);
+    g.touchMode = true;
+    const b = g.satchelMetrics(w0, h0);
+    g.touchMode = false;
+    const lock = a.cols === 7 && a.panelW === 420 && a.gridW === 216 && a.statW === 172 && a.tabs === 'baked' && a.cw === 394;
+    const same = a.scale === b.scale && a.scale === scale;
+    const fits = 420 * a.scale <= w0 && 202 * a.scale <= h0;
+    check('scale ' + w0 + 'x' + h0 + ' x' + scale, lock && same && fits, JSON.stringify(a) + ' touch ' + b.scale);
+    return a;
+  }
+  const desk = expectScale(1920, 1080, 4);
+  const deskW = frac(420 * desk.scale, 1920), deskH = frac(202 * desk.scale, 1080);
+  check('1080p fills 85-90', deskW <= 0.90 && deskH <= 0.90 && Math.max(deskW, deskH) >= 0.85, deskW.toFixed(3) + ' x ' + deskH.toFixed(3));
+  check('1080p next scale would pass 88%', 420 * 5 > 0.88 * 1920 || 202 * 5 > 0.88 * 1080);
+  expectScale(2560, 1440, 5);
+  expectScale(1600, 900, 3);
+  expectScale(1366, 768, 3);
+  expectScale(1100, 700, 2);
+  expectScale(800, 450, 1);
+  expectScale(840, 420, 2);
+  expectScale(915, 412, 2);
+  expectScale(960, 440, 2);
+  const phone = g.satchelMetrics(915, 412);
+  check('phone x3 does not fit', 202 * 3 > 412 && phone.scale === 2);
+
+  const names = g.TOME_NAMES.map(n => String(n).toUpperCase());
+  check('names include shield', names.indexOf('ETHEREAL SHIELD') >= 0, names.join(','));
+  let linesOk = true, detail = [];
+  names.forEach(n => {
+    const lines = g.tomeNameLines(n, 56);
+    const back = lines.join(' ');
+    const wide = lines.some(line => line.length * 4 - 1 > 56);
+    if (back !== n || wide || lines.length > 2) linesOk = false;
+    detail.push(n + '=' + lines.join('/'));
+  });
+  check('tome names wrap whole', linesOk, detail.join(' | '));
+  check('shield is two lines', g.tomeNameLines('Ethereal Shield', 56).join('|') === 'ETHEREAL|SHIELD');
+  const lay = g.tomeGridLayout(366);
+  check('four columns in pack body', lay.cols === 4 && lay.nameW >= 56 && lay.padX + 4 * lay.cellW + 3 * lay.gapX <= 366, JSON.stringify(lay));
+
+  g.newGame();
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const host = w.document.getElementById('satchel');
+  const art = w.document.getElementById('satArt');
+  check('desktop dom scale 4', host.dataset.scale === '4' && host.dataset.panelw === '420' && host.dataset.cols === '7' && host.dataset.tabs === 'baked', host.dataset.scale + ' ' + art.style.height + ' ' + host.style.height);
+  check('art box still 420x202', art.style.width === '420px' && art.style.height === '202px' && host.style.height === '808px', art.style.width + ' ' + art.style.height + ' host ' + host.style.height);
+  const grid = w.document.getElementById('grid');
+  const gcs = w.getComputedStyle(grid);
+  const colParts = gcs.gridTemplateColumns.split(/\s+/).filter(Boolean);
+  check('grid seven 24px', colParts.length === 7 && colParts.every(c => c === '24px') && gcs.gridAutoRows === '24px', gcs.gridTemplateColumns);
+
+  const t = w.ensureTome(g.player);
+  t.isAcquired = true;
+  ['fireball', 'spin', 'frostNova', 'spectralClone', 'etherealShield', 'etherealShift', 'hellmouth'].forEach(id => w.unlockSpell(id));
+  w.satchelOpenTab('tome');
+  const cv = w.document.getElementById('tomeGridCv');
+  const cells = cv && cv.dataset.cells ? JSON.parse(cv.dataset.cells) : [];
+  const shield = cells.find(c => c.name === 'ETHEREAL SHIELD');
+  check('shield painted full', !!(shield && shield.lines.join(' ') === 'ETHEREAL SHIELD' && shield.lines.indexOf('ETHEREAL SHIE') < 0), shield && shield.lines.join('/'));
+  check('no truncated paint', cells.every(c => c.lines.join(' ') === c.name) && cells.length === 7, cells.map(c => c.lines.join('/')).join(' | '));
+  const body = w.document.getElementById('tomeBody');
+  check('tome body does not scroll sideways', body && body.scrollWidth <= body.clientWidth + 1, body && (body.scrollWidth + ' vs ' + body.clientWidth));
+  function ink(x, y) {
+    if (!cv || x < 0 || y < 0 || x >= cv.width || y >= cv.height) return false;
+    const d = cv.getContext('2d').getImageData(x, y, 1, 1).data;
+    const bg = Math.abs(d[0] - 34) < 22 && Math.abs(d[1] - 26) < 22 && Math.abs(d[2] - 21) < 22;
+    return d[3] > 180 && !bg;
+  }
+  let glyphs = true, glyphNote = '';
+  cells.forEach(c => {
+    c.lines.forEach((line, i) => {
+      const x = c.textX + (line.length - 1) * 4;
+      const y = c.ys[i];
+      let hit = false;
+      for (let dy = 0; dy < 5 && !hit; dy++) for (let dx = 0; dx < 3; dx++) if (ink(x + dx, y + dy)) hit = true;
+      if (!hit) { glyphs = false; glyphNote += line + '@' + x + ',' + y + ' '; }
+    });
+  });
+  check('name glyphs drawn', glyphs, glyphNote || 'ok');
+
+  const asg = w.document.querySelectorAll('#tomeBody .tome-asg');
+  check('assign buttons', asg.length === 4, asg.length);
+  if (asg[2]) asg[2].click();
+  const bar = g.player && g.player.lichTome ? (w.spellBar ? w.spellBar() : null) : null;
+  const cv2 = w.document.getElementById('tomeGridCv');
+  const cells2 = cv2 && cv2.dataset.cells ? JSON.parse(cv2.dataset.cells) : [];
+  const shield2 = cells2.find(c => c.name === 'ETHEREAL SHIELD');
+  check('assign keeps full name', !!(shield2 && shield2.lines.join(' ') === 'ETHEREAL SHIELD'), shield2 && shield2.lines.join('/'));
+  check('assign slot marked', (asg[2] && w.document.querySelectorAll('#tomeBody .tome-asg')[2].textContent.indexOf('*') >= 0) || (bar && bar[2]), w.document.querySelectorAll('#tomeBody .tome-asg')[2] && w.document.querySelectorAll('#tomeBody .tome-asg')[2].textContent);
+
+  const frame = document.getElementById('g');
+  frame.style.width = '960px';
+  frame.style.height = '440px';
+  g.touchMode = true;
+  w.resize();
+  w.satchelOpenTab('inventory');
+  const host2 = w.document.getElementById('satchel');
+  const close = w.document.getElementById('satClose').getBoundingClientRect();
+  const sat = host2.getBoundingClientRect();
+  const vw = w.innerWidth, vh = w.innerHeight;
+  check('phone landscape scale 2', host2.dataset.scale === '2' && host2.dataset.cols === '7' && host2.dataset.tabs === 'baked' && host2.dataset.panelw === '420', host2.dataset.scale + ' ' + vw + 'x' + vh);
+  check('phone close inside', close.bottom <= vh + 1 && close.right <= vw + 1 && sat.bottom <= vh + 1 && sat.right <= vw + 1 && close.height > 8, 'close ' + Math.round(close.bottom) + ' sat ' + Math.round(sat.bottom) + ' vh ' + vh);
+  g.touchMode = false;
+}
+</script>
+</body>
+</html>
