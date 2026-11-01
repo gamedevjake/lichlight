@@ -27,7 +27,14 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.12' && ver.indexOf('"0.7.12"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.12.1' && ver.indexOf('"0.7.12.1"') >= 0, (g && g.version) + ' ' + ver);
+  check('title wrap helper', typeof g.wrapTitle712 === 'function' && typeof g.maxTitleWidth712 === 'function');
+  const whale = g.wrapTitle712(null, 'Vampiric Broad Sword of the Whale', g.maxTitleWidth712(172));
+  check('whale title wraps', whale.length === 2 && whale[0] === 'VAMPIRIC BROAD SWORD' && whale[1] === 'OF THE WHALE', whale.join(' / '));
+  const shortName = g.wrapTitle712(null, 'Short Sword', g.maxTitleWidth712(172));
+  check('short title one line', shortName.length === 1 && shortName[0] === 'SHORT SWORD', shortName.join(' / '));
+  const wide = g.wrapTitle712(null, 'Smoldering Reliquary Amulet of the Lich-light', 140);
+  check('long title stays in max width', wide.length >= 2 && wide.every(t => g.titleMeasure712(null, t) <= 140), wide.join(' / '));
   check('no dev hud on github', src.indexOf("h === 'github.io' || h.endsWith('.github.io')") >= 0 && src.indexOf('return false') >= 0);
   check('no css zoom', src.indexOf('zoom:var(--ui)') < 0);
   check('pack b shell', src.indexOf('inv_stats_header_unique_9slice') >= 0 && src.indexOf('btn_equip_idle_52x20') >= 0);
@@ -153,8 +160,32 @@ function run(w) {
 
   const detail = w.document.getElementById('invStatsCv');
   w.satchelOpenTab('inventory');
-  check('detail canvas', detail && detail.height === 108, detail && detail.height);
+  const shortIt = g.makeItem(1, 0, 'Short Sword');
+  shortIt.name = 'Short Sword';
+  shortIt.rarity = 0;
+  g.player.inv[0] = shortIt;
+  const shortSlot = w.document.querySelector('#grid .slot');
+  if (shortSlot) shortSlot.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'mouse' }));
+  if (w.fillInvStats) w.fillInvStats();
+  const shortBox = w.document.getElementById('invStats');
+  const shortWrap = (shortBox && shortBox.dataset.wrap) || '';
+  check('short detail fits frame', detail && detail.height >= 108 && detail.height <= 148 && shortWrap === 'SHORT SWORD', (detail && detail.height) + ' ' + shortWrap);
+  const longIt = g.makeItem(3, 1, 'Broad Sword');
+  longIt.name = 'Vampiric Broad Sword of the Whale';
+  longIt.rarity = 1;
+  longIt.min = 7; longIt.max = 13; longIt.spd = 1; longIt.dur = 44; longIt.maxDur = 44;
+  g.player.equip.weapon = g.makeItem(1, 0, 'Short Sword');
+  g.player.inv[0] = longIt;
+  const longSlot = w.document.querySelector('#grid .slot');
+  if (longSlot) longSlot.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'mouse' }));
+  if (w.fillInvStats) w.fillInvStats();
+  const box = w.document.getElementById('invStats');
+  const wrapped = (box && box.dataset.wrap) || '';
+  check('detail wraps whale name', wrapped === 'VAMPIRIC BROAD SWORD\nOF THE WHALE', wrapped);
+  check('detail grows with title', detail && detail.height >= 120, detail && detail.height);
   check('detail scrolls', g.scrolls.invDetail && g.scrolls.invDetail.maxScrollY >= 0);
+  const holdCard = g.itemCard712(longIt);
+  check('hold shares title wrap', g.wrapTitle712(null, holdCard.title, g.maxTitleWidth712(176)).join('\n') === wrapped, holdCard.title);
 }
 </script>
 </body>

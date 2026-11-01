@@ -585,7 +585,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.12'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.12.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -9191,6 +9191,7 @@ function fillSatMap() {
 }
 function satchelPaint() {
   paintTabs();
+  if (satchelTab !== 'inventory') syncDetailFrame712(0);
   if (satchelTab === 'inventory') fillInvStats();
   else if (satchelTab === 'character') paintChar();
   else if (satchelTab === 'consumables') fillCons();
@@ -9914,7 +9915,7 @@ function itemCard712(it) {
   }
   const cur = equippedCmp712(it);
   const rarCol = it.rarity === 3 ? SAT_GOLD : it.rarity === 2 ? '#f0f060' : it.rarity === 1 ? '#7aa0ff' : '#f0e6c8';
-  push(kindLabel(it), rarCol, '');
+  push(kindLabel(it), rarCol, '', { kind: true });
   if (it.min || it.max || (cur && (cur.min || cur.max))) {
     const mine = Math.round(((+it.min || 0) + (+it.max || 0)) / 2);
     const theirs = cur ? Math.round(((+cur.min || 0) + (+cur.max || 0)) / 2) : 0;
@@ -9971,12 +9972,104 @@ function flattenCard712(card, maxW) {
   });
   return out;
 }
-function drawCardLines712(ctx, rows, x, maxX) {
+function drawCardLines712(ctx, rows, x, maxX, centerW) {
   rows.forEach(r => {
     if (!r.text && !r.delta) return;
-    pxText(ctx, r.text, x, r.y, r.red ? DELTA_RED : r.col, true, maxX);
-    if (r.delta) pxText(ctx, r.delta, x + String(r.text || '').length * 4, r.y, DELTA_RED, true, maxX + 12);
+    let sx = x;
+    if (centerW) {
+      const full = String(r.text || '') + String(r.delta || '');
+      const tw = full.length ? full.length * 4 - 1 : 0;
+      sx = Math.max(4, Math.round((centerW - tw) / 2));
+    }
+    pxText(ctx, r.text, sx, r.y, r.red ? DELTA_RED : r.col, true, centerW ? centerW - 4 : maxX);
+    if (r.delta) pxText(ctx, r.delta, sx + String(r.text || '').length * 4, r.y, DELTA_RED, true, (centerW || maxX) + 12);
   });
+}
+const TITLE_LH_712 = 12;
+const TITLE_COLOR_712 = '#f4ecd4';
+const SPACER_712 = '#4E382A';
+function titleMeasure712(ctx, text) {
+  const s = String(text || '').toUpperCase();
+  if (!s.length) return 0;
+  const face = ctx && ctx.measureText ? ctx : titleMeasure712.ctx;
+  const c = face && face.measureText ? face : (titleMeasure712.ctx = pxCanvas(4, 4).x);
+  const prev = c.font;
+  c.font = '4px monospace';
+  const unit = c.measureText('M').width || 1;
+  const measured = c.measureText(s).width;
+  c.font = prev;
+  // pxText paints a 4px advance and drops the trailing gap. Scale measureText
+  // onto that face so a wrap decision matches the pixels we draw.
+  const bitmap = s.length * 4 - 1;
+  const scaled = measured * (4 / unit);
+  return Math.abs(scaled - (bitmap + 1)) <= 2 ? bitmap : Math.max(bitmap, Math.round(scaled) - 1);
+}
+function maxTitleWidth712(panelW) {
+  return Math.min(140, Math.max(72, (panelW | 0) - 48));
+}
+function wrapTitle712(ctx, text, maxTitleWidth) {
+  const maxW = Math.max(24, maxTitleWidth == null ? 140 : maxTitleWidth | 0);
+  const widthOf = (s) => titleMeasure712(ctx, s);
+  const words = String(text || '').toUpperCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [''];
+  const tokens = [];
+  words.forEach(word => {
+    let w = word;
+    while (w && widthOf(w) > maxW && w.length > 1) {
+      let n = w.length;
+      while (n > 1 && widthOf(w.slice(0, n)) > maxW) n--;
+      tokens.push(w.slice(0, Math.max(1, n)));
+      w = w.slice(Math.max(1, n));
+    }
+    if (w) tokens.push(w);
+  });
+  const lines = [];
+  let line = '';
+  tokens.forEach(word => {
+    const trial = line ? line + ' ' + word : word;
+    if (line && widthOf(trial) > maxW) { lines.push(line); line = word; }
+    else line = trial;
+  });
+  if (line) lines.push(line);
+  // Keep a short tail from being stranded (…OF THE / WHALE → …SWORD / OF THE WHALE).
+  let guard = 8;
+  while (lines.length >= 2 && guard-- > 0) {
+    const prev = lines[lines.length - 2].split(' ');
+    if (prev.length < 2) break;
+    const moved = prev[prev.length - 1];
+    const newPrev = prev.slice(0, -1).join(' ');
+    const newLast = moved + ' ' + lines[lines.length - 1];
+    if (widthOf(newLast) > maxW) break;
+    if (widthOf(newPrev) < widthOf(newLast)) break;
+    lines[lines.length - 2] = newPrev;
+    lines[lines.length - 1] = newLast;
+  }
+  return lines.length ? lines : [''];
+}
+function drawTitleRule712(ctx, x, y, w) {
+  const y0 = y | 0, x0 = x | 0;
+  ctx.fillStyle = SPACER_712;
+  ctx.fillRect(x0, y0, w, 1);
+  ctx.fillStyle = '#a08050';
+  const diamond = (dx) => {
+    ctx.fillRect(dx, y0 - 1, 1, 1);
+    ctx.fillRect(dx - 1, y0, 1, 1);
+    ctx.fillRect(dx, y0, 1, 1);
+    ctx.fillRect(dx + 1, y0, 1, 1);
+    ctx.fillRect(dx, y0 + 1, 1, 1);
+  };
+  if (w > 16) { diamond(x0 + 2); diamond(x0 + w - 3); }
+}
+function syncDetailFrame712(extra) {
+  extra = Math.max(0, extra | 0);
+  const body = $('satBody'), frame = $('satFrame'), art = $('satArt'), host = $('satchel'), box = $('invStats');
+  const pane = document.querySelector('#satchel .sat-pane[data-pane="inventory"]');
+  if (body) body.style.height = (108 + extra) + 'px';
+  if (pane) pane.style.height = (108 + extra) + 'px';
+  if (frame) frame.style.height = (160 + extra) + 'px';
+  if (box) box.style.height = (108 + extra) + 'px';
+  if (art) art.style.height = (178 + extra) + 'px';
+  if (host) host.style.height = ((178 + extra) * ((satM && satM.scale) || 1)) + 'px';
 }
 function cardKey712() {
   if (dropAllAsk) return 'drop';
@@ -9988,9 +10081,7 @@ function cardKey712() {
 fillInvStats = function () {
   const box = $('invStats'), cv = $('invStatsCv'), p = player;
   if (!box || !cv || !p) return;
-  const w = Math.max(96, satM.statW | 0), h = 108;
-  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  const w = Math.max(96, satM.statW | 0);
   const stale = $('invStatsScroll'); if (stale) stale.remove();
   let card, title, rar;
   if (dropAllAsk) {
@@ -10005,18 +10096,52 @@ fillInvStats = function () {
     title = card.title; rar = card.rar;
   }
   box.dataset.rar = rar;
-  const headCol = rar === 'unique' ? SAT_GOLD : rar === 'rare' ? '#f0f060' : rar === 'magic' ? '#7aa0ff' : '#f4ecd4';
-  pxCenter(ctx, title, 4, headCol, w);
-  const view = { x: 6, y: 18, w: w - 12, h: h - 22 };
-  const rows = flattenCard712(card, view.w - 4);
-  const contentH = rows.length ? rows[rows.length - 1].y + LINE_HEIGHT : 0;
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  const maxTitleWidth = maxTitleWidth712(w);
+  const titleLines = wrapTitle712(ctx, title, maxTitleWidth);
+  const kind = (card.lines || []).find(ln => ln.kind);
+  const bodyCard = { lines: (card.lines || []).filter(ln => !ln.kind) };
+  const previewRows = flattenCard712(bodyCard, w - 16);
+  const contentH = previewRows.length ? previewRows[previewRows.length - 1].y + LINE_HEIGHT : 0;
+  // Title block, then the spacer, then 10px, then the type line. Stats start after that.
+  const titleBottom = 6 + titleLines.length * TITLE_LH_712;
+  const headH = Math.max(17, titleBottom - 3);
+  const ruleY = 3 + headH + 1;
+  let statsTop = ruleY + 10;
+  if (kind && kind.text) statsTop += LINE_HEIGHT;
+  const titleExtra = Math.max(0, Math.min(3, titleLines.length - 1)) * TITLE_LH_712;
+  // Keep the v0.7.12 stat window (about six rows) so DUR is not lost in the fade.
+  const statView = Math.min(Math.max(contentH, LINE_HEIGHT * 3), LINE_HEIGHT * 6);
+  const h = Math.max(108 + titleExtra, statsTop + statView + 4);
+  const extra = h - 108;
+  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  box.dataset.wrap = titleLines.join('\n');
+  box.dataset.titleLines = String(titleLines.length);
+  let currentY = 6;
+  titleLines.forEach(line => {
+    pxCenter(ctx, line, currentY, TITLE_COLOR_712, w);
+    currentY += TITLE_LH_712;
+  });
+  const head = box.querySelector('.ist-head');
+  if (head) head.style.height = headH + 'px';
+  drawTitleRule712(ctx, 8, ruleY, w - 16);
+  currentY = ruleY + 10;
+  if (kind && kind.text) {
+    pxCenter(ctx, kind.text, currentY, kind.col || SAT_TAN, w);
+    currentY += LINE_HEIGHT;
+  }
+  const view = { x: 6, y: currentY, w: w - 12, h: Math.max(LINE_HEIGHT, h - currentY - 4) };
+  const rows = flattenCard712(bodyCard, view.w - 4);
+  const bodyH = rows.length ? rows[rows.length - 1].y + LINE_HEIGHT : 0;
   const sc = scrollBox('invDetail');
   if (sc.key !== cardKey712()) { sc.key = cardKey712(); sc.scrollY = 0; }
-  sc.maxScrollY = Math.max(0, contentH - view.h);
+  sc.maxScrollY = Math.max(0, bodyH - view.h);
   clampScroll712(sc);
   drawScrollContainer(ctx, { x: view.x, y: view.y, w: view.w, h: view.h, scrollY: sc.scrollY, maxScrollY: sc.maxScrollY, fadeSize: 10, bg: PANEL_BG_712 }, function () {
-    drawCardLines712(ctx, rows.map(r => ({ text: r.text, col: r.col, delta: r.delta, red: r.red, y: r.y + view.y })), view.x, view.x + view.w - 2);
+    drawCardLines712(ctx, rows.map(r => ({ text: r.text, col: r.col, delta: r.delta, red: r.red, y: r.y + view.y })), view.x, view.x + view.w - 2, w);
   });
+  syncDetailFrame712(extra);
   bindScrollEl(box, 'invDetail', function () { return satM.scale || 1; }, fillInvStats);
   const count = $('invCount');
   if (count) {
@@ -10042,10 +10167,23 @@ function paintHold712(card, cx, cy) {
   el.dataset.rar = card.rar || 'common';
   el.classList.remove('hidden');
   const head = el.querySelector('.ist-head'); head.innerHTML = '';
-  const nc = pxCanvas(maxW, 14);
-  pxCenter(nc.x, card.title || 'ITEM', 4, '#f4ecd4', maxW);
-  nc.c.style.width = (maxW * scale) + 'px'; nc.c.style.height = (14 * scale) + 'px';
+  const titleLines = wrapTitle712(null, card.title || 'ITEM', maxTitleWidth712(maxW));
+  let currentY = 4;
+  titleLines.forEach(() => { currentY += TITLE_LH_712; });
+  const titleBlock = Math.max(14, currentY + 6);
+  // Hold card is outside the satchel's transform, so the head has to match the scaled canvas.
+  head.style.height = (titleBlock * scale) + 'px';
+  head.style.flexBasis = (titleBlock * scale) + 'px';
+  const nc = pxCanvas(maxW, titleBlock);
+  currentY = 4;
+  titleLines.forEach(line => {
+    pxCenter(nc.x, line, currentY, TITLE_COLOR_712, maxW);
+    currentY += TITLE_LH_712;
+  });
+  drawTitleRule712(nc.x, 6, currentY - 2, maxW - 12);
+  nc.c.style.width = (maxW * scale) + 'px'; nc.c.style.height = (titleBlock * scale) + 'px';
   head.appendChild(nc.c);
+  el.dataset.wrap = titleLines.join('\n');
   const body = $('holdBody'); body.innerHTML = ''; body.style.overflow = 'hidden'; body.style.maxHeight = 'none';
   const cv = pxCanvas(maxW, viewH);
   cv.c.style.width = (maxW * scale) + 'px'; cv.c.style.height = (viewH * scale) + 'px';
@@ -10054,7 +10192,7 @@ function paintHold712(card, cx, cy) {
   });
   body.appendChild(cv.c);
   bindScrollEl(el, 'hold', function () { return scale; }, function () { paintHold712(card, cx, cy); });
-  const wcss = maxW * scale + 20, hcss = (viewH + 22) * scale;
+  const wcss = maxW * scale + 20, hcss = (viewH + titleBlock + 8) * scale;
   let left = (cx || 24) + 12, top = (cy || 24) - 8;
   if (left + wcss > window.innerWidth - 8) left = Math.max(8, (cx || 24) - wcss - 8);
   if (top + hcss > window.innerHeight - 8) top = Math.max(8, window.innerHeight - hcss - 8);
@@ -10598,6 +10736,9 @@ if (window.game) {
   window.game.drawScrollContainer = drawScrollContainer;
   window.game.itemCard712 = itemCard712;
   window.game.flattenCard712 = flattenCard712;
+  window.game.wrapTitle712 = wrapTitle712;
+  window.game.maxTitleWidth712 = maxTitleWidth712;
+  window.game.titleMeasure712 = titleMeasure712;
   window.game.notePick712 = notePick712;
   window.game.recentPick712 = recentPick712;
   window.game.openChestAttack = openChestAttack712;
