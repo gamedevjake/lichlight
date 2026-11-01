@@ -4,6 +4,13 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.12.1] - 2026-10-31
+
+_Long item names stay inside the card_
+
+### Fixed
+- **Item names** in the satchel wrap onto more than one line when they are too long for the card. A name like Vampiric Broad Sword of the Whale sits on two centered lines, with a line under it, then the item type, then the stats. The card grows just enough to hold the extra line. Press-and-hold uses the same wrap. Short names stay on one line.
+
 ## [0.7.12] - 2026-10-31
 
 _Readable cards, a wider pedlar, bows in the loot_
@@ -781,6 +788,8 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.12.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12.1
+[0.7.12]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
 [0.7.10.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.1
 [0.7.11]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.11
