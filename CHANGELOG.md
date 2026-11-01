@@ -4,6 +4,16 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.15] - 2026-11-01
+
+_A bigger pack, and the whole spell name_
+
+### Changed
+- The backpack on a wide screen is larger. On a 1080p monitor it fills most of the view, and the life and mana bars in the corner still show. A phone on its side stays the size that fits the screen.
+
+### Fixed
+- Spell names in the Lich Tome no longer cut off. Ethereal Shield is written out in full.
+
 ## [0.7.14] - 2026-11-01
 
 _The pack keeps its shape_
@@ -817,6 +827,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.15]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.15
 [0.7.14]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.14
 [0.7.13]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.13
 [0.7.12.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12.1

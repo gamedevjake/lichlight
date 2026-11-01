@@ -287,7 +287,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tMap{background-image:url(assets/ui/v07101/hud/composed/hud_map_32_idle.png)}
 .btn.hud-off{display:none!important}
 #touch.editing .btn.learned{display:flex!important}
-/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt and scale with transform (integer ×2 / ×3). Not CSS zoom. */
+/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt (420×202) and scale with an integer CSS transform. Not CSS zoom. v0.7.15 lets that integer grow past ×3 on a large desktop. */
 #inv{background:rgba(6,4,6,.78);align-items:center;justify-content:center;padding:0;overflow:hidden}
 #satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:100%;overflow:hidden;image-rendering:pixelated;background:transparent}
 #satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated}
@@ -613,7 +613,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.14'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.15'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -8930,8 +8930,20 @@ function satchelMetrics(vw, vh) {
   let sl = 0, sr = 0, st = 0, sb = 0;
   if (!vw && probe) { const cs = getComputedStyle(probe); sl = parseFloat(cs.paddingLeft) || 0; sr = parseFloat(cs.paddingRight) || 0; st = parseFloat(cs.paddingTop) || 0; sb = parseFloat(cs.paddingBottom) || 0; }
   const aw = Math.max(120, w - sl - sr), ah = Math.max(120, h - st - sb);
-  let scale = (!touchMode && w >= 1100 && h >= 640) ? 3 : 2;
-  while (scale > 1 && (202 * scale > ah || PACK_B.panelW * scale > aw)) scale--;
+  // Largest integer whose 420×202 panel still sits inside `frac` of the safe viewport.
+  const maxScale = (frac) => {
+    const maxW = frac * aw, maxH = frac * ah;
+    let s = 1;
+    while (s < 16 && PACK_B.panelW * (s + 1) <= maxW && 202 * (s + 1) <= maxH) s++;
+    return s;
+  };
+  const fit = maxScale(1);
+  const peek = maxScale(0.88);
+  // 0.88 is the desktop target (1920×1080 → ×4, about 88%×75%) so the HUD still peeks.
+  // A short phone is already height-bound: ×2 fills the safe area and ×3 does not.
+  // The 88% test would drop that phone to ×1 and clip nothing, but it would also shrink
+  // a bag that already fits at ×2 or ×3. Keep that fitted scale. Wider screens may go to ×4+.
+  const scale = Math.max(peek, Math.min(fit, 3));
   let panelW = PACK_B.panelW, cw = PACK_B.cw, cols = PACK_B.cols, gridW = PACK_B.gridW, statW = PACK_B.statW, ccols = PACK_B.ccols;
   const hostName = String((typeof location !== 'undefined' && location.hostname) || '').toLowerCase();
   const fluidOk = !!window.LL_FLUID_SATCHEL && hostName !== 'github.io' && !hostName.endsWith('.github.io');
@@ -10427,6 +10439,41 @@ paintChar = function () {
   });
 };
 
+function tomeNameLines(label, nameW) {
+  const s = String(label == null ? '' : label).toUpperCase();
+  const maxW = Math.max(4, nameW | 0);
+  const words = s.split(/\s+/).filter(Boolean);
+  if (!words.length) return [''];
+  if (textW(s) <= maxW) return [s];
+  const lines = [];
+  let line = '';
+  words.forEach(word => {
+    const trial = line ? line + ' ' + word : word;
+    if (line && textW(trial) > maxW) { lines.push(line); line = word; }
+    else line = trial;
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+function tomeNameYs(lines, spellY, tile) {
+  if (!lines || lines.length <= 1) return [spellY + 9];
+  const step = 8;
+  const block = 5 + (lines.length - 1) * step;
+  const y0 = spellY + Math.max(1, Math.round((tile - block) / 2));
+  return lines.map((_, i) => y0 + i * step);
+}
+function tomeGridLayout(innerW) {
+  const tile = 24, gapX = 6, gapY = 4, padX = 4, padY = 2;
+  let nameW = 56;
+  const names = TOME_NAMES.map(n => String(n).toUpperCase());
+  names.forEach(n => n.split(/\s+/).forEach(word => { const need = textW(word); if (need > nameW) nameW = need; }));
+  const cellW = tile + 4 + nameW, cellH = tile;
+  const inner = Math.max(cellW + padX, innerW | 0);
+  const rowW = (cols) => padX + cols * cellW + Math.max(0, cols - 1) * gapX;
+  let cols = 4;
+  while (cols > 1 && rowW(cols) > inner) cols--;
+  return { tile, gapX, gapY, padX, padY, nameW, cols, cellW, cellH, inner };
+}
 const TOME_ART_712 = { fireball: 'skill_fireball_16', spin: 'skill_whirlwind_16', frostNova: 'skill_frost_nova_16', spectralClone: 'skill_spectral_clone_16', etherealShield: 'skill_ethereal_shield_16', etherealShift: 'skill_ethereal_shift_16', hellmouth: 'skill_hellmouth_16' };
 fillTomePane = function () {
   const box = $('tomePane'); if (!box || !player) return;
@@ -10456,34 +10503,54 @@ fillTomePane = function () {
   }
   if (!tomePageId || !t.spells[tomePageId] || !t.spells[tomePageId].isUnlocked) tomePageId = TOME_IDS.find(id => t.spells[id].isUnlocked) || 'fireball';
   const bar = spellBar();
-  const bw = Math.max(120, box.clientWidth || (satM.cw || 320));
-  const bh = 74;
-  const tile = 24, gap = 6, nameW = 56, cellW = tile + 4 + nameW, cellH = tile;
-  const cols = Math.max(2, Math.min(4, Math.floor((bw - 8) / (cellW + gap)) || 2));
+  box.appendChild(body);
+  const cs = getComputedStyle(body);
+  const padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0;
+  const padT = parseFloat(cs.paddingTop) || 0, padB = parseFloat(cs.paddingBottom) || 0;
+  let innerW = body.clientWidth - padL - padR;
+  let innerH = body.clientHeight - padT - padB;
+  if (!(innerW >= 80)) innerW = Math.max(80, (satM.cw || 394) - 28);
+  if (!(innerH >= 40)) innerH = 72;
+  const asgH = 16;
+  const layout = tomeGridLayout(innerW);
   const learned = TOME_IDS.filter(id => t.spells[id].isUnlocked);
-  const contentH = Math.ceil(learned.length / cols) * (cellH + gap);
+  const rows = Math.max(1, Math.ceil(learned.length / layout.cols));
+  const contentH = layout.padY + rows * layout.cellH + Math.max(0, rows - 1) * layout.gapY;
+  const bh = Math.max(layout.cellH, Math.min(contentH, innerH - asgH));
+  const bw = layout.inner;
   const s = scrollBox('tome');
   s.maxScrollY = Math.max(0, contentH - bh);
   clampScroll712(s);
   const cv = document.createElement('canvas'); cv.id = 'tomeGridCv';
   cv.width = bw; cv.height = bh; cv.style.width = bw + 'px'; cv.style.height = bh + 'px';
   const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, bw, bh);
+  const cells = [];
   drawScrollContainer(ctx, { x: 0, y: 0, w: bw, h: bh, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 8, bg: PANEL_BG_712 }, function () {
     learned.forEach((id, n) => {
-      const col = n % cols, row = (n / cols) | 0;
-      const spellX = 6 + col * (cellW + gap);
-      const spellY = 4 + row * (cellH + gap);
+      const col = n % layout.cols, row = (n / layout.cols) | 0;
+      const spellX = layout.padX + col * (layout.cellW + layout.gapX);
+      const spellY = layout.padY + row * (layout.cellH + layout.gapY);
       ctx.fillStyle = id === tomePageId ? '#e8c840' : '#6a5344';
-      ctx.fillRect(spellX - 1, spellY - 1, tile + 2, tile + 2);
+      ctx.fillRect(spellX - 1, spellY - 1, layout.tile + 2, layout.tile + 2);
       ctx.fillStyle = '#140e0c';
-      ctx.fillRect(spellX, spellY, tile, tile);
+      ctx.fillRect(spellX, spellY, layout.tile, layout.tile);
       const art = ART[TOME_ART_712[id]];
       if (art) ctx.drawImage(art, spellX + 4, spellY + 4, 16, 16);
-      pxText(ctx, pxFit(TOME_NAMES[TOME_IDS.indexOf(id)] || id, nameW), spellX + tile + 4, spellY + 9, id === tomePageId ? SAT_GOLD : SAT_TAN, true, spellX + cellW);
+      const label = TOME_NAMES[TOME_IDS.indexOf(id)] || id;
+      const lines = tomeNameLines(label, layout.nameW);
+      const ys = tomeNameYs(lines, spellY, layout.tile);
+      const textX = spellX + layout.tile + 4;
+      const ink = id === tomePageId ? SAT_GOLD : SAT_TAN;
+      lines.forEach((line, i) => pxText(ctx, line, textX, ys[i], ink, true, textX + layout.nameW));
+      cells.push({ id: id, name: String(label).toUpperCase(), lines: lines, textX: textX, ys: ys, spellX: spellX, spellY: spellY, cellW: layout.cellW, cellH: layout.cellH });
     });
   });
+  cv.dataset.cells = JSON.stringify(cells);
+  cv.dataset.cols = String(layout.cols);
+  cv.dataset.namew = String(layout.nameW);
   body.appendChild(cv);
   const asg = document.createElement('div');
+  asg.style.cssText = 'height:' + asgH + 'px;margin:0;display:flex;align-items:center;gap:2px;';
   [0, 1, 2, 3].forEach(slot => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'tome-asg';
     b.textContent = (slot + 1) + (bar[slot] === tomePageId ? '*' : '');
@@ -10491,16 +10558,17 @@ fillTomePane = function () {
     asg.appendChild(b);
   });
   body.appendChild(asg);
-  box.appendChild(body);
+  if (body.scrollWidth <= body.clientWidth + 1 && body.scrollHeight <= body.clientHeight + 1) body.style.overflow = 'hidden';
   let timer = 0, suppress = false, hitId = '';
   const hitOf = e => {
     const rect = cv.getBoundingClientRect();
     const k = (satM && satM.scale) || 1;
     const lx = (e.clientX - rect.left) / k, ly = (e.clientY - rect.top) / k + scrollBox('tome').scrollY;
     for (let n = 0; n < learned.length; n++) {
-      const col = n % cols, row = (n / cols) | 0;
-      const spellX = 6 + col * (cellW + gap), spellY = 4 + row * (cellH + gap);
-      if (lx >= spellX && lx <= spellX + cellW && ly >= spellY && ly <= spellY + cellH) return learned[n];
+      const col = n % layout.cols, row = (n / layout.cols) | 0;
+      const spellX = layout.padX + col * (layout.cellW + layout.gapX);
+      const spellY = layout.padY + row * (layout.cellH + layout.gapY);
+      if (lx >= spellX && lx <= spellX + layout.cellW && ly >= spellY && ly <= spellY + layout.cellH) return learned[n];
     }
     return '';
   };
@@ -11162,6 +11230,9 @@ if (window.game) {
   window.game.satchelMetrics = satchelMetrics;
   window.game.satchelTabMode = satchelTabMode;
   window.game.PACK_B = PACK_B;
+  window.game.tomeNameLines = tomeNameLines;
+  window.game.tomeGridLayout = tomeGridLayout;
+  window.game.TOME_NAMES = TOME_NAMES;
   window.game.tabSrc = tabSrc;
   window.game.placeBossShop = placeBossShop711;
   Object.defineProperty(window.game, 'bossAud', { configurable: true, get() { return bossAud713; } });
