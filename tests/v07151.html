@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v07151</title></head>
+<body>
+<iframe id="g" src="../index.html?v=07151a" style="width:1920px;height:1080px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function frac(px, view) { return px / view; }
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.15.1' && ver.indexOf('"0.7.15.1"') >= 0, (g && g.version) + ' ' + ver);
+  check('update sees patch', w.semverGt('0.7.15.1', '0.7.15') === true && w.semverGt('0.7.15', '0.7.15.1') === false);
+  check('pack b constants', g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394);
+  check('integer transform not zoom', src.indexOf("art.style.transform = 'scale(' + m.scale + ')'") >= 0 && src.indexOf('zoom:var(--ui)') < 0);
+  check('inv clips centered overflow', src.indexOf('#inv{background:rgba(6,4,6,.78);align-items:center;justify-content:center;padding:0;overflow:hidden}') >= 0 && src.indexOf('#satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:none;overflow:hidden') >= 0);
+
+  function metrics(w0, h0) {
+    g.touchMode = false;
+    const desk = g.satchelMetrics(w0, h0);
+    g.touchMode = true;
+    const phone = g.satchelMetrics(w0, h0);
+    g.touchMode = false;
+    return { desk, phone };
+  }
+  function locked(m) {
+    return m.cols === 7 && m.panelW === 420 && m.gridW === 216 && m.statW === 172 && m.tabs === 'baked' && m.cw === 394 && m.scale === (m.scale | 0);
+  }
+
+  const deskPair = metrics(1920, 1080);
+  const desk = deskPair.desk;
+  check('1080p scale 4', locked(desk) && desk.scale === 4 && deskPair.phone.scale === 4, JSON.stringify(desk) + ' touch ' + deskPair.phone.scale);
+  const deskW = frac(420 * desk.scale, 1920), deskH = frac(202 * desk.scale, 1080);
+  check('1080p peek at most 88%', deskW <= 0.88 && deskH <= 0.88 && Math.max(deskW, deskH) >= 0.85, deskW.toFixed(3) + ' x ' + deskH.toFixed(3));
+  check('1080p next scale would pass 88%', 420 * 5 > 0.88 * 1920 || 202 * 5 > 0.88 * 1080);
+
+  [[2560, 1440, 5], [1600, 900, 3], [1366, 768, 3], [1100, 700, 2], [800, 450, 1], [840, 420, 2], [915, 412, 2]].forEach(row => {
+    const pair = metrics(row[0], row[1]);
+    const fits = 420 * pair.desk.scale <= row[0] && 202 * pair.desk.scale <= row[1];
+    check('kept ' + row[0] + 'x' + row[1] + ' x' + row[2], locked(pair.desk) && pair.desk.scale === row[2] && pair.phone.scale === row[2] && fits, pair.desk.scale + ' touch ' + pair.phone.scale);
+  });
+
+  // CSS height under 404 used to force ×1. Width still holds ×2, so the bag stays ×2.
+  [380, 390, 400, 403, 356].forEach(h0 => {
+    [840, 900, 915, 960, 1920].forEach(w0 => {
+      const pair = metrics(w0, h0);
+      const hang = 202 * 2 - h0;
+      const ok = locked(pair.desk) && pair.desk.scale === 2 && pair.phone.scale === 2 && 420 * 2 <= w0 && hang > 0 && hang <= 48;
+      check('short ' + w0 + 'x' + h0 + ' x2', ok, pair.desk.scale + ' touch ' + pair.phone.scale + ' hang ' + hang);
+    });
+  });
+  [380, 390, 400, 410].forEach(h0 => {
+    const pair = metrics(839, h0);
+    check('narrow ' + h0 + ' stays x1', pair.desk.scale === 1 && pair.phone.scale === 1, pair.desk.scale + ' / ' + pair.phone.scale);
+  });
+  const tooShort = metrics(915, 355);
+  check('below the slight hang stays x1', tooShort.desk.scale === 1 && tooShort.phone.scale === 1, tooShort.desk.scale + ' / ' + tooShort.phone.scale);
+  const justOver = metrics(915, 410);
+  check('410 already fits x2', justOver.desk.scale === 2 && justOver.phone.scale === 2 && 202 * 2 <= 410, justOver.desk.scale);
+
+  g.newGame();
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const frame = document.getElementById('g');
+  function layout(w0, h0) {
+    frame.style.width = w0 + 'px';
+    frame.style.height = h0 + 'px';
+    g.touchMode = true;
+    w.resize();
+    w.satchelOpenTab('inventory');
+    const host = w.document.getElementById('satchel');
+    const art = w.document.getElementById('satArt');
+    const inv = w.document.getElementById('inv');
+    const close = w.document.getElementById('satClose').getBoundingClientRect();
+    const sat = host.getBoundingClientRect();
+    const vw = w.innerWidth, vh = w.innerHeight;
+    return { host, art, inv, close, sat, vw, vh };
+  }
+
+  const big = layout(1920, 1080);
+  check('desktop dom scale 4', big.host.dataset.scale === '4' && big.host.dataset.panelw === '420' && big.host.dataset.cols === '7' && big.host.dataset.tabs === 'baked', big.host.dataset.scale + ' ' + big.vw + 'x' + big.vh);
+  check('desktop art 420x202', big.art.style.width === '420px' && big.art.style.height === '202px' && big.art.style.transform === 'scale(4)' && big.host.style.height === '808px', big.art.style.transform + ' ' + big.host.style.height);
+  check('desktop bag inside', big.sat.top >= -1 && big.sat.bottom <= big.vh + 1 && big.sat.left >= -1 && big.sat.right <= big.vw + 1, Math.round(big.sat.top) + ',' + Math.round(big.sat.bottom) + ' vh ' + big.vh);
+
+  [380, 390, 400, 410].forEach(h0 => {
+    const box = layout(915, h0);
+    const hang = Math.max(0, 404 - h0);
+    const clipTop = Math.max(0, -box.sat.top);
+    const clipBot = Math.max(0, box.sat.bottom - box.vh);
+    const closeVis = Math.min(box.close.bottom, box.vh) - Math.max(box.close.top, 0);
+    const invCs = w.getComputedStyle(box.inv);
+    const scaleOk = box.host.dataset.scale === '2' && box.host.dataset.cols === '7' && box.host.dataset.tabs === 'baked' && box.host.dataset.panelw === '420';
+    const artOk = box.art.style.width === '420px' && box.art.style.height === '202px' && box.art.style.transform === 'scale(2)' && box.host.style.height === '404px';
+    const clipOk = invCs.overflow === 'hidden' && invCs.alignItems === 'center' && Math.abs(box.sat.height - 404) < 2;
+    const centered = hang === 0 ? (box.sat.top >= -1 && box.sat.bottom <= box.vh + 1) : (Math.abs(clipTop - clipBot) <= 2 && clipTop > 0);
+    check('dom ' + box.vw + 'x' + box.vh + ' x2', scaleOk && artOk && clipOk && centered && closeVis >= 16, 'scale ' + box.host.dataset.scale + ' sat ' + Math.round(box.sat.top) + '..' + Math.round(box.sat.bottom) + ' clip ' + clipTop.toFixed(1) + '/' + clipBot.toFixed(1) + ' close ' + closeVis.toFixed(1) + ' vh ' + box.vh);
+  });
+  g.touchMode = false;
+}
+</script>
+</body>
+</html>
