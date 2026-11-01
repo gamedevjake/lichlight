@@ -4,6 +4,13 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.15.1] - 2026-11-01
+
+_The pack stays large on a short phone_
+
+### Fixed
+- The backpack on a phone turned sideways stays large. A short screen no longer shrinks it to a small bag in the middle of the glass.
+
 ## [0.7.15] - 2026-11-01
 
 _A bigger pack, and the whole spell name_
@@ -827,6 +834,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.15.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.15.1
 [0.7.15]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.15
 [0.7.14]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.14
 [0.7.13]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.13

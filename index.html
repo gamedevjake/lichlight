@@ -287,9 +287,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tMap{background-image:url(assets/ui/v07101/hud/composed/hud_map_32_idle.png)}
 .btn.hud-off{display:none!important}
 #touch.editing .btn.learned{display:flex!important}
-/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt (420×202) and scale with an integer CSS transform. Not CSS zoom. v0.7.15 lets that integer grow past ×3 on a large desktop. */
+/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt (420×202) and scale with an integer CSS transform. Not CSS zoom. v0.7.15 lets that integer grow past ×3 on a large desktop. v0.7.15.1 keeps ×2 on a short landscape phone: the pack may hang a few pixels past the glass, and #inv clips that from the center. */
 #inv{background:rgba(6,4,6,.78);align-items:center;justify-content:center;padding:0;overflow:hidden}
-#satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:100%;overflow:hidden;image-rendering:pixelated;background:transparent}
+#satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:none;overflow:hidden;image-rendering:pixelated;background:transparent}
 #satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated}
 .sat-tabs{position:absolute;left:6px;top:0;right:6px;height:27px;display:flex;gap:1px;align-items:flex-start;z-index:4;pointer-events:none}
 .sat-tab{pointer-events:auto;position:relative;top:2px;height:16px;flex:0 0 var(--tw,48px);width:var(--tw,48px);min-width:var(--tw,48px);max-width:var(--tw,48px);margin:0;border:0;padding:0;cursor:pointer;color:transparent;font-size:0;line-height:0;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
@@ -613,7 +613,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.15'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.15.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -8940,10 +8940,18 @@ function satchelMetrics(vw, vh) {
   const fit = maxScale(1);
   const peek = maxScale(0.88);
   // 0.88 is the desktop target (1920×1080 → ×4, about 88%×75%) so the HUD still peeks.
-  // A short phone is already height-bound: ×2 fills the safe area and ×3 does not.
-  // The 88% test would drop that phone to ×1 and clip nothing, but it would also shrink
-  // a bag that already fits at ×2 or ×3. Keep that fitted scale. Wider screens may go to ×4+.
-  const scale = Math.max(peek, Math.min(fit, 3));
+  // A phone whose ×2 pack already fits stays at that fit (the 88% test would shrink it
+  // and clip nothing). Wider screens may go to ×4+.
+  let scale = Math.max(peek, Math.min(fit, 3));
+  // v0.7.15.1: safe area / visualViewport on a landscape phone (S25 Ultra) can put CSS
+  // height just under 404. `202 * 2 ≤ ah` then fails and fit falls to ×1, even though
+  // the glass is still wide enough for the 840px pack. Floor at ×2 and let #inv clip
+  // the extra from the center (at most 24px a side). A tall desktop never enters this.
+  let touchish = !!touchMode;
+  try { if (matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0) touchish = true; } catch (e) {}
+  const shortLand = aw > ah && ah < 202 * 2;
+  const hang = 202 * 2 - ah;
+  if (PACK_B.panelW * 2 <= aw && hang > 0 && hang <= 48 && (touchish || shortLand)) scale = Math.max(scale, 2);
   let panelW = PACK_B.panelW, cw = PACK_B.cw, cols = PACK_B.cols, gridW = PACK_B.gridW, statW = PACK_B.statW, ccols = PACK_B.ccols;
   const hostName = String((typeof location !== 'undefined' && location.hostname) || '').toLowerCase();
   const fluidOk = !!window.LL_FLUID_SATCHEL && hostName !== 'github.io' && !hostName.endsWith('.github.io');
