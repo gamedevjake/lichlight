@@ -292,11 +292,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:100%;overflow:hidden;image-rendering:pixelated;background:transparent}
 #satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated}
 .sat-tabs{position:absolute;left:6px;top:0;right:6px;height:27px;display:flex;gap:1px;align-items:flex-start;z-index:4;pointer-events:none}
-.sat-tab{pointer-events:auto;position:relative;top:2px;height:16px;flex:var(--tw,48) 1 0;min-width:0;margin:0;border:0;padding:0;cursor:pointer;color:transparent;font-size:0;line-height:0;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.sat-tab{pointer-events:auto;position:relative;top:2px;height:16px;flex:0 0 var(--tw,48px);width:var(--tw,48px);min-width:var(--tw,48px);max-width:var(--tw,48px);margin:0;border:0;padding:0;cursor:pointer;color:transparent;font-size:0;line-height:0;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
 .sat-tab.on{top:0;height:23px;z-index:5}
-#satchel[data-tabs="text"] .sat-tab{color:#c8b8a0;font:bold 6px/16px "Courier New",monospace}
-#satchel[data-tabs="text"] .sat-tab.on{color:#e8c840;line-height:23px}
-#satchel[data-tabs="icon"] .sat-tab{flex:0 0 26px;width:26px;height:20px;top:2px}
+#satchel[data-tabs="icon"] .sat-tab{flex:0 0 26px;width:26px;min-width:26px;max-width:26px;height:20px;top:2px}
 #satchel[data-tabs="icon"] .sat-tab.on{top:0;height:27px}
 #satFrame{position:absolute;left:0;top:18px;width:100%;height:160px;box-sizing:border-box;z-index:1;border-style:solid;border-width:8px;border-image:url(assets/ui/v07101/satchel/frame/satchel_panel_9slice_24_s8.png) 8 fill / 8px / 0 stretch;padding:5px;background:transparent}
 #satBody{position:relative;height:108px}
@@ -351,10 +349,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel #equip{position:absolute;left:0;top:0;width:126px;height:66px;display:grid;grid-template-columns:repeat(4,24px);grid-auto-rows:24px;gap:6px;padding:6px;box-sizing:border-box;justify-content:start;align-content:start;background:url(assets/ui/v07101/satchel/content/char_equip_frame_126x66.png) center/100% 100% no-repeat}
 #satchel #stats{position:absolute;left:132px;top:0;right:0;height:66px;margin:0;overflow:hidden;white-space:pre;font-size:0;line-height:0;color:#e8dcc0;padding:0;min-width:0;flex:none;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inset_9slice_12_s4.png) 4 fill / 4px / 0 stretch;box-sizing:border-box}
 #charStrip{position:absolute;left:0;right:0;top:74px;height:22px;overflow:hidden;box-sizing:border-box;border-style:solid;border-width:4px 8px;border-image:url(assets/ui/v07101/satchel/content/char_stats_strip_9slice_24x22_s8.png) 8 fill / 4px 8px / 0 stretch}
-#satchel #grid{position:absolute;left:0;top:0;width:var(--gridw,216px);height:96px;max-height:none;display:grid;grid-template-columns:repeat(var(--cols,7),24px);grid-auto-rows:24px;gap:6px;padding:6px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;align-content:start;justify-content:start;background:transparent;border:0;touch-action:none;scrollbar-width:none}
+#satchel #grid{position:absolute;left:0;top:0;width:216px;height:96px;max-height:none;display:grid;grid-template-columns:repeat(7,24px);grid-auto-rows:24px;gap:6px;padding:6px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;align-content:start;justify-content:start;background:transparent;border:0;touch-action:none;scrollbar-width:none}
 #satchel #grid::-webkit-scrollbar{width:0;height:0}
 #invCount{position:absolute;left:2px;top:98px;width:210px;height:8px;image-rendering:pixelated;pointer-events:none}
-#invStats{position:absolute;top:0;left:var(--statx,222px);width:var(--statw,172px);height:108px;min-width:0;overflow:hidden;padding:0;margin:0;background:none;flex:none;text-align:left}
+#invStats{position:absolute;top:0;left:var(--statx,222px);width:var(--statw,172px);height:108px;min-width:0;box-sizing:border-box;overflow:hidden;padding:4px 6px;margin:0;background:none;flex:none;text-align:left}
 #invStats::before{content:'';position:absolute;inset:0;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) 4 fill / 4px / 0 stretch;pointer-events:none}
 #invStats .ist-head{position:absolute;left:4px;right:4px;top:3px;height:0;background:none;pointer-events:none}
 #invStats[data-rar="magic"] .ist-head,#invStats[data-rar="rare"] .ist-head,#invStats[data-rar="unique"] .ist-head{background:none}
@@ -615,7 +613,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.13'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.14'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -8922,25 +8920,34 @@ let consPick = 'hp', tomePageId = '';
 const SAT_RAR = ['COMMON', 'MAGIC', 'RARE', 'UNIQUE'];
 const SAT_KEY = ['common', 'magic', 'rare', 'unique'];
 const SAT_TAN = '#e8dcc0', SAT_GOLD = '#e8c840', SAT_DIM = '#a89880', SAT_CMP = '#7ec8ff', SAT_GOOD = '#60e060', SAT_BAD = '#e06060', SAT_LORE = '#d8b060', SAT_INK = '#4a2a18';
-function satchelMetrics() {
-  const w = appW || window.innerWidth || 800, h = appH || window.innerHeight || 450;
+const PACK_B = { panelW: 420, cw: 394, cols: 7, gridW: 216, statW: 172, ccols: 5 };
+function satchelTabMode(panelW) {
+  return (panelW | 0) < 280 ? 'icon' : 'baked';
+}
+function satchelMetrics(vw, vh) {
+  const w = vw || appW || window.innerWidth || 800, h = vh || appH || window.innerHeight || 450;
   const probe = $('safeProbe');
   let sl = 0, sr = 0, st = 0, sb = 0;
-  if (probe) { const cs = getComputedStyle(probe); sl = parseFloat(cs.paddingLeft) || 0; sr = parseFloat(cs.paddingRight) || 0; st = parseFloat(cs.paddingTop) || 0; sb = parseFloat(cs.paddingBottom) || 0; }
+  if (!vw && probe) { const cs = getComputedStyle(probe); sl = parseFloat(cs.paddingLeft) || 0; sr = parseFloat(cs.paddingRight) || 0; st = parseFloat(cs.paddingTop) || 0; sb = parseFloat(cs.paddingBottom) || 0; }
   const aw = Math.max(120, w - sl - sr), ah = Math.max(120, h - st - sb);
   let scale = (!touchMode && w >= 1100 && h >= 640) ? 3 : 2;
-  while (scale > 1 && (202 * scale > ah || 220 * scale > aw)) scale--;
-  let panelW = Math.floor(aw / scale);
-  if (panelW < 160) panelW = Math.max(120, panelW);
-  const cw = Math.max(80, panelW - 26);
-  let cols = Math.floor((cw - 162) / 30);
-  if (cols < 4) cols = Math.max(3, Math.floor((cw - 96) / 30));
-  cols = Math.max(3, Math.min(12, cols));
-  let gridW = cols * 30 + 6, statW = cw - gridW - 6;
-  while (statW < 96 && cols > 3) { cols--; gridW = cols * 30 + 6; statW = cw - gridW - 6; }
-  const ccols = Math.max(2, Math.min(8, Math.floor((cw + 7) / 67)));
-  const tabs = panelW < 280 ? 'icon' : (panelW > 520 ? 'text' : 'baked');
-  return { scale, panelW, cw, cols, gridW, statW, statX: gridW + 6, ccols, tabs };
+  while (scale > 1 && (202 * scale > ah || PACK_B.panelW * scale > aw)) scale--;
+  let panelW = PACK_B.panelW, cw = PACK_B.cw, cols = PACK_B.cols, gridW = PACK_B.gridW, statW = PACK_B.statW, ccols = PACK_B.ccols;
+  const hostName = String((typeof location !== 'undefined' && location.hostname) || '').toLowerCase();
+  const fluidOk = !!window.LL_FLUID_SATCHEL && hostName !== 'github.io' && !hostName.endsWith('.github.io');
+  if (fluidOk) {
+    panelW = Math.floor(aw / scale);
+    if (panelW < 160) panelW = Math.max(120, panelW);
+    cw = Math.max(80, panelW - 26);
+    cols = Math.floor((cw - 162) / 30);
+    if (cols < 4) cols = Math.max(3, Math.floor((cw - 96) / 30));
+    cols = Math.max(3, Math.min(12, cols));
+    gridW = cols * 30 + 6;
+    statW = cw - gridW - 6;
+    while (statW < 96 && cols > 3) { cols--; gridW = cols * 30 + 6; statW = cw - gridW - 6; }
+    ccols = Math.max(2, Math.min(8, Math.floor((cw + 7) / 67)));
+  }
+  return { scale, panelW, cw, cols, gridW, statW, statX: gridW + 6, ccols, tabs: satchelTabMode(panelW) };
 }
 function sizeSatchel() {
   const host = $('satchel'), art = $('satArt'); if (!host || !art) return;
@@ -8950,7 +8957,8 @@ function sizeSatchel() {
   art.style.width = m.panelW + 'px';
   art.style.height = '202px';
   art.style.transform = 'scale(' + m.scale + ')';
-  ['cols', 'ccols'].forEach(k => art.style.setProperty('--' + k, m[k]));
+  art.style.setProperty('--cols', m.cols);
+  art.style.setProperty('--ccols', m.ccols);
   art.style.setProperty('--gridw', m.gridW + 'px');
   art.style.setProperty('--statw', m.statW + 'px');
   art.style.setProperty('--statx', m.statX + 'px');
@@ -8961,17 +8969,21 @@ function sizeSatchel() {
   host.dataset.scale = String(m.scale);
   host.dataset.tabs = m.tabs;
   const grid = $('grid');
-  if (grid) grid.style.gridTemplateColumns = 'repeat(' + m.cols + ', 24px)';
+  if (grid) {
+    grid.style.width = m.gridW + 'px';
+    grid.style.gridTemplateColumns = 'repeat(' + m.cols + ', 24px)';
+    grid.style.gridAutoRows = '24px';
+  }
   if (state === 'inv' && !sizeSatchel.lock) { sizeSatchel.lock = 1; try { satchelPaint(); } finally { sizeSatchel.lock = 0; } }
 }
 function tabSrc(file, state, mode) {
   if (mode === 'icon') return 'assets/ui/v07101/satchel/tabs/tab_icon_' + file + '_' + state + '_26x' + (state === 'selected' ? 27 : 20) + '.png';
-  if (mode === 'text') return 'assets/ui/v07101/satchel/tabs/tab_blank_' + (state === 'selected' ? 'selected_9slice_12x23_s4' : state + '_9slice_12x16_s4') + '.png';
   const w = { character: 73, inventory: 73, consumables: 81, notes: 56, lich_tome: 72, map: 48 }[file] || 48;
   return 'assets/ui/v07101/satchel/tabs/tab_' + file + '_' + state + '_' + w + 'x' + (state === 'selected' ? 23 : 16) + '.png';
 }
 function paintTabs() {
-  const mode = ($('satchel') && $('satchel').dataset.tabs) || 'baked';
+  const raw = ($('satchel') && $('satchel').dataset.tabs) || 'baked';
+  const mode = raw === 'icon' ? 'icon' : 'baked';
   document.querySelectorAll('#satTabs .sat-tab').forEach(b => {
     b.style.backgroundImage = 'url(' + tabSrc(b.dataset.file, b.classList.contains('on') ? 'selected' : 'idle', mode) + ')';
   });
@@ -8980,9 +8992,9 @@ function satchelBoot() {
   const host = $('satTabs'); if (!host || host.dataset.ready) return;
   host.dataset.ready = '1';
   [['character', 'Character', 'character', 73], ['inventory', 'Inventory', 'inventory', 73], ['consumables', 'Consumables', 'consumables', 81], ['notes', 'Notes', 'notes', 56], ['tome', 'Lich Tome', 'lich_tome', 72], ['map', 'Map', 'map', 48]].forEach(([id, label, file, tw]) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'sat-tab'; b.dataset.tab = id; b.dataset.file = file; b.textContent = label; b.style.setProperty('--tw', tw); b.setAttribute('aria-label', label);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sat-tab'; b.dataset.tab = id; b.dataset.file = file; b.textContent = label; b.style.setProperty('--tw', tw + 'px'); b.setAttribute('aria-label', label);
     b.addEventListener('click', () => satchelOpenTab(id));
-    b.addEventListener('pointerenter', () => { if (!b.classList.contains('on')) b.style.backgroundImage = 'url(' + tabSrc(file, 'hover', ($('satchel') && $('satchel').dataset.tabs) || 'baked') + ')'; });
+    b.addEventListener('pointerenter', () => { if (!b.classList.contains('on')) { const raw = ($('satchel') && $('satchel').dataset.tabs) || 'baked'; b.style.backgroundImage = 'url(' + tabSrc(file, 'hover', raw === 'icon' ? 'icon' : 'baked') + ')'; } });
     b.addEventListener('pointerleave', () => paintTabs());
     host.appendChild(b);
   });
@@ -11147,6 +11159,10 @@ if (window.game) {
   window.game.SHOP_COLS_713 = SHOP_COLS_713;
   window.game.SHOP_SLOT_713 = SHOP_SLOT_713;
   window.game.SHOP_ROW_713 = SHOP_ROW_713;
+  window.game.satchelMetrics = satchelMetrics;
+  window.game.satchelTabMode = satchelTabMode;
+  window.game.PACK_B = PACK_B;
+  window.game.tabSrc = tabSrc;
   window.game.placeBossShop = placeBossShop711;
   Object.defineProperty(window.game, 'bossAud', { configurable: true, get() { return bossAud713; } });
   Object.defineProperty(window.game, 'texts', { configurable: true, get() { return texts; } });

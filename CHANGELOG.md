@@ -4,6 +4,14 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.14] - 2026-11-01
+
+_The pack keeps its shape_
+
+### Fixed
+- **Backpack layout.** On a wide screen the bag stays the compact pack: seven columns of square slots, and the item card fills the right side. It no longer stretches into a long strip.
+- **Bag tabs.** The tabs stay the gold all-caps labels and sit on the frame. A wide screen no longer turns them into tiny mixed-case words.
+
 ## [0.7.13] - 2026-11-01
 
 _The chest waits, the words are whole, and the bosses have a pulse_
@@ -809,6 +817,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.14]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.14
 [0.7.13]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.13
 [0.7.12.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12.1
 [0.7.12]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12

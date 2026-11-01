@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0714</title></head>
+<body>
+<iframe id="g" src="../index.html?v=0714a" style="width:1600px;height:900px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 320) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function shown(w, id) {
+  const el = w.document.getElementById(id);
+  if (!el) return false;
+  const cs = w.getComputedStyle(el);
+  return cs.display !== 'none' && cs.visibility !== 'hidden' && el.getBoundingClientRect().width > 0;
+}
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.14' && ver.indexOf('"0.7.14"') >= 0, (g && g.version) + ' ' + ver);
+  check('dev hud off on github.io', src.indexOf("h === 'github.io' || h.endsWith('.github.io')") >= 0 && src.indexOf('return false') >= 0);
+  check('no text tab mode', src.indexOf("panelW > 520 ? 'text'") < 0 && src.indexOf('tab_blank_') < 0);
+  check('pack b constants', g && g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394 && g.PACK_B.ccols === 5);
+
+  [[1600, 900], [1920, 1080], [2560, 1440], [1100, 700], [800, 450]].forEach(pair => {
+    const m = g.satchelMetrics(pair[0], pair[1]);
+    const ok = m.cols === 7 && m.gridW === 216 && m.statW === 172 && m.panelW === 420 && m.cw === 394 && m.statX === 222 && m.ccols === 5 && m.tabs === 'baked' && (m.scale === 2 || m.scale === 3 || m.scale === 1);
+    check('locked metrics ' + pair[0] + 'x' + pair[1], ok, JSON.stringify(m));
+    check('tabs not text ' + pair[0], m.tabs !== 'text', m.tabs);
+  });
+  check('narrow icon helper', g.satchelTabMode(279) === 'icon' && g.satchelTabMode(280) === 'baked' && g.satchelTabMode(900) !== 'text');
+  check('baked tab art', g.tabSrc('inventory', 'selected', 'baked').indexOf('tab_inventory_selected_73x23') >= 0);
+  check('text mode falls back to baked', g.tabSrc('character', 'idle', 'text').indexOf('tab_character_idle_73x16') >= 0 && g.tabSrc('character', 'idle', 'text').indexOf('tab_blank_') < 0);
+
+  g.newGame();
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const host = w.document.getElementById('satchel');
+  const grid = w.document.getElementById('grid');
+  const stats = w.document.getElementById('invStats');
+  check('dataset cols 7', host.dataset.cols === '7' && host.dataset.gridw === '216' && host.dataset.statw === '172' && host.dataset.panelw === '420', host.dataset.cols + ' ' + host.dataset.panelw + ' ' + host.dataset.tabs);
+  check('dataset tabs baked on wide', host.dataset.tabs === 'baked' && host.dataset.tabs !== 'text', host.dataset.tabs);
+
+  const gcs = w.getComputedStyle(grid);
+  const colParts = gcs.gridTemplateColumns.split(/\s+/).filter(Boolean);
+  check('grid seven 24px columns', colParts.length === 7 && colParts.every(c => c === '24px'), gcs.gridTemplateColumns);
+  check('grid auto rows 24', gcs.gridAutoRows === '24px', gcs.gridAutoRows);
+  check('grid gap and padding', gcs.columnGap === '6px' && gcs.paddingLeft === '6px' && gcs.paddingTop === '6px', gcs.columnGap + ' ' + gcs.paddingLeft);
+  check('grid width 216', gcs.width === '216px', gcs.width);
+
+  const slot = grid.querySelector('.slot');
+  const scs = slot ? w.getComputedStyle(slot) : null;
+  const sr = slot ? slot.getBoundingClientRect() : null;
+  check('slot style 24', !!(scs && scs.width === '24px' && scs.height === '24px'), scs && (scs.width + 'x' + scs.height));
+  check('slot square', !!(sr && Math.abs(sr.width - sr.height) < 0.75 && sr.width > 20), sr && (sr.width.toFixed(2) + 'x' + sr.height.toFixed(2)));
+
+  const st = w.getComputedStyle(stats);
+  check('stats right half', st.left === '222px' && st.width === '172px', st.left + ' ' + st.width);
+  const padX = parseFloat(st.paddingLeft) + parseFloat(st.paddingRight);
+  const padY = parseFloat(st.paddingTop) + parseFloat(st.paddingBottom);
+  check('stats padding', padX >= 8 && padY >= 4, st.padding);
+
+  check('footer sort', shown(w, 'sortBtn'));
+  check('footer mark seen', shown(w, 'seenBtn'));
+  check('footer drop all', shown(w, 'dropAllBtn'));
+  check('footer equip', shown(w, 'equipBtn'));
+  check('footer drop', shown(w, 'dropBtn'));
+  check('footer close', shown(w, 'satClose'));
+  const gridR = grid.getBoundingClientRect();
+  const statR = stats.getBoundingClientRect();
+  const sortR = w.document.getElementById('sortBtn').getBoundingClientRect();
+  const seenR = w.document.getElementById('seenBtn').getBoundingClientRect();
+  const dropAllR = w.document.getElementById('dropAllBtn').getBoundingClientRect();
+  const equipR = w.document.getElementById('equipBtn').getBoundingClientRect();
+  const dropR = w.document.getElementById('dropBtn').getBoundingClientRect();
+  const closeR = w.document.getElementById('satClose').getBoundingClientRect();
+  const leftMid = (sortR.left + dropAllR.right) / 2;
+  const rightMid = (equipR.left + closeR.right) / 2;
+  check('left footer under grid', leftMid > gridR.left && leftMid < gridR.right && dropAllR.right <= gridR.right + 8, leftMid.toFixed(1) + ' grid ' + gridR.left.toFixed(1) + '-' + gridR.right.toFixed(1));
+  check('right footer under inspect', rightMid > statR.left - 8 && rightMid < statR.right + 8 && equipR.left >= statR.left - 12, rightMid.toFixed(1) + ' stats ' + statR.left.toFixed(1) + '-' + statR.right.toFixed(1));
+  check('footer clusters split', dropAllR.right < equipR.left, dropAllR.right.toFixed(1) + ' < ' + equipR.left.toFixed(1));
+  void seenR; void dropR;
+
+  const tabs = [...w.document.querySelectorAll('#satTabs .sat-tab')];
+  check('six tabs', tabs.length === 6, tabs.length);
+  const scale = +host.dataset.scale || 1;
+  const art = w.document.getElementById('satArt').getBoundingClientRect();
+  const frame = w.document.getElementById('satFrame').getBoundingClientRect();
+  const frameTop = (frame.top - art.top) / scale;
+  let hitOk = true, heightOk = true, bakedOk = true, labelOk = true;
+  tabs.forEach(b => {
+    const r = b.getBoundingClientRect();
+    const cs = w.getComputedStyle(b);
+    const hit = w.document.elementFromPoint(r.left + r.width / 2, r.top + Math.min(r.height / 2, r.height - 2));
+    if (hit !== b && !(hit && b.contains(hit))) hitOk = false;
+    if (Math.abs(r.width / scale - parseFloat(cs.width)) > 1.25) hitOk = false;
+    if (cs.paddingLeft !== '0px' || cs.backgroundSize !== '100% 100%') hitOk = false;
+    const bg = b.style.backgroundImage || '';
+    if (bg.indexOf('tab_blank_') >= 0 || bg.indexOf('tab_' + b.dataset.file + '_') < 0) bakedOk = false;
+    if (cs.fontSize !== '0px' && cs.color !== 'transparent' && cs.color !== 'rgba(0, 0, 0, 0)') labelOk = false;
+    if (b.classList.contains('on')) {
+      const h = r.height / scale;
+      if (Math.abs(h - 23) > 0.75) heightOk = false;
+      const bottom = (r.bottom - art.top) / scale;
+      if (bottom + 0.75 < frameTop) heightOk = false;
+    }
+  });
+  check('tab hitboxes match art', hitOk);
+  check('selected tab 23 and meets frame', heightOk, 'frameTop ' + frameTop.toFixed(2));
+  check('baked png tabs', bakedOk);
+  check('tab labels not courier text', labelOk);
+}
+</script>
+</body>
+</html>
