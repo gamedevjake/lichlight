@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v07152</title>
+<style>html,body{margin:0;background:#000;height:100%;overflow:hidden}iframe{display:block}</style>
+</head>
+<body>
+<iframe id="g" src="../index.html?v=07152a" style="width:1560px;height:390px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function frac(px, view) { return px / view; }
+function originTopLeft(v) {
+  const p = String(v || '').trim().split(/\s+/);
+  const z = s => s === '0' || s === '0px';
+  return p.length >= 2 && z(p[0]) && z(p[1]);
+}
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.15.2' && ver.indexOf('"0.7.15.2"') >= 0, (g && g.version) + ' ' + ver);
+  check('update sees patch', w.semverGt('0.7.15.2', '0.7.15.1') === true && w.semverGt('0.7.15.1', '0.7.15.2') === false);
+  check('pack b constants', g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394);
+  check('crisp art', src.indexOf('#satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated;image-rendering:crisp-edges}') >= 0);
+  check('fluid still gated', src.indexOf('LL_FLUID_SATCHEL') >= 0 && src.indexOf("hostName !== 'github.io'") >= 0 && src.indexOf(".github.io'") >= 0);
+  check('not a canvas menu', src.indexOf('function satchelMetrics') >= 0 && src.indexOf('id="satArt"') >= 0);
+
+  function at(touch, w0, h0) {
+    g.touchMode = !!touch;
+    return g.satchelMetrics(w0, h0);
+  }
+  function locked(m) {
+    return m.cols === 7 && m.panelW === 420 && m.gridW === 216 && m.statW === 172 && m.tabs === 'baked' && m.cw === 394;
+  }
+
+  const ultra = at(true, 1560, 390);
+  const ultraW = frac(420 * ultra.scale, 1560);
+  check('ultra mobile band', locked(ultra) && ultra.mode === 'mobile' && ultra.scale >= 2.2 && ultra.scale <= 3.4, ultra.scale + ' ' + ultra.mode);
+  check('ultra about 86% wide', Math.abs(ultraW - 0.86) < 0.005 && 202 * ultra.scale > 390, ultraW.toFixed(4) + ' x' + ultra.scale.toFixed(4));
+  [340, 360, 390, 420, 450].forEach(h0 => {
+    const m = at(true, 1560, h0);
+    check('ultra height ' + h0 + ' same scale', locked(m) && m.mode === 'mobile' && Math.abs(m.scale - ultra.scale) < 1e-9, m.scale);
+  });
+
+  const wide = at(true, 2400, 500);
+  check('wide touch caps at 3.4', locked(wide) && wide.mode === 'mobile' && Math.abs(wide.scale - 3.4) < 1e-9 && 420 * wide.scale <= 2400, wide.scale);
+
+  const se = at(true, 667, 375);
+  check('small landscape inside glass', locked(se) && se.mode === 'mobile' && 420 * se.scale <= 667 + 0.01 && se.scale <= 667 / 420 + 1e-9, se.scale + ' fit ' + (667 / 420));
+
+  const mid = at(true, 1200, 400);
+  check('mid landscape 86%', locked(mid) && mid.mode === 'mobile' && Math.abs(frac(420 * mid.scale, 1200) - 0.86) < 0.005 && mid.scale >= 2.2 && mid.scale <= 3.4, mid.scale);
+
+  g.touchMode = false;
+  const desk = g.satchelMetrics(1920, 1080);
+  const deskW = frac(420 * desk.scale, 1920), deskH = frac(202 * desk.scale, 1080);
+  check('1080p scale 4', locked(desk) && desk.mode === 'desktop' && desk.scale === 4, JSON.stringify({ scale: desk.scale, mode: desk.mode }));
+  check('1080p peek at most 88%', deskW <= 0.88 && deskH <= 0.88 && Math.max(deskW, deskH) >= 0.85, deskW.toFixed(3) + ' x ' + deskH.toFixed(3));
+  [[2560, 1440, 5], [1600, 900, 3], [1366, 768, 3], [1100, 700, 2]].forEach(row => {
+    const m = at(false, row[0], row[1]);
+    check('desktop ' + row[0] + 'x' + row[1] + ' x' + row[2], locked(m) && m.mode === 'desktop' && m.scale === row[2] && 420 * m.scale <= row[0] && 202 * m.scale <= row[1], m.scale + ' ' + m.mode);
+  });
+  const compact = at(false, 800, 450);
+  check('compact integer', locked(compact) && compact.mode === 'compact' && compact.scale === 1 && compact.scale === (compact.scale | 0), compact.scale + ' ' + compact.mode);
+
+  g.newGame();
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const frame = document.getElementById('g');
+  function layout(w0, h0, touch) {
+    frame.style.width = w0 + 'px';
+    frame.style.height = h0 + 'px';
+    g.touchMode = !!touch;
+    w.resize();
+    w.satchelOpenTab('inventory');
+    const host = w.document.getElementById('satchel');
+    const art = w.document.getElementById('satArt');
+    const inv = w.document.getElementById('inv');
+    const sat = host.getBoundingClientRect();
+    return { host, art, inv, sat, vw: w.innerWidth, vh: w.innerHeight };
+  }
+
+  const big = layout(1920, 1080, false);
+  check('desktop dom scale 4', big.host.dataset.scale === '4' && big.host.dataset.mode === 'desktop' && big.host.dataset.cols === '7' && big.host.dataset.tabs === 'baked' && big.host.dataset.panelw === '420', big.host.dataset.scale + ' ' + big.host.dataset.mode);
+  check('desktop art integer', big.art.style.transform === 'scale(4)' && originTopLeft(big.art.style.transformOrigin) && big.host.style.height === '808px', big.art.style.transform + ' origin ' + big.art.style.transformOrigin + ' ' + big.host.style.height);
+  const bigFrac = big.sat.width / big.vw;
+  check('desktop dom peek', bigFrac <= 0.88 && bigFrac >= 0.85 && big.sat.top >= -1 && big.sat.bottom <= big.vh + 1, bigFrac.toFixed(3) + ' top ' + Math.round(big.sat.top));
+  check('desktop not pinned', w.getComputedStyle(big.host).alignSelf !== 'flex-start' && !big.host.style.marginTop, w.getComputedStyle(big.host).alignSelf);
+
+  const seBox = layout(667, 375, true);
+  const seFrac = seBox.sat.width / seBox.vw;
+  check('small dom inside glass', seBox.host.dataset.cols === '7' && seBox.host.dataset.mode === 'mobile' && seBox.sat.width <= seBox.vw + 1 && seFrac <= 1.002, seBox.host.dataset.scale + ' ' + seFrac.toFixed(3) + ' ' + Math.round(seBox.sat.width) + '/' + seBox.vw);
+
+  let stable = '', stableOk = true;
+  [390, 340, 450].forEach(h0 => {
+    const box = layout(1560, h0, true);
+    if (!stable) stable = box.host.dataset.scale;
+    if (box.host.dataset.scale !== stable || box.host.dataset.mode !== 'mobile' || box.host.dataset.cols !== '7') stableOk = false;
+  });
+  check('dom scale ignores url-bar height', stableOk, stable);
+
+  const box = layout(1560, 390, true);
+  const cover = box.sat.width / box.vw;
+  const artCover = box.art.getBoundingClientRect().width / box.vw;
+  const scale = parseFloat(box.host.dataset.scale);
+  check('dom ultra scale', box.host.dataset.mode === 'mobile' && box.host.dataset.cols === '7' && box.host.dataset.tabs === 'baked' && box.host.dataset.panelw === '420' && scale >= 2.2 && scale <= 3.4, box.host.dataset.scale);
+  check('dom ultra about 86%', Math.abs(cover - 0.86) < 0.02 && Math.abs(artCover - 0.86) < 0.02, cover.toFixed(4) + ' art ' + artCover.toFixed(4) + ' ' + box.vw + 'x' + box.vh);
+  check('dom art transform', box.art.style.width === '420px' && box.art.style.height === '202px' && box.art.style.transform === 'scale(' + box.host.dataset.scale + ')' && originTopLeft(box.art.style.transformOrigin), box.art.style.transform + ' origin ' + box.art.style.transformOrigin);
+  const pinned = w.getComputedStyle(box.host).alignSelf === 'flex-start';
+  const tab = w.document.querySelector('#satTabs .sat-tab.on');
+  const tabR = tab.getBoundingClientRect();
+  check('tabs not clipped', pinned && tabR.top >= -1 && tabR.bottom <= box.vh + 1 && tabR.height > 40 && box.sat.bottom > box.vh + 8, 'top ' + tabR.top.toFixed(1) + ' bot ' + tabR.bottom.toFixed(1) + ' sat ' + box.sat.top.toFixed(1) + '..' + box.sat.bottom.toFixed(1) + ' vh ' + box.vh);
+
+  const tabs = [...w.document.querySelectorAll('#satTabs .sat-tab')];
+  let tabHit = tabs.length === 6, tabNote = '';
+  tabs.forEach(b => {
+    const r = b.getBoundingClientRect();
+    const midY = Math.min(r.top + r.height / 2, box.vh - 2);
+    const hit = w.document.elementFromPoint(r.left + r.width / 2, midY);
+    const localW = r.width / scale;
+    const cssW = parseFloat(w.getComputedStyle(b).width);
+    if (!(hit === b || (hit && b.contains(hit)))) { tabHit = false; tabNote += b.dataset.tab + '->' + (hit && hit.id || hit && hit.className || 'none') + ' '; }
+    if (Math.abs(localW - cssW) > 1.5) { tabHit = false; tabNote += b.dataset.tab + ' w ' + localW.toFixed(1) + '/' + cssW + ' '; }
+  });
+  check('tab hits follow scale', tabHit, tabNote || 'ok');
+  const other = tabs.find(b => b.dataset.tab !== 'inventory');
+  if (other) other.click();
+  check('tab click changes pane', box.host.dataset.tab === (other && other.dataset.tab), box.host.dataset.tab);
+  w.satchelOpenTab('inventory');
+
+  const slot = w.document.querySelector('#grid .slot');
+  const sr = slot ? slot.getBoundingClientRect() : null;
+  let slotHit = false, slotNote = 'missing';
+  if (sr) {
+    const hit = w.document.elementFromPoint(sr.left + sr.width / 2, sr.top + sr.height / 2);
+    slotHit = hit === slot || (hit && slot.contains(hit));
+    const local = sr.width / scale;
+    slotNote = 'hit ' + (hit && (hit.className || hit.id)) + ' local ' + local.toFixed(2) + ' vis ' + sr.top.toFixed(1) + '..' + sr.bottom.toFixed(1);
+    slotHit = slotHit && Math.abs(local - 24) < 1.5 && sr.top >= -1 && sr.bottom <= box.vh + 1;
+  }
+  check('slot hit follows scale', slotHit, slotNote);
+
+  const grid = w.document.getElementById('grid');
+  const gcs = w.getComputedStyle(grid);
+  const colParts = gcs.gridTemplateColumns.split(/\s+/).filter(Boolean);
+  check('grid seven 24px', colParts.length === 7 && colParts.every(c => c === '24px'), gcs.gridTemplateColumns);
+  // Leave the glass on the short-landscape pack so a screenshot of this page is the Ultra case.
+  layout(1560, 390, true);
+}
+</script>
+</body>
+</html>

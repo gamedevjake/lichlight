@@ -28,8 +28,8 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.15.1' && ver.indexOf('"0.7.15.1"') >= 0, (g && g.version) + ' ' + ver);
-  check('update sees patch', w.semverGt('0.7.15.1', '0.7.15') === true && w.semverGt('0.7.15', '0.7.15.1') === false);
+  check('version', g && g.version === '0.7.15.2' && ver.indexOf('"0.7.15.2"') >= 0, (g && g.version) + ' ' + ver);
+  check('update sees patch', w.semverGt('0.7.15.2', '0.7.15') === true && w.semverGt('0.7.15', '0.7.15.2') === false);
   check('pack b constants', g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394);
   check('integer transform not zoom', src.indexOf("art.style.transform = 'scale(' + m.scale + ')'") >= 0 && src.indexOf('zoom:var(--ui)') < 0);
   check('inv clips centered overflow', src.indexOf('#inv{background:rgba(6,4,6,.78);align-items:center;justify-content:center;padding:0;overflow:hidden}') >= 0 && src.indexOf('#satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:none;overflow:hidden') >= 0);

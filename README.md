@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://gamedevjake.github.io/lichlight/)**
 
-Current version: **v0.7.15.1** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
+Current version: **v0.7.15.2** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 

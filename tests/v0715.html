@@ -28,7 +28,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.15.1' && ver.indexOf('"0.7.15.1"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.15.2' && ver.indexOf('"0.7.15.2"') >= 0, (g && g.version) + ' ' + ver);
   check('pack b constants', g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394);
   check('fluid still gated', src.indexOf('LL_FLUID_SATCHEL') >= 0 && src.indexOf("hostName !== 'github.io'") >= 0 && src.indexOf(".github.io'") >= 0);
   check('no scale special case', src.indexOf('w >= 1100 && h >= 640') < 0);
