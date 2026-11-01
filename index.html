@@ -135,8 +135,20 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .shcols{display:flex;gap:14px;text-align:left;margin:6px 0}.shcol{flex:1;min-width:0}
 #shGrid{display:grid;grid-template-columns:repeat(5,var(--slot));gap:3px;--slot:min(9vh,42px);max-height:38vh;overflow-y:auto;touch-action:pan-y}
 #rsHours{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:6px 0}#rsHours .rh{width:auto;flex:0 0 52px;justify-content:center}
-.talkbox{text-align:left;max-width:min(94vw,560px)}.tkhead{display:flex;gap:12px;align-items:center}#tkPort{width:64px;height:64px;image-rendering:pixelated;border:2px solid #6a2020;background:#0c080a}
-#tkLine{font-size:14px;line-height:1.45;color:#e8dcc0;font-style:italic}#tkResp{color:#e07060;font-size:13px;min-height:1em}#talk .mbtn{display:block;margin:8px auto 2px}
+#talk{background:rgba(0,0,0,.55)}
+.talkbox{position:relative;text-align:left;width:min(92vw,640px);max-width:640px;margin:6vh auto 0;padding:22px 18px 14px;background:#2a1c16;border:4px solid #c4a574;box-shadow:0 0 0 2px #4a3018,0 12px 0 rgba(0,0,0,.35);color:#e8dcc0}
+.tk-portrait{position:absolute;top:-28px;right:18px;width:108px;height:108px;background:#140e0c;border:4px solid #e0c080;box-shadow:0 0 0 2px #6a4a20;z-index:2}
+.tk-portrait.crown:before{content:'';position:absolute;top:-12px;left:22px;width:56px;height:14px;background:#e0c080;clip-path:polygon(0 100%, 10% 20%, 25% 100%, 40% 15%, 50% 100%, 65% 15%, 80% 100%, 92% 20%, 100% 100%)}
+#tkPort{width:100px;height:100px;image-rendering:pixelated;background:#140e0c;display:block}
+.tk-name{display:inline-block;margin:0 0 2px;padding:3px 10px 2px;background:#6a1810;color:#f4ecd4;font:bold 18px/1.1 "Courier New",monospace;letter-spacing:1px}
+#tkTitle{margin:0 0 8px 2px;color:#9a9088;font:bold 11px/1.2 "Courier New",monospace;letter-spacing:1px}
+.tk-bubble{position:relative;margin:8px 120px 12px 0;padding:10px 12px 12px;background:#f3e6c8;color:#3a2a18;border:3px solid #c4a574;font:14px/1.45 "Courier New",monospace;min-height:52px}
+.tk-bubble:after{content:'';position:absolute;top:16px;right:-14px;border:8px solid transparent;border-left-color:#f3e6c8}
+#tkLine{margin:0;color:#3a2a18;font-style:normal}
+#tkReplies{display:flex;flex-direction:column;gap:6px;margin:0 8px 10px}
+#tkReplies .shb{display:block;width:100%;text-align:left;padding:8px 10px;background:#4a2c24;color:#f4ecd4;border:2px solid #c4a574;font:14px/1.3 "Courier New",monospace}
+#tkBegin{display:block;margin:8px auto 2px;min-width:240px;background:#5a3018;border-color:#e0c080;letter-spacing:1px}
+.tk-hint{text-align:center;color:#8a8078;font-size:11px;margin-top:2px}
 #talk .v4sub,#skills .v4sub{text-align:center}
 .skrow{display:flex;gap:4px;align-items:center;margin:4px 0;flex-wrap:wrap}.skrow .skn{flex:1 1 120px;text-align:left;font-weight:bold}.skrow .skl{color:#888;font-size:11px;width:40px}.skrow .skb{width:auto;flex:0 0 auto;font-size:11px;min-height:30px}
 .invb{flex-wrap:wrap}.invb2 .sortb{flex:0 1 auto;padding:0 8px;display:flex;align-items:center;gap:4px}#dropAllBtn{background:linear-gradient(#4a2020,#301414);border-color:#a04040}
@@ -290,7 +302,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satBody{position:relative;height:108px}
 .sat-pane{display:none;position:absolute;left:0;top:0;right:0;height:108px}
 .sat-pane.on{display:block}
-#satFoot{margin-top:6px;height:20px;display:flex;justify-content:space-between;align-items:center;gap:4px;overflow:hidden}
+#satFoot{position:absolute;left:8px;right:8px;bottom:6px;height:20px;margin:0;display:flex;justify-content:space-between;align-items:center;gap:4px;overflow:visible;z-index:6}
+#satFrame{height:160px}
+#satBody{height:108px}
 .foot-l,.foot-r{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;min-width:0}
 .foot-r{flex:0 0 auto}
 #satchel .invb{flex-wrap:nowrap;gap:4px;margin:0}
@@ -342,10 +356,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #invCount{position:absolute;left:2px;top:98px;width:210px;height:8px;image-rendering:pixelated;pointer-events:none}
 #invStats{position:absolute;top:0;left:var(--statx,222px);width:var(--statw,172px);height:108px;min-width:0;overflow:hidden;padding:0;margin:0;background:none;flex:none;text-align:left}
 #invStats::before{content:'';position:absolute;inset:0;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) 4 fill / 4px / 0 stretch;pointer-events:none}
-#invStats .ist-head{position:absolute;left:4px;right:4px;top:3px;height:17px;background:url(assets/ui/v07101/satchel/content/inv_stats_header_common_9slice_24x17_s6.png) center/100% 100% no-repeat;pointer-events:none}
-#invStats[data-rar="magic"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_magic_9slice_24x17_s6.png)}
-#invStats[data-rar="rare"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_rare_9slice_24x17_s6.png)}
-#invStats[data-rar="unique"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_unique_9slice_24x17_s6.png)}
+#invStats .ist-head{position:absolute;left:4px;right:4px;top:3px;height:0;background:none;pointer-events:none}
+#invStats[data-rar="magic"] .ist-head,#invStats[data-rar="rare"] .ist-head,#invStats[data-rar="unique"] .ist-head{background:none}
+#holdStats .ist-head{background:none!important}
 #invStats canvas,#charStrip canvas,#consDetail canvas{position:absolute;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
 #notesPane canvas{position:relative;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
 #satchel .slot{width:24px;height:24px;border:0;border-image:none;outline:none;box-shadow:none;border-radius:0;padding:0;animation:none;background-color:transparent;background-image:url(assets/ui/v07101/satchel/content/slot_idle_24.png);background-size:100% 100%;background-repeat:no-repeat}
@@ -422,21 +435,30 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel .slot .ntag,#shop .slot .ntag{display:block;position:absolute;top:1px;right:1px;z-index:5;margin:0;padding:0 1px;font:bold 5px/6px "Courier New",monospace;letter-spacing:0;color:#062a24;background:#40f0d0;border-radius:0;pointer-events:none;animation:none;box-shadow:none}
 #holdStats{width:auto;max-width:min(520px,92vw);max-height:min(78vh,640px);background:#221A15}
 #holdStats canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
-#shop .shopbox{max-width:min(96vw,860px);width:min(96vw,860px);text-align:left}
-#shTabs{display:flex;gap:6px;justify-content:center;margin:6px 0}
-#shTabs .shb.on{outline:1px solid #e8c840}
-#shStock{display:flex;gap:18px;align-items:flex-start}
+#shop.overlay:not(.hidden){transform:none!important;width:100%!important;height:100%!important;left:0!important;top:0!important;right:0!important;bottom:0!important;display:flex;align-items:center;justify-content:center}
+#shop .shopbox{width:80%;max-width:960px;min-width:280px;text-align:left;background:#2E221D;color:#f4ecd4;border:4px solid #E5B064;box-shadow:0 0 0 2px #3a2414,inset 0 0 0 3px #E5B064;padding:12px 14px 10px;image-rendering:pixelated;image-rendering:crisp-edges}
+#shop .sh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+#shop .sh-head canvas,#shNoteCv,#shBuyCv,#shUniCv,#shRepairCv{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+#shNoteCv{margin:4px 0 8px}
+#shTabs{display:flex;gap:8px;justify-content:center;margin:4px 0 8px}
+#shTabs .shb{background:#241812;color:#c8b8a0;border:2px solid #4a3424;padding:6px 10px;min-height:28px;font:bold 12px/16px "Courier New",monospace;image-rendering:pixelated}
+#shTabs .shb.on{outline:2px solid #E5B064;outline-offset:0;border-color:#E5B064;color:#f4ecd4;background:#3a2a22}
+#shStock{display:flex;gap:16px;align-items:stretch}
+#shStock .shcol{flex:1 1 0;min-width:0}
+#shStock .shcol h3{margin:0 0 4px;color:#e8dcc0;font:bold 12px "Courier New",monospace;letter-spacing:1px}
 #shStock.hidden,.sh-single.hidden{display:none!important}
-.sh-single{min-height:110px;text-align:center}
+.sh-single{min-height:180px;background:#f3e6c8;border:3px solid #c4a574;padding:8px}
 #shSellClip,#shBuyClip{position:relative;overflow:hidden;touch-action:none}
-#shSellClip{height:96px}
-#shBuyClip{height:108px}
-#shop #shGrid{display:grid;grid-template-columns:repeat(7,24px);grid-auto-rows:24px;gap:6px;--slot:24px;max-height:none;overflow:visible;width:max-content;position:relative;margin:0;justify-content:start}
-#shop .slot{width:24px;height:24px;border:0;border-image:none;box-shadow:none;background:transparent url(assets/ui/v07101/satchel/content/slot_idle_24.png) center/100% 100% no-repeat}
-#shop .slot.sel{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png)}
-#shop .slot img{width:16px;height:16px;image-rendering:pixelated}
+#shSellClip{height:156px;background:#1a120e;border:2px solid #6a4a28}
+#shBuyClip{height:156px;background:#241812;border:2px solid #6a4a28}
+#shop #shGrid{display:grid;grid-template-columns:repeat(5,32px);grid-auto-rows:32px;gap:4px;--slot:32px;max-height:none;overflow:visible;width:max-content;position:relative;margin:0;justify-content:start}
+#shop .slot{width:32px;height:32px;border:0;border-image:none;box-shadow:none;background:transparent url(assets/ui/v07101/satchel/content/slot_idle_24.png) center/100% 100% no-repeat}
+#shop .slot.sel{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png);outline:2px solid #E5B064;outline-offset:-2px}
+#shop .slot img{width:20px;height:20px;image-rendering:pixelated;image-rendering:crisp-edges}
 #shFoot{display:flex;gap:6px;justify-content:stretch;margin-top:8px}
-#shFoot>button{flex:1 1 0;min-width:0;margin:0}
+#shFoot>button{flex:1 1 0;min-width:0;margin:0;min-height:32px;background:#4a3018;color:#f4ecd4;border:2px solid #E5B064;font:bold 11px/14px "Courier New",monospace;image-rendering:pixelated}
+#shFoot>button.dis{opacity:.45}
+#shLeave{display:block;width:100%;margin:8px 0 0;min-height:34px;background:#7E1E1E;color:#f4ecd4;border:2px solid #e8a0a0;font:bold 13px/18px "Courier New",monospace}
 #tomeGridCv{display:block;image-rendering:pixelated;touch-action:none}
 #satchel #notesPane{overflow:hidden!important}
 #notesPane canvas.notes712{position:absolute;left:0;top:0}
@@ -539,7 +561,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="updBtns"><button class="mbtn" id="updGo">UPDATE</button><button class="mbtn small" id="updLater">LATER</button></div>
 </div></div>
 <div id="shop" class="overlay hidden"><div class="v4box shopbox">
-  <h2>THE HOLLOW PEDLAR <span id="shGold" class="c3"></span></h2><div class="v4sub" id="shNote"></div>
+  <div class="sh-head"><canvas id="shTitleCv" width="320" height="18"></canvas><canvas id="shGoldCv" width="240" height="18"></canvas><span id="shGold" hidden></span></div>
+  <canvas id="shNoteCv" width="640" height="28"></canvas>
+  <div id="shNote" hidden></div>
   <div id="shTabs" class="sh-tabs">
     <button type="button" class="shb on" id="shTabStock" data-view="stock">STOCK</button>
     <button type="button" class="shb" id="shTabSealed" data-view="sealed">SEALED UNIQUES</button>
@@ -547,28 +571,34 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   </div>
   <div id="shStage">
     <div id="shStock" class="shcols">
-      <div class="shcol"><h3>BUY</h3><div id="shBuyClip"><canvas id="shBuyCv" width="240" height="108"></canvas><div id="shBuy" hidden></div></div></div>
-      <div class="shcol"><h3>SELL</h3><div id="shSellClip"><div id="shGrid"></div></div><div id="shSelTxt" class="v4sub"></div></div>
+      <div class="shcol"><h3>BUY</h3><div id="shBuyClip"><canvas id="shBuyCv" width="280" height="156"></canvas><div id="shBuy" hidden></div></div></div>
+      <div class="shcol"><h3>SELL</h3><div id="shSellClip"><div id="shGrid"></div></div><div id="shSelTxt" hidden></div></div>
     </div>
-    <div id="shSealedPane" class="sh-single hidden"><canvas id="shUniCv" width="420" height="120"></canvas><div id="shUni" hidden></div><div class="v4sub">No stats until the coin is spent. A higher price is a better roll. Depth makes the trader's stock stronger.</div></div>
-    <div id="shRepairPane" class="sh-single hidden"><canvas id="shRepairCv" width="420" height="80"></canvas></div>
+    <div id="shSealedPane" class="sh-single hidden"><canvas id="shUniCv" width="640" height="180"></canvas><div id="shUni" hidden></div></div>
+    <div id="shRepairPane" class="sh-single hidden"><canvas id="shRepairCv" width="640" height="180"></canvas></div>
   </div>
   <div id="shFoot">
-    <button class="shb" id="shSell" type="button">SELL</button>
+    <button class="shb" id="shBuyItem" type="button">BUY ITEM</button>
+    <button class="shb" id="shSell" type="button">SELL ITEM</button>
     <button class="shb" id="shSellAll" type="button">SELL ALL</button>
-    <button class="mbtn small" id="shLeave" type="button">LEAVE</button>
     <button class="shb" id="shRepair" type="button">REPAIR ALL</button>
   </div>
+  <button class="shb" id="shLeave" type="button">LEAVE</button>
 </div></div>
 <div id="rest" class="overlay hidden"><div class="v4box">
   <h2>REST</h2><div class="v4sub">The room is quiet. How long will you sleep?</div>
   <div id="rsHours"></div><div class="v4sub" id="rsTxt"></div>
   <div class="updBtns"><button class="mbtn small" id="rsGo">SLEEP</button><button class="mbtn small" id="rsNo">CANCEL</button></div>
 </div></div>
-<div id="talk" class="overlay hidden"><div class="v4box talkbox">
-  <div class="tkhead"><canvas id="tkPort" width="64" height="64"></canvas><div><h2 id="tkName"></h2><div class="v4sub" id="tkTitle"></div></div></div>
-  <p id="tkLine"></p><div id="tkReplies"></div><p id="tkResp"></p>
-  <button class="mbtn" id="tkBegin">BEGIN THE FIGHT</button><div class="v4sub">Esc / Enter also begins</div>
+<div id="talk" class="overlay hidden"><div class="talkbox">
+  <div class="tk-portrait"><canvas id="tkPort" width="96" height="96"></canvas></div>
+  <h2 class="tk-name" id="tkName">BOSS</h2>
+  <div id="tkTitle"></div>
+  <div class="tk-bubble" id="tkBubble"><p id="tkLine"></p></div>
+  <div id="tkReplies"></div>
+  <p id="tkResp" hidden></p>
+  <button class="mbtn" id="tkBegin">BEGIN THE FIGHT</button>
+  <div class="tk-hint">Esc / Enter also begins</div>
 </div></div>
 <div id="skills" class="overlay hidden"><div class="v4box">
   <h2>SKILL KEYS</h2><div class="v4sub">Keys 1 / 2 / 3 cast a skill at the cursor. Pick which skill each key casts, and which one right-click casts.</div>
@@ -585,7 +615,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.12.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.13'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -3234,7 +3264,7 @@ window.addEventListener('keydown', e => {
   if (state === 'sleep' || state === 'dying') { e.preventDefault(); return; } // v0.5.0: no input while the screen is dark; v0.7.8 death anim plays out
   if (state === 'tlayout') { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeTouchEditor(); } return; }
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Tab', 'Alt', 'F1', 'F2', 'F3', 'Control'].includes(e.key)) e.preventDefault();
-  if (state === 'talk') { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); beginFight(); } return; }
+  if (state === 'talk') { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); beginFight(); } else if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); if (typeof skipTalk713 === 'function') skipTalk713(); } return; }
   if (state === 'shop') { if (e.key === 'Escape') closeShop(); return; }
   if (state === 'rest') { if (e.key === 'Escape') setState('play'); else if (e.key === 'Enter') { e.preventDefault(); confirmRest(); } return; }
   if (!$('skills').classList.contains('hidden')) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeSkills(); } return; }
@@ -3472,8 +3502,14 @@ function desktopClick(e) {
   const en = enemyAtCursor(); if (en) { startWalk('enemy', en, en.x, en.y); return; }
   { const tt = torchAtCursor() || propAtCursor(); if (tt) { const isT = torches.includes(tt), ax = tt.x, ay = isT ? tt.y + 6 : tt.y - 4, stand = isT ? { x: tt.x, y: tt.y + 20 } : null;
       const swing = () => { faceTo(ax, ay); p.atkCd = 0; doAttack(true); };
-      if (Math.hypot(ax - p.x, ay - p.y) < (isT ? 26 : 18)) { p.walk = null; swing(); }
-      else { const q = stand || { x: tt.x, y: tt.y + 10 }; startWalk('ground', null, q.x, q.y); p.useT = { x: q.x, y: q.y, r: isT ? 10 : 12, use: swing }; }
+      const distP = Math.hypot(ax - p.x, ay - p.y);
+      const bow = typeof equippedBow === 'function' && equippedBow();
+      const reach = weaponReach713();
+      if (bow) {
+        if (distP <= reach && los(p, { x: ax, y: ay })) { p.walk = null; swing(); }
+        else { const q = { x: tt.x, y: tt.y + 10 }; startWalk('ground', null, q.x, q.y); p.useT = { x: q.x, y: q.y, r: Math.max(16, Math.min(reach, 28)), use: swing }; }
+      } else if (distP <= (isT ? 26 : reach)) { p.walk = null; swing(); }
+      else { const q = stand || { x: tt.x, y: tt.y + 10 }; startWalk('ground', null, q.x, q.y); p.useT = { x: q.x, y: q.y, r: Math.min(isT ? 10 : 12, reach), use: swing }; }
       return; } }
   // v0.6.3 B2: Examine / Use (doors, levers, chests, drink, read, trade...) is F only on PC - a click never triggers it
   const se = secretAtCursor(); if (se) { const t = walkTargetPoint({ kind: 'secret', ref: se }); startWalk('secret', se, t.x, t.y); return; }
@@ -3846,7 +3882,7 @@ function powerNum075(q) { if (!q) return 0; if (q.t === 'skillAmp' || q.t === 't
 function compareHTML(a, b) { // v0.7.5 B2: new value, then the signed delta vs equipped. Equal stats are omitted. Never a second + or - in front of a line that already has one.
   const out = [], A = a.mods || {}, B = b.mods || {};
   const push = (text, d) => { if (d) out.push(cmpSpan075(text, d)); };
-  if (a.min || b.min || a.max || b.max) { const na = Math.round(((+a.min || 0) + (+a.max || 0)) / 2), nb = Math.round(((+b.min || 0) + (+b.max || 0)) / 2); push(na + ' avg dmg', na - nb); }
+  if (a.min || b.min || a.max || b.max) { const na = Math.round(((+a.min || 0) + (+a.max || 0)) / 2), nb = Math.round(((+b.min || 0) + (+b.max || 0)) / 2); push(na + ' avg damage', na - nb); }
   if ((a.spd || b.spd) && (a.min || b.min)) { const na = Math.round((+a.spd || 0) * 100) / 100, nb = Math.round((+b.spd || 0) * 100) / 100; push('Speed ' + na, Math.round((na - nb) * 100) / 100); }
   push((+a.def || 0) + ' armor', (+a.def || 0) - (+b.def || 0));
   push((+a.block || 0) + '% block', (+a.block || 0) - (+b.block || 0));
@@ -3966,7 +4002,7 @@ function killEnemy(e) {
     drop(makeItem(L, Math.random() < .5 ? 2 : 1), 14, 0);        // rare or magic
     drop(makeItem(L, 1), 0, 12);                                 // magic
     if (B.oswin) drop(bossUnique(L + 2), 0, -26);
-    if (goldKept()) dropAt(ground, e.x - 8, e.y + 14, { gold: 50 * depth }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' }); if (Math.random() < NECRO_DROP) dropAt(ground, e.x + 16, e.y + 6, { pot: 'np' }); bossExtraDrops(e); // v0.7.8.1 F1: boss gold 30% as often; F7 necro, bosses only
+    if (goldKept()) dropAt(ground, e.x - 8, e.y + 14, { gold: Math.min(49, Math.max(1, Math.round(25 * depth))) }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' }); if (Math.random() < NECRO_DROP) dropAt(ground, e.x + 16, e.y + 6, { pot: 'np' }); bossExtraDrops(e); // v0.7.8.1 F1: boss gold 30% as often; F7 necro, bosses only
     addTrauma(1); burst(e.x, e.y, B.pal[0], 40, 140); burst(e.x, e.y, '#ffe060', 20, 100); effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: .6, r: 50 });
     teles = teles.filter(q => q.src !== e);
     musSting(B.oswin && !e.cycle ? 'mus_victory_01' : 'mus_room_clear_01', { delay: 1.2 });
@@ -4124,7 +4160,7 @@ function doAttack(fixed) {
   const ang = Math.atan2(p.fy, p.fx); let landed = false;
   for (const e of enemies.slice()) {
     const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
-    if (d > 24 + PWR_REACH + e.r) continue;
+    if (d > weaponReach713() + e.r) continue;
     const da = Math.abs(((Math.atan2(dy, dx) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (da > 1.1 && d > 8 + e.r) continue;
     const { d: dmg, crit } = rollDmg(); leech(dmg);
@@ -4132,7 +4168,11 @@ function doAttack(fixed) {
   }
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
-  breakSecretsAt(p.x + p.fx * 13, p.y + p.fy * 13, 9, true); meleeWorld(p.x + p.fx * 13, p.y + p.fy * 13);
+  { const reach = weaponReach713(), fwd = Math.min(reach * 0.55, Math.max(8, reach - 8));
+    breakMode713 = 'melee';
+    breakSecretsAt(p.x + p.fx * fwd, p.y + p.fy * fwd, Math.max(8, reach - fwd), true);
+    breakMode713 = '';
+    meleeWorld(p.x + p.fx * Math.min(13, fwd), p.y + p.fy * Math.min(13, fwd)); }
   for (const c of chests) if (!c.open && c.free && Math.hypot(c.x - p.x, c.y - p.y) < 20) openChest(c); // v0.7.12 B9: locked chests ignore attacks (no key spend)
 }
 // desktop mouse aiming (logical canvas coords)
@@ -4154,10 +4194,10 @@ function castSkill(i) {
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
     for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = (dm * 1.4 + pw * .5) * amp; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit); } }
-    sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
+    sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, 32, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
-    breakSecretsAt(p.x, p.y, 64, true); snuffTorchesNear(p.x, p.y, 70);
+    breakSecretsAt(p.x, p.y, 70, true); snuffTorchesNear(p.x, p.y, 70);
     sfx(S.snd || 'nova'); fxCast074(2);
     for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, (6 + pw * 1.1) * amp, 0, 0, '#80d0ff'); } }
   }
@@ -4264,12 +4304,13 @@ function update(dt) {
     if (!pr.visualStyle && Math.random() < (pr.owner === 'p' ? .6 : .25)) parts.push({ x: pr.x, y: pr.y, vx: rand(-10, 10), vy: rand(-10, 10), life: .25, col: pick(PCOL[pr.kind] || PCOL.bolt) });
     let dead = pr.life <= 0 || solidAt(pr.x, pr.y), hitP = false;
     if (pr.life > 0 && projHitsTorch(pr.x, pr.y, dead ? 4 : 0)) dead = true;
-    if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r) { dead = true; break; } }
+    if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r) { dead = true; break; }
+      if (!dead && pr.kind === 'arrow') { for (const o of props) if (o && !o.broken && Math.hypot(o.x - pr.x, (o.y - 4) - pr.y) < (pr.r || 3) + 8) { dead = true; break; } } }
     if (!dead && pr.owner === 'e' && p.roll <= 0 && Math.hypot(p.x - pr.x, p.y - pr.y) < p.r + pr.r) { dead = true; hitP = true; if (!(p.isInvincible || p.isPlayerUndetected)) { hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } } }
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
-      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8'); if (state !== 'play') return; continue; }
+      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8'); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
       if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); if (pr.skill === 0) fxImpact074(pr.x, pr.y); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
         for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040'); } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
@@ -4748,8 +4789,32 @@ function updateTraps(dt) {
     if (puzzles.every(q => q.door !== o.door || q.on)) { openDoor(o.door); flashMsg('The last plate sinks. A stone door grinds open.', '#c8b8a0'); } else flashMsg('A plate sinks with a click.', '#a09890'); }
 }
 // ---- breakable props ----
+let breakMode713 = '';
+function weaponReach713() {
+  const w = player && player.equip && player.equip.weapon;
+  const power = (typeof PWR_REACH === 'number') ? PWR_REACH : 0;
+  if (w && (w.bow || w.icon === 'bow')) return (typeof BOW_SPEED === 'number' ? BOW_SPEED : 220) * 0.95;
+  if (!w) return 18 + power;
+  const byIcon = { sword: 24, axe: 28, maul: 34, staff: 40, spear: 40 };
+  const base = (w.range > 0 ? +w.range : 0) || byIcon[w.icon] || 24;
+  return base + power;
+}
+function propPoint713(o) { return { x: o.x, y: o.y - 4 }; }
 function breakPropsAt(x, y, r) {
-  for (const o of props) { if (o.broken) continue; if (Math.hypot(o.x - x, o.y - (o.y - 4 > y ? o.y : o.y - 4)) > r + 6 && Math.hypot(o.x - x, o.y - 4 - y) > r + 6) continue;
+  const melee = breakMode713 === 'melee';
+  const reach = melee ? weaponReach713() : 0;
+  for (const o of props) { if (o.broken) continue;
+    const pt = propPoint713(o);
+    if (Math.hypot(pt.x - x, pt.y - y) > r + 6) continue;
+    if (melee && player) {
+      const d = Math.hypot(pt.x - player.x, pt.y - player.y);
+      if (d > reach + 6) continue;
+      if (d > 8) {
+        const ang = Math.atan2(player.fy || 0, player.fx || 1);
+        const da = Math.abs(((Math.atan2(pt.y - player.y, pt.x - player.x) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+        if (da > 1.1) continue;
+      }
+    }
     o.broken = true; const col = o.kind === 'barrel' ? '#7a5030' : o.kind === 'urn' ? '#8a6a50' : '#d8d0b8';
     burst(o.x, o.y - 4, col, 14, 55); burst(o.x, o.y - 4, '#4a4040', 6, 30); for (let k = 0; k < 4; k++) debris.push({ x: o.x + rand(-6, 6), y: o.y + rand(-3, 4), w: 1 + irand(0, 1), h: 1 + irand(0, 1), col, sh: true });
     sfx(o.kind === 'urn' ? 'shatter' : 'break'); critterBurst('pot', o.x, o.y - 2, o.kind === 'barrel' ? ['bug', 'spider', 'fly'] : ['spider', 'bug', 'centipede']); // v0.7.0 §4
@@ -4876,7 +4941,7 @@ function buyUnique(i) {
 }
 function sellPrice(it) { return Math.max(3, Math.round((it.lvl || 1) * (3 + it.rarity * 5) * (it.rarity === 3 ? 4 : 1))); }
 function repairAllCost() { let c = 0; for (const it of player.inv.concat(SLOTS.map(k => player.equip[k]))) if (it && needsRepair(it)) c += Math.ceil((it.maxDur - it.dur) * (1 + it.rarity) * .6) + 5; return c; }
-let shopSel = new Set(), shopNote = '', sellAllAsk = false;
+let shopSel = new Set(), shopNote = '', sellAllAsk = false, shopBuyPick = 0;
 const PEDLAR_HELLO = ['"Coin for comfort, comfort for coin."', '"Mind the drips. They bill extra."', '"Bones, bread, keys. I don\'t ask."', '"The Choir sings. I sell earplugs. Sold out."', '"The Bone King does not tip. You will."', '"Gate keys, slightly haunted. The haunt is free."', '"Rations. Mostly rat. The mostly is doing a lot of work."', '"I followed the Choir down here. They do not pay session fees."', '"Fresh from a boss? You smell expensive."', '"Buy the bread. The bread has not sung once."', '"Every fifth stair used to be my stall. Now I bill every corpse."', '"Welcome, candle. Leave heavier in gold or lighter in gear."', '"The deep keeps the dead. I keep the receipt."', '"Pedlar\'s law: nothing is cursed until you ask."', '"I watched Oswin sign the contract. I sold him the pen."', '"Thirsty? The water is free. The cup is forty gold."'];
 function openShop() { shopSel = new Set(); sellAllAsk = false; shopNote = pick(PEDLAR_HELLO); setState('shop'); renderShop(); sfx('gold', { cue: 'wld_npc_merchant_greet_01' }); }
 function closeShop() { setState('play'); save(); }
@@ -4956,14 +5021,37 @@ const TALK_REPLIES = [
   ['"I have a torch and a grudge."', 'A grudge burns longer. Shame about the torch.']
 ];
 let talkBoss = null;
+let talkAnim713 = null;
+function skipTalk713() {
+  if (!talkAnim713) return false;
+  talkAnim713.n = talkAnim713.words.length;
+  const line = $('tkLine'); if (line) line.textContent = talkAnim713.words.join(' ');
+  return true;
+}
+function setTalkLine713(text) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  talkAnim713 = { words: words.length ? words : [''], n: 0, acc: 0 };
+  const line = $('tkLine'); if (line) line.textContent = '';
+}
+function tickTalk713(dt) {
+  const a = talkAnim713; if (!a) return;
+  if (a.n >= a.words.length) return;
+  a.acc += dt;
+  const step = 0.085;
+  while (a.acc >= step && a.n < a.words.length) { a.acc -= step; a.n++; }
+  const line = $('tkLine'); if (line) line.textContent = a.words.slice(0, a.n).join(' ');
+}
 function openTalk(e) {
   talkBoss = e; e.talked = true; const B = e.B || {}, nm = (B.n || e.name || 'THE BOSS');
-  $('tkName').textContent = e.name || nm; $('tkTitle').textContent = B.t || ''; $('tkLine').textContent = BOSS_LINES[B.n] || 'You should not have come down here, little light.';
-  $('tkResp').textContent = ''; const R = $('tkReplies'); R.innerHTML = '';
+  $('tkName').textContent = e.name || nm; $('tkTitle').textContent = B.t || '';
+  const port = document.querySelector('#talk .tk-portrait'); if (port) port.classList.toggle('crown', !!B.crown);
+  setTalkLine713(BOSS_LINES[B.n] || 'You should not have come down here, little light.');
+  const resp = $('tkResp'); if (resp) resp.textContent = '';
+  const R = $('tkReplies'); R.innerHTML = '';
   for (const [q, a] of shuffled(TALK_REPLIES).slice(0, 3)) { const b = document.createElement('button'); b.className = 'shb'; b.textContent = q;
-    b.addEventListener('click', () => { $('tkResp').textContent = (e.name || nm) + ': ' + a; R.querySelectorAll('button').forEach(x => x.classList.add('dis')); b.classList.remove('dis'); b.classList.add('on'); sfx('pick', { cue: 'ui_click_01' }); }); R.appendChild(b); }
-  const cv = $('tkPort'), c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#0c080a'; c.fillRect(0, 0, cv.width, cv.height);
-  try { const img = enemyImg(e); if (img) { const s = Math.min(cv.width / img.width, cv.height / img.height) * .9; c.drawImage(img, (cv.width - img.width * s) / 2, (cv.height - img.height * s) / 2, img.width * s, img.height * s); } } catch (_) {}
+    b.addEventListener('click', () => { setTalkLine713(a); R.querySelectorAll('button').forEach(x => x.classList.add('dis')); b.classList.remove('dis'); b.classList.add('on'); sfx('pick', { cue: 'ui_click_01' }); }); R.appendChild(b); }
+  const cv = $('tkPort'), c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#140e0c'; c.fillRect(0, 0, cv.width, cv.height);
+  try { const img = enemyImg(e); if (img) { const s = Math.min(cv.width / img.width, cv.height / img.height) * .86; c.drawImage(img, (cv.width - img.width * s) / 2, (cv.height - img.height * s) / 2 + 4, img.width * s, img.height * s); } } catch (_) {}
   setState('talk'); sfx('rune');
 }
 function beginFight() { if (state !== 'talk') return; const e = talkBoss; talkBoss = null; setState('play'); if (e && enemies.includes(e)) { aggro(e); music.combatUntil = time + 4; } }
@@ -5239,7 +5327,9 @@ $('restBtn').addEventListener('click', () => openRest());
 $('mRest').addEventListener('click', () => openRest());
 $('rsGo').addEventListener('click', confirmRest); $('rsNo').addEventListener('click', () => setState('play'));
 $('shLeave').addEventListener('click', closeShop); $('shSell').addEventListener('click', sellSel); $('shSellAll').addEventListener('click', sellAll); $('shRepair').addEventListener('click', repairAll);
+$('shBuyItem').addEventListener('click', () => { const rows = shopBuyRows712(); const row = rows[shopBuyPick] || rows[0]; if (row) buy(row[0]); });
 $('tkBegin').addEventListener('click', beginFight);
+const tkBubble = $('tkBubble'); if (tkBubble) tkBubble.addEventListener('click', () => { if (state === 'talk') skipTalk713(); });
 $('mSkills').addEventListener('click', openSkills); $('skClose').addEventListener('click', closeSkills);
 $('mBattle').addEventListener('click', () => { settings.battleMusic = !settings.battleMusic; saveSettings(); syncBattleBtn(); });
 function syncBattleBtn() { $('mBattle').textContent = 'BATTLE MUSIC: ' + (settings.battleMusic ? 'ON' : 'OFF'); }
@@ -7235,7 +7325,7 @@ let last = performance.now();
 function loop(now) {
   const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
   const blocked = !$('rotate').classList.contains('hidden');
-  if (state === 'play' && !blocked) update(dt); else if (state === 'dying') updateDeath(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); }
+  if (state === 'play' && !blocked) update(dt); else if (state === 'dying') updateDeath(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); if (state === 'talk') tickTalk713(dt); }
   updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); musTick(); updateGroundTip();
   requestAnimationFrame(loop);
 }
@@ -8494,7 +8584,7 @@ function syncSpellHud() {
     b.classList.toggle('learned', unlocked);
     if (i < 4) {
       const sid = have ? bar[i] : null;
-      const show = have;
+      const show = !!(have && sid);
       b.classList.toggle('hud-off', !show);
       b.classList.toggle('locked', false);
       const art = sid && SPELL_HUD[sid];
@@ -8536,8 +8626,9 @@ function syncDesk() {
   el.querySelectorAll('.dh-spell').forEach((node, i) => {
     const id = bar[i];
     const art = id && SPELL_HUD[id];
-    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art + '_idle.png)') : 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_48.png)';
-    node.classList.toggle('sel', V101.barSel === i);
+    node.style.display = id ? '' : 'none';
+    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art + '_idle.png)') : 'none';
+    node.classList.toggle('sel', !!id && V101.barSel === i);
     const idx = id ? TOME_IDS.indexOf(id) : -1;
     const cd = node.querySelector('.cd');
     const max = idx >= 0 ? (idx < 3 ? SKILLS[idx].cd : TOME_ADV[idx].cd) : 1;
@@ -8838,7 +8929,7 @@ function satchelMetrics() {
   if (probe) { const cs = getComputedStyle(probe); sl = parseFloat(cs.paddingLeft) || 0; sr = parseFloat(cs.paddingRight) || 0; st = parseFloat(cs.paddingTop) || 0; sb = parseFloat(cs.paddingBottom) || 0; }
   const aw = Math.max(120, w - sl - sr), ah = Math.max(120, h - st - sb);
   let scale = (!touchMode && w >= 1100 && h >= 640) ? 3 : 2;
-  while (scale > 1 && (178 * scale > ah || 200 * scale > aw)) scale--;
+  while (scale > 1 && (202 * scale > ah || 220 * scale > aw)) scale--;
   let panelW = Math.floor(aw / scale);
   if (panelW < 160) panelW = Math.max(120, panelW);
   const cw = Math.max(80, panelW - 26);
@@ -8855,9 +8946,9 @@ function sizeSatchel() {
   const host = $('satchel'), art = $('satArt'); if (!host || !art) return;
   const m = satM = satchelMetrics();
   host.style.width = (m.panelW * m.scale) + 'px';
-  host.style.height = (178 * m.scale) + 'px';
+  host.style.height = (202 * m.scale) + 'px';
   art.style.width = m.panelW + 'px';
-  art.style.height = '178px';
+  art.style.height = '202px';
   art.style.transform = 'scale(' + m.scale + ')';
   ['cols', 'ccols'].forEach(k => art.style.setProperty('--' + k, m[k]));
   art.style.setProperty('--gridw', m.gridW + 'px');
@@ -9367,8 +9458,16 @@ function placeBossShop711() {
   if (!bossForDepth(depth) && !window.__forceShop) return null;
   const bo = enemies.find(e => e.T && e.T.boss);
   const br = rooms.find(r => r.bossRoom) || (bo && roomOf(Math.floor(bo.x / TS), Math.floor(bo.y / TS))) || null;
-  let A = br ? (carveAnnex([br], 4, 5, 3, 4) || carveAnnex([br], 3, 4, 3, 3)) : null;
-  if (!A) { _placeShop711(); if (shop) shop.bossShop = 1; return shop; }
+  let A = null;
+  if (br) A = carveAnnex([br], 4, 5, 3, 4) || carveAnnex([br], 3, 4, 3, 3) || carveAnnex([br], 3, 3, 2, 3);
+  if (!A) { _placeShop711(); if (shop) { shop.bossShop = 1; return shop; } }
+  if (!A) {
+    const room = br || rooms[rooms.length - 1];
+    if (!room) return null;
+    const x = (room.cx + .5) * TS, y = (room.y + 1.2) * TS;
+    shop = { x: x, y: y, rect: room, room: room, tx: room.cx, ty: room.y, sealed: true, bossShop: 1, inRoom: 1, stock: { ration: 3 + irand(0, 3), gkey: 1 + irand(0, 2) }, offers: rollShopOffers() };
+    return shop;
+  }
   map[A.dy * MW + A.dx] = TILE.WALL;
   const R = A.rect;
   const door = { kind: 'gate', tiles: [{ x: A.dx, y: A.dy }], open: false, skin: 'iron', shopGate: 1, noKey: 1 };
@@ -9388,12 +9487,18 @@ function openShopGate711() {
   if (!shop || !shop.sealed) return;
   shop.sealed = false; shop.openAt = 0;
   if (shop.gate && !shop.gate.open) openDoor(shop.gate, true);
-  else if (shop.tx != null) { map[shop.ty * MW + shop.tx] = TILE.FLOOR; mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
-  sfx('gate'); flashMsg('The gate lifts. The Hollow Pedlar waits beyond.', '#e8c840');
+  else if (!shop.inRoom && shop.tx != null) { map[shop.ty * MW + shop.tx] = TILE.FLOOR; mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
+  sfx('gate'); flashMsg(shop.inRoom ? 'The Hollow Pedlar steps out of the smoke.' : 'The gate lifts. The Hollow Pedlar waits beyond.', '#e8c840');
 }
 function scheduleVic711(e) {
   const q = (typeof safeSpot === 'function') ? safeSpot(e.x, e.y + 14) : { x: e.x, y: e.y + 14 };
-  vic711 = { at: time + 2, x: q.x, y: q.y, phase: 'wait', t: 0, spat: false };
+  vic711 = { at: time + 2, x: q.x, y: q.y, phase: 'wait', t: 0, spat: false, opened: false };
+}
+function openVic713() {
+  if (!vic711 || vic711.opened || vic711.phase === 'wait' || vic711.phase === 'appear') return false;
+  const p = player; if (!p || Math.hypot(p.x - vic711.x, p.y - vic711.y) > 22) return false;
+  vic711.opened = true; vic711.phase = 'open'; vic711.t = 0; sfx('chest');
+  return true;
 }
 function tickVic711(dt) {
   if (!vic711 || state !== 'play') return;
@@ -9403,9 +9508,14 @@ function tickVic711(dt) {
     cue(Math.random() < 0.5 ? 'meta_victory_chant_01' : 'meta_victory_chant_02');
     return;
   }
+  if (vic711.phase === 'appear') {
+    vic711.t += dt;
+    if (vic711.t >= 0.45) { vic711.phase = 'closed'; vic711.t = 0; }
+    return;
+  }
+  if (!vic711.opened) return;
   vic711.t += dt;
-  if (vic711.phase === 'appear' && vic711.t >= 0.45) { vic711.phase = 'open'; vic711.t = vic711.t - 0.45; }
-  if ((vic711.phase === 'open' || vic711.phase === 'idle') && !vic711.spat && vic711.t >= 0.28) {
+  if (vic711.phase === 'open' && !vic711.spat && vic711.t >= 0.28) {
     vic711.spat = true; burstCoins(vic711.x, vic711.y, 100); cue('wld_loot_drop_01');
   }
   if (vic711.phase === 'open' && vic711.t >= 0.55) vic711.phase = 'idle';
@@ -9422,7 +9532,8 @@ function drawVic711() {
   let chest = ART.chest_victory_closed_32;
   if (vic711.phase === 'appear') chest = ART['chest_victory_appear_0' + clamp(1 + Math.floor(vic711.t / 0.45 * 4), 1, 4)] || chest;
   else if (vic711.phase === 'open') chest = ART['chest_victory_open_0' + clamp(1 + Math.floor(vic711.t / 0.55 * 4), 1, 4)] || ART.chest_victory_open_32 || chest;
-  else chest = ART.chest_victory_open_32 || ART.chest_victory_open_empty_04 || chest;
+  else if (vic711.opened) chest = ART.chest_victory_open_32 || ART.chest_victory_open_empty_04 || chest;
+  else chest = ART.chest_victory_closed_32 || chest;
   if (chest) ctx.drawImage(chest, Math.round(x - chest.width / 2), Math.round(y - chest.height + 8));
 }
 function playExitLaugh711() {
@@ -9496,14 +9607,14 @@ function paintLines711(lines, w, col) {
 function itemStatLines711(it) {
   if (!it) return ['TAP A SLOT.', 'DOUBLE-TAP EQUIPS.', 'HOLD FOR THE FULL CARD.'];
   const lines = [kindLabel(it)];
-  if (it.min || it.max) lines.push('DMG ' + (it.min || 0) + '-' + (it.max || 0));
-  if (it.spd) lines.push('SPD ' + (Math.round(it.spd * 10) / 10) + '/S');
-  if (it.def) lines.push('DEF ' + it.def);
-  if (it.block) lines.push('BLOCK ' + it.block + '%');
-  lines.push('CRIT ' + ((it.mods && it.mods.crit) ? ('+' + it.mods.crit + '%') : '0'));
-  if (it.range) lines.push('RANGE ' + it.range);
-  lines.push('REQ LV ' + reqOf(it));
-  if (hasDur(it) && it.maxDur) lines.push('DUR ' + it.dur + '/' + it.maxDur);
+  if (it.min || it.max) lines.push('Damage ' + (it.min || 0) + '-' + (it.max || 0));
+  if (it.spd) lines.push('Speed ' + (Math.round(it.spd * 10) / 10) + '/S');
+  if (it.def) lines.push('Defense ' + it.def);
+  if (it.block) lines.push('Block Chance ' + it.block + '%');
+  lines.push('Critical Strike Chance ' + ((it.mods && it.mods.crit) ? ('+' + it.mods.crit + '%') : '0'));
+  if (it.range) lines.push('Range ' + it.range);
+  lines.push('Required Level ' + reqOf(it));
+  if (hasDur(it) && it.maxDur) lines.push('Durability ' + it.dur + '/' + it.maxDur);
   for (const k in (it.mods || {})) { if (k === 'crit' || k === 'dmg') continue; const a = AFFIX.find(q => q.k === k); if (a) lines.push(a.txt(it.mods[k])); }
   for (const q of it.powers || []) { const t = powerLine(q); if (t) lines.push(t); }
   if (it.lore) lines.push("'" + it.lore + "'");
@@ -9899,6 +10010,13 @@ function deltaTxt712(d, pct) {
   const n = Math.round(Math.abs(d) * 100) / 100;
   return ' (' + (d > 0 ? '+' : '-') + n + (pct ? '%' : '') + ')';
 }
+function deltaColor713(delta) {
+  const s = String(delta || '');
+  if (!s || s.indexOf('(') < 0) return '';
+  if (s.indexOf('+') >= 0) return SAT_GOOD;
+  if (s.indexOf('-') >= 0) return DELTA_RED;
+  return SAT_DIM;
+}
 function equippedCmp712(it) {
   if (!it || !player || !player.equip) return null;
   const cur = player.equip[it.slot];
@@ -9919,20 +10037,20 @@ function itemCard712(it) {
   if (it.min || it.max || (cur && (cur.min || cur.max))) {
     const mine = Math.round(((+it.min || 0) + (+it.max || 0)) / 2);
     const theirs = cur ? Math.round(((+cur.min || 0) + (+cur.max || 0)) / 2) : 0;
-    push('DMG ' + (it.min || 0) + '-' + (it.max || 0), SAT_TAN, cur ? deltaTxt712(mine - theirs, false) : '');
+    push('Damage ' + (it.min || 0) + '-' + (it.max || 0), SAT_TAN, cur ? deltaTxt712(mine - theirs, false) : '');
   }
   if (it.spd || (cur && cur.min && cur.spd)) {
     const mine = Math.round((+it.spd || 0) * 100) / 100;
     const theirs = cur ? Math.round((+cur.spd || 0) * 100) / 100 : 0;
-    push('SPD ' + mine, SAT_TAN, cur ? deltaTxt712(Math.round((mine - theirs) * 100) / 100, false) : '');
+    push('Speed ' + mine, SAT_TAN, cur ? deltaTxt712(Math.round((mine - theirs) * 100) / 100, false) : '');
   }
-  if (it.def || (cur && cur.def)) push('DEF ' + (it.def || 0), SAT_TAN, cur ? deltaTxt712((+it.def || 0) - (+cur.def || 0), false) : '');
-  if (it.block || (cur && cur.block)) push('BLOCK ' + (it.block || 0) + '%', SAT_TAN, cur ? deltaTxt712((+it.block || 0) - (+cur.block || 0), true) : '');
+  if (it.def || (cur && cur.def)) push('Defense ' + (it.def || 0), SAT_TAN, cur ? deltaTxt712((+it.def || 0) - (+cur.def || 0), false) : '');
+  if (it.block || (cur && cur.block)) push('Block Chance ' + (it.block || 0) + '%', SAT_TAN, cur ? deltaTxt712((+it.block || 0) - (+cur.block || 0), true) : '');
   const critA = (it.mods && +it.mods.crit) || 0, critB = (cur && cur.mods && +cur.mods.crit) || 0;
-  push('CRIT ' + (critA ? '+' + critA + '%' : '0'), SAT_TAN, cur ? deltaTxt712(critA - critB, true) : '');
+  push('Critical Strike Chance ' + (critA ? '+' + critA + '%' : '0'), SAT_TAN, cur ? deltaTxt712(critA - critB, true) : '');
   const rq = reqOf(it);
-  push('REQ LV ' + rq, player && player.lvl < rq ? SAT_BAD : SAT_TAN, '');
-  if (hasDur(it) && it.maxDur) push('DUR ' + it.dur + '/' + it.maxDur, durFrac(it) < DUR_RED ? SAT_BAD : SAT_TAN, '');
+  push('Required Level ' + rq, player && player.lvl < rq ? SAT_BAD : SAT_TAN, '');
+  if (hasDur(it) && it.maxDur) push('Durability ' + it.dur + '/' + it.maxDur, durFrac(it) < DUR_RED ? SAT_BAD : SAT_TAN, '');
   const A = it.mods || {}, B = (cur && cur.mods) || {};
   Object.keys(A).concat(Object.keys(B)).forEach(k => {
     if (k === 'crit') return;
@@ -9965,7 +10083,7 @@ function flattenCard712(card, maxW) {
     const text = ln.text || '', delta = ln.delta || '';
     if (delta && pxWidth712(text + delta) > maxW) {
       out.push({ text: text, col: ln.col, delta: '', y: y }); y += LINE_HEIGHT;
-      wrapPx712(delta.trim(), maxW).forEach(t => { out.push({ text: t, col: DELTA_RED, delta: '', y: y, red: true }); y += LINE_HEIGHT; });
+      wrapPx712(delta.trim(), maxW).forEach(t => { out.push({ text: t, col: deltaColor713(delta) || DELTA_RED, delta: '', y: y }); y += LINE_HEIGHT; });
     } else {
       out.push({ text: text, col: ln.col, delta: delta, y: y }); y += LINE_HEIGHT;
     }
@@ -9982,7 +10100,7 @@ function drawCardLines712(ctx, rows, x, maxX, centerW) {
       sx = Math.max(4, Math.round((centerW - tw) / 2));
     }
     pxText(ctx, r.text, sx, r.y, r.red ? DELTA_RED : r.col, true, centerW ? centerW - 4 : maxX);
-    if (r.delta) pxText(ctx, r.delta, sx + String(r.text || '').length * 4, r.y, DELTA_RED, true, (centerW || maxX) + 12);
+    if (r.delta) pxText(ctx, r.delta, sx + String(r.text || '').length * 4, r.y, deltaColor713(r.delta) || r.col, true, (centerW || maxX) + 80);
   });
 }
 const TITLE_LH_712 = 12;
@@ -10061,7 +10179,7 @@ function drawTitleRule712(ctx, x, y, w) {
   if (w > 16) { diamond(x0 + 2); diamond(x0 + w - 3); }
 }
 function syncDetailFrame712(extra) {
-  extra = Math.max(0, extra | 0);
+  extra = 24;
   const body = $('satBody'), frame = $('satFrame'), art = $('satArt'), host = $('satchel'), box = $('invStats');
   const pane = document.querySelector('#satchel .sat-pane[data-pane="inventory"]');
   if (body) body.style.height = (108 + extra) + 'px';
@@ -10070,6 +10188,24 @@ function syncDetailFrame712(extra) {
   if (box) box.style.height = (108 + extra) + 'px';
   if (art) art.style.height = (178 + extra) + 'px';
   if (host) host.style.height = ((178 + extra) * ((satM && satM.scale) || 1)) + 'px';
+}
+function drawTitle713(ctx, lines, top, bandH, panelW) {
+  const list = lines && lines.length ? lines : [''];
+  const glyph = 8;
+  const lh = 10;
+  let y = top;
+  if (list.length === 1) y = top + Math.max(0, Math.round((bandH - glyph) / 2));
+  list.forEach((line, i) => {
+    const srcW = Math.max(4, String(line).length * 4 + 2);
+    const native = pxCanvas(srcW, 6);
+    pxText(native.x, line, 1, 0, TITLE_COLOR_712, true, srcW);
+    const natural = Math.round((String(line).length * 4) * glyph / 5);
+    const maxW = Math.max(12, panelW - 12);
+    const dw = Math.min(maxW, Math.max(8, natural));
+    const dx = Math.max(2, Math.round((panelW - dw) / 2));
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(native.c, 0, 0, srcW, 5, dx, y + i * lh, dw, glyph);
+  });
 }
 function cardKey712() {
   if (dropAllAsk) return 'drop';
@@ -10103,30 +10239,21 @@ fillInvStats = function () {
   const bodyCard = { lines: (card.lines || []).filter(ln => !ln.kind) };
   const previewRows = flattenCard712(bodyCard, w - 16);
   const contentH = previewRows.length ? previewRows[previewRows.length - 1].y + LINE_HEIGHT : 0;
-  // Title block, then the spacer, then 10px, then the type line. Stats start after that.
-  const titleBottom = 6 + titleLines.length * TITLE_LH_712;
-  const headH = Math.max(17, titleBottom - 3);
-  const ruleY = 3 + headH + 1;
-  let statsTop = ruleY + 10;
-  if (kind && kind.text) statsTop += LINE_HEIGHT;
-  const titleExtra = Math.max(0, Math.min(3, titleLines.length - 1)) * TITLE_LH_712;
-  // Keep the v0.7.12 stat window (about six rows) so DUR is not lost in the fade.
-  const statView = Math.min(Math.max(contentH, LINE_HEIGHT * 3), LINE_HEIGHT * 6);
-  const h = Math.max(108 + titleExtra, statsTop + statView + 4);
-  const extra = h - 108;
+  const h = 132;
+  const extra = 24;
+  const bandTop = 4;
+  const bandH = titleLines.length <= 1 ? 16 : titleLines.length * 10;
+  const ruleY = bandTop + bandH + 2;
   cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
   ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
   box.dataset.wrap = titleLines.join('\n');
   box.dataset.titleLines = String(titleLines.length);
-  let currentY = 6;
-  titleLines.forEach(line => {
-    pxCenter(ctx, line, currentY, TITLE_COLOR_712, w);
-    currentY += TITLE_LH_712;
-  });
+  drawTitle713(ctx, titleLines, bandTop, titleLines.length <= 1 ? bandH : bandH, w);
   const head = box.querySelector('.ist-head');
-  if (head) head.style.height = headH + 'px';
-  drawTitleRule712(ctx, 8, ruleY, w - 16);
-  currentY = ruleY + 10;
+  if (head) { head.style.height = '0px'; head.style.display = 'none'; head.style.background = 'none'; }
+  ctx.fillStyle = SPACER_712;
+  ctx.fillRect(8, ruleY, w - 16, 1);
+  let currentY = ruleY + 8;
   if (kind && kind.text) {
     pxCenter(ctx, kind.text, currentY, kind.col || SAT_TAN, w);
     currentY += LINE_HEIGHT;
@@ -10168,19 +10295,16 @@ function paintHold712(card, cx, cy) {
   el.classList.remove('hidden');
   const head = el.querySelector('.ist-head'); head.innerHTML = '';
   const titleLines = wrapTitle712(null, card.title || 'ITEM', maxTitleWidth712(maxW));
-  let currentY = 4;
-  titleLines.forEach(() => { currentY += TITLE_LH_712; });
-  const titleBlock = Math.max(14, currentY + 6);
-  // Hold card is outside the satchel's transform, so the head has to match the scaled canvas.
+  const band = titleLines.length <= 1 ? 16 : titleLines.length * 10;
+  const titleBlock = band + 8;
+  head.style.display = 'block';
   head.style.height = (titleBlock * scale) + 'px';
   head.style.flexBasis = (titleBlock * scale) + 'px';
+  head.style.background = 'none';
   const nc = pxCanvas(maxW, titleBlock);
-  currentY = 4;
-  titleLines.forEach(line => {
-    pxCenter(nc.x, line, currentY, TITLE_COLOR_712, maxW);
-    currentY += TITLE_LH_712;
-  });
-  drawTitleRule712(nc.x, 6, currentY - 2, maxW - 12);
+  drawTitle713(nc.x, titleLines, 2, titleLines.length <= 1 ? band : band, maxW);
+  nc.x.fillStyle = SPACER_712;
+  nc.x.fillRect(6, band + 4, maxW - 12, 1);
   nc.c.style.width = (maxW * scale) + 'px'; nc.c.style.height = (titleBlock * scale) + 'px';
   head.appendChild(nc.c);
   el.dataset.wrap = titleLines.join('\n');
@@ -10405,6 +10529,7 @@ fillNotesPane = function () {
   bindScrollEl(box, 'notes', function () { return satM.scale || 1; }, fillNotesPane);
 };
 
+const SHOP_ROW_713 = 28, SHOP_COLS_713 = 5, SHOP_SLOT_713 = 32;
 function shopBuyRows712() {
   const p = player;
   return [
@@ -10415,22 +10540,83 @@ function shopBuyRows712() {
     ['gkey', 'GATE KEY  x' + (p.gateKeys || 0) + '  (' + (shop.stock.gkey) + ' LEFT)', shopPrice('gkey')]
   ];
 }
+function crispShop713(cv, cssW, cssH) {
+  const dpr = Math.max(1, Math.min(3, Math.round(window.devicePixelRatio || 1)));
+  cv.width = Math.max(1, cssW * dpr); cv.height = Math.max(1, cssH * dpr);
+  cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  cv.dataset.dpr = String(dpr);
+  return ctx;
+}
+function pxTextScale(ctx, s, x, y, col, scale, maxX) {
+  s = String(s == null ? '' : s).toUpperCase();
+  const sc = scale || 1;
+  const draw = (ox, oy, c) => {
+    ctx.fillStyle = c;
+    for (let i = 0; i < s.length; i++) {
+      const gx = x + ox + i * 4 * sc; if (maxX != null && gx + 3 * sc > maxX) break;
+      const g = FONT[s[i]] || FONT['?'];
+      for (let r = 0; r < 5; r++) { const bits = g[r];
+        if (bits & 4) ctx.fillRect(gx, y + oy + r * sc, sc, sc);
+        if (bits & 2) ctx.fillRect(gx + sc, y + oy + r * sc, sc, sc);
+        if (bits & 1) ctx.fillRect(gx + 2 * sc, y + oy + r * sc, sc, sc); }
+    }
+  };
+  draw(sc, sc, '#000'); draw(0, 0, col || SAT_TAN);
+}
+function shopHit713(cv, clientX, clientY) {
+  if (!cv) return -1;
+  const rect = cv.getBoundingClientRect();
+  const k = uiScale712(cv) || 1;
+  const box = cv.id === 'shBuyCv' ? scrollBox('shopBuy') : cv.id === 'shUniCv' ? scrollBox('shopSealed') : null;
+  const ly = (clientY - rect.top) / k + ((box && box.scrollY) || 0);
+  const lx = (clientX - rect.left) / k;
+  if (lx < 0 || lx > rect.width / k + 1) return -1;
+  const rows = cv._rows713 || [];
+  for (let i = 0; i < rows.length; i++) { const r = rows[i]; if (ly >= r.y && ly < r.y + r.h) return r.i; }
+  return -1;
+}
+function paintShopChrome713() {
+  const title = $('shTitleCv'), gold = $('shGoldCv'), note = $('shNoteCv');
+  const p = player;
+  if (title) {
+    const ctx = crispShop713(title, 280, 16);
+    pxTextScale(ctx, 'THE HOLLOW PEDLAR', 0, 1, '#f4ecd4', 2, 280);
+  }
+  if (gold && p) {
+    const ctx = crispShop713(gold, 220, 16);
+    const label = 'PLAYER GOLD: ' + p.gold + 'G';
+    const tw = label.length * 8;
+    pxTextScale(ctx, label, Math.max(0, 220 - tw), 1, '#E5B064', 2, 220);
+  }
+  if (note) {
+    const w = Math.max(240, (note.parentElement && note.parentElement.clientWidth) || 640);
+    const ctx = crispShop713(note, w, 22);
+    const line = String(shopNote || '').replace(/^"|"$/g, '');
+    pxText(ctx, line, 2, 4, '#a89880', false, w - 4);
+  }
+}
 function paintShopBuy712() {
   const cv = $('shBuyCv'); if (!cv || !player || !shop) return;
   const rows = shopBuyRows712();
-  const w = Math.max(160, cv.parentElement.clientWidth || 220), h = 108;
-  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
-  const contentH = rows.length * LINE_HEIGHT + 4;
+  if (shopBuyPick < 0 || shopBuyPick >= rows.length) shopBuyPick = 0;
+  const w = Math.max(180, (cv.parentElement && cv.parentElement.clientWidth) || 240), h = 156;
+  const ctx = crispShop713(cv, w, h);
+  const contentH = rows.length * SHOP_ROW_713 + 6;
   const s = scrollBox('shopBuy');
   s.maxScrollY = Math.max(0, contentH - h);
   clampScroll712(s);
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
-  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 12, bg: '#221A15' }, function () {
+  ctx.clearRect(0, 0, w, h);
+  cv._rows713 = rows.map((r, i) => ({ i: i, y: 4 + i * SHOP_ROW_713, h: SHOP_ROW_713 - 2, k: r[0] }));
+  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 14, bg: '#241812' }, function () {
     rows.forEach((r, i) => {
-      const y = 4 + i * LINE_HEIGHT;
+      const y = 4 + i * SHOP_ROW_713;
       const afford = player.gold >= r[2];
-      pxText(ctx, r[1], 4, y, afford ? SAT_TAN : '#6a6058', true, w - 48);
-      pxText(ctx, r[2] + 'G', w - 40, y, afford ? SAT_GOLD : '#6a6058', true, w - 4);
+      if (i === shopBuyPick) { ctx.fillStyle = '#3a2a18'; ctx.fillRect(2, y - 2, w - 4, SHOP_ROW_713 - 2); ctx.fillStyle = '#E5B064'; ctx.fillRect(2, y - 2, 3, SHOP_ROW_713 - 2); }
+      const label = r[1] + '  ' + r[2] + 'G';
+      pxTextScale(ctx, label, 8, y, afford ? '#f4ecd4' : '#6a6058', 2, w - 8);
     });
   });
   bindScrollEl(cv, 'shopBuy', function () { return uiScale712(cv); }, paintShopBuy712);
@@ -10438,12 +10624,11 @@ function paintShopBuy712() {
     cv.dataset.hit712 = '1';
     cv.addEventListener('pointerup', e => {
       if (scrollBox('shopBuy').moved) return;
-      const rect = cv.getBoundingClientRect();
-      const k = uiScale712(cv);
-      const ly = (e.clientY - rect.top) / k + scrollBox('shopBuy').scrollY;
-      const i = Math.floor((ly - 4) / LINE_HEIGHT);
+      const i = shopHit713(cv, e.clientX, e.clientY);
       const row = shopBuyRows712()[i];
-      if (row) buy(row[0]);
+      if (!row) return;
+      if (shopBuyPick === i) buy(row[0]);
+      else { shopBuyPick = i; paintShopBuy712(); }
     });
   }
 }
@@ -10452,32 +10637,33 @@ function paintShopSealed712() {
   if (shop && !Array.isArray(shop.offers)) shop.offers = rollShopOffers();
   const offers = (shop && shop.offers) || [];
   const host = cv.parentElement;
-  const w = Math.max(220, (host && host.clientWidth) || 420), h = 120;
-  cv.width = w; cv.height = h; cv.style.width = '100%'; cv.style.height = h + 'px';
-  const contentH = Math.max(LINE_HEIGHT, offers.length * (LINE_HEIGHT + 4) + 8);
+  const w = Math.max(280, (host && host.clientWidth) || 520), h = 180;
+  const ctx = crispShop713(cv, w, h);
+  const rowH = 36;
+  const contentH = Math.max(rowH, 28 + offers.length * rowH);
   const s = scrollBox('shopSealed');
   s.maxScrollY = Math.max(0, contentH - h);
   clampScroll712(s);
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
-  const blockW = Math.min(280, w - 16), x0 = Math.max(8, Math.round((w - blockW) / 2));
-  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 12, bg: '#221A15' }, function () {
+  ctx.clearRect(0, 0, w, h);
+  cv._rows713 = offers.map((o, i) => ({ i: i, y: 28 + i * rowH, h: rowH - 4 }));
+  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 16, bg: '#f3e6c8' }, function () {
+    pxTextScale(ctx, 'SEALED UNTIL THE COIN IS SPENT. A HIGHER PRICE IS A STRONGER ROLL.', 8, 4, '#4a2a18', 1, w - 8);
     offers.forEach((o, i) => {
-      const y = 8 + i * (LINE_HEIGHT + 4);
+      const y = 28 + i * rowH;
+      ctx.fillStyle = '#efe0c0'; ctx.fillRect(8, y, w - 16, rowH - 6);
+      ctx.fillStyle = '#c4a574'; ctx.fillRect(8, y, w - 16, 1);
       const label = (o.sold ? 'SOLD  ' : '') + o.label;
-      pxText(ctx, pxFit(label, blockW - 52), x0, y, o.sold ? '#6a6058' : SAT_GOLD, true, x0 + blockW - 48);
-      if (!o.sold) pxText(ctx, o.price + 'G', x0 + blockW - 44, y, player.gold >= o.price ? SAT_TAN : '#6a6058', true, x0 + blockW);
+      pxTextScale(ctx, label, 16, y + 6, o.sold ? '#8a7058' : '#3a2414', 2, w - 90);
+      if (!o.sold) pxTextScale(ctx, o.price + 'G', w - 78, y + 6, player.gold >= o.price ? '#6a4010' : '#8a7058', 2, w - 12);
     });
-    if (!offers.length) pxCenter(ctx, 'NO SEALED STOCK', 24, SAT_DIM, w);
+    if (!offers.length) pxTextScale(ctx, 'NO SEALED STOCK', 16, 40, '#4a2a18', 2, w - 8);
   });
   bindScrollEl(cv, 'shopSealed', function () { return uiScale712(cv); }, paintShopSealed712);
   if (!cv.dataset.hit712) {
     cv.dataset.hit712 = '1';
     cv.addEventListener('pointerup', e => {
       if (scrollBox('shopSealed').moved) return;
-      const rect = cv.getBoundingClientRect();
-      const k = uiScale712(cv);
-      const ly = (e.clientY - rect.top) / k + scrollBox('shopSealed').scrollY;
-      const i = Math.floor((ly - 8) / (LINE_HEIGHT + 4));
+      const i = shopHit713(cv, e.clientX, e.clientY);
       const o = shop && shop.offers && shop.offers[i];
       if (o && !o.sold) buyUnique(i);
     });
@@ -10485,12 +10671,15 @@ function paintShopSealed712() {
 }
 function paintShopRepair712() {
   const cv = $('shRepairCv'); if (!cv || !player) return;
-  const w = Math.max(220, (cv.parentElement && cv.parentElement.clientWidth) || 420), h = 80;
-  cv.width = w; cv.height = h; cv.style.width = '100%'; cv.style.height = h + 'px';
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  const w = Math.max(280, (cv.parentElement && cv.parentElement.clientWidth) || 520), h = 180;
+  const ctx = crispShop713(cv, w, h);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#f3e6c8'; ctx.fillRect(0, 0, w, h);
   const cost = repairAllCost();
-  const lines = cost ? ['REPAIR EVERY WORN AND PACKED PIECE', 'COST ' + cost + 'G', player.gold >= cost ? 'THE FOOTER BUTTON MENDS THEM ALL' : 'NOT ENOUGH GOLD'] : ['NOTHING NEEDS MENDING'];
-  lines.forEach((t, i) => pxCenter(ctx, t, 10 + i * LINE_HEIGHT, i === 1 ? SAT_GOLD : SAT_TAN, w));
+  const lines = cost
+    ? ['EVERY WORN AND PACKED PIECE IS MENDED AT ONCE.', 'EQUIPPED GEAR AND THE BACKPACK BOTH COUNT.', 'COST  ' + cost + 'G', player.gold >= cost ? 'THE REPAIR ALL BUTTON IN THE FOOTER PAYS IT.' : 'NOT ENOUGH GOLD FOR THE WHOLE MEND.']
+    : ['NOTHING NEEDS MENDING.', 'GEAR THAT REACHES ZERO DURABILITY IS ALREADY GONE.', 'REPAIR POTIONS STILL WORK FROM THE SATCHEL.'];
+  lines.forEach((t, i) => pxTextScale(ctx, t, 12, 16 + i * 28, i === 2 ? '#6a4010' : '#3a2414', 2, w - 12));
 }
 function uiScale712(el) {
   const shopEl = $('shop');
@@ -10510,8 +10699,8 @@ function syncShopView712() {
 }
 function applySellScroll712() {
   const grid = $('shGrid'), clip = $('shSellClip'); if (!grid || !clip) return;
-  const rows = Math.ceil((player ? player.inv.length : 0) / 7);
-  const contentH = Math.max(24, rows * 30);
+  const rows = Math.ceil((player ? player.inv.length : 0) / SHOP_COLS_713);
+  const contentH = Math.max(SHOP_SLOT_713, rows * (SHOP_SLOT_713 + 4));
   const s = scrollBox('shopSell');
   s.maxScrollY = Math.max(0, contentH - clip.clientHeight);
   clampScroll712(s);
@@ -10529,8 +10718,9 @@ function applySellScroll712() {
 }
 renderShop = function () {
   const p = player; if (!p) return;
-  $('shGold').textContent = p.gold + 'g';
-  $('shNote').textContent = shopNote || '';
+  const goldEl = $('shGold'); if (goldEl) goldEl.textContent = 'PLAYER GOLD: ' + p.gold + 'G';
+  const noteEl = $('shNote'); if (noteEl) noteEl.textContent = shopNote || '';
+  paintShopChrome713();
   syncShopView712();
   paintShopBuy712();
   paintShopSealed712();
@@ -10539,6 +10729,7 @@ renderShop = function () {
   if (!(shopSel instanceof Set)) shopSel = new Set();
   p.inv.forEach((it, i) => {
     const el = slotEl(it, '', shopSel.has(i));
+    el.dataset.slot = String(i);
     el.addEventListener('pointerdown', e => { e.preventDefault(); if (!it) return; sellAllAsk = false; if (shopSel.has(i)) shopSel.delete(i); else shopSel.add(i); renderShop(); });
     G.appendChild(el);
   });
@@ -10548,17 +10739,20 @@ renderShop = function () {
   shopSel.forEach(i => { const it = p.inv[i]; if (!it) return; selG += sellPrice(it); selN++; selName = it.name; });
   const sb = $('shSell');
   sb.classList.toggle('dis', !selN);
-  sb.textContent = selN ? ('SELL ' + selN) : 'SELL';
+  sb.textContent = selN ? ('SELL ITEM  ' + selG + 'G') : 'SELL ITEM';
   const all = sellAllPreview(), ab = $('shSellAll');
   if (ab) { ab.classList.toggle('dis', !all.n); ab.textContent = sellAllAsk ? 'YES, SELL ALL' : 'SELL ALL'; }
   const rc = repairAllCost(), rb = $('shRepair');
-  rb.textContent = rc ? ('REPAIR ALL ' + rc + 'G') : 'REPAIR ALL';
+  rb.textContent = rc ? ('REPAIR ALL  ' + rc + 'G') : 'REPAIR ALL';
   rb.classList.toggle('dis', !rc || p.gold < rc);
-  const note = $('shSelTxt');
-  if (note) {
-    note.textContent = sellAllAsk ? shopNote : selN > 1 ? selN + ' ITEMS  ' + selG + 'G' : selN === 1 ? selName + '  ' + selG + 'G' : 'TAP PACK ITEMS TO SELL';
-    note.style.color = selN ? '#e8dcc0' : '#888';
+  const buyB = $('shBuyItem');
+  if (buyB) {
+    const row = shopBuyRows712()[shopBuyPick];
+    buyB.textContent = row ? ('BUY ITEM  ' + row[2] + 'G') : 'BUY ITEM';
+    buyB.classList.toggle('dis', !row || p.gold < row[2]);
   }
+  const note = $('shSelTxt');
+  if (note) note.textContent = sellAllAsk ? shopNote : selN > 1 ? selN + ' ITEMS  ' + selG + 'G' : selN === 1 ? selName + '  ' + selG + 'G' : 'TAP PACK ITEMS TO SELL';
 };
 document.querySelectorAll('#shTabs [data-view]').forEach(b => b.addEventListener('click', () => { shopView712 = b.dataset.view; if (state === 'shop') renderShop(); }));
 
@@ -10722,6 +10916,193 @@ eligibleUniques = function (L) {
   return UNIQUES.filter(u => { const b = BASES.find(q => q.name === u.base); return !!(b && b.lvl <= L + 1); });
 };
 
+// ===== v0.7.13: range, chest, trader, hold, boss stems =====
+const bossAud713 = { on: false, fading: false, boss: null, theme: 'boss_01', phase: 1, buf: {}, loading: {}, gains: [], bus: null, voices: [], loopAt: 0, pending: null, err: '' };
+const BOSS_AUDIO_713 = {
+  boss_01: { loopStart: 58.656, loopEnd: 129.241, outro: 170, fade: 4 },
+  boss_02: { loopStart: 63.153333, loopEnd: 145.905333, outro: 172, fade: 1.6 }
+};
+function bossTheme713(e) {
+  let i = 0;
+  if (e && e.B && typeof BOSSES !== 'undefined') { const k = BOSSES.indexOf(e.B); if (k >= 0) i = k; }
+  return (i % 2 === 0) ? 'boss_01' : 'boss_02';
+}
+function preloadBoss713() {
+  if (!actx) return;
+  ['boss_01', 'boss_02'].forEach(theme => { for (let p = 1; p <= 3; p++) loadBossBuf713(theme, p); });
+}
+function loadBossBuf713(theme, phase) {
+  const key = theme + phase;
+  if (!actx || bossAud713.buf[key] || bossAud713.loading[key]) return;
+  bossAud713.loading[key] = 1;
+  fetch('assets/music/boss/' + theme + '_phase' + phase + '.ogg').then(r => { if (!r.ok) throw new Error('boss ogg ' + r.status); return r.arrayBuffer(); }).then(ab => new Promise((res, rej) => {
+    const p = actx.decodeAudioData(ab.slice(0), res, rej); if (p && p.then) p.then(res, rej);
+  })).then(b => { bossAud713.buf[key] = b; }).catch(e => { bossAud713.err = String(e && e.message || e); }).finally(() => { delete bossAud713.loading[key]; });
+}
+function ensureBossBus713() {
+  if (bossAud713.bus || !actx || !bus || !bus.mus) return;
+  const g = actx.createGain(); g.gain.value = 0.9; g.connect(bus.mus);
+  bossAud713.bus = g;
+  bossAud713.gains = [0, 1, 2].map(i => { const n = actx.createGain(); n.gain.value = i === 0 ? 1 : 0; n.connect(g); return n; });
+}
+function stopVoices713(when) {
+  const t = when || (actx ? actx.currentTime : 0);
+  (bossAud713.voices || []).forEach(v => { if (!v) return; try { v.src.stop(t + 0.05); } catch (_) {} });
+  bossAud713.voices = [];
+}
+function playStem713(i, offset, when) {
+  const b = bossAud713.buf[bossAud713.theme + (i + 1)];
+  if (!b || !bossAud713.gains[i]) return null;
+  const src = actx.createBufferSource(), seg = actx.createGain();
+  src.buffer = b; src.loop = false; seg.gain.value = 1;
+  src.connect(seg); seg.connect(bossAud713.gains[i]);
+  const off = Math.max(0, Math.min(offset, Math.max(0, b.duration - 0.05)));
+  try { src.start(when, off); } catch (e) { bossAud713.err = String(e && e.message || e); return null; }
+  return { src, seg };
+}
+function eqWrap713(prev, next, t0, dur) {
+  const n = 6;
+  prev.forEach(v => { if (!v) return; try { v.seg.gain.cancelScheduledValues(t0); v.seg.gain.setValueAtTime(Math.max(0.0001, v.seg.gain.value || 1), t0); } catch (_) {} });
+  next.forEach(v => { if (!v) return; try { v.seg.gain.cancelScheduledValues(t0); v.seg.gain.setValueAtTime(0.0001, t0); } catch (_) {} });
+  for (let i = 1; i <= n; i++) {
+    const p = i / n, t = t0 + dur * p;
+    const outG = Math.max(0.0001, Math.cos(p * Math.PI / 2)), inG = Math.sin(p * Math.PI / 2);
+    prev.forEach(v => { if (v) try { v.seg.gain.linearRampToValueAtTime(outG, t); } catch (_) {} });
+    next.forEach(v => { if (v) try { v.seg.gain.linearRampToValueAtTime(inG, t); } catch (_) {} });
+  }
+  prev.forEach(v => { if (!v) return; try { v.src.stop(t0 + dur + 0.03); } catch (_) {} });
+}
+function rampPhase713(p) {
+  bossAud713.phase = p;
+  const table = { 1: [1, 0, 0], 2: [1, 1, 0], 3: [1, 1, 1] };
+  const g = table[p] || table[1];
+  const t = actx.currentTime;
+  bossAud713.gains.forEach((node, i) => {
+    node.gain.cancelScheduledValues(t);
+    node.gain.setValueAtTime(node.gain.value, t);
+    node.gain.linearRampToValueAtTime(g[i], t + 0.75);
+  });
+}
+function armBoss713(offset, when) {
+  const voices = [0, 1, 2].map(i => playStem713(i, offset, when));
+  bossAud713.voices = voices;
+  const spec = BOSS_AUDIO_713[bossAud713.theme];
+  bossAud713.loopAt = when + Math.max(0.3, spec.loopEnd - offset);
+}
+function startBoss713(e) {
+  if (!e || !e.T || !e.T.boss) return false;
+  try { initAudio(); if (actx && actx.resume) { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } } catch (_) {}
+  preloadBoss713();
+  if (!actx || !bus) { bossAud713.pending = e; return false; }
+  ensureBossBus713();
+  if (!bossAud713.bus) { bossAud713.pending = e; return false; }
+  const theme = bossTheme713(e);
+  if (!bossAud713.buf[theme + '1']) { bossAud713.pending = e; bossAud713.theme = theme; return false; }
+  stopVoices713(actx.currentTime);
+  bossAud713.on = true; bossAud713.fading = false; bossAud713.pending = null; bossAud713.boss = e; bossAud713.theme = theme;
+  if (bossAud713.bus) bossAud713.bus.gain.cancelScheduledValues(actx.currentTime);
+  if (bossAud713.bus) bossAud713.bus.gain.setValueAtTime(0.9, actx.currentTime);
+  armBoss713(0, actx.currentTime);
+  rampPhase713(1);
+  return true;
+}
+function bossPhaseNow713(e) {
+  const hp = e && e.maxHp > 0 ? e.hp / e.maxHp : 1;
+  let p = hp > 0.66 ? 1 : hp > 0.33 ? 2 : 3;
+  if (e && (e.phase || 1) >= 2) p = Math.max(p, 2);
+  if (e && (e.phase || 1) >= 3) p = 3;
+  return p;
+}
+function bossAudTick713() {
+  if (!bossAud713.on || bossAud713.fading || !actx) return;
+  const e = bossAud713.boss;
+  if (e && e.hp > 0) { const p = bossPhaseNow713(e); if (p !== bossAud713.phase) rampPhase713(p); }
+  const now = actx.currentTime;
+  if (now < bossAud713.loopAt - 0.1) return;
+  const spec = BOSS_AUDIO_713[bossAud713.theme]; if (!spec) return;
+  const xf = 0.08, when = Math.max(now, bossAud713.loopAt - xf);
+  const prev = bossAud713.voices || [];
+  const next = [0, 1, 2].map(i => playStem713(i, spec.loopStart, when));
+  eqWrap713(prev, next, when, xf);
+  bossAud713.voices = next;
+  bossAud713.loopAt = when + (spec.loopEnd - spec.loopStart);
+}
+function outroBoss713(why) {
+  if ((!bossAud713.on && !bossAud713.fading) || !actx || !bossAud713.bus) { bossAud713.on = false; bossAud713.pending = null; return; }
+  const spec = BOSS_AUDIO_713[bossAud713.theme] || BOSS_AUDIO_713.boss_01;
+  const now = actx.currentTime;
+  const fade = why === 'player' ? 1.2 : spec.fade;
+  bossAud713.on = false; bossAud713.fading = true; bossAud713.pending = null;
+  if (why === 'boss') {
+    stopVoices713(now + 0.05);
+    bossAud713.voices = [0, 1, 2].map(i => playStem713(i, spec.outro, now + 0.02));
+  }
+  try {
+    bossAud713.bus.gain.cancelScheduledValues(now);
+    bossAud713.bus.gain.setValueAtTime(bossAud713.bus.gain.value || 0.9, now);
+    bossAud713.bus.gain.linearRampToValueAtTime(0.0001, now + fade);
+  } catch (_) {}
+  const gen = (bossAud713.gen = (bossAud713.gen || 0) + 1);
+  setTimeout(() => {
+    if (bossAud713.gen !== gen) return;
+    stopVoices713(actx ? actx.currentTime : 0);
+    bossAud713.fading = false; bossAud713.boss = null;
+    if (bossAud713.bus && actx) bossAud713.bus.gain.setValueAtTime(0.9, actx.currentTime);
+  }, Math.round((fade + 0.25) * 1000));
+}
+function watchBoss713() {
+  if (bossAud713.pending && actx && bus) startBoss713(bossAud713.pending);
+  if (bossAud713.on) bossAudTick713();
+}
+const _musWant713 = musWantBed;
+musWantBed = function () { if (bossAud713.on) return null; return _musWant713(); };
+const _begin713 = beginFight;
+beginFight = function () {
+  const e = talkBoss;
+  const r = _begin713();
+  if (e) startBoss713(e);
+  return r;
+};
+const _kill713 = killEnemy;
+killEnemy = function (e) {
+  const boss = !!(e && e.T && e.T.boss);
+  const alive = boss && enemies.includes(e);
+  const r = _kill713(e);
+  if (alive && boss && !enemies.includes(e)) outroBoss713('boss');
+  return r;
+};
+const _die713 = die;
+die = function (k, c) { outroBoss713('player'); return _die713(k, c); };
+const _floor713 = startFloor;
+startFloor = function (d, fresh) {
+  stopVoices713(actx ? actx.currentTime : 0);
+  bossAud713.on = false; bossAud713.fading = false; bossAud713.pending = null; bossAud713.boss = null;
+  return _floor713(d, fresh);
+};
+const _inter713 = interactables;
+interactables = function () {
+  const L = _inter713();
+  if (vic711 && vic711.phase !== 'wait' && vic711.phase !== 'appear' && !vic711.opened) L.push({ x: vic711.x, y: vic711.y, r: 20, label: 'OPEN CHEST', use: openVic713, ref: vic711, tier: 3 });
+  return L;
+};
+const _showItem713 = showItemHold711;
+showItemHold711 = function (it, x, y) { if (state === 'inv' && satchelTab === 'inventory') return; return _showItem713(it, x, y); };
+const _paintHold713 = paintHold712;
+paintHold712 = function (card, cx, cy) {
+  const el = ensureHold711();
+  const key = (card && card.title) || '';
+  const keep = el.dataset.frozen === '1' && el.dataset.freezeKey === key && !el.classList.contains('hidden');
+  const L = el.style.left, T = el.style.top;
+  const r = _paintHold713(card, cx, cy);
+  if (keep) { el.style.left = L; el.style.top = T; }
+  else { el.dataset.frozen = '1'; el.dataset.freezeKey = key; }
+  return r;
+};
+const _hide713 = hideHold711;
+hideHold711 = function () { const el = $('holdStats'); if (el) { el.dataset.frozen = ''; el.dataset.freezeKey = ''; } return _hide713(); };
+const _upd713 = update;
+update = function (dt) { const r = _upd713(dt); if (state === 'talk') tickTalk713(dt); if (state === 'play' || state === 'talk') watchBoss713(); return r; };
+
 if (window.game) {
   window.game.eligibleUniques = eligibleUniques;
   window.game.hurtPlayer = hurtPlayer;
@@ -10745,6 +11126,29 @@ if (window.game) {
   window.game.pitBlocks = pitBlocks712;
   window.game.charPairs = charPairs712;
   window.game.LINE_HEIGHT = LINE_HEIGHT;
+  window.game.weaponReach713 = weaponReach713;
+  window.game.breakPropsAt = breakPropsAt;
+  window.game.deltaColor713 = deltaColor713;
+  window.game.openVic713 = openVic713;
+  window.game.bossTheme713 = bossTheme713;
+  window.game.bossPhaseNow713 = bossPhaseNow713;
+  window.game.BOSS_AUDIO_713 = BOSS_AUDIO_713;
+  window.game.killEnemy = killEnemy;
+  window.game.die = die;
+  window.game.beginFight = beginFight;
+  window.game.startFloor = startFloor;
+  window.game.interactables = interactables;
+  window.game.syncSpellHud = syncSpellHud;
+  window.game.skipTalk713 = skipTalk713;
+  window.game.setTalkLine713 = setTalkLine713;
+  window.game.tickTalk713 = tickTalk713;
+  window.game.shopHit713 = shopHit713;
+  window.game.shopBuyRows = shopBuyRows712;
+  window.game.SHOP_COLS_713 = SHOP_COLS_713;
+  window.game.SHOP_SLOT_713 = SHOP_SLOT_713;
+  window.game.SHOP_ROW_713 = SHOP_ROW_713;
+  window.game.placeBossShop = placeBossShop711;
+  Object.defineProperty(window.game, 'bossAud', { configurable: true, get() { return bossAud713; } });
   Object.defineProperty(window.game, 'texts', { configurable: true, get() { return texts; } });
   Object.defineProperty(window.game, 'touchMode', { configurable: true, get() { return touchMode; }, set(v) { touchMode = !!v; if (typeof updateTouchUI === 'function') updateTouchUI(); } });
   Object.defineProperty(window.game, 'shopView', { configurable: true, get() { return shopView712; }, set(v) { shopView712 = v; } });

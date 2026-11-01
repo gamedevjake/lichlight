@@ -4,6 +4,27 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.13] - 2026-11-01
+
+_The chest waits, the words are whole, and the bosses have a pulse_
+
+### Added
+- **Boss gate.** The pre-fight talk is a larger framed window: name plate, title, portrait at the top right, and the boss's lines in a parchment bubble. Words appear one at a time. Click the bubble or press Space to finish the line. Esc or Enter still starts the fight.
+- **Boss music.** Each boss fight layers three stems as their life drops (full, then the middle layer, then the top). The music loops with a short crossfade, fades out when the boss or you die, and the dungeon music comes back. Mother Murk and every other even boss use the first theme. The Gnawer King, Oswin, and the other odd bosses use the second.
+
+### Changed
+- **Item cards** spell the stats out: Damage, Speed, Defense, Block Chance, Critical Strike Chance, Required Level, Durability. An upgrade compared with what you have worn is green. A downgrade is red.
+- **The name** on a card is a little larger, centered when it is one line, and no longer sits on the tan banner or between the side dashes. Long names still wrap.
+- **Spell buttons** on the HUD show up only after a spell is assigned to that slot. Empty slots stay hidden.
+- **Breakables** only break when the swing, the staff, the bow shot, or the spell actually reaches them.
+- **The victory chest** stays shut until you open it. It still holds 100 gold. Coins sprayed by the boss's death are about half of what they were, and never more than 49, so the chest is the larger pile.
+- **The trader** is on every boss floor, including depth 5. If the side room will not fit, the pedlar waits in the boss room and steps out after the fight.
+- **The Hollow Pedlar's counter** matches the satchel. A wide dark panel, gold pixel borders, spelled-out stock rows, and a 5 by 4 sell grid. More than twenty backpack items scroll instead of disappearing. BUY ITEM, SELL ITEM, SELL ALL, and REPAIR ALL sit in the footer. LEAVE is the red bar under them.
+- **Satchel buttons** along the bottom stay in one place when you select a different item. Long cards scroll inside the panel, with a fade when more text is waiting.
+
+### Fixed
+- Press-and-hold item stats no longer open on the Inventory tab, where the card is already open. On the other tabs the card stays where it first appeared instead of jumping to the middle of the screen.
+
 ## [0.7.12.1] - 2026-10-31
 
 _Long item names stay inside the card_
@@ -788,6 +809,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.13]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.13
 [0.7.12.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12.1
 [0.7.12]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.12
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1

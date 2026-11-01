@@ -2,7 +2,7 @@
 <html>
 <head><meta charset="utf-8"><title>v0712</title></head>
 <body>
-<iframe id="g" src="../index.html" style="width:1100px;height:700px;border:0"></iframe>
+<iframe id="g" src="../index.html?v=0713e" style="width:1100px;height:700px;border:0"></iframe>
 <pre id="out">running</pre>
 <script>
 const lines = [];
@@ -27,7 +27,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.12.1' && ver.indexOf('"0.7.12.1"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.13' && ver.indexOf('"0.7.13"') >= 0, (g && g.version) + ' ' + ver);
   check('title wrap helper', typeof g.wrapTitle712 === 'function' && typeof g.maxTitleWidth712 === 'function');
   const whale = g.wrapTitle712(null, 'Vampiric Broad Sword of the Whale', g.maxTitleWidth712(172));
   check('whale title wraps', whale.length === 2 && whale[0] === 'VAMPIRIC BROAD SWORD' && whale[1] === 'OF THE WHALE', whale.join(' / '));
@@ -147,7 +147,7 @@ function run(w) {
     check('shop footer', foot.every(Boolean), foot.map(b => b && b.id).join(','));
     const grid = w.document.getElementById('shGrid');
     const cols = grid ? w.getComputedStyle(grid).gridTemplateColumns : '';
-    check('sell grid cells', cols.indexOf('24px') >= 0, cols);
+    check('sell grid cells', cols.indexOf('32px') >= 0, cols);
     g.shopView = 'sealed';
     g.renderShop();
     const stock = w.document.getElementById('shStock');

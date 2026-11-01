@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0713</title></head>
+<body>
+<iframe id="g" src="../index.html?v=0713f" style="width:1100px;height:700px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.13' && ver.indexOf('"0.7.13"') >= 0, (g && g.version) + ' ' + ver);
+  check('dev hud off on github.io', src.indexOf("h === 'github.io' || h.endsWith('.github.io')") >= 0 && src.indexOf('return false') >= 0);
+  check('pack b shell kept', src.indexOf('btn_equip_idle_52x20') >= 0 && src.indexOf('inv_stats_panel_9slice') >= 0);
+  check('title wrap kept', typeof g.wrapTitle712 === 'function');
+  const whale = g.wrapTitle712(null, 'Vampiric Broad Sword of the Whale', g.maxTitleWidth712(172));
+  check('whale still wraps', whale.length === 2 && whale[0] === 'VAMPIRIC BROAD SWORD' && whale[1] === 'OF THE WHALE', whale.join(' / '));
+
+  g.newGame();
+  const sword = g.makeItem(1, 0, 'Short Sword');
+  const broad = g.makeItem(6, 2, 'Broad Sword');
+  broad.min = 8; broad.max = 14; broad.mods = broad.mods || {}; broad.mods.crit = 4;
+  g.player.equip.weapon = sword;
+  const card = g.itemCard712(broad);
+  const text = card.lines.map(l => l.text + (l.delta || '')).join(' | ');
+  check('spelled damage', text.indexOf('Damage ') >= 0 && !/\bDMG /.test(text), text);
+  check('spelled crit', text.indexOf('Critical Strike Chance') >= 0, text);
+  check('spelled level', text.indexOf('Required Level') >= 0, text);
+  const flat = g.flattenCard712(card, 220);
+  const pos = flat.find(r => r.delta && r.delta.indexOf('+') >= 0);
+  const negItem = g.makeItem(1, 0, 'Short Sword');
+  negItem.min = 1; negItem.max = 2;
+  g.player.equip.weapon = broad;
+  const down = g.flattenCard712(g.itemCard712(negItem), 220).find(r => r.delta && r.delta.indexOf('-') >= 0);
+  check('positive delta green', !!(pos && g.deltaColor713(pos.delta) === '#60e060'), pos && pos.delta + ' ' + (pos && g.deltaColor713(pos.delta)));
+  check('negative delta red', !!(down && g.deltaColor713(down.delta) === '#ff4040'), down && down.delta);
+
+  g.player.equip.weapon = sword;
+  g.player.x = 80; g.player.y = 80; g.player.fx = 1; g.player.fy = 0; g.player.atkCd = 0;
+  const far = { kind: 'remains', x: g.player.x + 220, y: g.player.y, broken: false, v: 0 };
+  g.props.push(far);
+  g.doAttack(true);
+  check('far skeleton survives', far.broken === false, g.weaponReach713());
+  const near = { kind: 'remains', x: g.player.x + 14, y: g.player.y, broken: false, v: 0 };
+  g.props.push(near);
+  g.player.atkCd = 0;
+  g.doAttack(true);
+  check('near skeleton breaks', near.broken === true);
+  const staff = g.makeItem(2, 0, 'Gnarled Staff');
+  g.player.equip.weapon = staff;
+  const mid = { kind: 'remains', x: g.player.x + 36, y: g.player.y, broken: false, v: 0 };
+  g.props.push(mid);
+  g.player.atkCd = 0; g.player.fx = 1; g.player.fy = 0;
+  g.doAttack(true);
+  check('staff reaches farther', mid.broken === true, g.weaponReach713());
+  g.equipBow('default');
+  check('bow reach', g.weaponReach713() > 100, g.weaponReach713());
+
+  check('boss themes', g.BOSS_AUDIO_713.boss_01.loopStart > 58 && g.BOSS_AUDIO_713.boss_02.loopEnd > 145);
+  check('boss 01 even roster', g.bossTheme713({ B: g.BOSSES[0], T: { boss: 1 } }) === 'boss_01');
+  check('boss 02 odd roster', g.bossTheme713({ B: g.BOSSES[1], T: { boss: 1 } }) === 'boss_02' && g.bossTheme713({ B: g.BOSSES[19], T: { boss: 1 } }) === 'boss_02');
+  check('ogg shipped', ['boss_01_phase1.ogg', 'boss_01_phase2.ogg', 'boss_01_phase3.ogg', 'boss_02_phase1.ogg', 'boss_02_phase2.ogg', 'boss_02_phase3.ogg'].every(f => fetchText('../assets/music/boss/' + f).length > 1000));
+
+  let shops = 0;
+  [5, 10, 15].forEach(d => { g.startFloor(d, true); if (g.shop) shops++; });
+  check('trader on boss floors', shops === 3, shops);
+
+  g.startFloor(5, true);
+  const boss = g.enemies.find(e => e.T && e.T.boss);
+  w.__goldRoll = 1;
+  const before = g.ground.filter(x => x && x.coin).length;
+  if (boss) g.killEnemy(boss);
+  const spit = g.ground.filter(x => x && x.coin).length - before;
+  check('boss spit capped', spit <= 49, spit);
+  for (let i = 0; i < 90; i++) g.step(0.05);
+  const vic = g.vic;
+  check('chest stays closed', !!(vic && !vic.opened && vic.phase !== 'open' && vic.phase !== 'idle' && !vic.spat), vic && (vic.phase + ' opened ' + vic.opened));
+  const bursts = [];
+  const origBurst = w.burstCoins;
+  w.burstCoins = function (x, y, n, extra) { bursts.push(n | 0); return origBurst(x, y, n, extra); };
+  if (vic) { g.player.x = vic.x; g.player.y = vic.y; g.openVic713(); }
+  check('player opens chest', !!(g.vic && g.vic.opened), g.vic && g.vic.phase);
+  for (let i = 0; i < 20; i++) g.step(0.05);
+  check('chest pays 100', bursts.indexOf(100) >= 0, bursts.join(','));
+
+  g.setTalkLine713('Alpha beta gamma delta');
+  g.tickTalk713(0.1);
+  const partial = w.document.getElementById('tkLine').textContent;
+  check('words arrive one at a time', partial.split(/\s+/).filter(Boolean).length === 1, partial);
+  g.skipTalk713();
+  check('space skip fills the line', w.document.getElementById('tkLine').textContent.indexOf('delta') >= 0, w.document.getElementById('tkLine').textContent);
+  check('talk bubble exists', !!w.document.getElementById('tkBubble'));
+
+  const b1 = w.document.getElementById('bS1');
+  g.syncSpellHud();
+  check('empty spell hidden', b1.classList.contains('hud-off'), b1.className);
+  if (w.ensureTome) { const t = w.ensureTome(g.player); t.isAcquired = true; w.unlockSpell('fireball'); }
+  if (w.assignSpell) w.assignSpell('fireball', 0);
+  g.syncSpellHud();
+  check('assigned spell shows', !b1.classList.contains('hud-off'), b1.className);
+
+  if (w.openShop) w.openShop();
+  const box = w.document.querySelector('#shop .shopbox');
+  const shopStyle = box ? w.getComputedStyle(box) : null;
+  check('pedlar panel', !!(shopStyle && shopStyle.backgroundColor.replace(/\s/g, '') === 'rgb(46,34,29)'), shopStyle && shopStyle.backgroundColor);
+  check('pedlar width', box && box.getBoundingClientRect().width >= w.innerWidth * 0.7, box && box.getBoundingClientRect().width);
+  const cols = w.getComputedStyle(w.document.getElementById('shGrid')).gridTemplateColumns;
+  check('sell grid 32', cols.indexOf('32px') >= 0 && g.SHOP_COLS_713 === 5, cols);
+  const leave = w.document.getElementById('shLeave');
+  const leaveBg = w.getComputedStyle(leave).backgroundColor.replace(/\s/g, '');
+  check('leave is red', leaveBg === 'rgb(126,30,30)', leaveBg);
+  check('buy button', !!w.document.getElementById('shBuyItem'));
+  g.renderShop();
+  const buyCv = w.document.getElementById('shBuyCv');
+  const rect = buyCv.getBoundingClientRect();
+  const hit = g.shopHit713(buyCv, rect.left + 12, rect.top + 10);
+  check('buy row hitbox', hit === 0, hit);
+  const n0 = g.player.inv.length;
+  while (g.player.inv.length < 28) g.player.inv.push(null);
+  for (let i = 0; i < 28; i++) if (!g.player.inv[i]) g.player.inv[i] = g.makeItem(1, 0);
+  g.renderShop();
+  const slots = w.document.querySelectorAll('#shGrid .slot').length;
+  check('sell keeps every item', slots === g.player.inv.length && slots > 20, slots + '/' + g.player.inv.length);
+  const sc = (g.scrolls && g.scrolls.shopSell) || null;
+  const clip = w.document.getElementById('shSellClip');
+  check('sell scrolls', !!(sc && sc.maxScrollY > 0), sc ? sc.maxScrollY : 'no shopSell');
+  w.satchelOpenTab && w.closeShop && w.closeShop();
+
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const holdBefore = w.document.getElementById('holdStats');
+  if (w.showItemHold711) w.showItemHold711(g.player.inv[0], 40, 40);
+  const hold = w.document.getElementById('holdStats');
+  check('no hold on inventory tab', !hold || hold.classList.contains('hidden'), hold && hold.className);
+  void holdBefore;
+  void n0;
+}
+</script>
+</body>
+</html>
