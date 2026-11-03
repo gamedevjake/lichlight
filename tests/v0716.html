@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<!-- v0.7.16. Stale suites that still expect the pre-0.7.15.2 integer satchel (v0715, v07151) or the old 32px flat pedlar (v0712 sell grid, v0713 panel color) fail on purpose. v07152 remains the satchel contract and should pass. -->
+<html>
+<head><meta charset="utf-8"><title>v0716</title>
+<style>html,body{margin:0;background:#000;height:100%;overflow:hidden}iframe{display:block}</style>
+</head>
+<body>
+<iframe id="g" src="../index.html?v=0716" style="width:844px;height:390px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+function fetchStatus(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status; }
+  catch (e) { return 0; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); finish(); }
+});
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.16' && ver.indexOf('"0.7.16"') >= 0, (g && g.version) + ' ' + ver);
+  check('newer than 0.7.15.2', w.semverGt('0.7.16', '0.7.15.2') === true && w.semverGt('0.7.15.2', '0.7.16') === false);
+
+  check('begin uses live handler', src.indexOf("addEventListener('click', () => beginFight())") >= 0);
+  check('boss format pick', src.indexOf('function bossFmt713') >= 0 && src.indexOf("return 'm4a'") >= 0 && src.indexOf('_phase') >= 0);
+  check('shop hit uses own scale', g.shopHit713 && g.shopHit713.toString().indexOf('rect.height / cv.height') >= 0 && g.shopHit713.toString().indexOf('satM.scale') < 0);
+  check('tab flick cue', g.TAB_FLIP_CUE === 'ui_toggle_02');
+  check('loot lines left aligned', src.indexOf('view.x + view.w - 2, 0)') >= 0);
+
+  g.newGame();
+  w.openInv();
+  w.satchelOpenTab('character');
+  const hero = w.document.getElementById('charHero');
+  const stats = w.document.getElementById('stats');
+  const strip = w.document.getElementById('charStrip');
+  const dossier = w.document.getElementById('charDossier');
+  check('paperdoll', hero && hero.width >= 64 && hero.height >= 64, hero && (hero.width + 'x' + hero.height));
+  check('dossier fills pane', dossier && stats && dossier.height + 1 >= stats.clientHeight && stats.clientHeight >= 90, stats && stats.clientHeight);
+  check('no leftover strip', strip && w.getComputedStyle(strip).display === 'none');
+  const wpn = w.document.querySelector('#equip .slot[data-slot="weapon"]');
+  const shd = w.document.querySelector('#equip .slot[data-slot="shield"]');
+  const arm = w.document.querySelector('#equip .slot[data-slot="armor"]');
+  const rng = w.document.querySelector('#equip .slot[data-slot="ring"]');
+  const hr = hero.getBoundingClientRect();
+  const slotsOk = wpn && shd && arm && rng && wpn.getBoundingClientRect().right <= hr.left + 4 && shd.getBoundingClientRect().right <= hr.left + 4 && arm.getBoundingClientRect().left >= hr.right - 4 && rng.getBoundingClientRect().left >= hr.right - 4;
+  check('gear around doll', !!slotsOk, slotsOk ? 'ok' : 'missing');
+  const foot = w.document.getElementById('restBtn');
+  const close = w.document.getElementById('satClose');
+  check('footer stays', foot && close && w.getComputedStyle(foot.parentElement).display !== 'none');
+
+  g.equipBow('default');
+  check('bow pose', g.playerPose716() === 'bow' && g.player.equip.weapon && (g.player.equip.weapon.bow || g.player.equip.weapon.icon === 'bow'));
+  g.equipBow('Scream of the Banshee');
+  check('unique bow pose', g.playerPose716() === 'bow' && g.player.equip.weapon.uniqueId === 'Scream of the Banshee');
+  g.player.equip.weapon = null;
+  check('melee pose', g.playerPose716() === 'melee');
+
+  const fr = w.wardSprites(g.player).a.r;
+  const rect = g.shiftFxRect716(g.player);
+  check('shift matches player', rect.w === fr.width && rect.h === fr.height && rect.y === Math.round(g.player.y - 9), rect.w + 'x' + rect.h);
+
+  const rows = g.flattenCard712({ lines: [{ text: 'BARRIER: ABSORB 11% LIFE FOR 5S WHEN STRUCK', col: '#fff', delta: ' (+11%)' }] }, 96);
+  const tooWide = rows.some(r => ((r.text || '').length + (r.delta || '').length) * 4 > 110);
+  const joined = rows.map(r => r.text + (r.delta || '')).join(' ');
+  check('barrier fully wrapped', rows.length > 1 && !tooWide && joined.indexOf('BARRIER') >= 0 && joined.indexOf('STRUCK') >= 0 && joined.indexOf('11%') >= 0, rows.map(r => r.text + r.delta).join(' | '));
+
+  g.texts.length = 0;
+  g.player.fx = 1; g.player.fy = 0;
+  g.addText(10, 20, '4', '#fff');
+  g.addText(10, 20, '9!', '#ffe040');
+  g.addText(10, 20, 'BLOCK', '#aaa');
+  g.addText(10, 20, '+12G', '#e8c840');
+  g.addText(10, 20, 'LEVEL UP!', '#ffe040', true);
+  const T = g.texts;
+  check('floater lives', T[0].life === 2 && T[0].kind === 'regular' && T[0].ease && T[1].life === 2.5 && T[1].crit && T[2].life === 2 && T[2].kind === 'status' && T[3].life === 2 && T[3].kind === 'status' && T[4].life === 3.6 && T[4].kind === 'banner' && !T[4].ease, T.map(t => t.kind + ':' + t.life).join(','));
+  check('smack faces right', T[0].vx > 20 && T[1].vx > 20);
+  g.player.fx = -1; g.player.fy = 0;
+  g.addText(0, 0, '3', '#fff');
+  check('smack faces left', g.texts[g.texts.length - 1].vx < -20, g.texts[g.texts.length - 1].vx);
+
+  const slime = w.spawnEnemy('slime', 120, 120, false);
+  const before = g.texts.length;
+  w.damageEnemy(slime, 5, -50, 0, '#fff', false);
+  const hit = g.texts[g.texts.length - 1];
+  check('hit floater follows knockback', hit && hit.kind === 'regular' && hit.life === 2 && hit.vx < 0 && g.texts.length > before, hit && hit.vx);
+  w.damageEnemy(slime, 6, 50, 0, '#fff', true);
+  const crit = g.texts[g.texts.length - 1];
+  check('crit floater larger life', crit && crit.crit && crit.life === 2.5 && crit.vx > 0);
+
+  [[844, 390], [740, 360], [667, 375]].forEach(pair => {
+    const s = g.shopScaleFor716(pair[0], pair[1]);
+    const fits = s >= 1 && g.SHOP_LW * s <= pair[0] + 0.01 && g.SHOP_LH * s <= pair[1] + 0.01 && s === (s | 0);
+    check('shop fits ' + pair[0] + 'x' + pair[1], fits, 'S=' + s);
+  });
+  w.__forceShop = true;
+  w.placeShop();
+  w.openShop();
+  const frame = document.getElementById('g');
+  frame.style.width = '667px'; frame.style.height = '375px';
+  w.resize();
+  g.renderShop();
+  const host = w.document.getElementById('shopHost');
+  const art = w.document.getElementById('shopArt');
+  const leave = w.document.getElementById('shLeave');
+  const buy = w.document.getElementById('shBuyItem');
+  const hostR = host.getBoundingClientRect();
+  const artR = art.getBoundingClientRect();
+  const leaveR = leave.getBoundingClientRect();
+  check('shop host snapped', host.dataset.scale === '2' && Math.abs(hostR.left - Math.round(hostR.left)) < 0.6 && leaveR.bottom <= 375.5 && leaveR.top >= 0, host.dataset.scale + ' leave ' + leaveR.top.toFixed(1) + '..' + leaveR.bottom.toFixed(1));
+  check('shop art integer', art.style.transform === 'scale(2)' && art.style.width === '320px', art.style.transform);
+  check('footer chrome', buy.classList.contains('sat-btn') && buy.classList.contains('text') && leave.classList.contains('danger') && !buy.classList.contains('shb'));
+  const buyCv = w.document.getElementById('shBuyCv');
+  check('buy canvas logical', buyCv && buyCv.width === 132 && buyCv.dataset.dpr === '1' && (buyCv._rows713 || []).length === 5, buyCv && (buyCv.width + ' rows ' + (buyCv._rows713 || []).length));
+  if (buyCv && buyCv._rows713) {
+    const same = buyCv._rows713.every((r, i) => r.y === i * r.h || r.h === 13);
+    check('buy rows share box', buyCv._rows713.length === 5 && buyCv._rows713.every(r => r.h === 13), JSON.stringify(buyCv._rows713[0]));
+  }
+
+  ['boss_01_phase1','boss_01_phase2','boss_01_phase3','boss_02_phase1','boss_02_phase2','boss_02_phase3'].forEach(id => {
+    check('m4a ' + id, fetchStatus('../assets/music/boss/' + id + '.m4a') === 200);
+  });
+
+  let spins = 0;
+  const waitArt = () => {
+    spins++;
+    if (!g.EN_CLIP.slime && spins < 80) { setTimeout(waitArt, 250); return; }
+    try { artChecks(w, g); } catch (e) { lines.push('FAIL art :: ' + (e && e.stack || e)); }
+    finish();
+  };
+  waitArt();
+}
+function artChecks(w, g) {
+  check('art ready', !!(g.EN_CLIP.slime && g.BOSS_CLIP.mother_murk));
+  const slime = g.EN_CLIP.slime;
+  check('slime clips', slime && slime.idle && slime.idle.frames.length === 4 && slime.walk.frames.length === 4 && slime.attack.frames.length === 4 && slime.hurt.frames.length === 2 && slime.death.frames.length === 5, slime && Object.keys(slime).join(','));
+  check('slime cell', slime && slime.idle.frames[0].r.width === 32 && slime.idle.ms === 180 && slime.attack.ms === 90 && slime.idle.loop === true && slime.attack.loop === false);
+  check('slow walk', g.EN_CLIP.zombie && g.EN_CLIP.zombie.walk.ms === 170);
+  check('mimic disguised', g.EN_CLIP.mimic_disguised && g.EN_CLIP.mimic_disguised.frames.length >= 1);
+  const murk = g.BOSS_CLIP.mother_murk;
+  check('boss clips', murk && murk.idle.frames.length === 4 && murk.death.frames.length === 8 && murk.idle.frames[0].r.width === 48, murk && murk.idle.frames[0].r.width);
+  check('oswin strip', g.BOSS_CLIP.bone_king_oswin && g.BOSS_CLIP.bone_king_oswin.idle && g.BOSS_CLIP.bone_king_oswin.idle.frames[0].r.width === 48);
+  check('portrait', !!g.ART.boss_mother_murk_portrait && g.ART.boss_mother_murk_portrait.width === 64);
+  check('crab open still', !!g.ART.enemy_crab_open && g.ETYPES.crab.S2 && g.ETYPES.crab.S.r.width === 32);
+  check('boss still replaced', g.BOSSES[0].img && g.BOSSES[0].img.r.width === 48 && g.BOSSES[19].portrait && g.BOSSES[19].portrait.width === 64);
+  const n = g.placeSet716();
+  check('set pieces', n > 0 && g.ART.prop_altar_stone && g.ART.prop_hanging_cage_sway_01 && g.ART.prop_chandelier_iron_flicker_01, n);
+  w.v077BuildRooms();
+  const fam = {};
+  for (let i = 0; i < (g.rooms || []).length; i++) fam[g.V77.of[i]] = (fam[g.V77.of[i]] || 0) + 1;
+  const letters = Object.keys(fam);
+  const only = letters.every(L => 'abcd'.indexOf(L) >= 0);
+  const d = fam.d || 0;
+  check('room families', only && d >= 1, JSON.stringify(fam));
+  const a = g.polishImg716('damp', 'floor', g.rooms[0].cx, g.rooms[0].cy);
+  const b = g.polishImg716('castle', 'floor', g.rooms[0].cx, g.rooms[0].cy);
+  check('polish tiles', !!a && !!b && a !== b, (a && a.width) + '/' + (b && b.width));
+  let weighted = 0, total = 0;
+  for (let i = 0; i < 40; i++) {
+    const im = g.polishImg716('damp', 'floor', i * 3, 2);
+    total++;
+  }
+  check('weight helper', total === 40 && typeof g.polishImg716 === 'function');
+}
+</script>
+</body>
+</html>

@@ -27,7 +27,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.15.2' && ver.indexOf('"0.7.15.2"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.16' && ver.indexOf('"0.7.16"') >= 0, (g && g.version) + ' ' + ver);
   check('title wrap helper', typeof g.wrapTitle712 === 'function' && typeof g.maxTitleWidth712 === 'function');
   const whale = g.wrapTitle712(null, 'Vampiric Broad Sword of the Whale', g.maxTitleWidth712(172));
   check('whale title wraps', whale.length === 2 && whale[0] === 'VAMPIRIC BROAD SWORD' && whale[1] === 'OF THE WHALE', whale.join(' / '));
