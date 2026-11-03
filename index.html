@@ -460,6 +460,44 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tomeGridCv{display:block;image-rendering:pixelated;touch-action:none}
 #satchel #notesPane{overflow:hidden!important}
 #notesPane canvas.notes712{position:absolute;left:0;top:0}
+/* v0.7.16 B1: paperdoll and dossier fill the character pane */
+#satchel[data-tab="character"] .sat-pane[data-pane="character"]{height:100%}
+#satchel[data-tab="character"] #equip{position:absolute;left:0;top:0;width:118px;height:100%;display:block;background:none;padding:0;grid-template-columns:none}
+#satchel[data-tab="character"] #stats{position:absolute;left:120px;top:0;right:0;bottom:0;height:100%;width:auto;border:0;background:none;overflow:hidden!important;margin:0;padding:0}
+#satchel[data-tab="character"] #charStrip{display:none!important}
+#satchel[data-tab="character"] #charHero{position:absolute;left:27px;top:22px;width:64px!important;height:64px!important;z-index:3}
+#satchel[data-tab="character"] #equip .slot{position:absolute}
+#satchel[data-tab="character"] #equip .slot[data-slot="weapon"]{left:0;top:16px}
+#satchel[data-tab="character"] #equip .slot[data-slot="shield"]{left:0;top:42px}
+#satchel[data-tab="character"] #equip .slot[data-slot="boots"]{left:0;top:68px}
+#satchel[data-tab="character"] #equip .slot[data-slot="armor"]{left:94px;top:4px}
+#satchel[data-tab="character"] #equip .slot[data-slot="helm"]{left:94px;top:30px}
+#satchel[data-tab="character"] #equip .slot[data-slot="ring"]{left:94px;top:56px}
+#satchel[data-tab="character"] #equip .slot[data-slot="amulet"]{left:94px;top:82px}
+/* v0.7.16 B6: Hollow Pedlar uses the satchel frame, integer scale, shared buttons */
+#shopHost{position:absolute;flex:0 0 auto;overflow:visible}
+#shopArt{position:absolute;left:0;top:0;width:320px;height:176px;box-sizing:border-box;overflow:hidden;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:0 0;border-style:solid;border-width:8px;border-image:url(assets/ui/v07101/satchel/frame/satchel_panel_9slice_24_s8.png) 8 fill / 8px / 0 stretch;background:transparent;color:#e8dcc0;padding:0}
+#shop .shopbox{width:320px!important;height:176px!important;max-width:none!important;min-width:0!important;max-height:none!important;overflow:hidden!important;margin:0;padding:0;text-align:left;background:transparent;border:0;box-shadow:none;color:#e8dcc0}
+#shopArt .sh-head{position:absolute;left:6px;right:6px;top:4px;height:12px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+#shopArt #shNoteCv{position:absolute;left:6px;top:18px;width:292px;height:10px}
+#shopArt #shTabs{position:absolute;left:6px;right:6px;top:30px;height:16px;display:flex;gap:4px;margin:0;justify-content:stretch}
+#shopArt #shTabs button{flex:1 1 0;height:16px;margin:0;padding:0 2px;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background:none;border-style:solid;border-width:4px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch;image-rendering:pixelated}
+#shopArt #shTabs button.on{border-image:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch;color:#f4ecd4}
+#shopArt #shStage{position:absolute;left:6px;right:6px;top:48px;height:86px}
+#shopArt #shStock{position:absolute;inset:0;display:flex;gap:6px}
+#shopArt #shStock .shcol{flex:1 1 0;min-width:0;position:relative}
+#shopArt #shStock .shcol h3{position:absolute;left:0;top:0;margin:0;height:8px;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;letter-spacing:0}
+#shopArt #shBuyClip,#shopArt #shSellClip{position:absolute;left:0;right:0;top:10px;height:76px;overflow:hidden;background:none;border-style:solid;border-width:4px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/content/inset_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#shopArt .sh-single{position:absolute;inset:0;min-height:0;background:none;border-style:solid;border-width:6px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/content/notes_parchment_9slice_18_s6.png) 6 fill / 6px / 0 stretch;padding:0}
+#shopArt #shFoot{position:absolute;left:6px;right:6px;bottom:22px;height:16px;display:flex;gap:4px;margin:0;justify-content:stretch}
+#shop #shFoot>button,#shop #shLeave{flex:1 1 0;min-width:0;margin:0;height:16px;min-height:0;padding:0 3px;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background-color:transparent;background-image:none;box-shadow:none;text-shadow:none;border-style:solid;border-width:4px;box-sizing:border-box;image-rendering:pixelated;width:auto;display:flex;align-items:center;justify-content:center}
+#shop #shFoot>button.stone,#shop #shFoot>button.sat-btn.text.stone{border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#shop #shFoot>button.brass,#shop #shFoot>button.sat-btn.text.brass{border-image:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#shop #shLeave{position:absolute;left:6px;right:6px;bottom:4px;width:auto;display:flex;align-items:center;justify-content:center;border-image:url(assets/ui/v07101/satchel/buttons/btn20_danger_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#shop #shFoot>button.dis{opacity:.45}
+#shop .slot{width:22px;height:22px}
+#shop #shGrid{grid-template-columns:repeat(5,22px);grid-auto-rows:22px;gap:2px}
+#shop canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 </style>
 </head>
 <body>
@@ -558,31 +596,31 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <p class="updSub">Your progress is saved at the start of each floor.</p>
   <div class="updBtns"><button class="mbtn" id="updGo">UPDATE</button><button class="mbtn small" id="updLater">LATER</button></div>
 </div></div>
-<div id="shop" class="overlay hidden"><div class="v4box shopbox">
-  <div class="sh-head"><canvas id="shTitleCv" width="320" height="18"></canvas><canvas id="shGoldCv" width="240" height="18"></canvas><span id="shGold" hidden></span></div>
-  <canvas id="shNoteCv" width="640" height="28"></canvas>
+<div id="shop" class="overlay hidden"><div id="shopHost"><div id="shopArt" class="shopbox">
+  <div class="sh-head"><canvas id="shTitleCv" width="170" height="10"></canvas><canvas id="shGoldCv" width="110" height="10"></canvas><span id="shGold" hidden></span></div>
+  <canvas id="shNoteCv" width="292" height="10"></canvas>
   <div id="shNote" hidden></div>
   <div id="shTabs" class="sh-tabs">
-    <button type="button" class="shb on" id="shTabStock" data-view="stock">STOCK</button>
-    <button type="button" class="shb" id="shTabSealed" data-view="sealed">SEALED UNIQUES</button>
-    <button type="button" class="shb" id="shTabRepair" data-view="repair">REPAIR</button>
+    <button type="button" class="on" id="shTabStock" data-view="stock">STOCK</button>
+    <button type="button" id="shTabSealed" data-view="sealed">SEALED UNIQUES</button>
+    <button type="button" id="shTabRepair" data-view="repair">REPAIR</button>
   </div>
   <div id="shStage">
     <div id="shStock" class="shcols">
-      <div class="shcol"><h3>BUY</h3><div id="shBuyClip"><canvas id="shBuyCv" width="280" height="156"></canvas><div id="shBuy" hidden></div></div></div>
+      <div class="shcol"><h3>BUY</h3><div id="shBuyClip"><canvas id="shBuyCv" width="132" height="68"></canvas><div id="shBuy" hidden></div></div></div>
       <div class="shcol"><h3>SELL</h3><div id="shSellClip"><div id="shGrid"></div></div><div id="shSelTxt" hidden></div></div>
     </div>
-    <div id="shSealedPane" class="sh-single hidden"><canvas id="shUniCv" width="640" height="180"></canvas><div id="shUni" hidden></div></div>
-    <div id="shRepairPane" class="sh-single hidden"><canvas id="shRepairCv" width="640" height="180"></canvas></div>
+    <div id="shSealedPane" class="sh-single hidden"><canvas id="shUniCv" width="280" height="74"></canvas><div id="shUni" hidden></div></div>
+    <div id="shRepairPane" class="sh-single hidden"><canvas id="shRepairCv" width="280" height="74"></canvas></div>
   </div>
   <div id="shFoot">
-    <button class="shb" id="shBuyItem" type="button">BUY ITEM</button>
-    <button class="shb" id="shSell" type="button">SELL ITEM</button>
-    <button class="shb" id="shSellAll" type="button">SELL ALL</button>
-    <button class="shb" id="shRepair" type="button">REPAIR ALL</button>
+    <button class="sat-btn text stone" id="shBuyItem" type="button">BUY ITEM</button>
+    <button class="sat-btn text stone" id="shSell" type="button">SELL ITEM</button>
+    <button class="sat-btn text stone" id="shSellAll" type="button">SELL ALL</button>
+    <button class="sat-btn text stone" id="shRepair" type="button">REPAIR ALL</button>
   </div>
-  <button class="shb" id="shLeave" type="button">LEAVE</button>
-</div></div>
+  <button class="sat-btn text danger" id="shLeave" type="button">LEAVE</button>
+</div></div></div>
 <div id="rest" class="overlay hidden"><div class="v4box">
   <h2>REST</h2><div class="v4sub">The room is quiet. How long will you sleep?</div>
   <div id="rsHours"></div><div class="v4sub" id="rsTxt"></div>
@@ -613,7 +651,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.15.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.16'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -3825,6 +3863,7 @@ function renderInv() {
   const eq = $('equip'); eq.innerHTML = '';
   const slotLbl = { weapon: 'WPN', shield: 'SHD', helm: 'HLM', armor: 'ARM', boots: 'BTS', ring: 'RNG', amulet: 'AMU' };
   SLOTS.forEach(s => { const it = p.equip[s]; const el = slotEl(it, it ? '' : (slotLbl[s] || s.toUpperCase()), sel && sel.where === 'eq' && sel.slot === s);
+    el.dataset.slot = s;
     el.addEventListener('pointerdown', e => { e.preventDefault(); if (repairMode) { repairPick(it); return; } sel = it ? { where: 'eq', slot: s } : null; if (it) it.isNew = false; renderInv(); }); slotTipHandlers(el, it, false); eq.appendChild(el); });
   const g = $('grid'); g.innerHTML = '';
   p.inv.forEach((it, i) => { const el = slotEl(it, '', sel && sel.where === 'inv' && sel.idx === i);
@@ -4333,7 +4372,7 @@ function update(dt) {
   if (parts.length > MAX_PARTS) parts.splice(0, parts.length - MAX_PARTS);
   for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.ay) q.vy += q.ay * dt; if (!q.nd) { q.vx *= .9; q.vy *= .9; } if (q.life <= 0) parts.splice(i, 1); }
   updateEntranceFx(dt); updateCritters(dt); // v0.7.0
-  for (let i = texts.length - 1; i >= 0; i--) { const q = texts[i]; q.life -= dt; q.y += q.vy * dt; if (q.life <= 0) texts.splice(i, 1); }
+  tickTexts716(dt);
   for (let i = effects.length - 1; i >= 0; i--) { const q = effects[i]; q.t += dt; if (q.kind === 'spin') { q.x = p.x; q.y = p.y; } if (q.t >= q.dur) effects.splice(i, 1); }
   msg.life -= dt; bannerT -= dt; bossIntro -= dt; trauma = Math.max(0, trauma - dt * 1.3);
   const tx = p.x - VW / 2, ty = p.y - VH / 2;
@@ -5326,7 +5365,7 @@ $('mRest').addEventListener('click', () => openRest());
 $('rsGo').addEventListener('click', confirmRest); $('rsNo').addEventListener('click', () => setState('play'));
 $('shLeave').addEventListener('click', closeShop); $('shSell').addEventListener('click', sellSel); $('shSellAll').addEventListener('click', sellAll); $('shRepair').addEventListener('click', repairAll);
 $('shBuyItem').addEventListener('click', () => { const rows = shopBuyRows712(); const row = rows[shopBuyPick] || rows[0]; if (row) buy(row[0]); });
-$('tkBegin').addEventListener('click', beginFight);
+$('tkBegin').addEventListener('click', () => beginFight()); /* v0.7.16 B5: look up beginFight at click/tap time */
 const tkBubble = $('tkBubble'); if (tkBubble) tkBubble.addEventListener('click', () => { if (state === 'talk') skipTalk713(); });
 $('mSkills').addEventListener('click', openSkills); $('skClose').addEventListener('click', closeSkills);
 $('mBattle').addEventListener('click', () => { settings.battleMusic = !settings.battleMusic; saveSettings(); syncBattleBtn(); });
@@ -6016,13 +6055,13 @@ function to12(img) { const c = document.createElement('canvas'); c.width = c.hei
 function artIcon(it) { if (!artReady) return null; const ic = slugify(it.icon), r = RAR_SLUG[it.rarity] || 'normal', nm = slugify(it.name);
   let a = ART['icon_' + ic + '_' + r + '_' + nm]; if (!a && it.rarity) { const pre = 'icon_' + ic + '_' + r + '_'; for (const k in ART) if (k.startsWith(pre) && nm.includes(k.slice(pre.length))) { a = ART[k]; break; } }
   if (!a && it.rarity) a = ART['icon_' + ic + '_' + r]; if (!a && !it.rarity) a = ART['icon_' + ic]; return a || null; }
-function registerArt(name, img) { name = name.toLowerCase(); const vm = name.match(/^(.*)_v([abc])$/);
-  if (vm) { const stem = vm[1], L = vm[2]; (ART_VAR[stem] || (ART_VAR[stem] = {}))[L] = img; ART[name] = img; artReady = true; ICON_CACHE.clear(); ICON_URL6.clear(); return; } /* v0.7.7 F4: one letter per room, never a random extra floor */
+function registerArt(name, img) { name = name.toLowerCase(); const vm = name.match(/^(.*)_v([abcd])$/); /* v0.7.16 ART3: A/B/C/D room families */
+  if (vm) { const stem = vm[1], L = vm[2]; (ART_VAR[stem] || (ART_VAR[stem] = {}))[L] = img; ART[name] = img; artReady = true; ICON_CACHE.clear(); ICON_URL6.clear(); return; } /* v0.7.7 F4: one letter per room, never a random extra floor. v0.7.16: family D is _vd */
   if (/^icon_/.test(name)) ART[name] = to12(img);
   else if (/^floor_/.test(name) && !BIOME_RX.test(name) && img.width === TS && img.height === TS) ART_TILES.floor.push(img); else if (/^wall_face_/.test(name) && !BIOME_RX.test(name) && img.width === TS && img.height === TS) ART_TILES.wall.push(img);
   else ART[name] = img; if (name === 'item_necro_potion_12' || name === 'necro_potion_12') ICONS.np = img; if (/^(floor_|wall_face_|wall_top_)/.test(name)) ART_STEM.set(img, name); artReady = true; ICON_CACHE.clear(); ICON_URL6.clear(); }
 async function loadArt() { if (location.protocol === 'file:') return 0; try { const r = await fetch('assets/manifest.json', { cache: 'no-store' }); if (!r.ok) return 0; const j = await r.json();
-  const files = (j && Array.isArray(j.files) ? j.files : []).filter(f => typeof f === 'string' && /^[a-z0-9_\-]+\.png$/i.test(f)).slice(0, 2000); /* v0.7.7: tile variants + map icons + fall art (was 1200) */
+  const files = (j && Array.isArray(j.files) ? j.files : []).filter(f => typeof f === 'string' && /^[a-z0-9_\-]+\.png$/i.test(f)).slice(0, 2500); /* v0.7.16: strips + polish tiles (was 2000) */
   await Promise.all(files.map(f => new Promise(res => { const im = new Image(); im.onload = () => { registerArt(f.replace(/\.png$/i, ''), im); res(); }; im.onerror = res; im.src = 'assets/' + f; }))); return files.length; } catch (e) { return 0; } }
 // ---- §18 puzzle glints / §19 slow puzzle doors, distant echo, map blink ----
 const PUZZLE_SLIDE = 3.2, MAP_BLINK = 15, MAP_ALPHA = .42, MAP_BG = .14; // v0.7.6 F7: map overlay is more see-through (was .72 / .3) and has no cell grid
@@ -6124,7 +6163,7 @@ function sfxExtra3(type) {
     case 'examine': sfxNoise('bandpass', 2400, .1, .035, 0, 2); sfxTone('sine', 660, 640, .12, .02, .02); return true;
   }
   return false; }
-loadProfiles(); window.__v06 = true; setTimeout(loadArt, 900);
+loadProfiles(); window.__v06 = true; setTimeout(() => loadArt(), 900); /* v0.7.16: resolve loadArt after it is wrapped */
 // ---- §4 / §5 title-screen character UI ----
 let profOpen = false, profEdit = null, profDelAsk = null;
 function profLabel(q) { const m = profMeta(q.id); return m ? `LV ${m.lvl} - DEPTH ${m.depth}` : 'NEW'; }
@@ -6232,7 +6271,7 @@ function render() {
     if (e.name) drawTextC(e.name, e.x, Y - 7, '#7a9cff');
   }
   drawInteractPrompt(); drawThought();
-  for (const q of texts) drawTextC(q.t, q.x, q.y, q.col);
+  for (const q of texts) drawFloater716(q);
   if (goldCombo.on && player) drawTextC(String(goldCombo.n), player.x, player.y - 22, '#ffe060');
   ctx.restore();
   drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
@@ -6633,7 +6672,7 @@ function updatePitAct(dt) { const a = pitAct, p = player; a.t += dt; p.walkT = 0
   else { const k = Math.min(1, a.t / .25); p.x = a.x0 + (a.x - a.x0) * k; p.y = a.y0 + (a.y - a.y0) * k;
     if (!a.snd && a.t >= .12) { a.snd = 1; sfx('pitfall'); addTrauma(.45); buzz(120); }
     if (a.t >= PIT_FALL_T) endFall(); }
-  partsTick(dt); updateEntranceFx(dt); msg.life -= dt; bannerT -= dt; for (const q of texts) { q.life -= dt; q.y += q.vy * dt; } for (let i = texts.length - 1; i >= 0; i--) if (texts[i].life <= 0) texts.splice(i, 1);
+  partsTick(dt); updateEntranceFx(dt); msg.life -= dt; bannerT -= dt; tickTexts716(dt);
   cam.x += (p.x - VW / 2 - cam.x) * Math.min(1, dt * 8); cam.y += (p.y - VH / 2 - cam.y) * Math.min(1, dt * 8); }
 function inchFrame() { const a = pitAct; return a && a.kind === 'ledge' ? Math.floor(Math.max(0, a.t - LEDGE_GRAB_T) * INCH_FPS) % 6 : -1; }
 function fallFrame() { const a = pitAct; return a && a.kind === 'fall' ? Math.min(4, Math.floor(a.t / .15)) : -1; }
@@ -10145,18 +10184,17 @@ function itemCard712(it) {
 function flattenCard712(card, maxW) {
   const out = [];
   let y = 0;
+  const push = (text, col, delta) => { out.push({ text: text, col: col, delta: delta || '', y: y }); y += LINE_HEIGHT; };
   (card.lines || []).forEach(ln => {
-    if (ln.lore) {
-      wrapPx712(ln.text, maxW).forEach(t => { out.push({ text: t, col: ln.col, delta: '', y: y }); y += LINE_HEIGHT; });
-      return;
-    }
-    const text = ln.text || '', delta = ln.delta || '';
-    if (delta && pxWidth712(text + delta) > maxW) {
-      out.push({ text: text, col: ln.col, delta: '', y: y }); y += LINE_HEIGHT;
-      wrapPx712(delta.trim(), maxW).forEach(t => { out.push({ text: t, col: deltaColor713(delta) || DELTA_RED, delta: '', y: y }); y += LINE_HEIGHT; });
-    } else {
-      out.push({ text: text, col: ln.col, delta: delta, y: y }); y += LINE_HEIGHT;
-    }
+    const delta = ln.delta || '';
+    const parts = wrapPx712(ln.text || '', maxW);
+    parts.forEach((t, i) => {
+      const last = i === parts.length - 1;
+      if (!last || !delta) { push(t, ln.col, ''); return; }
+      if (pxWidth712(t + delta) <= maxW) { push(t, ln.col, delta); return; }
+      push(t, ln.col, '');
+      wrapPx712(delta.trim(), maxW).forEach(dt => push(dt, deltaColor713(delta) || DELTA_RED, ''));
+    });
   });
   return out;
 }
@@ -10170,7 +10208,7 @@ function drawCardLines712(ctx, rows, x, maxX, centerW) {
       sx = Math.max(4, Math.round((centerW - tw) / 2));
     }
     pxText(ctx, r.text, sx, r.y, r.red ? DELTA_RED : r.col, true, centerW ? centerW - 4 : maxX);
-    if (r.delta) pxText(ctx, r.delta, sx + String(r.text || '').length * 4, r.y, deltaColor713(r.delta) || r.col, true, (centerW || maxX) + 80);
+    if (r.delta) pxText(ctx, r.delta, sx + String(r.text || '').length * 4, r.y, deltaColor713(r.delta) || r.col, true, centerW ? centerW - 4 : maxX);
   });
 }
 const TITLE_LH_712 = 12;
@@ -10336,7 +10374,7 @@ fillInvStats = function () {
   sc.maxScrollY = Math.max(0, bodyH - view.h);
   clampScroll712(sc);
   drawScrollContainer(ctx, { x: view.x, y: view.y, w: view.w, h: view.h, scrollY: sc.scrollY, maxScrollY: sc.maxScrollY, fadeSize: 10, bg: PANEL_BG_712 }, function () {
-    drawCardLines712(ctx, rows.map(r => ({ text: r.text, col: r.col, delta: r.delta, red: r.red, y: r.y + view.y })), view.x, view.x + view.w - 2, w);
+    drawCardLines712(ctx, rows.map(r => ({ text: r.text, col: r.col, delta: r.delta, red: r.red, y: r.y + view.y })), view.x, view.x + view.w - 2, 0);
   });
   syncDetailFrame712(extra);
   bindScrollEl(box, 'invDetail', function () { return satM.scale || 1; }, fillInvStats);
@@ -11287,6 +11325,906 @@ if (window.game) {
   Object.defineProperty(window.game, 'shopView', { configurable: true, get() { return shopView712; }, set(v) { shopView712 = v; } });
   Object.defineProperty(window.game, 'heroScale', { configurable: true, get() { return lastHeroScale712; } });
   Object.defineProperty(window.game, 'scrolls', { configurable: true, get() { return scrolls712; } });
+}
+
+
+// ===== v0.7.16: character, bow, shift, loot lines, boss stems, pedlar, floaters, art =====
+let __hitDir716 = null;
+const corpses716 = [];
+let setPieces716 = [];
+const EN_CLIP = {};
+const BOSS_CLIP = {};
+const BOSS_SLUG716 = ['mother_murk','gnawer_king','drowned_bell','sister_vey','old_tam','silkmother','sir_calder','lady_merrow','deepcoil','choirmaster','ossuary_colossus','abbot_morcant','capt_brannoc','queen_lirael','motley','ninth_eye','penitent_host','ninth_psalm','crown_wraith','bone_king_oswin'];
+const SLOW_WALK716 = { zombie: 1, skelw: 1, spiderw: 1, goblin: 1, drowned: 1, golem: 1 };
+const CLIP_MS716 = {
+  enemy: { idle: 180, walk: 120, attack: 90, hurt: 60, death: 100 },
+  boss: { idle: 220, walk: 140, attack: 100, hurt: 60, death: 110 }
+};
+const SHOP_LW = 320, SHOP_LH = 176;
+const TAB_FLIP_CUE = 'ui_toggle_02';
+
+function tickTexts716(dt) {
+  for (let i = texts.length - 1; i >= 0; i--) {
+    const q = texts[i];
+    q.life -= dt;
+    if (q.ease) {
+      q.x += (q.vx || 0) * dt;
+      q.y += (q.vy || 0) * dt;
+      const k = Math.exp(-7 * dt);
+      q.vx *= k; q.vy *= k;
+    } else q.y += (q.vy || 0) * dt;
+    if (q.life <= 0) texts.splice(i, 1);
+  }
+}
+function drawFloater716(q) {
+  if (!q) return;
+  const fade = (q.kind && q.kind !== 'banner' && q.max) ? Math.max(0, Math.min(1, q.life / (q.max * 0.22))) : 1;
+  ctx.save();
+  ctx.globalAlpha *= fade;
+  if (q.crit) {
+    const s = String(q.t).toUpperCase();
+    const sc = 7 / 5;
+    ctx.translate(Math.round(q.x), Math.round(q.y));
+    ctx.imageSmoothingEnabled = false;
+    ctx.scale(sc, sc);
+    drawText(s, -textW(s) / 2, 0, q.col, true);
+  } else drawTextC(q.t, q.x, q.y, q.col);
+  ctx.restore();
+}
+function floaterKind716(t, big) {
+  if (big) return 'banner';
+  const s = String(t);
+  if (/^\d+!$/.test(s)) return 'crit';
+  if (/^\+\d+$/.test(s)) return 'heal';
+  if (/^-?\d+$/.test(s)) return 'regular';
+  return 'status';
+}
+function floaterDir716() {
+  let x = 1, y = -0.35;
+  if (__hitDir716 && (__hitDir716.x || __hitDir716.y)) { x = __hitDir716.x; y = __hitDir716.y; }
+  else if (player && (player.fx || player.fy)) { x = player.fx || 1; y = player.fy || 0; }
+  const l = Math.hypot(x, y) || 1;
+  return { x: x / l, y: y / l };
+}
+const _addText716 = addText;
+addText = function (x, y, t, col, big) {
+  if (typeof hidePlayerDmg712 !== 'undefined' && hidePlayerDmg712) {
+    const s0 = String(t), c0 = String(col || '').toLowerCase();
+    if (PLAYER_DMG_COL_712[c0] && /^-?\d+!?$/.test(s0)) return;
+  }
+  const kind = floaterKind716(t, !!big);
+  const life = kind === 'banner' ? 3.6 : kind === 'crit' ? 2.5 : 2.0;
+  const o = { x: x, y: y, t: String(t), col: col, life: life, max: life, kind: kind, crit: kind === 'crit', ease: kind !== 'banner', vx: 0, vy: kind === 'banner' ? -12 : 0 };
+  if (o.ease) {
+    const d = floaterDir716();
+    const speed = kind === 'crit' ? 96 : 78;
+    o.vx = d.x * speed;
+    o.vy = (d.y * 0.85 - 0.28) * speed;
+  }
+  texts.push(o);
+  return o;
+};
+const _damageEnemy716 = damageEnemy;
+damageEnemy = function (e, dmg, kx, ky, col, crit, src) {
+  const prev = __hitDir716;
+  __hitDir716 = { x: kx || 0, y: ky || 0 };
+  try { return _damageEnemy716(e, dmg, kx, ky, col, crit, src); }
+  finally { __hitDir716 = prev; }
+};
+
+function shiftFxRect716(p) {
+  p = p || player;
+  let dw = 12, dh = 12;
+  try {
+    const WS = wardSprites(p), fr = WS && WS.a && (WS.a.r || WS.a.l);
+    if (fr) { dw = fr.width; dh = fr.height; }
+  } catch (e) {}
+  return { x: Math.round(p.x - dw / 2), y: Math.round(p.y - 9), w: dw, h: dh };
+}
+drawShiftFx = function () {
+  const p = player;
+  if (!p || !p.isInvincible) return;
+  const n = (Math.floor(time * 15) % 4) + 1, im = ART['fx_ethereal_shift_0' + n];
+  if (!im) return;
+  const r = shiftFxRect716(p);
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.globalAlpha = 0.45 + 0.4 * ((Math.floor(time * 30) % 2) ? 1 : 0.3);
+  ctx.drawImage(im, r.x, r.y, r.w, r.h);
+  ctx.restore();
+};
+
+function drawBow716(p, ang, swing) {
+  const pull = swing > 0 ? (1 - (1 - swing / 0.16)) * 5 : 1.5;
+  const px = p.x + Math.cos(ang) * 7, py = p.y - 3 + Math.sin(ang) * 7;
+  const nx = -Math.sin(ang), ny = Math.cos(ang);
+  ctx.fillStyle = '#6a3a18';
+  for (let i = -5; i <= 5; i++) {
+    const bend = (1 - (i * i) / 25) * 3.2;
+    ctx.fillRect(Math.round(px + nx * i - Math.cos(ang) * bend), Math.round(py + ny * i - Math.sin(ang) * bend), 1, 1);
+  }
+  ctx.fillStyle = '#c8a060';
+  ctx.fillRect(Math.round(px + nx * 5), Math.round(py + ny * 5), 1, 1);
+  ctx.fillRect(Math.round(px - nx * 5), Math.round(py - ny * 5), 1, 1);
+  const sx = px - Math.cos(ang) * pull, sy = py - Math.sin(ang) * pull;
+  ctx.fillStyle = '#f0e6c8';
+  const ax0 = px + nx * 5, ay0 = py + ny * 5, ax1 = px - nx * 5, ay1 = py - ny * 5;
+  for (let s = 0; s <= 4; s++) {
+    const t = s / 4;
+    ctx.fillRect(Math.round(ax0 + (sx - ax0) * t), Math.round(ay0 + (sy - ay0) * t), 1, 1);
+    ctx.fillRect(Math.round(ax1 + (sx - ax1) * t), Math.round(ay1 + (sy - ay1) * t), 1, 1);
+  }
+  ctx.fillStyle = '#e8eef8';
+  for (let i = 0; i < 6; i++) ctx.fillRect(Math.round(sx + Math.cos(ang) * i), Math.round(sy + Math.sin(ang) * i), 1, 1);
+  ctx.fillStyle = '#e8c840';
+  ctx.fillRect(Math.round(sx + Math.cos(ang) * 6), Math.round(sy + Math.sin(ang) * 6), 1, 1);
+}
+function drawPlayerBow716() {
+  const p = player, flick = p.inv0 > 0 && Math.floor(time * 20) % 2;
+  const step = p.walkT > 0 && Math.floor(p.walkT * 8) % 2;
+  const WS = wardSprites(p), fr = step ? WS.b : WS.a;
+  const hop = p.roll > 0 && spikeAt(Math.floor(p.x / TS), Math.floor(p.y / TS)) ? 5 : 0;
+  const X = Math.round(p.x - 6), Y = Math.round(p.y - 9 - (step ? 1 : 0) - hop);
+  const ang = Math.atan2(p.fy, p.fx), side = p.fx >= 0 ? 1 : -1;
+  if (p.roll > 0) {
+    const k = 1 - p.roll / ROLL_TIME, img = WS.a[p.rx >= 0 ? 'r' : 'l'];
+    ctx.save(); ctx.globalAlpha = .3; ctx.drawImage(img, Math.round(p.x - 6 - p.rx * 8), Math.round(p.y - 9 - p.ry * 8)); ctx.restore();
+    ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y - 3)); ctx.rotate((p.rx >= 0 ? 1 : -1) * k * Math.PI * 2); ctx.scale(1, .85);
+    ctx.drawImage(img, -6, -6); ctx.restore();
+    drawBow716(p, ang, 0);
+    return;
+  }
+  if (!flick) { ctx.drawImage(fr[side > 0 ? 'r' : 'l'], X, Y); drawWardOverlays(p, X, Y, side); }
+  drawBow716(p, ang, p.swing > 0 ? p.swing : 0);
+}
+const _drawPlayer716 = drawPlayer;
+drawPlayer = function () {
+  if (equippedBow()) return drawPlayerBow716();
+  return _drawPlayer716();
+};
+function playerPose716() { return equippedBow() ? 'bow' : 'melee'; }
+
+const _tab716 = satchelOpenTab;
+satchelOpenTab = function (id) {
+  const prev = satchelTab;
+  const r = _tab716(id);
+  if (prev && id && prev !== id && state === 'inv') {
+    const now = performance.now();
+    if (now - (satchelOpenTab.flipAt || 0) > 45) {
+      satchelOpenTab.flipAt = now;
+      if (typeof cue === 'function') cue(TAB_FLIP_CUE);
+    }
+  }
+  return r;
+};
+
+paintHero711 = function () {
+  const host = $('equip') || $('stats');
+  if (!host || !player) return null;
+  let cv = $('charHero');
+  if (!cv) { cv = document.createElement('canvas'); cv.id = 'charHero'; host.appendChild(cv); }
+  else if (cv.parentElement !== host) host.appendChild(cv);
+  cv.width = 64; cv.height = 64;
+  cv.style.width = '64px'; cv.style.height = '64px';
+  const x = cv.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, 64, 64);
+  const WS = wardSprites(player);
+  const step = Math.floor(time * 3) % 2;
+  const fr = (step ? WS.b : WS.a) || WS.a;
+  const img = fr && (fr.r || fr.l);
+  const bob = Math.round(Math.sin(time * 2.2));
+  if (img) x.drawImage(img, 2, 2 + bob, 60, 60);
+  else { x.fillStyle = '#e8dcc0'; x.fillRect(16, 16, 32, 32); }
+  lastHeroScale712 = 5;
+  return cv;
+};
+paintChar = function () {
+  const p = player, box = $('stats');
+  if (!p || !p.st || !box) return;
+  const w = Math.max(80, box.clientWidth || 250), h = Math.max(96, box.clientHeight || 108);
+  box.textContent = '';
+  paintHero711();
+  const view = pxCanvas(w, h);
+  view.c.id = 'charDossier';
+  view.c.style.cssText = 'position:absolute;inset:0;width:' + w + 'px;height:' + h + 'px;pointer-events:none';
+  const pairs = charPairs712(p);
+  const lh = 8;
+  const colW = Math.max(20, Math.floor((w - 10) / 2));
+  const s = scrollBox('char');
+  s.maxScrollY = Math.max(0, pairs.length * lh - (h - 4));
+  clampScroll712(s);
+  drawScrollContainer(view.x, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 6, bg: PANEL_BG_712 }, function () {
+    pairs.forEach((pair, i) => {
+      const y = 2 + i * lh;
+      if (pair[0]) pxText(view.x, pair[0], 4, y, SAT_TAN, true, 4 + colW);
+      if (pair[1]) pxText(view.x, pair[1], 6 + colW, y, SAT_TAN, true, w - 3);
+    });
+  });
+  box.appendChild(view.c);
+  bindScrollEl(box, 'char', function () { return satM.scale || 1; }, paintChar);
+  if (!heroRAF && state === 'inv' && satchelTab === 'character') heroRAF = requestAnimationFrame(function loop() {
+    if (state === 'inv' && satchelTab === 'character') { paintHero711(); heroRAF = requestAnimationFrame(loop); }
+    else heroRAF = 0;
+  });
+};
+
+function shopScaleFor716(vw, vh) {
+  vw = vw || window.innerWidth || SHOP_LW;
+  vh = vh || window.innerHeight || SHOP_LH;
+  return Math.max(1, Math.floor(Math.min(vw / SHOP_LW, vh / SHOP_LH)));
+}
+function fitShop716() {
+  const host = $('shopHost'), art = $('shopArt');
+  if (!host || !art) return 1;
+  const S = shopScaleFor716();
+  const vw = window.innerWidth || SHOP_LW, vh = window.innerHeight || SHOP_LH;
+  host.style.width = (SHOP_LW * S) + 'px';
+  host.style.height = (SHOP_LH * S) + 'px';
+  host.style.position = 'absolute';
+  host.style.left = Math.max(0, Math.round((vw - SHOP_LW * S) / 2)) + 'px';
+  host.style.top = Math.max(0, Math.round((vh - SHOP_LH * S) / 2)) + 'px';
+  host.dataset.scale = String(S);
+  art.style.width = SHOP_LW + 'px';
+  art.style.height = SHOP_LH + 'px';
+  art.style.transformOrigin = '0 0';
+  art.style.transform = 'scale(' + S + ')';
+  return S;
+}
+function dressShopBtns716() {
+  ['shBuyItem', 'shSell', 'shSellAll', 'shRepair'].forEach(id => {
+    const b = $(id); if (!b) return;
+    b.classList.add('sat-btn', 'text');
+    b.classList.remove('shb');
+    const on = !b.classList.contains('dis');
+    b.classList.toggle('brass', on);
+    b.classList.toggle('stone', !on);
+  });
+  const leave = $('shLeave');
+  if (leave) { leave.classList.add('sat-btn', 'text', 'danger'); leave.classList.remove('shb'); }
+}
+uiScale712 = function (el) {
+  const art = $('shopArt');
+  if (art && el && (el === art || art.contains(el))) {
+    const host = $('shopHost');
+    const s = host && parseFloat(host.dataset.scale);
+    if (s > 0) return s;
+    const t = getComputedStyle(art).transform;
+    if (t && t.indexOf('matrix(') === 0) { const a = parseFloat(t.slice(7)); if (a > 0) return a; }
+    return 1;
+  }
+  return (satM && satM.scale) || 1;
+};
+shopHit713 = function (cv, clientX, clientY) {
+  if (!cv || !cv.height) return -1;
+  const rect = cv.getBoundingClientRect();
+  const k = rect.height / cv.height || 1;
+  const box = cv.id === 'shBuyCv' ? scrollBox('shopBuy') : cv.id === 'shUniCv' ? scrollBox('shopSealed') : null;
+  const ly = (clientY - rect.top) / k + ((box && box.scrollY) || 0);
+  const lx = (clientX - rect.left) / k;
+  if (lx < 0 || lx > cv.width + 1) return -1;
+  const rows = cv._rows713 || [];
+  for (let i = 0; i < rows.length; i++) { const r = rows[i]; if (ly >= r.y && ly < r.y + r.h) return r.i; }
+  return -1;
+};
+function shopCanvas716(cv, w, h) {
+  cv.width = w; cv.height = h;
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const c = cv.getContext('2d');
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.imageSmoothingEnabled = false;
+  cv.dataset.dpr = '1';
+  return c;
+}
+paintShopChrome713 = function () {
+  const title = $('shTitleCv'), gold = $('shGoldCv'), note = $('shNoteCv'), p = player;
+  if (title) { const c = shopCanvas716(title, 170, 10); pxText(c, 'THE HOLLOW PEDLAR', 0, 2, '#f4ecd4', false, 168); }
+  if (gold && p) {
+    const c = shopCanvas716(gold, 110, 10);
+    const label = 'GOLD ' + p.gold + 'G';
+    pxText(c, label, Math.max(0, 108 - (label.length * 4)), 2, '#E5B064', false, 110);
+  }
+  if (note) {
+    const c = shopCanvas716(note, 292, 10);
+    pxText(c, String(shopNote || '').replace(/^"|"$/g, ''), 0, 2, '#a89880', false, 290);
+  }
+};
+paintShopBuy712 = function () {
+  const cv = $('shBuyCv'); if (!cv || !player || !shop) return;
+  const rows = shopBuyRows712();
+  if (shopBuyPick < 0 || shopBuyPick >= rows.length) shopBuyPick = 0;
+  const w = 132, h = 68, rh = 13;
+  const c = shopCanvas716(cv, w, h);
+  c.clearRect(0, 0, w, h);
+  cv._rows713 = rows.map((r, i) => ({ i: i, y: i * rh, h: rh, k: r[0] }));
+  const s = scrollBox('shopBuy');
+  s.maxScrollY = Math.max(0, rows.length * rh - h);
+  clampScroll712(s);
+  drawScrollContainer(c, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 6, bg: '#221A15' }, function () {
+    rows.forEach((r, i) => {
+      const y = i * rh;
+      const afford = player.gold >= r[2];
+      if (i === shopBuyPick) { c.fillStyle = '#3a2a18'; c.fillRect(0, y, w, rh); c.fillStyle = '#E5B064'; c.fillRect(0, y, 2, rh); }
+      pxText(c, r[1] + '  ' + r[2] + 'G', 4, y + 4, afford ? '#f4ecd4' : '#6a6058', false, w - 2);
+    });
+  });
+  bindScrollEl(cv, 'shopBuy', function () { return uiScale712(cv); }, paintShopBuy712);
+  if (!cv.dataset.hit712) {
+    cv.dataset.hit712 = '1';
+    cv.addEventListener('pointerup', e => {
+      if (scrollBox('shopBuy').moved) return;
+      const i = shopHit713(cv, e.clientX, e.clientY);
+      const row = shopBuyRows712()[i];
+      if (!row) return;
+      if (shopBuyPick === i) buy(row[0]);
+      else { shopBuyPick = i; paintShopBuy712(); }
+    });
+  }
+};
+paintShopSealed712 = function () {
+  const cv = $('shUniCv'); if (!cv || !player) return;
+  if (shop && !Array.isArray(shop.offers)) shop.offers = rollShopOffers();
+  const offers = (shop && shop.offers) || [];
+  const w = 280, h = 74, rh = 18;
+  const c = shopCanvas716(cv, w, h);
+  c.clearRect(0, 0, w, h);
+  cv._rows713 = offers.map((o, i) => ({ i: i, y: 14 + i * rh, h: rh - 2 }));
+  const s = scrollBox('shopSealed');
+  const contentH = 14 + Math.max(1, offers.length) * rh;
+  s.maxScrollY = Math.max(0, contentH - h);
+  clampScroll712(s);
+  drawScrollContainer(c, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 6, bg: '#f3e6c8' }, function () {
+    pxText(c, 'SEALED UNTIL THE COIN IS SPENT.', 4, 2, '#4a2a18', false, w - 4);
+    offers.forEach((o, i) => {
+      const y = 14 + i * rh;
+      c.fillStyle = i === 0 ? '#efe0c0' : '#efe0c0';
+      c.fillRect(2, y, w - 4, rh - 3);
+      const label = (o.sold ? 'SOLD  ' : '') + o.label;
+      pxText(c, label, 6, y + 4, o.sold ? '#8a7058' : '#3a2414', false, w - 48);
+      if (!o.sold) pxText(c, o.price + 'G', w - 40, y + 4, player.gold >= o.price ? '#6a4010' : '#8a7058', false, w - 4);
+    });
+    if (!offers.length) pxText(c, 'NO SEALED STOCK', 6, 28, '#4a2a18', false, w - 4);
+  });
+  bindScrollEl(cv, 'shopSealed', function () { return uiScale712(cv); }, paintShopSealed712);
+  if (!cv.dataset.hit712) {
+    cv.dataset.hit712 = '1';
+    cv.addEventListener('pointerup', e => {
+      if (scrollBox('shopSealed').moved) return;
+      const i = shopHit713(cv, e.clientX, e.clientY);
+      const o = shop && shop.offers && shop.offers[i];
+      if (o && !o.sold) buyUnique(i);
+    });
+  }
+};
+paintShopRepair712 = function () {
+  const cv = $('shRepairCv'); if (!cv || !player) return;
+  const w = 280, h = 74;
+  const c = shopCanvas716(cv, w, h);
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = '#f3e6c8'; c.fillRect(0, 0, w, h);
+  const cost = repairAllCost();
+  const lines = cost
+    ? ['EVERY WORN AND PACKED PIECE IS MENDED AT ONCE.', 'COST  ' + cost + 'G', player.gold >= cost ? 'REPAIR ALL IN THE FOOTER PAYS IT.' : 'NOT ENOUGH GOLD FOR THE WHOLE MEND.']
+    : ['NOTHING NEEDS MENDING.', 'GEAR AT ZERO DURABILITY IS ALREADY GONE.', 'REPAIR POTIONS STILL WORK FROM THE SATCHEL.'];
+  lines.forEach((t, i) => pxText(c, t, 6, 8 + i * 18, i === 1 ? '#6a4010' : '#3a2414', false, w - 6));
+};
+applySellScroll712 = function () {
+  const grid = $('shGrid'), clip = $('shSellClip'); if (!grid || !clip) return;
+  const slot = 22, gap = 2, cols = 5;
+  const rows = Math.ceil((player ? player.inv.length : 0) / cols);
+  const contentH = Math.max(slot, rows * (slot + gap));
+  const s = scrollBox('shopSell');
+  s.maxScrollY = Math.max(0, contentH - clip.clientHeight);
+  clampScroll712(s);
+  grid.style.transform = 'translateY(' + (-s.scrollY) + 'px)';
+};
+const _renderShop716 = renderShop;
+renderShop = function () {
+  fitShop716();
+  const r = _renderShop716();
+  dressShopBtns716();
+  return r;
+};
+const _resize716 = resize;
+resize = function () {
+  const r = _resize716();
+  if ($('shopHost')) fitShop716();
+  return r;
+};
+
+function bossFmt713() {
+  if (typeof SMP !== 'undefined' && SMP.fmt === 'm') return 'm4a';
+  if (typeof SMP !== 'undefined' && SMP.fmt === 'o') return 'ogg';
+  try {
+    const a = document.createElement('audio');
+    if (!(a.canPlayType && a.canPlayType('audio/ogg; codecs="vorbis"'))) return 'm4a';
+  } catch (e) { return 'm4a'; }
+  return 'ogg';
+}
+function bossThemeReady713(theme) { return [1, 2, 3].every(p => bossAud713.buf[theme + p]); }
+function bossThemeBusy713(theme) { return [1, 2, 3].some(p => bossAud713.loading[theme + p]); }
+preloadBoss713 = function (theme) {
+  if (!actx) return;
+  const t = theme || bossAud713.theme || 'boss_01';
+  bossAud713.failed = bossAud713.failed || {};
+  if (bossAud713.failed[t]) return;
+  for (let p = 1; p <= 3; p++) loadBossBuf713(t, p);
+};
+loadBossBuf713 = function (theme, phase) {
+  const key = theme + phase;
+  if (!actx || bossAud713.buf[key] || bossAud713.loading[key]) return;
+  bossAud713.loading[key] = 1;
+  const primary = bossFmt713();
+  const alt = primary === 'ogg' ? 'm4a' : 'ogg';
+  const url = ext => 'assets/music/boss/' + theme + '_phase' + phase + '.' + ext;
+  const dec = u => fetch(u).then(r => { if (!r.ok) throw new Error('boss ' + r.status); return r.arrayBuffer(); }).then(ab => new Promise((res, rej) => {
+    const p = actx.decodeAudioData(ab.slice(0), res, rej); if (p && p.then) p.then(res, rej);
+  }));
+  dec(url(primary)).catch(() => dec(url(alt))).then(b => { bossAud713.buf[key] = b; }).catch(e => {
+    bossAud713.err = String(e && e.message || e);
+  }).finally(() => { delete bossAud713.loading[key]; });
+};
+startBoss713 = function (e) {
+  if (!e || !e.T || !e.T.boss) return false;
+  const theme = bossTheme713(e);
+  bossAud713.failed = bossAud713.failed || {};
+  if (bossAud713.on && bossAud713.boss === e) return true;
+  if (bossAud713.failed[theme]) { bossAud713.pending = null; return false; }
+  try { initAudio(); if (actx && actx.resume) { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } } catch (_) {}
+  preloadBoss713(theme);
+  if (!actx || !bus) { bossAud713.pending = e; bossAud713.theme = theme; return false; }
+  ensureBossBus713();
+  if (!bossAud713.bus) { bossAud713.pending = e; bossAud713.theme = theme; return false; }
+  if (!bossThemeReady713(theme)) {
+    if (!bossThemeBusy713(theme)) {
+      bossAud713.failed[theme] = true;
+      bossAud713.pending = null;
+      bossAud713.err = bossAud713.err || 'boss stems failed';
+      return false;
+    }
+    bossAud713.pending = e; bossAud713.theme = theme; return false;
+  }
+  stopVoices713(actx.currentTime);
+  bossAud713.on = true; bossAud713.fading = false; bossAud713.pending = null; bossAud713.boss = e; bossAud713.theme = theme;
+  if (typeof musStop === 'function' && typeof MUS !== 'undefined' && MUS.cur) musStop(0.8);
+  bossAud713.bus.gain.cancelScheduledValues(actx.currentTime);
+  bossAud713.bus.gain.setValueAtTime(0.9, actx.currentTime);
+  armBoss713(0, actx.currentTime);
+  rampPhase713(bossPhaseNow713(e));
+  return bossAud713.voices.filter(Boolean).length === 3;
+};
+function prefetchBossTheme716() {
+  if (!actx || !player || !enemies) return;
+  const e = enemies.find(q => q && q.T && q.T.boss && q.hp > 0);
+  if (!e) return;
+  const theme = bossTheme713(e);
+  bossAud713.failed = bossAud713.failed || {};
+  if (bossAud713.failed[theme]) return;
+  if (!bossAud713.on) bossAud713.theme = theme;
+  preloadBoss713(theme);
+}
+watchBoss713 = function () {
+  prefetchBossTheme716();
+  if (bossAud713.pending && actx && bus) startBoss713(bossAud713.pending);
+  if (!bossAud713.on && !bossAud713.fading && state === 'play' && player) {
+    const e = enemies.find(q => q && q.T && q.T.boss && q.hp > 0 && q.state === 'chase' && dist(q, player) < 420);
+    if (e) {
+      const theme = bossTheme713(e);
+      if (!(bossAud713.failed && bossAud713.failed[theme])) startBoss713(e);
+    }
+  }
+  if (bossAud713.on) bossAudTick713();
+};
+
+function imageFrame716(im) {
+  const c = document.createElement('canvas');
+  c.width = im.width; c.height = im.height;
+  const x = c.getContext('2d');
+  x.imageSmoothingEnabled = false;
+  x.drawImage(im, 0, 0);
+  return withFlips(c);
+}
+function sliceStrip716(img, cell) {
+  const n = Math.max(1, Math.round(img.width / cell));
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('canvas');
+    c.width = cell; c.height = cell;
+    const x = c.getContext('2d');
+    x.imageSmoothingEnabled = false;
+    x.drawImage(img, i * cell, 0, cell, img.height, 0, 0, cell, cell);
+    frames.push(withFlips(c));
+  }
+  return frames;
+}
+function clipSpec716(kind, state, frames) {
+  const ms = (CLIP_MS716[kind] && CLIP_MS716[kind][state]) || 180;
+  const loop = state === 'idle' || state === 'walk';
+  return { frames: frames, ms: ms, loop: loop, state: state };
+}
+function buildClips716() {
+  const take = (key, kind) => {
+    const bag = kind === 'boss' ? BOSS_CLIP : EN_CLIP;
+    Object.keys(ART).forEach(name => {
+      if (!name.startsWith(key) || name.indexOf('portrait') >= 0 || name.startsWith('still_')) return;
+      const im = ART[name]; if (!im || !im.width) return;
+      const cell = im.height;
+      if (cell !== 32 && cell !== 48) return;
+      if (im.width % cell) return;
+      const rest = name.slice(key.length);
+      const bits = rest.split('_');
+      const state = bits.pop();
+      const id = bits.join('_');
+      if (!id || !state) return;
+      const frames = sliceStrip716(im, cell);
+      if (!bag[id]) bag[id] = {};
+      bag[id][state] = clipSpec716(kind, state, frames);
+      if (state === 'walk' && kind === 'enemy' && SLOW_WALK716[id]) bag[id][state].ms = 170;
+    });
+    Object.keys(ART).forEach(name => {
+      if (!name.startsWith('still_' + key)) return;
+      const im = ART[name]; if (!im) return;
+      const rest = name.slice(('still_' + key).length);
+      const bits = rest.split('_');
+      const state = bits.pop();
+      const id = bits.join('_');
+      if (!id || state !== 'idle') return;
+      if (!bag[id]) bag[id] = {};
+      if (!bag[id].idle) bag[id].idle = clipSpec716(kind, 'idle', [imageFrame716(im)]);
+    });
+  };
+  take('enemy_', 'enemy');
+  take('boss_', 'boss');
+  if (ART.enemy_mimic_disguised) {
+    const im = ART.enemy_mimic_disguised;
+    const cell = im.height === 32 ? 32 : im.height;
+    const frames = im.width > cell ? sliceStrip716(im, cell) : [imageFrame716(im)];
+    EN_CLIP.mimic_disguised = clipSpec716('enemy', 'idle', frames);
+  }
+  for (const id in ETYPES) {
+    const pack = EN_CLIP[id];
+    if (id === 'mimic' && EN_CLIP.mimic_disguised && pack && pack.idle) {
+      ETYPES[id].S = EN_CLIP.mimic_disguised.frames[0];
+      ETYPES[id].S2 = pack.idle.frames[0];
+    } else if (pack && pack.idle) ETYPES[id].S = pack.idle.frames[0];
+    if (id === 'crab' && ART.enemy_crab_open) ETYPES[id].S2 = imageFrame716(ART.enemy_crab_open);
+  }
+  BOSSES.forEach((B, i) => {
+    const slug = BOSS_SLUG716[i];
+    const pack = BOSS_CLIP[slug];
+    if (pack && pack.idle) B.img = pack.idle.frames[0];
+    else if (ART['still_boss_' + slug + '_idle']) B.img = imageFrame716(ART['still_boss_' + slug + '_idle']);
+    B.portrait = ART['boss_' + slug + '_portrait'] || null;
+  });
+}
+function clipPack716(e) {
+  if (!e || !e.T) return null;
+  if (e.T.boss) {
+    const i = BOSSES.indexOf(e.B);
+    const slug = BOSS_SLUG716[i];
+    return (slug && BOSS_CLIP[slug]) || null;
+  }
+  if (e.T.disguise && e.disg && EN_CLIP.mimic_disguised) return { idle: EN_CLIP.mimic_disguised };
+  if (e.type === 'crab' && e.mode === 'open') return null;
+  return EN_CLIP[e.type] || null;
+}
+function advanceClip716(e, dt) {
+  const pack = clipPack716(e);
+  if (!pack) return null;
+  if ((e.atkCd || 0) > (e._atkPrev || 0) + 0.25) {
+    const ms = pack.attack ? pack.attack.ms : 90;
+    const n = pack.attack ? pack.attack.frames.length : 4;
+    e._atkUntil = time + n * ms / 1000;
+  }
+  e._atkPrev = e.atkCd || 0;
+  let name = 'idle';
+  if (e.flash > 0.01 && pack.hurt) name = 'hurt';
+  else if (e._atkUntil > time && pack.attack) name = 'attack';
+  else if ((e.busy > 0 || /wind|charge|crouch|fuse|aim|leap/.test(e.mode || '')) && pack.attack) name = 'attack';
+  else {
+    const prev = e._cxy, moved = prev && Math.hypot(e.x - prev.x, e.y - prev.y) > 0.15;
+    e._cxy = { x: e.x, y: e.y };
+    if (moved && e.state === 'chase' && pack.walk) name = 'walk';
+  }
+  if (!pack[name]) name = pack.idle ? 'idle' : '';
+  if (!name) return null;
+  if (e.clip !== name) { e.clip = name; e.clipT = 0; }
+  else e.clipT = (e.clipT || 0) + (dt || 0);
+  return name;
+}
+function clipFrame716(e) {
+  const pack = clipPack716(e);
+  if (!pack) return null;
+  const name = e.clip && pack[e.clip] ? e.clip : (pack.idle ? 'idle' : '');
+  if (!name) return null;
+  const clip = pack[name];
+  let f = Math.floor(((e.clipT || 0) * 1000) / clip.ms);
+  if (clip.loop) f = ((f % clip.frames.length) + clip.frames.length) % clip.frames.length;
+  else f = Math.min(clip.frames.length - 1, Math.max(0, f));
+  const fr = clip.frames[f];
+  if (!fr) return null;
+  if (e.flash > 0 && fr.white) return fr.white;
+  const face = (e.face > 0 || e.disg) ? 'r' : 'l';
+  if (e.slow > 0 && e.flash <= 0) return face === 'r' ? fr.iceR : fr.iceL;
+  return fr[face];
+}
+const _drawEnemy716 = drawEnemy;
+drawEnemy = function (e) {
+  if (!e || e.hidden || e.downT) return _drawEnemy716(e);
+  advanceClip716(e, 0);
+  const img = clipFrame716(e);
+  if (!img) return _drawEnemy716(e);
+  const T = e.T;
+  let bob = 0;
+  if (e.disg) bob = (Math.sin(time * 1.3 + e.id * 2.1) > .97 && Math.floor(time * 30) % 2) ? -1 : 0;
+  let lift = 0;
+  if (!e.disg && T.an === 'flap') lift = -4;
+  else if (!e.disg && T.an === 'float') lift = -2;
+  const z = Math.round(e.z || 0);
+  const X = Math.round(e.x - img.width / 2), Y = Math.round(e.y - img.height + e.r + 1 + bob + lift - z);
+  let alpha = 1;
+  if (T.ghost) alpha = .65;
+  if (T.ai === 'shade') alpha = e.flash > 0 || dist(e, player) < 30 || Math.sin(time * 7 + e.id) > .85 ? .8 : .14;
+  if (e.elite && typeof drawChampGlow === 'function') drawChampGlow(e, img, X, Y);
+  if (T.boss && (e.phase >= 2 || e.glow > 0)) { ctx.fillStyle = 'rgba(255,' + (e.phase >= 3 ? 220 : 40) + ',40,' + (.15 + Math.sin(time * 8) * .08) + ')'; ctx.fillRect(X - 3, Y - 3, img.width + 6, img.height + 6); }
+  else if (e.glow > 0) { ctx.fillStyle = 'rgba(160,64,255,.3)'; ctx.fillRect(X - 2, Y - 2, img.width + 4, img.height + 4); }
+  if (alpha < 1) ctx.globalAlpha = alpha;
+  if (e.elite && typeof drawChampOutline === 'function') drawChampOutline(img, X, Y);
+  ctx.drawImage(img, X, Y);
+  ctx.globalAlpha = 1;
+  if (e.mode === 'stun') { for (let i = 0; i < 3; i++) { const an = time * 6 + i * 2.1; ctx.fillStyle = '#ffe040'; ctx.fillRect(Math.round(e.x + Math.cos(an) * 6), Math.round(Y - 2 + Math.sin(an) * 2), 1, 1); } }
+};
+function spawnCorpse716(e) {
+  const pack = e.T && e.T.boss ? BOSS_CLIP[BOSS_SLUG716[BOSSES.indexOf(e.B)] || ''] : EN_CLIP[e.type];
+  if (!pack || !pack.death) return;
+  corpses716.push({ type: e.type, boss: !!(e.T && e.T.boss), slug: e.T && e.T.boss ? BOSS_SLUG716[BOSSES.indexOf(e.B)] : '', x: e.x, y: e.y, face: e.face || 1, t: 0, r: e.r || 6, an: e.T && e.T.an });
+}
+function drawCorpse716(c) {
+  const pack = c.boss ? BOSS_CLIP[c.slug] : EN_CLIP[c.type];
+  const clip = pack && pack.death;
+  if (!clip) return;
+  const dur = clip.frames.length * clip.ms / 1000;
+  let f = Math.floor(c.t * 1000 / clip.ms);
+  const hold = c.t >= dur;
+  if (hold) f = clip.frames.length - 1;
+  else f = Math.max(0, Math.min(clip.frames.length - 1, f));
+  const fr = clip.frames[f];
+  const img = fr && fr[c.face > 0 ? 'r' : 'l'];
+  if (!img) return;
+  const fade = hold ? Math.max(0, 1 - (c.t - dur) / 0.3) : 1;
+  let lift = 0;
+  if (c.an === 'flap') lift = -4; else if (c.an === 'float') lift = -2;
+  const X = Math.round(c.x - img.width / 2), Y = Math.round(c.y - img.height + c.r + 1 + lift);
+  ctx.save(); ctx.globalAlpha = fade; ctx.drawImage(img, X, Y); ctx.restore();
+}
+function tickCorpse716(dt) {
+  for (let i = corpses716.length - 1; i >= 0; i--) {
+    const c = corpses716[i]; c.t += dt;
+    const pack = c.boss ? BOSS_CLIP[c.slug] : EN_CLIP[c.type];
+    const clip = pack && pack.death;
+    const dur = clip ? clip.frames.length * clip.ms / 1000 : 0.4;
+    if (c.t > dur + 0.32) corpses716.splice(i, 1);
+  }
+}
+const _kill716 = killEnemy;
+killEnemy = function (e) {
+  const before = !!(e && enemies.includes(e));
+  const r = _kill716(e);
+  if (before && e && !enemies.includes(e)) spawnCorpse716(e);
+  return r;
+};
+const _tomeEnts716 = tomeEnts;
+tomeEnts = function (ents) {
+  if (typeof _tomeEnts716 === 'function') _tomeEnts716(ents);
+  for (const o of setPieces716) if (o.layer === 'stand') ents.push({ x: (o.tx + .5) * TS, y: (o.ty + 1) * TS, r: 4, v73draw: () => drawSet716(o) });
+  for (const c of corpses716) ents.push({ x: c.x, y: c.y, r: 4, v73draw: () => drawCorpse716(c) });
+};
+const _openTalk716 = openTalk;
+openTalk = function (e) {
+  const r = _openTalk716(e);
+  const i = e && e.B ? BOSSES.indexOf(e.B) : -1;
+  const im = i >= 0 ? ART['boss_' + BOSS_SLUG716[i] + '_portrait'] : null;
+  if (im) {
+    const cv = $('tkPort'); if (!cv) return r;
+    const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.clearRect(0, 0, cv.width, cv.height); c.drawImage(im, 0, 0, cv.width, cv.height);
+  }
+  return r;
+};
+
+const SET716 = [
+  { id: 'prop_altar_stone', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_altar_stone_blood', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_altar_stone_cloth', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_armor_stand_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand' },
+  { id: 'prop_bookshelf', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_bookshelf_ruined', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_broken_column_rubble', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_candle_candelabra_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand', anim: 'prop_candle_candelabra_flicker', ms: 140 },
+  { id: 'prop_coffin_wood', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_coffin_wood_open', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_column_fallen_32x16', w: 32, h: 16, ax: 16, ay: 15, layer: 'stand' },
+  { id: 'prop_font_holy', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand', anim: 'prop_font_holy_shimmer', ms: 220 },
+  { id: 'prop_gargoyle', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_pedestal_candle', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_pedestal_empty', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_pedestal_skull', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_pillar_broken_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand' },
+  { id: 'prop_pillar_stone_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand' },
+  { id: 'prop_sarcophagus_closed_32x16', w: 32, h: 16, ax: 16, ay: 15, layer: 'stand' },
+  { id: 'prop_sarcophagus_open_32x16', w: 32, h: 16, ax: 16, ay: 15, layer: 'stand' },
+  { id: 'prop_skull_candles', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand', anim: 'prop_skull_candles_flicker', ms: 150 },
+  { id: 'prop_statue_hooded_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand' },
+  { id: 'prop_statue_knight_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand' },
+  { id: 'prop_stocks', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_throne_stone_16x32', w: 16, h: 32, ax: 8, ay: 31, layer: 'stand' },
+  { id: 'prop_tome_lectern', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_weapon_rack', w: 16, h: 16, ax: 8, ay: 15, layer: 'stand' },
+  { id: 'prop_floor_drain', w: 16, h: 16, ax: 0, ay: 0, layer: 'floor' },
+  { id: 'prop_floor_grate', w: 16, h: 16, ax: 0, ay: 0, layer: 'floor' },
+  { id: 'prop_rug_runner', w: 16, h: 16, ax: 0, ay: 0, layer: 'floor' },
+  { id: 'prop_rug_runner_end', w: 16, h: 16, ax: 0, ay: 0, layer: 'floor' },
+  { id: 'prop_chain_wall_shackles', w: 16, h: 16, ax: 0, ay: 0, layer: 'wall' },
+  { id: 'prop_portcullis_fragment', w: 16, h: 16, ax: 0, ay: 0, layer: 'wall' },
+  { id: 'prop_shield_crossed_swords', w: 16, h: 16, ax: 0, ay: 0, layer: 'wall' },
+  { id: 'prop_wall_niche_skull', w: 16, h: 16, ax: 0, ay: 0, layer: 'wall' },
+  { id: 'prop_chandelier_iron', w: 16, h: 16, ax: 8, ay: 0, layer: 'hang', anim: 'prop_chandelier_iron_flicker', ms: 140 },
+  { id: 'prop_hanging_cage_16x32', w: 16, h: 32, ax: 8, ay: 0, layer: 'hang', anim: 'prop_hanging_cage_sway', ms: 260 }
+];
+function setImg716(o) {
+  if (o.anim) {
+    const n = (Math.floor(time * 1000 / (o.ms || 140)) % 4) + 1;
+    return ART[o.anim + '_0' + n] || ART[o.id];
+  }
+  return ART[o.id];
+}
+function drawSet716(o) {
+  const im = setImg716(o); if (!im) return;
+  let x, y;
+  if (o.layer === 'floor') { x = o.tx * TS; y = o.ty * TS; }
+  else if (o.layer === 'wall') { x = o.tx * TS; y = (o.ty - 1) * TS; }
+  else if (o.layer === 'hang') { x = o.tx * TS + TS / 2 - o.ax; y = o.ty * TS; }
+  else { x = o.tx * TS + TS / 2 - o.ax; y = (o.ty + 1) * TS - 1 - o.ay; }
+  ctx.drawImage(im, Math.round(x), Math.round(y));
+}
+function placeSet716() {
+  setPieces716 = [];
+  if (!rooms || !rooms.length || !ART.prop_altar_stone) return 0;
+  const used = new Set();
+  rooms.forEach((r, ri) => {
+    if (!r || ri === 0 || r.bossRoom || r.w < 3 || r.h < 3) return;
+    const n = 1 + (hashStr('set|' + depth + '|' + ri) % 3);
+    let placed = 0;
+    for (let k = 0; k < 16 && placed < n; k++) {
+      const spec = SET716[(ri * 3 + k) % SET716.length];
+      if (!ART[spec.id] && !(spec.anim && ART[spec.anim + '_01'])) continue;
+      let x, y;
+      if (spec.layer === 'hang' || spec.layer === 'wall') {
+        x = r.x + (hashStr('sx|' + ri + '|' + k) % r.w);
+        y = r.y;
+        if (tileAt(x, y - 1) !== TILE.WALL || tileAt(x, y) !== TILE.FLOOR) continue;
+      } else {
+        x = r.x + 1 + (hashStr('fx|' + ri + '|' + k) % Math.max(1, r.w - 2));
+        y = r.y + 1 + (hashStr('fy|' + ri + '|' + k) % Math.max(1, r.h - 2));
+        if (tileAt(x, y) !== TILE.FLOOR) continue;
+        if (typeof hazAt === 'function' && hazAt(x, y)) continue;
+      }
+      const key = y * MW + x;
+      if (used.has(key)) continue;
+      used.add(key);
+      setPieces716.push(Object.assign({ tx: x, ty: y }, spec));
+      placed++;
+    }
+  });
+  return setPieces716.length;
+}
+const _drawV072Floor716 = drawV072Floor;
+drawV072Floor = function (t0x, t0y, t1x, t1y) {
+  _drawV072Floor716(t0x, t0y, t1x, t1y);
+  for (const o of setPieces716) {
+    if (o.layer === 'stand') continue;
+    if (o.tx < t0x - 2 || o.tx > t1x + 2 || o.ty < t0y - 2 || o.ty > t1y + 2) continue;
+    drawSet716(o);
+  }
+};
+function polishStem716(biome, kind, idx) {
+  const n = (idx < 10 ? '0' : '') + idx;
+  if (kind === 'floor') return biome === 'damp' ? 'floor_damp_' + n : 'floor_' + biome + '_' + n;
+  if (kind === 'face') return biome === 'damp' ? 'wall_face_' + n : 'wall_face_' + biome + '_' + n;
+  return biome === 'damp' ? 'wall_top_' + n : 'wall_top_' + biome + '_' + n;
+}
+function polishImg716(biome, kind, tx, ty) {
+  const b = biome || 'damp';
+  const L = (typeof roomLetter === 'function' && roomLetter(tx, ty)) || 'd';
+  const fam = (L === 'a' || L === 'b' || L === 'c' || L === 'd') ? L : 'd';
+  const h = texHash(tx, ty);
+  const maxN = (fam === 'd' || b === 'castle') ? 8 : 5;
+  let idx = (h % 100 < 42) ? 1 : (2 + ((h >>> 8) % (maxN - 1)));
+  const pick = (i) => {
+    const stem = polishStem716(b, kind, i);
+    return (ART_VAR[stem] && ART_VAR[stem][fam]) || ART[stem + '_v' + fam] || null;
+  };
+  return pick(idx) || pick(1) || null;
+}
+const _texFloor716 = texFloor;
+texFloor = function (tx, ty) {
+  const b = (typeof V72 !== 'undefined' && V72 && V72.biome) || 'damp';
+  const im = polishImg716(b, 'floor', tx, ty);
+  if (im) return im;
+  return _texFloor716(tx, ty);
+};
+const _texWall716 = texWall;
+texWall = function (tx, ty) {
+  const b = (typeof V72 !== 'undefined' && V72 && V72.biome) || 'damp';
+  const im = polishImg716(b, 'face', tx, ty);
+  if (im) return im;
+  return _texWall716(tx, ty);
+};
+const _wallTop716 = wallTopImg;
+wallTopImg = function (tx, ty) {
+  const b = (typeof V72 !== 'undefined' && V72 && V72.biome) || 'damp';
+  const im = polishImg716(b, 'top', tx, ty);
+  if (im) return im;
+  return _wallTop716(tx, ty);
+};
+const _rooms716 = v077BuildRooms;
+v077BuildRooms = function () {
+  _rooms716();
+  if (!V77 || !V77.of) return;
+  const seed = (player && player.v77 && player.v77.seed) || 1;
+  const bag = 'ddddddabc';
+  for (let i = 0; i < V77.of.length; i++) V77.of[i] = bag[hashStr('fam716|' + seed + '|' + depth + '|' + i) % bag.length];
+};
+const _gen716 = genV072;
+genV072 = function (d) {
+  const r = _gen716(d);
+  placeSet716();
+  return r;
+};
+const _loadArt716 = loadArt;
+let artDone716 = false;
+loadArt = async function () {
+  const n = await _loadArt716();
+  try { buildClips716(); if (rooms && rooms.length) placeSet716(); } catch (e) {}
+  artDone716 = true;
+  return n;
+};
+function armArt716() {
+  let tries = 0;
+  const tick = () => {
+    tries++;
+    if (artDone716 || tries > 80) {
+      if (!EN_CLIP.slime) { try { buildClips716(); if (rooms && rooms.length) placeSet716(); } catch (e) {} }
+      return;
+    }
+    setTimeout(tick, 250);
+  };
+  setTimeout(tick, 1200);
+}
+armArt716();
+const _upd716 = update;
+update = function (dt) {
+  const r = _upd716(dt);
+  if (state === 'play' && enemies) {
+    for (const e of enemies) advanceClip716(e, dt);
+    tickCorpse716(dt);
+  }
+  return r;
+};
+
+if (window.game) {
+  window.game.version = VERSION;
+  Object.defineProperty(window.game, 'rooms', { configurable: true, get() { return rooms; } });
+  Object.defineProperty(window.game, 'V77', { configurable: true, get() { return V77; } });
+  Object.assign(window.game, {
+    shiftFxRect716: shiftFxRect716, playerPose716: playerPose716, floaterKind716: floaterKind716,
+    shopScaleFor716: shopScaleFor716, fitShop716: fitShop716, shopHit713: shopHit713,
+    buildClips716: buildClips716, clipPack716: clipPack716, sliceStrip716: sliceStrip716,
+    polishImg716: polishImg716, placeSet716: placeSet716, bossFmt713: bossFmt713,
+    EN_CLIP: EN_CLIP, BOSS_CLIP: BOSS_CLIP, BOSS_SLUG716: BOSS_SLUG716,
+    TAB_FLIP_CUE: TAB_FLIP_CUE, SHOP_LW: SHOP_LW, SHOP_LH: SHOP_LH,
+    addText: addText, drawShiftFx: drawShiftFx, drawEnemy: drawEnemy, killEnemy: killEnemy,
+    ART: ART, ETYPES: ETYPES, BOSSES: BOSSES,
+    satchelOpenTab: satchelOpenTab, paintChar: paintChar, startBoss713: startBoss713,
+    preloadBoss713: preloadBoss713, loadBossBuf713: loadBossBuf713, watchBoss713: watchBoss713
+  });
 }
 
 </script>

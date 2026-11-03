@@ -4,6 +4,26 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.16] - 2026-11-03
+
+_Painted foes, a fuller character page, and a pedlar you can read_
+
+### Added
+- The character page shows a larger portrait, with your gear set around it and your full record filling the page.
+- A bow in your hands is drawn and fired as a bow. Swords still swing.
+- Boss fights play the new layered music, including on phones, and fall back to the old boss theme if a stem will not load.
+- Enemies and bosses use the new painted sprites, and they idle, walk, attack, flinch, and die.
+- Crypt rooms use the new stonework. Some rooms are the organic cut. Props and hanging cages dress the halls.
+
+### Changed
+- Damage numbers fly off in the direction of the hit, then fade. A critical hit stays up longer and is drawn larger.
+- Switching satchel tabs makes a short flick.
+- The Hollow Pedlar's stall uses the same frame and buttons as the satchel. Every row can be tapped, and the words are no longer smeared.
+
+### Fixed
+- Ethereal Shift's shimmer matches your height.
+- Long item powers, such as Barrier, are no longer cut off on the left and right.
+
 ## [0.7.15.2] - 2026-11-01
 
 _The pack fills a phone turned sideways_
