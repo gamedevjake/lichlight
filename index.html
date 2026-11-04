@@ -654,7 +654,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.17'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.18'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 (function waitPixelify717() {
   const root = document.documentElement; root.style.visibility = 'hidden';
   const show = () => { root.style.visibility = ''; };
@@ -709,6 +709,7 @@ function resize() {
   checkOrientation();
   if (typeof joyRest === 'function') joyRest();
   if (typeof readSafe074 === 'function') readSafe074(); // v0.7.4 B2
+  if (typeof syncTextLayer718 === 'function') syncTextLayer718(); // v0.7.18 B1: text backing store tracks the screen
 }
 function checkOrientation() {
   const portrait = appH > appW;
@@ -734,16 +735,78 @@ function textW(s) {
   ctx.save(); ctx.font = uiFont(6, 700); const w = ctx.measureText(s).width; ctx.restore();
   return Math.max(0, Math.ceil(w));
 }
-function drawText(s, x, y, col = '#fff', shadow = true) {
-  s = String(s); x = Math.round(x); y = Math.round(y);
-  if (shadow) drawTextRaw(s, x + 1, y + 1, '#000');
-  drawTextRaw(s, x, y, col);
+// v0.7.18 B1: Pixelify is rasterized on a 1:1 device-pixel layer. The playfield canvas stays
+// integer-scaled for the pixel art, which is what smeared fillText after v0.7.17.
+let textCan718 = null, textCtx718c = null;
+function textPix718() {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = parseFloat(canvas.style.width) || canvas.clientWidth || canvas.width || 1;
+  const bw = canvas.width || 1;
+  const pix = (cssW * dpr) / bw;
+  return pix > 0 ? pix : 1;
 }
-function drawTextRaw(s, x, y, col) {
-  ctx.save();
-  ctx.font = uiFont(6, 700); ctx.textBaseline = 'top'; ctx.fillStyle = col;
-  ctx.fillText(s, Math.round(x), Math.round(y));
-  ctx.restore();
+function syncTextLayer718() {
+  if (!textCan718) {
+    textCan718 = document.createElement('canvas');
+    textCan718.id = 'textLayer';
+    textCan718.setAttribute('aria-hidden', 'true');
+    textCan718.style.position = 'absolute';
+    textCan718.style.pointerEvents = 'none';
+    textCan718.style.zIndex = '3';
+    textCan718.style.imageRendering = 'auto';
+    canvas.insertAdjacentElement('afterend', textCan718);
+    textCtx718c = textCan718.getContext('2d');
+  }
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = parseFloat(canvas.style.width) || 0;
+  const cssH = parseFloat(canvas.style.height) || 0;
+  textCan718.width = Math.max(1, Math.round(cssW * dpr));
+  textCan718.height = Math.max(1, Math.round(cssH * dpr));
+  textCan718.style.width = canvas.style.width;
+  textCan718.style.height = canvas.style.height;
+  const left = Math.round(((appW || window.innerWidth) - cssW) * dpr / 2) / dpr;
+  const top = Math.round(((appH || window.innerHeight) - cssH) * dpr / 2) / dpr;
+  canvas.style.left = textCan718.style.left = left + 'px';
+  canvas.style.top = textCan718.style.top = top + 'px';
+  canvas.style.transform = textCan718.style.transform = 'none';
+  textCtx718c.setTransform(1, 0, 0, 1, 0, 0);
+  textCtx718c.imageSmoothingEnabled = false;
+}
+function clearTextLayer718() {
+  if (!textCtx718c || !textCan718) return;
+  textCtx718c.setTransform(1, 0, 0, 1, 0, 0);
+  textCtx718c.globalAlpha = 1;
+  textCtx718c.clearRect(0, 0, textCan718.width, textCan718.height);
+  textCtx718c.imageSmoothingEnabled = false;
+}
+function drawText(s, x, y, col = '#fff', shadow = true) {
+  drawTextRaw(String(s), x, y, col, shadow);
+}
+function drawTextRaw(s, x, y, col, shadow) {
+  s = String(s);
+  const m = ctx.getTransform();
+  const scx = Math.hypot(m.a, m.b) || 1;
+  const pix = textPix718();
+  const face = Math.max(6, Math.round(6 * scx * pix));
+  const dx = Math.round((m.a * x + m.c * y + m.e) * pix);
+  const dy = Math.round((m.b * x + m.d * y + m.f) * pix);
+  const t = textCtx718c;
+  if (!t) {
+    ctx.save();
+    ctx.font = uiFont(6, 700); ctx.textBaseline = 'top'; ctx.imageSmoothingEnabled = false; ctx.fillStyle = col;
+    ctx.fillText(s, Math.round(x), Math.round(y));
+    ctx.restore();
+    return;
+  }
+  t.save();
+  t.globalAlpha = ctx.globalAlpha;
+  t.font = uiFont(face, 700);
+  t.textBaseline = 'top';
+  t.imageSmoothingEnabled = false;
+  if (shadow) { t.fillStyle = '#000'; t.fillText(s, dx + 1, dy + 1); }
+  t.fillStyle = col;
+  t.fillText(s, dx, dy);
+  t.restore();
 }
 function drawTextC(s, x, y, col, sh) { drawText(s, x - textW(String(s)) / 2, y, col, sh); }
 
@@ -3124,8 +3187,22 @@ function drawTeles() {
     ctx.globalAlpha = 1;
   }
 }
+function seFallbackImg718() {
+  if (seFallbackImg718.c) return seFallbackImg718.c;
+  seFallbackImg718.c = makeSprite(['..kkkk..', '.krrrkk.', '.krkkrrk', '..kkkk..']);
+  return seFallbackImg718.c;
+}
 function enemyImg(e) {
-  const T = e.T;
+  const T = e.T || {};
+  // v0.7.18 B2: Super Elites have no ETYPES sheet. eye-glints and the cursor used to throw on T.S and kill the frame.
+  if (e.superElite || T.superElite || !T.S) {
+    let img = null;
+    if ((e.superElite || T.superElite) && typeof sePose717 === 'function' && typeof seImg717 === 'function') {
+      const pose = sePose717(e);
+      img = pose && seImg717(pose.clip, pose.t, e.face || 1);
+    }
+    return img || seFallbackImg718();
+  }
   if (T.boss) return e.flash > 0 ? T.S.white : e.face > 0 ? T.S.r : T.S.l;
   const S = ((T.disguise && !e.disg) || (T.ai === 'crab' && e.mode === 'open')) && T.S2 ? T.S2 : T.S;
   return e.flash > 0 ? S.white : (e.face > 0 || e.disg ? S.r : S.l);
@@ -3169,7 +3246,7 @@ function drawChampGlow(e, img, X, Y) { const k = .5 + .5 * Math.sin(time * 4 + e
 function drawChampOutline(img, X, Y) { const k = .5 + .5 * Math.sin(time * 4), s = champSil(img), ga = ctx.globalAlpha; ctx.globalAlpha = ga * (.45 + k * .5); // 1px silhouette ring that breathes
   ctx.drawImage(s, X - 1, Y); ctx.drawImage(s, X + 1, Y); ctx.drawImage(s, X, Y - 1); ctx.drawImage(s, X, Y + 1); ctx.globalAlpha = ga; champOutlineN++; }
 let champOutlineN = 0;
-function activeBoss() { for (const e of enemies) if (e.T.boss && e.state === 'chase') return e; return null; }
+function activeBoss() { for (const e of enemies) if (e && e.T && e.T.boss && e.hp > 0 && !e.dead && e.state === 'chase') return e; return null; }
 function bossBarY() { return touchMode ? Math.ceil(46 * (window.devicePixelRatio || 1) / SCALE) : 6; }
 function drawBossBar(b, y0) {
   const w = Math.min(170, Math.round(VW * .5)), x = Math.round(VW / 2 - w / 2), y = (y0 === undefined ? bossBarY() : y0) + 7;
@@ -4077,6 +4154,15 @@ function bossUnique(L) { // prefers unfound + depth-appropriate (pickUnique); wi
   return makeItem(L, 2);
 }
 function killEnemy(e) {
+  // v0.7.18 B2: commit the Super Elite dead before loot, sound, or the corpse. A throw later cannot reload a frozen fight.
+  if (e && e.superElite) {
+    try { if (typeof seMarkDead717 === 'function') seMarkDead717(e); } catch (_) {}
+    try { save(); } catch (_) {}
+    try { removeEnemy(e); } catch (_) { e.hp = 0; e.dead = true; }
+    try { if (player) { player.kills++; gainXp(e.xp || 0); } } catch (_) {}
+    try { if (typeof seLoot717 === 'function') seLoot717(e); } catch (_) {}
+    return;
+  }
   const T = e.T;
   if (T.revive && !e.revived) { e.revived = true; e.hp = 1; e.downT = 2.5; e.mode = ''; addText(e.x, e.y - 14, 'IT STIRS...', '#c0c0ff'); cueAt('enm_skeleton_reassemble_01', e.x, e.y, 320); burst(e.x, e.y, '#888', 10, 50); return; }
   removeEnemy(e);
@@ -4104,7 +4190,6 @@ function killEnemy(e) {
     crumbleShop(); /* v0.7.5 F3: every boss, not only the depth%5 annex roll */
     return;
   }
-  if (e.superElite) { if (typeof seLoot717 === 'function') seLoot717(e); return; }
   regularDrops(e, depth);
 }
 function gainXp(n) {
@@ -6262,6 +6347,8 @@ function closeProfiles() { profOpen = false; profEdit = null; $('profiles').clas
 $('profBtn').addEventListener('click', openProfiles); $('profX').addEventListener('click', closeProfiles);
 $('mDim').addEventListener('click', cycleDim);
 function render() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.imageSmoothingEnabled = false;
+  if (typeof clearTextLayer718 === 'function') clearTextLayer718();
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   if (!player) { drawMenuBg(); return; }
   const so = shakeOffset(), sx = Math.round(cam.x + so.x), sy = Math.round(cam.y + so.y);
@@ -7423,12 +7510,24 @@ function v073Emissive() { const k = doorHumK(), s = entStairs(); if (k > .05 && 
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .35 * k; ctx.drawImage(LGRAD.shadow, x - r, y - r, r * 2, r * 2); ctx.restore(); } }
 // ---------- main loop ----------
 let last = performance.now();
+let frameErr718 = '';
 function loop(now) {
-  const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
-  const blocked = !$('rotate').classList.contains('hidden');
-  if (state === 'play' && !blocked) update(dt); else if (state === 'dying') updateDeath(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); if (state === 'talk') tickTalk713(dt); }
-  updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); musTick(); updateGroundTip();
-  requestAnimationFrame(loop);
+  try {
+    const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
+    const blocked = !$('rotate').classList.contains('hidden');
+    if (state === 'play' && !blocked) update(dt); else if (state === 'dying') updateDeath(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); if (state === 'talk') tickTalk713(dt); }
+    updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); musTick(); updateGroundTip();
+  } catch (e) {
+    frameErr718 = String(e && e.stack || e);
+    try { console.warn('Lichlight frame', frameErr718); } catch (_) {}
+    try {
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      if (player && (state === 'play' || state === 'dying')) { const u = (typeof uiAlpha === 'function') ? uiAlpha() : 1; ctx.globalAlpha = u; if (typeof hudInset074 === 'function') hudInset074(drawHUD); else drawHUD(); ctx.globalAlpha = 1; }
+    } catch (_) {}
+  } finally {
+    try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.imageSmoothingEnabled = false; } catch (_) {}
+    requestAnimationFrame(loop);
+  }
 }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { if (state === 'play') pauseGame(); if (actx && actx.state === 'running') actx.suspend().catch(() => {}); }
@@ -9171,19 +9270,47 @@ function satchelOpenTab(id) {
   notesMode = id === 'notes';
   if (typeof renderInv === 'function') renderInv();
 }
+function uiEff718() {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const sc = (typeof satM !== 'undefined' && satM && satM.scale) || 1;
+  return Math.max(1, Math.round(sc * dpr));
+}
+function crispCtx(cv, w, h) {
+  const eff = uiEff718();
+  w = Math.max(1, Math.round(w)); h = Math.max(1, Math.round(h));
+  cv.width = Math.max(1, Math.round(w * eff));
+  cv.height = Math.max(1, Math.round(h * eff));
+  cv.style.width = w + 'px';
+  cv.style.height = h + 'px';
+  cv.style.imageRendering = 'auto';
+  cv.dataset.eff = String(eff);
+  const x = cv.getContext('2d');
+  x.setTransform(eff, 0, 0, eff, 0, 0);
+  x.imageSmoothingEnabled = false;
+  return x;
+}
 function pxCanvas(w, h) {
-  const c = document.createElement('canvas'); c.width = Math.max(1, w | 0); c.height = Math.max(1, h | 0);
-  c.style.imageRendering = 'pixelated'; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return { c, x };
+  const c = document.createElement('canvas');
+  const x = crispCtx(c, w, h);
+  c.style.imageRendering = 'auto';
+  return { c, x, eff: +(c.dataset.eff || 1) };
 }
 function pxText(ctx, s, x, y, col, shadow, maxX) {
   s = String(s == null ? '' : s);
   const limit = maxX == null ? 9999 : maxX;
+  const m = ctx.getTransform();
+  const sc = Math.max(1, Math.hypot(m.a, m.b) || 1);
   ctx.save();
-  ctx.font = uiFont(8, 700); ctx.textBaseline = 'top'; ctx.imageSmoothingEnabled = false;
   ctx.beginPath(); ctx.rect(0, y - 2, Math.max(1, limit), 18); ctx.clip();
-  if (shadow) { ctx.fillStyle = '#000'; ctx.fillText(s, x + 1, y + 1); }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.font = uiFont(Math.max(6, Math.round(8 * sc)), 700);
+  ctx.textBaseline = 'top';
+  ctx.imageSmoothingEnabled = false;
+  const dx = Math.round(m.a * x + m.c * y + m.e);
+  const dy = Math.round(m.b * x + m.d * y + m.f);
+  if (shadow) { ctx.fillStyle = '#000'; ctx.fillText(s, dx + 1, dy + 1); }
   ctx.fillStyle = col || SAT_TAN;
-  ctx.fillText(s, x, y);
+  ctx.fillText(s, dx, dy);
   ctx.restore();
 }
 function pxCenter(ctx, s, y, col, width) {
@@ -10369,21 +10496,10 @@ function syncDetailFrame712(extra) {
 }
 function drawTitle713(ctx, lines, top, bandH, panelW) {
   const list = lines && lines.length ? lines : [''];
-  const glyph = 8;
   const lh = 10;
   let y = top;
-  if (list.length === 1) y = top + Math.max(0, Math.round((bandH - glyph) / 2));
-  list.forEach((line, i) => {
-    const srcW = Math.max(4, String(line).length * 4 + 2);
-    const native = pxCanvas(srcW, 6);
-    pxText(native.x, line, 1, 0, TITLE_COLOR_712, true, srcW);
-    const natural = Math.round((String(line).length * 4) * glyph / 5);
-    const maxW = Math.max(12, panelW - 12);
-    const dw = Math.min(maxW, Math.max(8, natural));
-    const dx = Math.max(2, Math.round((panelW - dw) / 2));
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(native.c, 0, 0, srcW, 5, dx, y + i * lh, dw, glyph);
-  });
+  if (list.length === 1) y = top + Math.max(0, Math.round((bandH - 8) / 2));
+  list.forEach((line, i) => pxCenter(ctx, line, y + i * lh, TITLE_COLOR_712, panelW));
 }
 function cardKey712() {
   if (dropAllAsk) return 'drop';
@@ -10410,9 +10526,8 @@ fillInvStats = function () {
     title = card.title; rar = card.rar;
   }
   box.dataset.rar = rar;
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
   const maxTitleWidth = maxTitleWidth712(w);
-  const titleLines = wrapTitle712(ctx, title, maxTitleWidth);
+  const titleLines = wrapTitle712(null, title, maxTitleWidth);
   const kind = (card.lines || []).find(ln => ln.kind);
   const bodyCard = { lines: (card.lines || []).filter(ln => !ln.kind) };
   const previewRows = flattenCard712(bodyCard, w - 16);
@@ -10422,8 +10537,8 @@ fillInvStats = function () {
   const bandTop = 4;
   const bandH = titleLines.length <= 1 ? 16 : titleLines.length * 10;
   const ruleY = bandTop + bandH + 2;
-  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
-  ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  const ctx = crispCtx(cv, w, h);
+  ctx.clearRect(0, 0, w, h);
   box.dataset.wrap = titleLines.join('\n');
   box.dataset.titleLines = String(titleLines.length);
   drawTitle713(ctx, titleLines, bandTop, titleLines.length <= 1 ? bandH : bandH, w);
@@ -10450,8 +10565,8 @@ fillInvStats = function () {
   bindScrollEl(box, 'invDetail', function () { return satM.scale || 1; }, fillInvStats);
   const count = $('invCount');
   if (count) {
-    count.width = 210; count.height = 8;
-    const cx = count.getContext('2d'); cx.imageSmoothingEnabled = false; cx.clearRect(0, 0, 210, 8);
+    const cx = crispCtx(count, 210, 8);
+    cx.clearRect(0, 0, 210, 8);
     const n = p.inv.filter(Boolean).length, cap = invSize(), more = p.inv.length > satM.cols * 3;
     pxText(cx, n + '/' + cap + (more ? '  SCROLL FOR MORE' : ''), 2, 1, SAT_DIM, true, 208);
   }
@@ -10676,8 +10791,8 @@ fillTomePane = function () {
   s.maxScrollY = Math.max(0, contentH - bh);
   clampScroll712(s);
   const cv = document.createElement('canvas'); cv.id = 'tomeGridCv';
-  cv.width = bw; cv.height = bh; cv.style.width = bw + 'px'; cv.style.height = bh + 'px';
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, bw, bh);
+  const ctx = crispCtx(cv, bw, bh);
+  ctx.clearRect(0, 0, bw, bh);
   const cells = [];
   drawScrollContainer(ctx, { x: 0, y: 0, w: bw, h: bh, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 8, bg: PANEL_BG_712 }, function () {
     learned.forEach((id, n) => {
@@ -12397,7 +12512,7 @@ function sePlan717(d) {
   sePrevId717 = id;
   const sh = sePickShield717();
   sePrevShield717 = sh;
-  SE717 = { id: id, alive: true, introduced: false, spawned: false, shieldFx: sh, depth: d || depth };
+  SE717 = { id: id, alive: true, dead: false, introduced: false, spawned: false, shieldFx: sh, depth: d || depth };
   seAmbHold717 = false;
   return SE717;
 }
@@ -12405,9 +12520,43 @@ function seMuteAmb717(on) {
   seAmbHold717 = !!on;
   if (typeof applyVolumes === 'function') applyVolumes(false);
 }
+function seMarkDead717(e) {
+  const id = (e && e.seId) || (SE717 && SE717.id) || '';
+  if (!SE717) SE717 = { id: id, depth: depth || 1, shieldFx: e && e.shieldFx };
+  SE717.alive = false;
+  SE717.dead = true;
+  SE717.spawned = true;
+  SE717.introduced = true;
+  if (id) SE717.id = id;
+  if (e) { e.hp = Math.min(0, e.hp || 0); e.dead = true; if (e.T) { e.T.boss = false; e.T.superElite = true; } }
+  try { seMuteAmb717(false); } catch (_) {}
+}
+function seReleaseMusic717() {
+  try {
+    const bossUp = enemies && enemies.some(q => q && q.T && q.T.boss && q.hp > 0 && !q.dead);
+    const seUp = enemies && enemies.some(q => q && q.superElite && q.hp > 0 && !q.dead);
+    if (!bossUp && !seUp && typeof musStop === 'function' && typeof MUS !== 'undefined' && MUS.cur && MUS.cur.id === 'mus_boss_01') musStop(0.4);
+  } catch (_) {}
+}
+function seRecover717() {
+  if (!enemies) return 0;
+  let n = 0;
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    if (!e || !(e.superElite || (typeof e.seId === 'string' && e.seId.indexOf('se_') === 0))) continue;
+    if (e.hp > 0 && !e.dead) { if (e.T) e.T.boss = false; continue; }
+    enemies.splice(i, 1);
+    n++;
+    try { seMarkDead717(e); } catch (_) {}
+  }
+  if (SE717 && SE717.dead) SE717.alive = false;
+  if (n) { try { seReleaseMusic717(); } catch (_) {} }
+  return n;
+}
 function seGateAlive717() {
+  seRecover717();
   if (enemies && enemies.some(e => e.superElite && e.hp > 0 && !e.dead)) return true;
-  return !!(SE717 && SE717.alive);
+  return !!(SE717 && SE717.alive && !SE717.dead);
 }
 function seBlocksDescend717(quiet) {
   if (!seGateAlive717()) return false;
@@ -12432,6 +12581,7 @@ function seStairsXY717() {
 }
 function seSpawn717(id, phase) {
   if (!enemies) return null;
+  if (SE717 && SE717.dead) return null;
   const row = seRoster717(id || (SE717 && SE717.id));
   const have = enemies.find(e => e.superElite && e.hp > 0);
   if (have && have.seId === row.id) return have;
@@ -12450,14 +12600,14 @@ function seSpawn717(id, phase) {
     sePhase: phase || 'drop', seT: 0, seAct: '', seActT: 0, seHit: false, seCd: 0.8, seUnlocked: phase === 'fight', z: phase === 'drop' ? 78 : 0
   };
   enemies.push(e);
-  if (!SE717) SE717 = { id: row.id, alive: true, shieldFx: sh, depth: depth };
-  SE717.id = row.id; SE717.alive = true; SE717.spawned = true; SE717.introduced = true; SE717.shieldFx = sh;
+  if (!SE717) SE717 = { id: row.id, alive: true, dead: false, shieldFx: sh, depth: depth };
+  SE717.id = row.id; SE717.alive = true; SE717.dead = false; SE717.spawned = true; SE717.introduced = true; SE717.shieldFx = sh;
   if (e.sePhase === 'drop') { seMuteAmb717(true); if (typeof cue === 'function') cue('enm_se_drop_01'); }
   else if (e.sePhase === 'fight') seMuteAmb717(true);
   return e;
 }
 function seTryIntro717() {
-  if (!SE717 || !SE717.alive || SE717.spawned || state !== 'play' || !player || climb) return;
+  if (!SE717 || !SE717.alive || SE717.dead || SE717.spawned || state !== 'play' || !player || climb) return;
   if (seLiving717()) { SE717.spawned = true; return; }
   const s = (typeof entStairs === 'function') ? entStairs() : null;
   if (!s) return;
@@ -12504,6 +12654,7 @@ function seSpawnVfx717(id, x, y, face) {
   seVfx717.push({ id: id, x: x, y: y, face: face || 1, t: 0, ms: kit.ms, frames: kit.frames });
 }
 function seTick717(dt) {
+  seRecover717();
   seTryIntro717();
   if (!enemies) return;
   for (const e of enemies) {
@@ -12560,8 +12711,10 @@ function seTick717(dt) {
     }
   }
   for (let i = seVfx717.length - 1; i >= 0; i--) {
-    const v = seVfx717[i]; v.t += dt;
-    const dur = (v.frames.length * v.ms) / 1000;
+    const v = seVfx717[i];
+    if (!v || !v.frames || !v.frames.length) { seVfx717.splice(i, 1); continue; }
+    v.t += dt;
+    const dur = (v.frames.length * (v.ms || 80)) / 1000;
     if (v.t >= dur) seVfx717.splice(i, 1);
   }
   for (let i = seCorpses717.length - 1; i >= 0; i--) {
@@ -12569,53 +12722,76 @@ function seTick717(dt) {
     if (c.t > c.dur + 0.45) seCorpses717.splice(i, 1);
   }
 }
+function seSafe718(fn) { try { fn(); } catch (_) {} }
 function seLoot717(e) {
-  if (SE717) SE717.alive = false;
-  seMuteAmb717(false);
-  const x = e.x, y = e.y;
-  dropAt(ground, x - 8, y + 8, { gold: 25 });
-  dropAt(ground, x + 10, y + 6, { ration: 1 });
-  const it = bossUnique(Math.max(1, depth));
-  dropAt(ground, x, y - 6, { item: it });
-  if (it && it.rarity === 3 && typeof uniqueDropFx === 'function') uniqueDropFx(x, y - 6);
-  const roll = (typeof window.__seGkey === 'number') ? window.__seGkey : Math.random();
-  if (roll < SE_GKEY_P) dropAt(ground, x + 2, y + 14, { gkey: 1 });
-  const death = Math.random() < 0.5 ? 'enm_se_death_01' : 'enm_se_death_02';
-  if (typeof cueAt === 'function') cueAt(death, x, y, 380, 1);
-  const vic = Math.random() < 0.5 ? 'meta_se_victory_01' : 'meta_se_victory_02';
-  if (typeof cue === 'function') cue(vic, { delay: 0.4, vol: 0.95 });
-  flashMsg((e.name || 'The Super Elite') + ' falls. The way down is open.', '#d8a040');
-  const pack = seClip717(e.seId);
-  const frames = pack && pack.death ? pack.death.frames.length : 8;
-  const ms = pack && pack.death ? pack.death.ms : 110;
-  seCorpses717.push({ id: e.seId, x: x, y: y, face: e.face || 1, t: 0, r: e.r || 12, dur: frames * ms / 1000, shieldFx: e.shield > 0 ? e.shieldFx : '' });
+  seMarkDead717(e);
+  const x = e.x, y = e.y, name = (e && e.name) || 'The Super Elite', face = (e && e.face) || 1, id = e && e.seId, r = (e && e.r) || 12;
+  const sh = e && e.shield > 0 ? e.shieldFx : '';
+  seSafe718(() => seMuteAmb717(false));
+  seSafe718(() => seReleaseMusic717());
+  seSafe718(() => dropAt(ground, x - 8, y + 8, { gold: 25 }));
+  seSafe718(() => dropAt(ground, x + 10, y + 6, { ration: 1 }));
+  seSafe718(() => {
+    const it = bossUnique(Math.max(1, depth || 1));
+    dropAt(ground, x, y - 6, { item: it });
+    if (it && it.rarity === 3 && typeof uniqueDropFx === 'function') uniqueDropFx(x, y - 6);
+  });
+  seSafe718(() => {
+    const roll = (typeof window.__seGkey === 'number') ? window.__seGkey : Math.random();
+    if (roll < SE_GKEY_P) dropAt(ground, x + 2, y + 14, { gkey: 1 });
+  });
+  seSafe718(() => {
+    const death = Math.random() < 0.5 ? 'enm_se_death_01' : 'enm_se_death_02';
+    if (typeof cueAt === 'function') cueAt(death, x, y, 380, 1);
+    const vic = Math.random() < 0.5 ? 'meta_se_victory_01' : 'meta_se_victory_02';
+    if (typeof cue === 'function') cue(vic, { delay: 0.4, vol: 0.95 });
+  });
+  seSafe718(() => flashMsg(name + ' falls. The way down is open.', '#d8a040'));
+  seSafe718(() => {
+    const pack = seClip717(id);
+    const frames = pack && pack.death ? pack.death.frames.length : 8;
+    const ms = pack && pack.death ? pack.death.ms : 110;
+    seCorpses717.push({ id: id, x: x, y: y, face: face, t: 0, r: r, dur: frames * ms / 1000, shieldFx: sh });
+  });
+  seSafe718(() => save());
 }
 function seSnap717() {
   if (!SE717) return null;
   const live = seLiving717();
+  const dead = !!(SE717.dead || SE717.alive === false || (live && live.hp <= 0));
   return {
     id: (live && live.seId) || SE717.id,
-    alive: !!(SE717.alive && (!live || live.hp > 0)),
+    alive: !dead && !!(SE717.alive && (!live || live.hp > 0)),
+    dead: dead,
     introduced: !!(SE717.introduced || live),
     shieldFx: (live && live.shieldFx) || SE717.shieldFx,
     depth: depth
   };
 }
 function seRestore717(snap) {
-  if (!snap || !snap.id) { if (!SE717) sePlan717(depth); return; }
-  SE717 = { id: snap.id, alive: snap.alive !== false, introduced: !!snap.introduced, spawned: false, shieldFx: snap.shieldFx || sePickShield717(), depth: snap.depth || depth };
+  if (!snap || !snap.id) { if (!SE717) sePlan717(depth); seRecover717(); return; }
+  const dead = snap.dead === true || snap.alive === false;
+  SE717 = { id: snap.id, alive: !dead, dead: dead, introduced: !!snap.introduced, spawned: !!snap.introduced, shieldFx: snap.shieldFx || sePickShield717(), depth: snap.depth || depth };
   sePrevId717 = SE717.id;
   if (SE717.shieldFx) sePrevShield717 = SE717.shieldFx;
-  const live = enemies && enemies.find(e => e.superElite || e.seId === snap.id);
+  seRecover717();
+  if (dead || (SE717 && SE717.dead)) {
+    SE717.alive = false; SE717.dead = true;
+    seSafe718(() => seMuteAmb717(false));
+    seSafe718(() => seReleaseMusic717());
+    return;
+  }
+  const live = enemies && enemies.find(e => (e.superElite || e.seId === snap.id) && e.hp > 0 && !e.dead);
   if (live) {
     live.superElite = true; live.seId = live.seId || snap.id;
     if (!live.sePhase) live.sePhase = 'fight';
-    if (live.T) { live.T.superElite = true; live.T.noContact = true; live.T.boss = false; }
-    SE717.spawned = true; SE717.alive = live.hp > 0; SE717.introduced = true;
-    if (live.hp > 0) seMuteAmb717(true);
+    if (!live.T) live.T = { superElite: true, boss: false, noContact: true, S: null, ai: 'se', label: live.name || snap.id };
+    live.T.superElite = true; live.T.noContact = true; live.T.boss = false;
+    SE717.spawned = true; SE717.alive = true; SE717.dead = false; SE717.introduced = true;
+    seMuteAmb717(true);
     return;
   }
-  if (SE717.alive && SE717.introduced) seSpawn717(SE717.id, 'fight');
+  if (SE717.alive && SE717.introduced && !SE717.dead) seSpawn717(SE717.id, 'fight');
 }
 function drawSeSprite717(e) {
   const pose = sePose717(e);
@@ -12745,9 +12921,13 @@ if (window.game) {
     drawFloater716: drawFloater716, drawBigMap: drawBigMap, drawBossBar: drawBossBar,
     SE_ROSTER: SE_ROSTER, SE_IDS: SE_IDS, SE_SHIELD_IDS: SE_SHIELD_IDS, SE_SHIELD_FRAC: SE_SHIELD_FRAC, SE_GKEY_P: SE_GKEY_P,
     sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seLoot717: seLoot717, seSnap717: seSnap717,
-    seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,
+    seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, seRecover717: seRecover717, seMarkDead717: seMarkDead717,
+    loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,
+    crispCtx: crispCtx, uiEff718: uiEff718, textPix718: textPix718, syncTextLayer718: syncTextLayer718,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });
+  Object.defineProperty(window.game, 'textLayer', { configurable: true, get() { return textCan718; } });
+  Object.defineProperty(window.game, 'frameErr', { configurable: true, get() { return frameErr718; } });
   Object.defineProperty(window.game, 'SE717', { configurable: true, get() { return SE717; } });
   Object.defineProperty(window.game, 'SE_CLIP', { configurable: true, get() { return SE_CLIP; } });
   Object.defineProperty(window.game, 'SE_VFX', { configurable: true, get() { return SE_VFX; } });
