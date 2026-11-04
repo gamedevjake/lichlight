@@ -1,0 +1,1951 @@
+{
+ "pack": "lichlight_super_elites",
+ "brief": "cryptdelve_loot/lichlight_v0717_next.md SE1",
+ "status": "PARKED - not wired into live; Neo wires after Eve+Jake pre-GO + Jake GO",
+ "cell": 48,
+ "outline": "#0e0a12",
+ "facing": "right (Neo mirrors)",
+ "pivot": "bottom-centre; lowest opaque pixel on row 47 (floaters: idle/walk lifted 1-2px = baked bob)",
+ "frameCount": "width / height",
+ "required_states": [
+  "idle",
+  "walk",
+  "attack",
+  "taunt",
+  "death",
+  "powerup"
+ ],
+ "optional_states": [
+  "hurt"
+ ],
+ "superElites": [
+  {
+   "id": "se_pale_shade",
+   "slug": "pale_shade",
+   "name": "Pale Shade",
+   "sheetCell": [
+    1,
+    1
+   ],
+   "archetype": "spirit",
+   "family": "spirit",
+   "cell": 48,
+   "attackVfx": "spectral_wave",
+   "powerupVfx": "shadow_bolt",
+   "portrait": "sprites/se_pale_shade/se_pale_shade_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_pale_shade/se_pale_shade_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_pale_shade/se_pale_shade_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_pale_shade/se_pale_shade_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_pale_shade/se_pale_shade_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_pale_shade/se_pale_shade_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_pale_shade/se_pale_shade_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_pale_shade/se_pale_shade_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_bonewarden",
+   "slug": "bonewarden",
+   "name": "Bonewarden",
+   "sheetCell": [
+    1,
+    2
+   ],
+   "archetype": "undead melee",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "smash_shockwave",
+   "powerupVfx": "bone_shatter",
+   "portrait": "sprites/se_bonewarden/se_bonewarden_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_bonewarden/se_bonewarden_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_bonewarden/se_bonewarden_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_bonewarden/se_bonewarden_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_bonewarden/se_bonewarden_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_bonewarden/se_bonewarden_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_bonewarden/se_bonewarden_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_bonewarden/se_bonewarden_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_arachnex",
+   "slug": "arachnex",
+   "name": "Arachnex",
+   "sheetCell": [
+    1,
+    3
+   ],
+   "archetype": "beast/horror",
+   "family": "quad",
+   "cell": 48,
+   "attackVfx": "web_lash",
+   "powerupVfx": "poison_spray",
+   "portrait": "sprites/se_arachnex/se_arachnex_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_arachnex/se_arachnex_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_arachnex/se_arachnex_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_arachnex/se_arachnex_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_arachnex/se_arachnex_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_arachnex/se_arachnex_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_arachnex/se_arachnex_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_arachnex/se_arachnex_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_veilwraith",
+   "slug": "veilwraith",
+   "name": "Veilwraith",
+   "sheetCell": [
+    1,
+    4
+   ],
+   "archetype": "spirit",
+   "family": "spirit",
+   "cell": 48,
+   "attackVfx": "spectral_wave",
+   "powerupVfx": "frost_burst",
+   "portrait": "sprites/se_veilwraith/se_veilwraith_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_veilwraith/se_veilwraith_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_veilwraith/se_veilwraith_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_veilwraith/se_veilwraith_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_veilwraith/se_veilwraith_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_veilwraith/se_veilwraith_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_veilwraith/se_veilwraith_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_veilwraith/se_veilwraith_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_magmafiend",
+   "slug": "magmafiend",
+   "name": "Magmafiend",
+   "sheetCell": [
+    1,
+    5
+   ],
+   "archetype": "elemental (fire)",
+   "family": "heavy",
+   "cell": 48,
+   "attackVfx": "fire_burst",
+   "powerupVfx": "smash_shockwave",
+   "portrait": "sprites/se_magmafiend/se_magmafiend_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_magmafiend/se_magmafiend_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_magmafiend/se_magmafiend_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_magmafiend/se_magmafiend_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_magmafiend/se_magmafiend_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_magmafiend/se_magmafiend_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_magmafiend/se_magmafiend_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_magmafiend/se_magmafiend_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_graveguard",
+   "slug": "graveguard",
+   "name": "Graveguard",
+   "sheetCell": [
+    2,
+    1
+   ],
+   "archetype": "spirit (armored)",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "slash_arc",
+   "powerupVfx": "spectral_wave",
+   "portrait": "sprites/se_graveguard/se_graveguard_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_graveguard/se_graveguard_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_graveguard/se_graveguard_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_graveguard/se_graveguard_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_graveguard/se_graveguard_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_graveguard/se_graveguard_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_graveguard/se_graveguard_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_graveguard/se_graveguard_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_morbius",
+   "slug": "morbius",
+   "name": "Morbius",
+   "sheetCell": [
+    2,
+    2
+   ],
+   "archetype": "undead melee",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "poison_spray",
+   "powerupVfx": "bite_chomp",
+   "portrait": "sprites/se_morbius/se_morbius_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_morbius/se_morbius_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_morbius/se_morbius_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_morbius/se_morbius_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_morbius/se_morbius_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_morbius/se_morbius_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_morbius/se_morbius_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_morbius/se_morbius_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_archon",
+   "slug": "archon",
+   "name": "Archon",
+   "sheetCell": [
+    2,
+    3
+   ],
+   "archetype": "mage/caster",
+   "family": "robe",
+   "cell": 48,
+   "attackVfx": "arcane_orb",
+   "powerupVfx": "rune_slam",
+   "portrait": "sprites/se_archon/se_archon_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_archon/se_archon_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_archon/se_archon_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_archon/se_archon_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_archon/se_archon_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_archon/se_archon_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_archon/se_archon_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_archon/se_archon_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_ironbound",
+   "slug": "ironbound",
+   "name": "Ironbound",
+   "sheetCell": [
+    2,
+    4
+   ],
+   "archetype": "undead melee (armored)",
+   "family": "heavy",
+   "cell": 48,
+   "attackVfx": "smash_shockwave",
+   "powerupVfx": "rune_slam",
+   "portrait": "sprites/se_ironbound/se_ironbound_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_ironbound/se_ironbound_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_ironbound/se_ironbound_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_ironbound/se_ironbound_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_ironbound/se_ironbound_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_ironbound/se_ironbound_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_ironbound/se_ironbound_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_ironbound/se_ironbound_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_ymir",
+   "slug": "ymir",
+   "name": "Ymir",
+   "sheetCell": [
+    2,
+    5
+   ],
+   "archetype": "elemental (ice)",
+   "family": "float",
+   "cell": 48,
+   "attackVfx": "frost_burst",
+   "powerupVfx": "smash_shockwave",
+   "portrait": "sprites/se_ymir/se_ymir_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_ymir/se_ymir_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_ymir/se_ymir_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_ymir/se_ymir_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_ymir/se_ymir_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_ymir/se_ymir_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_ymir/se_ymir_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_ymir/se_ymir_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_thanatos",
+   "slug": "thanatos",
+   "name": "Thanatos",
+   "sheetCell": [
+    3,
+    1
+   ],
+   "archetype": "spirit/caster",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "shadow_bolt",
+   "powerupVfx": "arcane_orb",
+   "portrait": "sprites/se_thanatos/se_thanatos_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_thanatos/se_thanatos_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_thanatos/se_thanatos_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_thanatos/se_thanatos_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_thanatos/se_thanatos_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_thanatos/se_thanatos_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_thanatos/se_thanatos_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_thanatos/se_thanatos_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_nyx",
+   "slug": "nyx",
+   "name": "Nyx",
+   "sheetCell": [
+    3,
+    2
+   ],
+   "archetype": "beast/horror (assassin)",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "dagger_flash",
+   "powerupVfx": "poison_spray",
+   "portrait": "sprites/se_nyx/se_nyx_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_nyx/se_nyx_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_nyx/se_nyx_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_nyx/se_nyx_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_nyx/se_nyx_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_nyx/se_nyx_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_nyx/se_nyx_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_nyx/se_nyx_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_golgoth",
+   "slug": "golgoth",
+   "name": "Golgoth",
+   "sheetCell": [
+    3,
+    3
+   ],
+   "archetype": "golem",
+   "family": "heavy",
+   "cell": 48,
+   "attackVfx": "smash_shockwave",
+   "powerupVfx": "rune_slam",
+   "portrait": "sprites/se_golgoth/se_golgoth_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_golgoth/se_golgoth_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_golgoth/se_golgoth_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_golgoth/se_golgoth_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_golgoth/se_golgoth_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_golgoth/se_golgoth_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_golgoth/se_golgoth_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_golgoth/se_golgoth_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_vorag",
+   "slug": "vorag",
+   "name": "Vorag",
+   "sheetCell": [
+    3,
+    4
+   ],
+   "archetype": "beast/horror",
+   "family": "float",
+   "cell": 48,
+   "attackVfx": "bite_chomp",
+   "powerupVfx": "shadow_bolt",
+   "portrait": "sprites/se_vorag/se_vorag_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_vorag/se_vorag_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_vorag/se_vorag_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_vorag/se_vorag_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_vorag/se_vorag_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_vorag/se_vorag_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_vorag/se_vorag_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_vorag/se_vorag_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_roderick",
+   "slug": "roderick",
+   "name": "Roderick",
+   "sheetCell": [
+    3,
+    5
+   ],
+   "archetype": "spirit (knight)",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "slash_arc",
+   "powerupVfx": "spectral_wave",
+   "portrait": "sprites/se_roderick/se_roderick_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_roderick/se_roderick_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_roderick/se_roderick_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_roderick/se_roderick_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_roderick/se_roderick_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_roderick/se_roderick_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_roderick/se_roderick_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_roderick/se_roderick_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_blight_weaver",
+   "slug": "blight_weaver",
+   "name": "Blight-Weaver",
+   "sheetCell": [
+    4,
+    1
+   ],
+   "archetype": "mage/caster (gorgon)",
+   "family": "slither",
+   "cell": 48,
+   "attackVfx": "bite_chomp",
+   "powerupVfx": "poison_spray",
+   "portrait": "sprites/se_blight_weaver/se_blight_weaver_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_blight_weaver/se_blight_weaver_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_xalkor",
+   "slug": "xalkor",
+   "name": "Xal'kor",
+   "sheetCell": [
+    4,
+    2
+   ],
+   "archetype": "mage/caster",
+   "family": "robe",
+   "cell": 48,
+   "attackVfx": "shadow_bolt",
+   "powerupVfx": "bone_shatter",
+   "portrait": "sprites/se_xalkor/se_xalkor_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_xalkor/se_xalkor_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_xalkor/se_xalkor_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_xalkor/se_xalkor_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_xalkor/se_xalkor_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_xalkor/se_xalkor_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_xalkor/se_xalkor_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_xalkor/se_xalkor_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_ember_fiend",
+   "slug": "ember_fiend",
+   "name": "Ember-Fiend",
+   "sheetCell": [
+    4,
+    3
+   ],
+   "archetype": "elemental (fire)",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "fire_burst",
+   "powerupVfx": "lantern_flare",
+   "portrait": "sprites/se_ember_fiend/se_ember_fiend_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_ember_fiend/se_ember_fiend_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_corpse_stalker",
+   "slug": "corpse_stalker",
+   "name": "Corpse-Stalker",
+   "sheetCell": [
+    4,
+    4
+   ],
+   "archetype": "undead melee",
+   "family": "biped",
+   "cell": 48,
+   "attackVfx": "slash_arc",
+   "powerupVfx": "bone_shatter",
+   "portrait": "sprites/se_corpse_stalker/se_corpse_stalker_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_corpse_stalker/se_corpse_stalker_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  },
+  {
+   "id": "se_overseer",
+   "slug": "overseer",
+   "name": "Overseer",
+   "sheetCell": [
+    4,
+    5
+   ],
+   "archetype": "mage/caster",
+   "family": "robe",
+   "cell": 48,
+   "attackVfx": "lantern_flare",
+   "powerupVfx": "arcane_orb",
+   "portrait": "sprites/se_overseer/se_overseer_portrait.png",
+   "states": [
+    {
+     "state": "idle",
+     "file": "sprites/se_overseer/se_overseer_idle.png",
+     "frames": 4,
+     "ms": 200,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "walk",
+     "file": "sprites/se_overseer/se_overseer_walk.png",
+     "frames": 4,
+     "ms": 130,
+     "loop": true,
+     "hitFrame": null
+    },
+    {
+     "state": "attack",
+     "file": "sprites/se_overseer/se_overseer_attack.png",
+     "frames": 4,
+     "ms": 95,
+     "loop": false,
+     "hitFrame": 3
+    },
+    {
+     "state": "taunt",
+     "file": "sprites/se_overseer/se_overseer_taunt.png",
+     "frames": 6,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "note": "intro invuln beat; hold f6 until taunt-done SFX cue"
+    },
+    {
+     "state": "death",
+     "file": "sprites/se_overseer/se_overseer_death.png",
+     "frames": 8,
+     "ms": 110,
+     "loop": false,
+     "hitFrame": null,
+     "holdLast": true
+    },
+    {
+     "state": "powerup",
+     "file": "sprites/se_overseer/se_overseer_powerup.png",
+     "frames": 6,
+     "ms": 100,
+     "loop": false,
+     "hitFrame": 4,
+     "note": "wind f1-3 -> RELEASE f4 (spawn powerupVfx / deal damage) -> recover f5-6"
+    },
+    {
+     "state": "hurt",
+     "file": "sprites/se_overseer/se_overseer_hurt.png",
+     "frames": 2,
+     "ms": 60,
+     "loop": false,
+     "hitFrame": null,
+     "optional": true
+    }
+   ]
+  }
+ ],
+ "vfx": [
+  {
+   "id": "slash_arc",
+   "file": "vfx/vfx_slash_arc.png",
+   "frames": 5,
+   "ms": 70,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on weapon tip / front of body at chest height",
+   "usedBy": [
+    "se_graveguard",
+    "se_roderick",
+    "se_corpse_stalker"
+   ]
+  },
+  {
+   "id": "smash_shockwave",
+   "file": "vfx/vfx_smash_shockwave.png",
+   "frames": 5,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "bottom-centre on impact point (ground line = row 42-44)",
+   "usedBy": [
+    "se_bonewarden",
+    "se_magmafiend",
+    "se_ironbound",
+    "se_ymir",
+    "se_golgoth"
+   ]
+  },
+  {
+   "id": "frost_burst",
+   "file": "vfx/vfx_frost_burst.png",
+   "frames": 5,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on target / hit point",
+   "usedBy": [
+    "se_veilwraith",
+    "se_ymir"
+   ]
+  },
+  {
+   "id": "fire_burst",
+   "file": "vfx/vfx_fire_burst.png",
+   "frames": 6,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on target / hit point",
+   "usedBy": [
+    "se_magmafiend",
+    "se_ember_fiend"
+   ]
+  },
+  {
+   "id": "poison_spray",
+   "file": "vfx/vfx_poison_spray.png",
+   "frames": 5,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "left-centre at mouth/hand; sprays right (mirror for left-facing)",
+   "usedBy": [
+    "se_arachnex",
+    "se_morbius",
+    "se_nyx",
+    "se_blight_weaver"
+   ]
+  },
+  {
+   "id": "shadow_bolt",
+   "file": "vfx/vfx_shadow_bolt.png",
+   "frames": 5,
+   "ms": 70,
+   "loop": false,
+   "cell": 48,
+   "anchor": "travels L->R inside the cell; spawn at hand, or loop f2-f4 as a projectile",
+   "usedBy": [
+    "se_pale_shade",
+    "se_thanatos",
+    "se_vorag",
+    "se_xalkor"
+   ]
+  },
+  {
+   "id": "arcane_orb",
+   "file": "vfx/vfx_arcane_orb.png",
+   "frames": 6,
+   "ms": 90,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on hand (f1-4 charge) then target (f5-6 burst)",
+   "usedBy": [
+    "se_archon",
+    "se_thanatos",
+    "se_overseer"
+   ]
+  },
+  {
+   "id": "bone_shatter",
+   "file": "vfx/vfx_bone_shatter.png",
+   "frames": 5,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on hit point",
+   "usedBy": [
+    "se_bonewarden",
+    "se_xalkor",
+    "se_corpse_stalker"
+   ]
+  },
+  {
+   "id": "web_lash",
+   "file": "vfx/vfx_web_lash.png",
+   "frames": 5,
+   "ms": 70,
+   "loop": false,
+   "cell": 48,
+   "anchor": "left-centre at spinneret; strand lashes right and webs at f3+",
+   "usedBy": [
+    "se_arachnex"
+   ]
+  },
+  {
+   "id": "spectral_wave",
+   "file": "vfx/vfx_spectral_wave.png",
+   "frames": 5,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "band sweeps L->R through the cell",
+   "usedBy": [
+    "se_pale_shade",
+    "se_veilwraith",
+    "se_graveguard",
+    "se_roderick"
+   ]
+  },
+  {
+   "id": "bite_chomp",
+   "file": "vfx/vfx_bite_chomp.png",
+   "frames": 4,
+   "ms": 70,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on target; jaws close on f3",
+   "usedBy": [
+    "se_morbius",
+    "se_vorag",
+    "se_blight_weaver"
+   ]
+  },
+  {
+   "id": "lantern_flare",
+   "file": "vfx/vfx_lantern_flare.png",
+   "frames": 5,
+   "ms": 80,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on lantern / caster hand",
+   "usedBy": [
+    "se_ember_fiend",
+    "se_overseer"
+   ]
+  },
+  {
+   "id": "dagger_flash",
+   "file": "vfx/vfx_dagger_flash.png",
+   "frames": 4,
+   "ms": 60,
+   "loop": false,
+   "cell": 48,
+   "anchor": "centre on target; X cross on f3",
+   "usedBy": [
+    "se_nyx"
+   ]
+  },
+  {
+   "id": "rune_slam",
+   "file": "vfx/vfx_rune_slam.png",
+   "frames": 6,
+   "ms": 90,
+   "loop": false,
+   "cell": 48,
+   "anchor": "bottom-centre on target (ground rune circle + pillar)",
+   "usedBy": [
+    "se_archon",
+    "se_ironbound",
+    "se_golgoth"
+   ]
+  }
+ ],
+ "shields": {
+  "note": "POOL - not locked to any SE. Neo picks shieldFx from this pool at spawn (e.g. random, avoid repeating the previous floor). Draw while shield > 0; hide (or play the break flash) at 0.",
+  "frameSize": [
+   64,
+   64
+  ],
+  "offset": "draw at (cellX - 8, cellY - 8) relative to the 48x48 body cell top-left; ring centre = body centre",
+  "layer": "over the body; centre is alpha so the body shows through",
+  "loop": true,
+  "pool": [
+   {
+    "index": 1,
+    "id": "shield_fx_01",
+    "slug": "rune_ring",
+    "file": "shields/shield_fx_01_rune_ring.png",
+    "frames": 4,
+    "ms": 150,
+    "loop": true
+   },
+   {
+    "index": 2,
+    "id": "shield_fx_02",
+    "slug": "hex_barrier",
+    "file": "shields/shield_fx_02_hex_barrier.png",
+    "frames": 4,
+    "ms": 140,
+    "loop": true
+   },
+   {
+    "index": 3,
+    "id": "shield_fx_03",
+    "slug": "ice_shell",
+    "file": "shields/shield_fx_03_ice_shell.png",
+    "frames": 4,
+    "ms": 170,
+    "loop": true
+   },
+   {
+    "index": 4,
+    "id": "shield_fx_04",
+    "slug": "flame_veil",
+    "file": "shields/shield_fx_04_flame_veil.png",
+    "frames": 4,
+    "ms": 120,
+    "loop": true
+   },
+   {
+    "index": 5,
+    "id": "shield_fx_05",
+    "slug": "bone_cage",
+    "file": "shields/shield_fx_05_bone_cage.png",
+    "frames": 4,
+    "ms": 180,
+    "loop": true
+   },
+   {
+    "index": 6,
+    "id": "shield_fx_06",
+    "slug": "shadow_orbit",
+    "file": "shields/shield_fx_06_shadow_orbit.png",
+    "frames": 4,
+    "ms": 140,
+    "loop": true
+   },
+   {
+    "index": 7,
+    "id": "shield_fx_07",
+    "slug": "holy_halo",
+    "file": "shields/shield_fx_07_holy_halo.png",
+    "frames": 4,
+    "ms": 160,
+    "loop": true
+   },
+   {
+    "index": 8,
+    "id": "shield_fx_08",
+    "slug": "poison_bubble",
+    "file": "shields/shield_fx_08_poison_bubble.png",
+    "frames": 4,
+    "ms": 170,
+    "loop": true
+   },
+   {
+    "index": 9,
+    "id": "shield_fx_09",
+    "slug": "arcane_sigil",
+    "file": "shields/shield_fx_09_arcane_sigil.png",
+    "frames": 4,
+    "ms": 150,
+    "loop": true
+   },
+   {
+    "index": 10,
+    "id": "shield_fx_10",
+    "slug": "storm_arc",
+    "file": "shields/shield_fx_10_storm_arc.png",
+    "frames": 4,
+    "ms": 120,
+    "loop": true
+   },
+   {
+    "index": 11,
+    "id": "shield_fx_11",
+    "slug": "blood_thorns",
+    "file": "shields/shield_fx_11_blood_thorns.png",
+    "frames": 4,
+    "ms": 160,
+    "loop": true
+   },
+   {
+    "index": 12,
+    "id": "shield_fx_12",
+    "slug": "spectral_chains",
+    "file": "shields/shield_fx_12_spectral_chains.png",
+    "frames": 4,
+    "ms": 150,
+    "loop": true
+   },
+   {
+    "index": 13,
+    "id": "shield_fx_13",
+    "slug": "stone_aegis",
+    "file": "shields/shield_fx_13_stone_aegis.png",
+    "frames": 4,
+    "ms": 170,
+    "loop": true
+   },
+   {
+    "index": 14,
+    "id": "shield_fx_14",
+    "slug": "frost_crystals",
+    "file": "shields/shield_fx_14_frost_crystals.png",
+    "frames": 4,
+    "ms": 150,
+    "loop": true
+   },
+   {
+    "index": 15,
+    "id": "shield_fx_15",
+    "slug": "void_rift",
+    "file": "shields/shield_fx_15_void_rift.png",
+    "frames": 4,
+    "ms": 130,
+    "loop": true
+   },
+   {
+    "index": 16,
+    "id": "shield_fx_16",
+    "slug": "ember_motes",
+    "file": "shields/shield_fx_16_ember_motes.png",
+    "frames": 4,
+    "ms": 130,
+    "loop": true
+   },
+   {
+    "index": 17,
+    "id": "shield_fx_17",
+    "slug": "web_shroud",
+    "file": "shields/shield_fx_17_web_shroud.png",
+    "frames": 4,
+    "ms": 180,
+    "loop": true
+   },
+   {
+    "index": 18,
+    "id": "shield_fx_18",
+    "slug": "soul_wisps",
+    "file": "shields/shield_fx_18_soul_wisps.png",
+    "frames": 4,
+    "ms": 140,
+    "loop": true
+   },
+   {
+    "index": 19,
+    "id": "shield_fx_19",
+    "slug": "iron_bulwark",
+    "file": "shields/shield_fx_19_iron_bulwark.png",
+    "frames": 4,
+    "ms": 180,
+    "loop": true
+   },
+   {
+    "index": 20,
+    "id": "shield_fx_20",
+    "slug": "eclipse_crescent",
+    "file": "shields/shield_fx_20_eclipse_crescent.png",
+    "frames": 4,
+    "ms": 150,
+    "loop": true
+   }
+  ]
+ }
+}

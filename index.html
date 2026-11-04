@@ -13,11 +13,12 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <title>Lichlight</title>
 <style>
+@font-face{font-family:"Pixelify Sans";src:url("assets/fonts/PixelifySans-Variable.ttf") format("truetype");font-weight:400 700;font-style:normal;font-display:block}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;color:#ddd;
   position:fixed;inset:0;touch-action:none;overscroll-behavior:none;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  font-family:"Courier New",monospace}
+  font-family:"Pixelify Sans",sans-serif;font-weight:600}
 #game{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   image-rendering:crisp-edges;image-rendering:pixelated;display:block;background:#000}
 .hidden{display:none!important}
@@ -49,21 +50,21 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .slot.new{box-shadow:0 0 0 2px #40f0d0,0 0 10px 3px rgba(64,240,208,.55);animation:newglow 1.2s infinite ease-in-out}
 .slot.r3.new{box-shadow:inset 0 0 8px #c88a2a,0 0 0 2px #40f0d0,0 0 10px 3px rgba(64,240,208,.55)}
 .slot.unmet::after{content:'';position:absolute;inset:0;background:rgba(210,20,20,.32);box-shadow:inset 0 0 0 2px rgba(255,60,60,.55);pointer-events:none}
-.slot .rtag{position:absolute;bottom:-3px;left:-3px;padding:0 2px;font:bold 9px/11px "Courier New",monospace;color:#fff;background:#b02020;border-radius:3px;pointer-events:none;z-index:1}
+.slot .rtag{position:absolute;bottom:-3px;left:-3px;padding:0 2px;font:bold 9px/11px "Pixelify Sans",sans-serif;color:#fff;background:#b02020;border-radius:3px;pointer-events:none;z-index:1}
 #dbtns button.dis{background:#2a1414;border-color:#703030;color:#e08080}
 .slot.critdur::before{content:'';position:absolute;inset:0;background:rgba(240,30,30,.42);box-shadow:inset 0 0 0 2px #ff3030;pointer-events:none}
 .slot.lowdur::before{content:'';position:absolute;inset:0;background:rgba(240,200,40,.2);pointer-events:none}
 .slot.repairable{box-shadow:0 0 0 2px #ff9a30,0 0 10px 3px rgba(255,150,40,.6)!important;cursor:pointer}
 .slot.dimmed{opacity:.3}
 #rpBtn{flex:0 0 auto;display:flex;align-items:center;gap:4px;padding:0 8px;background:#3a2410;border-color:#d07a20}#rpBtn img{width:22px;height:18px;image-rendering:pixelated}#rpBtn.on{background:#7a4010;box-shadow:0 0 8px #ff9a30}
-.slot .btag{position:absolute;bottom:-3px;right:-3px;padding:0 2px;font:bold 8px/11px "Courier New",monospace;color:#fff;background:#d02020;border-radius:3px;pointer-events:none;z-index:1}
+.slot .btag{position:absolute;bottom:-3px;right:-3px;padding:0 2px;font:bold 8px/11px "Pixelify Sans",sans-serif;color:#fff;background:#d02020;border-radius:3px;pointer-events:none;z-index:1}
 .cwarn{color:#f0c040}
-.slot .ntag{position:absolute;top:-3px;right:-3px;z-index:1;padding:0 3px;font:bold 9px/12px "Courier New",monospace;color:#062a24;background:#40f0d0;border-radius:3px;pointer-events:none;animation:newtag 1.2s infinite ease-in-out}
+.slot .ntag{position:absolute;top:-3px;right:-3px;z-index:1;padding:0 3px;font:bold 9px/12px "Pixelify Sans",sans-serif;color:#062a24;background:#40f0d0;border-radius:3px;pointer-events:none;animation:newtag 1.2s infinite ease-in-out}
 @keyframes newglow{50%{box-shadow:0 0 0 2px #a0fff0,0 0 14px 5px rgba(64,240,208,.75)}}
 @keyframes newtag{50%{transform:scale(1.18)}}
-.nbadge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:#40f0d0;color:#062a24;font:bold 11px/18px "Courier New",monospace;text-align:center;pointer-events:none;animation:newtag 1.2s infinite ease-in-out}
+.nbadge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:#40f0d0;color:#062a24;font:bold 11px/18px "Pixelify Sans",sans-serif;text-align:center;pointer-events:none;animation:newtag 1.2s infinite ease-in-out}
 .nbadge.hidden{display:none}
-.sortb{margin-top:8px;min-height:40px;font:bold 14px "Courier New",monospace;color:#fff;background:#2a3a1a;border:2px solid #70a030;border-radius:4px;touch-action:none}
+.sortb{margin-top:8px;min-height:40px;font:bold 14px "Pixelify Sans",sans-serif;color:#fff;background:#2a3a1a;border:2px solid #70a030;border-radius:4px;touch-action:none}
 .aopts{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:center;margin-top:6px;color:#bbb;font-size:12px}
 .aopts label{display:flex;align-items:center;gap:6px}
 .aopts input[type=range]{width:110px;touch-action:none;accent-color:#c08030}
@@ -79,7 +80,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #dead .died{font-size:clamp(34px,8vw,78px);color:#e01010;letter-spacing:1px;line-height:.95;text-shadow:4px 4px 0 #400,0 0 18px #800}
 #dRez:disabled{opacity:.38;pointer-events:none;filter:grayscale(.4)}
 .subt{color:#aaa;font-size:clamp(11px,2.6vh,16px);margin-bottom:18px;text-align:center}
-.mbtn{min-width:200px;padding:12px 18px;margin:6px;font:bold 18px "Courier New",monospace;color:#fff;background:#402020;border:3px solid #a06030;border-radius:4px;touch-action:none}
+.mbtn{min-width:200px;padding:12px 18px;margin:6px;font:bold 18px "Pixelify Sans",sans-serif;color:#fff;background:#402020;border:3px solid #a06030;border-radius:4px;touch-action:none}
 .mbtn:active{background:#603030}
 .help{color:#888;font-size:12px;margin-top:12px;text-align:center;line-height:1.5;max-width:90vw}
 #rotate{z-index:40;background:#000;text-align:center}
@@ -101,7 +102,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #dtext{flex:1;font-size:12px;line-height:1.4;overflow-y:auto;touch-action:pan-y}
 #dtext .nm{font-weight:bold;font-size:14px}
 #dbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-#dbtns button{flex:1;min-height:40px;font:bold 14px "Courier New",monospace;color:#fff;background:#3a2a1a;border:2px solid #a07030;border-radius:4px;touch-action:none}
+#dbtns button{flex:1;min-height:40px;font:bold 14px "Pixelify Sans",sans-serif;color:#fff;background:#3a2a1a;border:2px solid #a07030;border-radius:4px;touch-action:none}
 #dbtns button.close{background:#402020;border-color:#a04040}
 @media (orientation:portrait){#inv{flex-direction:column;--slot:min(15vw,9vh);gap:6px;overflow:hidden}#detail{width:auto;flex:1;min-height:0}#equip{grid-template-columns:repeat(4,var(--slot))}#stats{white-space:normal}}
 .lore{color:#d8b060;font-style:italic;font-size:11.5px;line-height:1.35;margin-top:6px;padding-left:6px;border-left:2px solid #6a5020;white-space:normal;overflow-wrap:break-word;opacity:.92}
@@ -109,13 +110,13 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   max-width:92vw;padding:8px 8px 8px 12px;background:#1c1424;border:2px solid #a06030;border-radius:6px;color:#ddd;font-size:12px;line-height:1.35}
 #updModal{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);touch-action:none}
 #updModal.hidden{display:none}
-.updBox{background:#1a1014;border:3px solid #c9a050;border-radius:6px;padding:14px 22px;max-width:min(92vw,460px);text-align:center;box-shadow:0 0 24px rgba(0,0,0,.8);font-family:"Courier New",monospace;color:#ddd}
+.updBox{background:#1a1014;border:3px solid #c9a050;border-radius:6px;padding:14px 22px;max-width:min(92vw,460px);text-align:center;box-shadow:0 0 24px rgba(0,0,0,.8);font-family:"Pixelify Sans",sans-serif;color:#ddd}
 .updBox h2{margin:0 0 6px;color:#e0b040;font-size:20px;letter-spacing:2px}.updBox p{margin:4px 0;font-size:14px;line-height:1.4}.updBox .updSub{color:#888;font-size:12px}
 .updBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}#updGo{background:#2a4a1a;border-color:#80c040}
-.verbar{position:absolute;right:calc(8px + env(safe-area-inset-right));top:calc(2px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;font:bold 11px "Courier New",monospace;color:#8a7a6a;z-index:2}
+.verbar{position:absolute;right:calc(8px + env(safe-area-inset-right));top:calc(2px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;font:bold 11px "Pixelify Sans",sans-serif;color:#8a7a6a;z-index:2}
 .verbar a{color:#c9a050;text-decoration:underline;padding:11px 8px;touch-action:manipulation}.verbar a:focus-visible{outline:2px solid #c9a050}
 .a2hs b{color:#e0b040}.a2hs .shr{color:#60a0ff}
-.a2hs button{flex:none;width:34px;height:34px;font:bold 20px "Courier New",monospace;color:#fff;background:#402020;border:2px solid #a04040;border-radius:4px;touch-action:none}
+.a2hs button{flex:none;width:34px;height:34px;font:bold 20px "Pixelify Sans",sans-serif;color:#fff;background:#402020;border:2px solid #a04040;border-radius:4px;touch-action:none}
 @media (max-height:460px){.a2hs{position:static;transform:none;margin-top:8px}}
 #gtip{position:fixed;z-index:30;pointer-events:none;max-width:min(300px,70vw);background:rgba(16,10,20,.96);border:2px solid #6a5030;border-radius:4px;padding:6px 8px;font-size:12px;line-height:1.4;color:#ddd}
 #gtip .nm{font-weight:bold;font-size:14px}#gtip.hidden{display:none}
@@ -127,10 +128,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .sortb{background:linear-gradient(#3a3a3c,#262628);border-color:#7a7a80;color:#ecdfc4}
 #inv{background:radial-gradient(ellipse at center,rgba(26,20,22,.96),rgba(6,4,6,.97))}
 #inv h3,.v4box h3{color:#d8c49a;text-shadow:0 1px 0 #000}
-.v4box{background:linear-gradient(#211a16,#15100e);border:3px solid #8a7050;outline:2px solid #2a1e14;border-radius:4px;padding:12px 18px;max-width:min(94vw,640px);max-height:92vh;overflow:auto;color:#e0d4bc;font-family:"Courier New",monospace;box-shadow:0 0 30px rgba(0,0,0,.9),inset 0 0 18px rgba(0,0,0,.6);text-align:center}
+.v4box{background:linear-gradient(#211a16,#15100e);border:3px solid #8a7050;outline:2px solid #2a1e14;border-radius:4px;padding:12px 18px;max-width:min(94vw,640px);max-height:92vh;overflow:auto;color:#e0d4bc;font-family:"Pixelify Sans",sans-serif;box-shadow:0 0 30px rgba(0,0,0,.9),inset 0 0 18px rgba(0,0,0,.6);text-align:center}
 .v4box h2{margin:0 0 4px;color:#e8d4a0;letter-spacing:2px;font-size:18px;text-shadow:2px 2px 0 #3a0808}
 .v4sub{color:#a89880;font-size:12px;margin:4px 0;line-height:1.35;min-height:1em}
-.shb{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:36px;margin:3px 0;padding:4px 10px;font:bold 13px "Courier New",monospace;color:#ecdfc4;background:linear-gradient(#3a3230,#262020);border:2px solid #6a5a48;border-radius:3px;touch-action:none;cursor:pointer}
+.shb{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:36px;margin:3px 0;padding:4px 10px;font:bold 13px "Pixelify Sans",sans-serif;color:#ecdfc4;background:linear-gradient(#3a3230,#262020);border:2px solid #6a5a48;border-radius:3px;touch-action:none;cursor:pointer}
 .shb i{color:#a89880;font-style:normal;font-weight:normal;font-size:11px}.shb b{color:#e8c840}.shb.dis{opacity:.45;pointer-events:none}.shb.on{border-color:#c0d880;background:linear-gradient(#3a4a28,#26301a)}
 .shcols{display:flex;gap:14px;text-align:left;margin:6px 0}.shcol{flex:1;min-width:0}
 #shGrid{display:grid;grid-template-columns:repeat(5,var(--slot));gap:3px;--slot:min(9vh,42px);max-height:38vh;overflow-y:auto;touch-action:pan-y}
@@ -140,13 +141,13 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .tk-portrait{position:absolute;top:-28px;right:18px;width:108px;height:108px;background:#140e0c;border:4px solid #e0c080;box-shadow:0 0 0 2px #6a4a20;z-index:2}
 .tk-portrait.crown:before{content:'';position:absolute;top:-12px;left:22px;width:56px;height:14px;background:#e0c080;clip-path:polygon(0 100%, 10% 20%, 25% 100%, 40% 15%, 50% 100%, 65% 15%, 80% 100%, 92% 20%, 100% 100%)}
 #tkPort{width:100px;height:100px;image-rendering:pixelated;background:#140e0c;display:block}
-.tk-name{display:inline-block;margin:0 0 2px;padding:3px 10px 2px;background:#6a1810;color:#f4ecd4;font:bold 18px/1.1 "Courier New",monospace;letter-spacing:1px}
-#tkTitle{margin:0 0 8px 2px;color:#9a9088;font:bold 11px/1.2 "Courier New",monospace;letter-spacing:1px}
-.tk-bubble{position:relative;margin:8px 120px 12px 0;padding:10px 12px 12px;background:#f3e6c8;color:#3a2a18;border:3px solid #c4a574;font:14px/1.45 "Courier New",monospace;min-height:52px}
+.tk-name{display:inline-block;margin:0 0 2px;padding:3px 10px 2px;background:#6a1810;color:#f4ecd4;font:bold 18px/1.1 "Pixelify Sans",sans-serif;letter-spacing:1px}
+#tkTitle{margin:0 0 8px 2px;color:#9a9088;font:bold 11px/1.2 "Pixelify Sans",sans-serif;letter-spacing:1px}
+.tk-bubble{position:relative;margin:8px 120px 12px 0;padding:10px 12px 12px;background:#f3e6c8;color:#3a2a18;border:3px solid #c4a574;font:14px/1.45 "Pixelify Sans",sans-serif;min-height:52px}
 .tk-bubble:after{content:'';position:absolute;top:16px;right:-14px;border:8px solid transparent;border-left-color:#f3e6c8}
 #tkLine{margin:0;color:#3a2a18;font-style:normal}
 #tkReplies{display:flex;flex-direction:column;gap:6px;margin:0 8px 10px}
-#tkReplies .shb{display:block;width:100%;text-align:left;padding:8px 10px;background:#4a2c24;color:#f4ecd4;border:2px solid #c4a574;font:14px/1.3 "Courier New",monospace}
+#tkReplies .shb{display:block;width:100%;text-align:left;padding:8px 10px;background:#4a2c24;color:#f4ecd4;border:2px solid #c4a574;font:14px/1.3 "Pixelify Sans",sans-serif}
 #tkBegin{display:block;margin:8px auto 2px;min-width:240px;background:#5a3018;border-color:#e0c080;letter-spacing:1px}
 .tk-hint{text-align:center;color:#8a8078;font-size:11px;margin-top:2px}
 #talk .v4sub,#skills .v4sub{text-align:center}
@@ -159,9 +160,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tlEdit{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:30;text-align:center;pointer-events:auto;background:rgba(10,8,12,.85);border:1px solid #6a5a40;padding:6px 10px;border-radius:8px}
 #tlEdit.hidden{display:none}#tlEdit .tlhint{color:#e8dcc0;font-size:11px;margin-bottom:4px}#tlEdit .tlbtns{display:flex;gap:6px}
 .mrow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 8px}@media (max-height:460px){.plbl{display:none}.profrow{font-size:11px;gap:5px}.profrow canvas{width:20px;height:20px}}
-.profrow{display:flex;align-items:center;gap:8px;margin:2px 4px;font:bold 13px "Courier New",monospace;color:#d8c8a8}.profrow canvas,.prow canvas,#profPrev{image-rendering:pixelated;background:#120c0a;border:1px solid #5a4632}.profrow.hidden{display:none}
+.profrow{display:flex;align-items:center;gap:8px;margin:2px 4px;font:bold 13px "Pixelify Sans",sans-serif;color:#d8c8a8}.profrow canvas,.prow canvas,#profPrev{image-rendering:pixelated;background:#120c0a;border:1px solid #5a4632}.profrow.hidden{display:none}
 .profbox{min-width:min(92vw,420px)}.profbox h2{display:flex;justify-content:space-between;align-items:center}.prow{display:flex;align-items:center;gap:8px;padding:4px;border:1px solid #3a2c20;margin:3px 0}.prow.on{border-color:#c8a040;background:rgba(200,160,64,.08)}.pnm{flex:1;font-weight:bold;min-width:6em}.pnm small{font-weight:normal;color:#a89878;white-space:nowrap}.prow .shb,#profX{width:auto;flex:0 0 auto;min-width:0;padding:4px 10px;margin:0}
-.pform{display:flex;gap:12px;align-items:flex-start;margin-top:6px}#profPrev{width:78px;height:78px}#profNameIn{font:bold 16px "Courier New",monospace;background:#120c0a;color:#ecdfc4;border:2px solid #8a6a48;padding:4px 6px;width:12em;text-transform:uppercase}.pswr{display:flex;align-items:center;gap:4px;margin:5px 0}.pswr span{width:52px;font-size:12px}.psw{width:24px;height:24px;border:2px solid #000;border-radius:3px;padding:0}.psw.on{border-color:#ffe080;box-shadow:0 0 0 1px #000}.pbtns{display:flex;gap:6px;margin-top:6px}
+.pform{display:flex;gap:12px;align-items:flex-start;margin-top:6px}#profPrev{width:78px;height:78px}#profNameIn{font:bold 16px "Pixelify Sans",sans-serif;background:#120c0a;color:#ecdfc4;border:2px solid #8a6a48;padding:4px 6px;width:12em;text-transform:uppercase}.pswr{display:flex;align-items:center;gap:4px;margin:5px 0}.pswr span{width:52px;font-size:12px}.psw{width:24px;height:24px;border:2px solid #000;border-radius:3px;padding:0}.psw.on{border-color:#ffe080;box-shadow:0 0 0 1px #000}.pbtns{display:flex;gap:6px;margin-top:6px}
 .overlay.hidden,#shop.hidden,#rest.hidden,#talk.hidden,#skills.hidden{display:none}
 #skills{z-index:25}
 /* v0.4.2: bigger, more readable inventory text */
@@ -188,7 +189,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (max-width:420px){#menu .mbtn{font-size:16px;padding:10px 12px}#menu .aopts{gap:5px 8px}}
 #safeProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .btn .ico .skimg{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;pointer-events:none}
-#glHud{position:absolute;z-index:8;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:28px;height:28px;padding:0;border-radius:6px;border:1px solid rgba(224,176,64,.7);background:rgba(12,8,10,.4);color:#ffe7a8;font:bold 15px/26px "Courier New",monospace;text-shadow:0 1px 2px #000;touch-action:manipulation}
+#glHud{position:absolute;z-index:8;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:28px;height:28px;padding:0;border-radius:6px;border:1px solid rgba(224,176,64,.7);background:rgba(12,8,10,.4);color:#ffe7a8;font:bold 15px/26px "Pixelify Sans",sans-serif;text-shadow:0 1px 2px #000;touch-action:manipulation}
 #glHud.hidden{display:none}
 #glDev.overlay{z-index:35;overflow:hidden;align-items:stretch;justify-content:flex-start;background:transparent !important;background-color:transparent !important;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;padding:0}
 #glDev .gldevbox{position:absolute;display:flex;flex-direction:column;width:440px;height:520px;min-width:280px;min-height:220px;max-height:none;overflow:hidden;text-align:left;padding:0;background:rgba(28,20,24,.42);border-color:rgba(210,176,120,.5);outline:none;box-shadow:none}
@@ -200,7 +201,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #glDev .gldevx{width:auto;min-width:0;padding:4px 10px;margin:0}
 #glDev .gldevnote,#glDev .gldevsec{margin:8px 0 4px;color:#fff1d4;font-size:11px;text-shadow:0 1px 2px #000}
 #glDev .gldevsec{letter-spacing:1px;font-weight:bold;color:#e0b040}
-#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:4px 0;font:12px/1.3 "Courier New",monospace;color:#fff6e8}
+#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:4px 0;font:12px/1.3 "Pixelify Sans",sans-serif;color:#fff6e8}
 #glDev .gldevrow span{flex:0 0 108px;text-shadow:0 1px 2px #000}
 #glDev .gldevrow input[type=range]{flex:1;min-width:0;accent-color:#e0b040;touch-action:pan-x}
 #glDev .gldevrow input[type=color]{flex:0 0 46px;width:46px;height:28px;padding:0;border:1px solid rgba(255,220,160,.55);background:transparent}
@@ -309,7 +310,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .foot-for{display:none}
 #satchel[data-tab="inventory"] .foot-inventory,#satchel[data-tab="character"] .foot-character,#satchel[data-tab="consumables"] .foot-consumables,#satchel[data-tab="notes"] .foot-notes{display:flex}
 #satchel .sat-btn,#satchel #gkN{margin:0;min-height:0;height:20px;padding:0;border:0;border-radius:0;box-shadow:none;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated;color:transparent;font-size:0;line-height:20px;cursor:pointer;flex:0 0 auto;text-shadow:none;filter:none}
-#satchel .sat-btn.text,#satchel .sat-btn.text:hover,#satchel .sat-btn.text:active,#satchel #gkN,#satchel #rpBtn,#satchel #ratBtn,#satchel #fragBtn{color:#e8dcc0;font:bold 5px/12px "Courier New",monospace;border-style:solid;border-width:4px;box-sizing:border-box;background-image:none;padding:0 3px;white-space:nowrap;width:auto;min-width:52px;display:inline-flex;align-items:center;justify-content:center;gap:2px}
+#satchel .sat-btn.text,#satchel .sat-btn.text:hover,#satchel .sat-btn.text:active,#satchel #gkN,#satchel #rpBtn,#satchel #ratBtn,#satchel #fragBtn{color:#e8dcc0;font:bold 5px/12px "Pixelify Sans",sans-serif;border-style:solid;border-width:4px;box-sizing:border-box;background-image:none;padding:0 3px;white-space:nowrap;width:auto;min-width:52px;display:inline-flex;align-items:center;justify-content:center;gap:2px}
 #satchel .sat-btn.text.stone,#satchel #gkN,#satchel #rpBtn,#satchel #ratBtn,#satchel #fragBtn{border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
 #satchel .sat-btn.text.danger{border-image:url(assets/ui/v07101/satchel/buttons/btn20_danger_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
 #satchel .sat-btn.text.brass,#satchel #rpBtn.on{border-image:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
@@ -368,30 +369,30 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel .slot.sel,#satchel .slot.sel:hover{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png);outline:none}
 #satchel .slot .rtag,#satchel .slot .btag{display:none}
 #satchel #consPane{position:absolute;left:0;top:0;right:0;height:63px;min-width:0;overflow:hidden;display:grid;grid-template-columns:repeat(var(--ccols,5),60px);grid-auto-rows:28px;gap:7px;align-content:start}
-.cons-chip{width:60px;height:28px;box-sizing:border-box;margin:0;padding:0 4px 0 6px;display:flex;align-items:center;gap:4px;border:0;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background:url(assets/ui/v07101/satchel/content/cons_chip_idle_60x28.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.cons-chip{width:60px;height:28px;box-sizing:border-box;margin:0;padding:0 4px 0 6px;display:flex;align-items:center;gap:4px;border:0;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Pixelify Sans",sans-serif;background:url(assets/ui/v07101/satchel/content/cons_chip_idle_60x28.png) center/100% 100% no-repeat;image-rendering:pixelated}
 .cons-chip.sel{background-image:url(assets/ui/v07101/satchel/content/cons_chip_sel_60x28.png)}
 .cons-chip:hover{background-image:url(assets/ui/v07101/satchel/content/cons_chip_hover_60x28.png)}
 .cons-chip img{width:16px;height:16px;image-rendering:pixelated;pointer-events:none}
 #consDetail{position:absolute;left:0;right:0;top:72px;height:28px;overflow:hidden;box-sizing:border-box;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inset_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
 #satchel #notesPane{position:absolute;left:0;right:0;top:0;height:102px;min-width:0;overflow:auto;box-sizing:border-box;padding:0;color:#4a2a18;font-size:0;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/content/notes_parchment_9slice_18_s6.png) 6 fill / 6px / 0 stretch}
-#satchel #tomePane{position:absolute;inset:0;overflow:hidden;color:#ff80ff;font:5px/8px "Courier New",monospace;min-width:0}
+#satchel #tomePane{position:absolute;inset:0;overflow:hidden;color:#ff80ff;font:5px/8px "Pixelify Sans",sans-serif;min-width:0}
 .tome-empty{position:absolute;left:0;right:0;top:0;height:108px;background:url(assets/ui/v07101/satchel/tome_tabs/tome_empty_state_394x108.png) center/100% 100% no-repeat;image-rendering:pixelated}
-.tome-empty b{position:absolute;left:8px;right:8px;top:58px;text-align:center;color:#4a2a18;font:bold 6px/8px "Courier New",monospace}
+.tome-empty b{position:absolute;left:8px;right:8px;top:58px;text-align:center;color:#4a2a18;font:bold 6px/8px "Pixelify Sans",sans-serif}
 .tome-sub{position:absolute;left:4px;top:0;height:16px;display:flex;gap:1px;z-index:2}
 .tome-tab{position:relative;top:1px;height:11px;border:0;padding:0;margin:0;cursor:pointer;color:transparent;font-size:0;background:center/100% 100% no-repeat;image-rendering:pixelated}
 .tome-tab.on{top:0;height:16px;z-index:2}
-#tomeBody{position:absolute;left:0;right:0;top:12px;height:96px;box-sizing:border-box;overflow:auto;color:#e8dcc0;font:5px/8px "Courier New",monospace;padding:6px 8px;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_spells_9slice_18_s6.png) 6 fill / 6px / 0 stretch}
+#tomeBody{position:absolute;left:0;right:0;top:12px;height:96px;box-sizing:border-box;overflow:auto;color:#e8dcc0;font:5px/8px "Pixelify Sans",sans-serif;padding:6px 8px;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_spells_9slice_18_s6.png) 6 fill / 6px / 0 stretch}
 #tomeBody.recipes{border-image-source:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_recipes_9slice_18_s6.png)}
 #tomeBody.enchantments{border-image-source:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_enchantments_9slice_18_s6.png)}
 .tome-page{width:28px;height:28px;border:0;padding:0;margin:0 4px 0 0;background:url(assets/ui/v07101/satchel/content/tome_page_slot_idle_28.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
 .tome-page.on{background-image:url(assets/ui/v07101/satchel/content/tome_page_slot_sel_28.png)}
 .tome-page.lock{background-image:url(assets/ui/v07101/satchel/content/tome_page_slot_locked_28.png);cursor:default}
 .tome-page img{width:16px;height:16px;image-rendering:pixelated;pointer-events:none}
-.tome-asg{height:16px;min-width:16px;margin:0 2px;border:0;padding:0 3px;color:#ff80ff;font:bold 5px/16px "Courier New",monospace;background:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
+.tome-asg{height:16px;min-width:16px;margin:0 2px;border:0;padding:0 3px;color:#ff80ff;font:bold 5px/16px "Pixelify Sans",sans-serif;background:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
 #satchel .sat-pane[data-pane="map"]{height:102px;box-sizing:border-box;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/content/map_viewport_9slice_18_s6.png) 6 fill / 6px / 0 stretch;background:#120c10}
 #satMap{width:100%;height:100%;display:block;image-rendering:pixelated;background:#120c10}
 #satchel #detail,#satchel #notesBtn,#satchel #dtext,#satchel #dbtns,#satchel #gold{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
-#deskHud{position:absolute;z-index:7;pointer-events:auto;display:flex;align-items:flex-end;justify-content:space-between;image-rendering:pixelated;font:bold 11px "Courier New",monospace;color:#e8dcc0}
+#deskHud{position:absolute;z-index:7;pointer-events:auto;display:flex;align-items:flex-end;justify-content:space-between;image-rendering:pixelated;font:bold 11px "Pixelify Sans",sans-serif;color:#e8dcc0}
 #deskHud.hidden{display:none!important}
 .dh-globe{position:relative;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
 .dh-globe .fill{position:absolute;left:18%;right:18%;bottom:14%;background:#8a1820;border-radius:40%;overflow:hidden}
@@ -430,7 +431,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel #stats{overflow:hidden!important}
 #charHero{width:52px!important;height:60px!important;z-index:3;left:2px;top:2px}
 #satchel .slot{overflow:visible}
-#satchel .slot .ntag,#shop .slot .ntag{display:block;position:absolute;top:1px;right:1px;z-index:5;margin:0;padding:0 1px;font:bold 5px/6px "Courier New",monospace;letter-spacing:0;color:#062a24;background:#40f0d0;border-radius:0;pointer-events:none;animation:none;box-shadow:none}
+#satchel .slot .ntag,#shop .slot .ntag{display:block;position:absolute;top:1px;right:1px;z-index:5;margin:0;padding:0 1px;font:bold 5px/6px "Pixelify Sans",sans-serif;letter-spacing:0;color:#062a24;background:#40f0d0;border-radius:0;pointer-events:none;animation:none;box-shadow:none}
 #holdStats{width:auto;max-width:min(520px,92vw);max-height:min(78vh,640px);background:#221A15}
 #holdStats canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #shop.overlay:not(.hidden){transform:none!important;width:100%!important;height:100%!important;left:0!important;top:0!important;right:0!important;bottom:0!important;display:flex;align-items:center;justify-content:center}
@@ -439,11 +440,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #shop .sh-head canvas,#shNoteCv,#shBuyCv,#shUniCv,#shRepairCv{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #shNoteCv{margin:4px 0 8px}
 #shTabs{display:flex;gap:8px;justify-content:center;margin:4px 0 8px}
-#shTabs .shb{background:#241812;color:#c8b8a0;border:2px solid #4a3424;padding:6px 10px;min-height:28px;font:bold 12px/16px "Courier New",monospace;image-rendering:pixelated}
+#shTabs .shb{background:#241812;color:#c8b8a0;border:2px solid #4a3424;padding:6px 10px;min-height:28px;font:bold 12px/16px "Pixelify Sans",sans-serif;image-rendering:pixelated}
 #shTabs .shb.on{outline:2px solid #E5B064;outline-offset:0;border-color:#E5B064;color:#f4ecd4;background:#3a2a22}
 #shStock{display:flex;gap:16px;align-items:stretch}
 #shStock .shcol{flex:1 1 0;min-width:0}
-#shStock .shcol h3{margin:0 0 4px;color:#e8dcc0;font:bold 12px "Courier New",monospace;letter-spacing:1px}
+#shStock .shcol h3{margin:0 0 4px;color:#e8dcc0;font:bold 12px "Pixelify Sans",sans-serif;letter-spacing:1px}
 #shStock.hidden,.sh-single.hidden{display:none!important}
 .sh-single{min-height:180px;background:#f3e6c8;border:3px solid #c4a574;padding:8px}
 #shSellClip,#shBuyClip{position:relative;overflow:hidden;touch-action:none}
@@ -454,9 +455,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #shop .slot.sel{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png);outline:2px solid #E5B064;outline-offset:-2px}
 #shop .slot img{width:20px;height:20px;image-rendering:pixelated;image-rendering:crisp-edges}
 #shFoot{display:flex;gap:6px;justify-content:stretch;margin-top:8px}
-#shFoot>button{flex:1 1 0;min-width:0;margin:0;min-height:32px;background:#4a3018;color:#f4ecd4;border:2px solid #E5B064;font:bold 11px/14px "Courier New",monospace;image-rendering:pixelated}
+#shFoot>button{flex:1 1 0;min-width:0;margin:0;min-height:32px;background:#4a3018;color:#f4ecd4;border:2px solid #E5B064;font:bold 11px/14px "Pixelify Sans",sans-serif;image-rendering:pixelated}
 #shFoot>button.dis{opacity:.45}
-#shLeave{display:block;width:100%;margin:8px 0 0;min-height:34px;background:#7E1E1E;color:#f4ecd4;border:2px solid #e8a0a0;font:bold 13px/18px "Courier New",monospace}
+#shLeave{display:block;width:100%;margin:8px 0 0;min-height:34px;background:#7E1E1E;color:#f4ecd4;border:2px solid #e8a0a0;font:bold 13px/18px "Pixelify Sans",sans-serif}
 #tomeGridCv{display:block;image-rendering:pixelated;touch-action:none}
 #satchel #notesPane{overflow:hidden!important}
 #notesPane canvas.notes712{position:absolute;left:0;top:0}
@@ -481,16 +482,16 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #shopArt .sh-head{position:absolute;left:6px;right:6px;top:4px;height:12px;display:flex;justify-content:space-between;align-items:center;gap:4px}
 #shopArt #shNoteCv{position:absolute;left:6px;top:18px;width:292px;height:10px}
 #shopArt #shTabs{position:absolute;left:6px;right:6px;top:30px;height:16px;display:flex;gap:4px;margin:0;justify-content:stretch}
-#shopArt #shTabs button{flex:1 1 0;height:16px;margin:0;padding:0 2px;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background:none;border-style:solid;border-width:4px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch;image-rendering:pixelated}
+#shopArt #shTabs button{flex:1 1 0;height:16px;margin:0;padding:0 2px;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Pixelify Sans",sans-serif;background:none;border-style:solid;border-width:4px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch;image-rendering:pixelated}
 #shopArt #shTabs button.on{border-image:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch;color:#f4ecd4}
 #shopArt #shStage{position:absolute;left:6px;right:6px;top:48px;height:86px}
 #shopArt #shStock{position:absolute;inset:0;display:flex;gap:6px}
 #shopArt #shStock .shcol{flex:1 1 0;min-width:0;position:relative}
-#shopArt #shStock .shcol h3{position:absolute;left:0;top:0;margin:0;height:8px;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;letter-spacing:0}
+#shopArt #shStock .shcol h3{position:absolute;left:0;top:0;margin:0;height:8px;color:#e8dcc0;font:bold 5px/8px "Pixelify Sans",sans-serif;letter-spacing:0}
 #shopArt #shBuyClip,#shopArt #shSellClip{position:absolute;left:0;right:0;top:10px;height:76px;overflow:hidden;background:none;border-style:solid;border-width:4px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/content/inset_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
 #shopArt .sh-single{position:absolute;inset:0;min-height:0;background:none;border-style:solid;border-width:6px;box-sizing:border-box;border-image:url(assets/ui/v07101/satchel/content/notes_parchment_9slice_18_s6.png) 6 fill / 6px / 0 stretch;padding:0}
 #shopArt #shFoot{position:absolute;left:6px;right:6px;bottom:22px;height:16px;display:flex;gap:4px;margin:0;justify-content:stretch}
-#shop #shFoot>button,#shop #shLeave{flex:1 1 0;min-width:0;margin:0;height:16px;min-height:0;padding:0 3px;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background-color:transparent;background-image:none;box-shadow:none;text-shadow:none;border-style:solid;border-width:4px;box-sizing:border-box;image-rendering:pixelated;width:auto;display:flex;align-items:center;justify-content:center}
+#shop #shFoot>button,#shop #shLeave{flex:1 1 0;min-width:0;margin:0;height:16px;min-height:0;padding:0 3px;color:#e8dcc0;font:bold 5px/8px "Pixelify Sans",sans-serif;background-color:transparent;background-image:none;box-shadow:none;text-shadow:none;border-style:solid;border-width:4px;box-sizing:border-box;image-rendering:pixelated;width:auto;display:flex;align-items:center;justify-content:center}
 #shop #shFoot>button.stone,#shop #shFoot>button.sat-btn.text.stone{border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
 #shop #shFoot>button.brass,#shop #shFoot>button.sat-btn.text.brass{border-image:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
 #shop #shLeave{position:absolute;left:6px;right:6px;bottom:4px;width:auto;display:flex;align-items:center;justify-content:center;border-image:url(assets/ui/v07101/satchel/buttons/btn20_danger_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
@@ -580,6 +581,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small hidden" id="mRest">REST</button>
     <button class="mbtn small" id="mShake">SHAKE: FULL</button>
     <button class="mbtn small" id="mDim">UI DIM: OFF</button>
+    <button class="mbtn small" id="mHit">HIT TEXT: ON</button>
+    <button class="mbtn small" id="mEnemyHp">ENEMY HP: ON</button>
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
     <label>AMBIENCE <input type="range" id="volAmb" min="0" max="100" step="5"></label>
@@ -651,7 +654,19 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.16'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.17'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+(function waitPixelify717() {
+  const root = document.documentElement; root.style.visibility = 'hidden';
+  const show = () => { root.style.visibility = ''; };
+  try {
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load('700 16px "Pixelify Sans"').then(show, show);
+      setTimeout(show, 2000);
+      return;
+    }
+  } catch (e) {}
+  show();
+})();
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -712,21 +727,23 @@ R:[6,5,6,5,5],S:[3,4,2,1,6],T:[7,2,2,2,2],U:[5,5,5,5,7],V:[5,5,5,5,2],W:[5,5,7,7
 '0':[7,5,5,5,7],'1':[2,6,2,2,7],'2':[6,1,2,4,7],'3':[6,1,2,1,6],'4':[5,5,7,1,1],'5':[7,4,6,1,6],'6':[3,4,6,5,2],'7':[7,1,2,2,2],
 '8':[2,5,2,5,2],'9':[2,5,3,1,6],'+':[0,2,7,2,0],'-':[0,0,7,0,0],'/':[1,1,2,4,4],':':[0,2,0,2,0],'.':[0,0,0,0,2],'!':[2,2,2,0,2],
 '%':[5,1,2,4,5],' ':[0,0,0,0,0],"'":[2,2,0,0,0],',':[0,0,0,2,4],'?':[6,1,2,0,2],'(':[1,2,2,2,1],')':[4,2,2,2,4],'*':[0,5,2,5,0],'=':[0,7,0,7,0],'<':[1,2,4,2,1],'>':[4,2,1,2,4],'_':[0,0,0,0,7],'"':[5,5,0,0,0],'^':[2,5,0,0,0],';':[0,2,0,2,4],'~':[0,3,6,0,0],'#':[5,7,5,7,5],'[':[3,2,2,2,3],']':[6,2,2,2,6]};
-function textW(s) { return s.length * 4 - 1; }
+const UI_FONT = 'Pixelify Sans'; // v0.7.17 U1: one face for every player-facing string
+function uiFont(px, weight) { return (weight || 700) + ' ' + (px || 6) + 'px "' + UI_FONT + '", sans-serif'; }
+function textW(s) {
+  s = String(s);
+  ctx.save(); ctx.font = uiFont(6, 700); const w = ctx.measureText(s).width; ctx.restore();
+  return Math.max(0, Math.ceil(w));
+}
 function drawText(s, x, y, col = '#fff', shadow = true) {
-  s = String(s).toUpperCase(); x = Math.round(x); y = Math.round(y);
+  s = String(s); x = Math.round(x); y = Math.round(y);
   if (shadow) drawTextRaw(s, x + 1, y + 1, '#000');
   drawTextRaw(s, x, y, col);
 }
 function drawTextRaw(s, x, y, col) {
-  ctx.fillStyle = col;
-  for (let i = 0; i < s.length; i++) {
-    const g = FONT[s[i]] || FONT['?'];
-    for (let r = 0; r < 5; r++) { const bits = g[r];
-      if (bits & 4) ctx.fillRect(x + i * 4, y + r, 1, 1);
-      if (bits & 2) ctx.fillRect(x + i * 4 + 1, y + r, 1, 1);
-      if (bits & 1) ctx.fillRect(x + i * 4 + 2, y + r, 1, 1); }
-  }
+  ctx.save();
+  ctx.font = uiFont(6, 700); ctx.textBaseline = 'top'; ctx.fillStyle = col;
+  ctx.fillText(s, Math.round(x), Math.round(y));
+  ctx.restore();
 }
 function drawTextC(s, x, y, col, sh) { drawText(s, x - textW(String(s)) / 2, y, col, sh); }
 
@@ -818,8 +835,9 @@ for (let f = 0; f < 3; f++) tileImgs.torch.push(makeSprite([
   f === 0 ? "..F.." : f === 1 ? ".F..." : "...F.", f === 0 ? ".FfF." : ".fFf.", ".ffr.", "..r..", ".kwk.", "..w..", "..w.."]));
 
 // ---------- audio: settings, buses, sfx ----------
-const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, ambVol: 65, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off', mapOp: 100 },
+const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, ambVol: 65, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off', mapOp: 100, hitText: true, enemyHp: true },
   (() => { try { return JSON.parse(localStorage.getItem('cryptdelve-settings')) || {}; } catch (e) { return {}; } })());
+let seAmbHold717 = false; // v0.7.17 SE1: ambient bus held at 0 for the whole Super Elite encounter
 function saveSettings() { try { localStorage.setItem('cryptdelve-settings', JSON.stringify(settings)); } catch (e) {} }
 let actx = null, bus = null, noiseBuf = null, audioErr = null;
 let audioUnlocked = false;
@@ -871,13 +889,15 @@ function setupBus() {
   bus.dripIn.connect(amb); bus.dripIn.connect(delay);
   applyVolumes(true);
 }
+const MUS_BUS_MAX = 0.85; // v0.7.17 B5: hard music ceiling (was 0.55). Slider 0–100 still scales into this. Default musicVol stays 60.
 function applyVolumes(instant) {
   if (!bus) return;
   const t = actx.currentTime, tc = instant ? .001 : .15;
   bus.master.gain.setTargetAtTime(settings.sound ? 1 : 0, t, instant ? tc : .05);
-  bus.mus.gain.setTargetAtTime(settings.music ? settings.musicVol / 100 * .55 : 0, t, tc);
+  bus.mus.gain.setTargetAtTime(settings.music ? settings.musicVol / 100 * MUS_BUS_MAX : 0, t, tc);
   bus.sx.gain.setTargetAtTime(settings.sfxVol / 100, t, tc);
-  if (bus.ambG) bus.ambG.gain.setTargetAtTime((settings.ambVol != null ? settings.ambVol : 65) / 100 * SMP_AMB_GAIN, t, tc);
+  const ambLin = seAmbHold717 ? 0 : (settings.ambVol != null ? settings.ambVol : 65) / 100 * SMP_AMB_GAIN;
+  if (bus.ambG) bus.ambG.gain.setTargetAtTime(ambLin, t, tc);
 }
 const sfxLog = []; // last sounds requested (for tests / debugging)
 function sfxShatter() { // metallic crack + tinkling shards, a bit louder than hits
@@ -2739,13 +2759,16 @@ function spawnEnemy(type, x, y, elite, opt) {
   if (T.ai === 'crab') { e.mode = 'shell'; e.t = 2.6; }
   enemies.push(e); v073SpawnGuard(e); return e; /* v0.7.3 §9: never into a sinking-floor room */
 }
+const BOSS_HP_MUL = 1.75; // v0.7.17 B2: every boss max HP
+const BOSS_SHIELD_FRAC = 0.25; // v0.7.17 B1: shield sized from the post-B2 max HP
 function spawnBoss(x, y) {
   const bf = bossForDepth(depth); if (!bf) return null;
   const { B, cycle } = bf, d = depth, cm = Math.pow(1.5, cycle);
   const name = B.n + (cycle ? ' +' + cycle : '');
   const T = { boss: true, B, label: name, S: B.img, r: B.r, spd: B.spd, aggro: 150, an: 'boss' };
-  const hp = Math.round((240 + 60 * (d - 1)) * B.hp * cm);
-  const e = { id: ++entId, type: 'boss', T, B, x, y, r: B.r, hp, maxHp: hp, dmg: (8 + 2.2 * (d - 1)) * Math.pow(1.25, cycle) * dmgBump(d, true), spd: B.spd, elite: false, state: 'idle',
+  const hp = Math.round((240 + 60 * (d - 1)) * B.hp * cm * BOSS_HP_MUL);
+  const maxShield = Math.round(hp * BOSS_SHIELD_FRAC);
+  const e = { id: ++entId, type: 'boss', T, B, x, y, r: B.r, hp, maxHp: hp, shield: maxShield, maxShield, dmg: (8 + 2.2 * (d - 1)) * Math.pow(1.25, cycle) * dmgBump(d, true), spd: B.spd, elite: false, state: 'idle',
     wx: 0, wy: 0, wt: 0, atkCd: 1, flash: 0, slow: 0, kx: 0, ky: 0, face: 1, cd: 0, anim: 0, t: 0, mode: '', busy: 0, patCd: 1.2, phase: 1, enr: 1, z: 0,
     pool: B.p1.slice(), last: '', spiralT: 0, xp: Math.round((150 + 40 * d) * cm), name, cycle };
   enemies.push(e); return e;
@@ -2918,7 +2941,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
       if (e.mode === 'aim') { /* telegraph running */ }
       else if (e.mode === 'charge') { e.t -= dt; const bx = e.x, by = e.y; moveEnt(e, e.cx * 230 * dt, e.cy * 230 * dt);
         if (Math.random() < .6) parts.push({ x: e.x, y: e.y + 4, vx: rand(-10, 10), vy: -5, life: .3, col: '#a8a088' });
-        if (Math.hypot(e.x - bx, e.y - by) < 230 * dt * .5) { e.mode = 'stun'; e.t = 1.4; addTrauma(.15); burst(e.x, e.y, '#e8e0c8', 10, 60); addText(e.x, e.y - 14, 'STUNNED', '#ffe040'); }
+        if (Math.hypot(e.x - bx, e.y - by) < 230 * dt * .5) { e.mode = 'stun'; e.t = 1.4; addTrauma(.15); burst(e.x, e.y, '#e8e0c8', 10, 60); addFoeText(e.x, e.y - 14, 'STUNNED', '#ffe040'); }
         else if (e.t <= 0) e.mode = ''; }
       else if (e.mode === 'stun') { e.t -= dt; if (e.t <= 0) e.mode = ''; }
       else { if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt);
@@ -2963,7 +2986,7 @@ function bossAI(e, dt, d, ax, ay) {
   if (e.phase === 2 && B.p3 && e.hp < e.maxHp * .25) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
   if (e.busy > 0) { e.busy -= dt;
     if (e.mode === 'charge') { const bx = e.x, by = e.y; moveEnt(e, e.cx * 260 * dt, e.cy * 260 * dt); if (Math.random() < .7) parts.push({ x: e.x + rand(-6, 6), y: e.y + 8, vx: rand(-15, 15), vy: -8, life: .35, col: '#a8a088' });
-      if (Math.hypot(e.x - bx, e.y - by) < 260 * dt * .5) { e.mode = 'stun'; e.busy = 1; addTrauma(.3); burst(e.x, e.y, '#e8e0c8', 16, 80); addText(e.x, e.y - 20, 'STUNNED', '#ffe040'); } }
+      if (Math.hypot(e.x - bx, e.y - by) < 260 * dt * .5) { e.mode = 'stun'; e.busy = 1; addTrauma(.3); burst(e.x, e.y, '#e8e0c8', 16, 80); addFoeText(e.x, e.y - 20, 'STUNNED', '#ffe040'); } }
     if (e.mode === 'spiral') { e.spiralT -= dt; if (e.spiralT <= 0) { e.spiralT = .09; e.sa += .32; const n = P2 ? 3 : 2; for (let k = 0; k < n; k++) eShoot(e, e.sa + k / n * 6.28, 72, { kind: 'boss', mul: .6, life: 3.2 }); } }
     if (e.mode === 'hop') { e.z = Math.sin(clamp(1 - e.busy / e.hopDur, 0, 1) * Math.PI) * 22; }
     if (e.busy <= 0) { e.mode = ''; e.z = 0; e.hidden = false; }
@@ -3150,13 +3173,25 @@ function activeBoss() { for (const e of enemies) if (e.T.boss && e.state === 'ch
 function bossBarY() { return touchMode ? Math.ceil(46 * (window.devicePixelRatio || 1) / SCALE) : 6; }
 function drawBossBar(b, y0) {
   const w = Math.min(170, Math.round(VW * .5)), x = Math.round(VW / 2 - w / 2), y = (y0 === undefined ? bossBarY() : y0) + 7;
-  drawTextC(b.name, VW / 2, y - 7, b.phase >= 2 ? '#ff6040' : '#d8a040');
-  ctx.fillStyle = '#000'; ctx.fillRect(x - 2, y - 1, w + 4, 6);
-  ctx.fillStyle = '#3a0808'; ctx.fillRect(x, y, w, 4);
-  ctx.fillStyle = b.phase >= 2 ? '#ff4020' : '#c02028'; ctx.fillRect(x, y, Math.max(0, Math.round(w * b.hp / b.maxHp)), 4);
-  ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(x, y, Math.round(w * b.hp / b.maxHp), 1);
-  ctx.fillStyle = '#000'; ctx.fillRect(x + Math.round(w / 2), y, 1, 4); if (b.B.p3) ctx.fillRect(x + Math.round(w / 4), y, 1, 4);
-  return y + 8;
+  const enr = (b.phase || 1) >= 2;
+  drawTextC(b.name, VW / 2, y - 7, enr ? '#ff6040' : '#d8a040');
+  const hasSh = b.maxShield > 0;
+  ctx.fillStyle = '#000'; ctx.fillRect(x - 2, y - 1, w + 4, (hasSh ? 8 : 4) + 2);
+  let hy = y;
+  if (hasSh) { // v0.7.17 B1: blue shield track stays put even when empty so the bar does not jump
+    const sf = clamp((b.shield || 0) / b.maxShield, 0, 1);
+    ctx.fillStyle = '#102038'; ctx.fillRect(x, hy, w, 3);
+    ctx.fillStyle = '#4090ff'; ctx.fillRect(x, hy, Math.max(0, Math.round(w * sf)), 3);
+    ctx.fillStyle = 'rgba(180,220,255,.45)'; ctx.fillRect(x, hy, Math.round(w * sf), 1);
+    hy += 4;
+  }
+  const hf = clamp(b.maxHp ? b.hp / b.maxHp : 0, 0, 1);
+  ctx.fillStyle = '#3a0808'; ctx.fillRect(x, hy, w, 4);
+  ctx.fillStyle = enr ? '#ff4020' : '#c02028'; ctx.fillRect(x, hy, Math.max(0, Math.round(w * hf)), 4);
+  ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(x, hy, Math.round(w * hf), 1);
+  ctx.fillStyle = '#000'; ctx.fillRect(x + Math.round(w / 2), hy, 1, 4);
+  if (b.B && b.B.p3) ctx.fillRect(x + Math.round(w / 4), hy, 1, 4);
+  return hy + 8;
 }
 function bestiary() { // test/contact-sheet helper
   const big = (c, s) => { const o = document.createElement('canvas'); o.width = c.width * s; o.height = c.height * s; const x = o.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, o.width, o.height); return o.toDataURL(); };
@@ -3178,7 +3213,7 @@ function badSpawnAt(x, y) {
 }
 function purgeBadSpawns() {
   if (!rooms.length || !enemies) return 0; let n = 0;
-  for (let i = enemies.length - 1; i >= 0; i--) { const e = enemies[i]; if (!e || (e.T && e.T.boss) || !badSpawnAt(e.x, e.y)) continue;
+  for (let i = enemies.length - 1; i >= 0; i--) { const e = enemies[i]; if (!e || (e.T && e.T.boss) || e.superElite || !badSpawnAt(e.x, e.y)) continue;
     let moved = false;
     for (let k = 0; k < rooms.length * 2 && !moved; k++) { const r = rooms[(k % (rooms.length - 1)) + 1]; if (!r || r.bossRoom) continue; const s = freeSpot(r); if (badSpawnAt(s.x, s.y) || solidAt(s.x, s.y)) continue; e.x = s.x; e.y = s.y; if (e.ai) delete e.ai; moved = true; n++; }
     if (!moved) { enemies.splice(i, 1); n++; } }
@@ -3596,7 +3631,7 @@ function drawHoverBar(e, y) {
   return y + 14;
 }
 function drawBigMap() {
-  const op = mapOpacity(); ctx.save(); ctx.globalAlpha *= op; // v0.7.9 F7: 10%–100% of the shipped overlay
+  const op = mapOpacity(); ctx.save(); ctx.globalAlpha = op; // v0.7.17 B4: MAP slider only — do not inherit UI Dim (UIA)
   const p = player, s = Math.min((VW - 30) / MW, (VH - 60) / MH), w = MW * s, h = MH * s, ox = Math.round((VW - w) / 2), oy = Math.round((VH - 40 - h) / 2) + 4;
   const ga = ctx.globalAlpha; ctx.fillStyle = `rgba(0,0,0,${MAP_BG})`; ctx.fillRect(ox - 4, oy - 12, w + 8, h + 16); // v0.6.0: see-through map
   drawTextC(`MAP - DEPTH ${depth}` + (floorRevealed ? '  REVEALED' : '') + (touchMode ? '' : '   (M)'), VW / 2, oy - 9, '#c9a050'); ctx.globalAlpha = ga * MAP_ALPHA;
@@ -3759,6 +3794,10 @@ function syncAudioUI() {
   $('mMusic').textContent = 'MUSIC: ' + (settings.music ? 'ON' : 'OFF');
   if (!(settings.shake in SHAKE_MULT)) settings.shake = 'full';
   $('mShake').textContent = 'SHAKE: ' + settings.shake.toUpperCase();
+  if (settings.hitText !== true && settings.hitText !== false) settings.hitText = true;
+  if (settings.enemyHp !== true && settings.enemyHp !== false) settings.enemyHp = true;
+  if ($('mHit')) $('mHit').textContent = 'HIT TEXT: ' + (settings.hitText ? 'ON' : 'OFF');
+  if ($('mEnemyHp')) $('mEnemyHp').textContent = 'ENEMY HP: ' + (settings.enemyHp ? 'ON' : 'OFF');
   $('volMusic').value = settings.musicVol; $('volSfx').value = settings.sfxVol; $('volAmb').value = settings.ambVol != null ? settings.ambVol : 65;
   if ($('volMap')) { const op = Math.round(mapOpacity() * 100); settings.mapOp = op; $('volMap').value = op; $('volMap').max = '90'; }
   applyVolumes(); saveSettings();
@@ -3766,6 +3805,8 @@ function syncAudioUI() {
 $('mSound').addEventListener('click', () => { initAudio(); settings.sound = !settings.sound; syncAudioUI(); });
 $('mMusic').addEventListener('click', () => { initAudio(); settings.music = !settings.music; syncAudioUI(); });
 $('mShake').addEventListener('click', () => { settings.shake = { full: 'low', low: 'off', off: 'full' }[settings.shake] || 'full'; syncAudioUI(); if (settings.shake !== 'off' && player) addTrauma(.4); });
+$('mHit').addEventListener('click', () => { settings.hitText = settings.hitText === false; syncAudioUI(); });
+$('mEnemyHp').addEventListener('click', () => { settings.enemyHp = settings.enemyHp === false; syncAudioUI(); });
 $('volAmb').addEventListener('input', e => { initAudio(); settings.ambVol = +e.target.value; syncAudioUI(); });
 $('volMusic').addEventListener('input', e => { initAudio(); settings.musicVol = +e.target.value; syncAudioUI(); });
 $('volSfx').addEventListener('input', e => { initAudio(); settings.sfxVol = +e.target.value; syncAudioUI(); sfx('pick', { cue: 'ui_slider_tick_01' }); });
@@ -3982,19 +4023,32 @@ function moveEnt(e, dx, dy) {
 let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other hits get a throttled enemy flinch
 function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src) {
   if (e.hp <= 0 || e.dead || e.hidden || e.downT) return;
+  if (e.superElite && e.sePhase !== 'fight') { // v0.7.17 SE1: invulnerable until the taunt-done cue
+    if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 10, 'IMMUNE', '#9ecbff'); e.immT = time + .4; }
+    return;
+  }
   if (e.disg) wakeMimic(e);
   const T = e.T;
-  if (T.ai === 'crab' && e.mode !== 'open') { if ((e.immT || 0) < time) { addText(e.x, e.y - 10, 'IMMUNE', '#aaa'); e.immT = time + .4; } burst(e.x, e.y, '#e0a040', 3, 30); aggro(e); return; }
+  if (T.ai === 'crab' && e.mode !== 'open') { if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 10, 'IMMUNE', '#aaa'); e.immT = time + .4; } burst(e.x, e.y, '#e0a040', 3, 30); aggro(e); return; }
   if (T.ai === 'guard') { const s = src || player, a = Math.atan2(s.y - e.y, s.x - e.x), da = Math.abs(((a - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-    if (da < 1.0) { dmg *= .15; if ((e.immT || 0) < time) { addText(e.x, e.y - 14, 'BLOCK', '#c8c8d8'); e.immT = time + .4; } kx *= .2; ky *= .2; } }
+    if (da < 1.0) { dmg *= .15; if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 14, 'BLOCK', '#c8c8d8'); e.immT = time + .4; } kx *= .2; ky *= .2; } }
   if (T.armor && e.mode !== 'stun') dmg *= T.armor;
   if (e.mawVuln > 0) dmg *= 1.1; // v0.7.11 B3: Hellmouth marks bosses, it does not swallow them
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
-  e.hp -= dmg; e.flash = .12; e.kx += kx * kb; e.ky += ky * kb; vocHurt(e); // v0.7.2 §8
-  if (e.T.boss) bossVoice(e, 'hurt'); else if (!meleeSfx && time - ehitT > .07) { ehitT = time; sfxEnt = e; sfxAt('ehit', e.x, e.y, 320); sfxEnt = null; }
-  aggro(e); if (crit) addTrauma(.12);
-  addText(e.x, e.y - 10, dmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
+  let hpDmg = dmg;
+  if ((T.boss || e.superElite) && (e.shield || 0) > 0) { // v0.7.17 B1 / SE1: shield absorbs first, overflow hits HP
+    const abs = Math.min(e.shield, hpDmg);
+    e.shield -= abs; hpDmg -= abs;
+    if (e.shield < 0) e.shield = 0;
+    if (abs > 0 && hpDmg <= 0) addFoeText(e.x, e.y - 10, abs, '#6eb0ff');
+  }
+  if (hpDmg > 0) e.hp -= hpDmg;
+  e.flash = .12; e.kx += kx * kb; e.ky += ky * kb; vocHurt(e); // v0.7.2 §8
+  if (e.T.boss) bossVoice(e, 'hurt'); else if (!e.superElite && !meleeSfx && time - ehitT > .07) { ehitT = time; sfxEnt = e; sfxAt('ehit', e.x, e.y, 320); sfxEnt = null; }
+  aggro(e); if (crit && hpDmg > 0) addTrauma(.12);
+  if (typeof noteTarget717 === 'function') noteTarget717(e);
+  if (hpDmg > 0) addFoeText(e.x, e.y - 10, hpDmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
   if (e.hp <= 0) killEnemy(e);
 }
@@ -4026,10 +4080,10 @@ function killEnemy(e) {
   const T = e.T;
   if (T.revive && !e.revived) { e.revived = true; e.hp = 1; e.downT = 2.5; e.mode = ''; addText(e.x, e.y - 14, 'IT STIRS...', '#c0c0ff'); cueAt('enm_skeleton_reassemble_01', e.x, e.y, 320); burst(e.x, e.y, '#888', 10, 50); return; }
   removeEnemy(e);
-  burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null; if (!T.boss) smpFightKill(e);
+  burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null; if (!T.boss && !e.superElite) smpFightKill(e);
   if (T.ai === 'bomber' && e.mode !== 'boom') { const x = e.x, y = e.y, dmg = e.dmg; cueAt('cbt_explosion_small_01', x, y, 420, 1, { delay: .45 }); tele({ x, y, r: 30, dur: .45, col: '#a0e040', onDone: () => blast(x, y, 30, dmg, T.label, { col: '#a0e040', tr: .4, from: e }) }); }
   if (T.split) for (let k = 0; k < 2 && enemies.length < MAX_ENEMIES; k++) { const m = spawnEnemy(T.split, e.x + (k ? 5 : -5), e.y, false); m.state = 'chase'; m.kx = (k ? 80 : -80); }
-  player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else eventThought('postkill', .1, 40);
+  player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else if (!e.superElite) eventThought('postkill', .1, 40);
   const L = depth + (e.elite ? 1 : 0) + (T.boss ? 2 : 0);
   if (T.boss) {
     const B = e.B, drop = (it, dx, dy) => { dropAt(ground, e.x + dx, e.y + dy, { item: it }); if (it.rarity === 3) uniqueDropFx(e.x + dx, e.y + dy); };
@@ -4050,6 +4104,7 @@ function killEnemy(e) {
     crumbleShop(); /* v0.7.5 F3: every boss, not only the depth%5 annex roll */
     return;
   }
+  if (e.superElite) { if (typeof seLoot717 === 'function') seLoot717(e); return; }
   regularDrops(e, depth);
 }
 function gainXp(n) {
@@ -6265,10 +6320,15 @@ function render() {
   if (!touchMode && keys.Alt) for (const g of ground) { if (g.item || lootHidden075(g)) continue; const t = groundLabel(g) || (g.gold ? g.gold + ' GOLD' : g.pot ? (g.pot === 'hp' ? 'LIFE POTION' : g.pot === 'rp' ? 'REPAIR POTION' : g.pot === 'np' ? 'NECRO POTION' : 'MANA POTION') : g.key ? 'KEY' : g.torch ? 'TORCH' : ''); if (!t) continue;
     const w = textW(t); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 13), w + 3, 7); drawTextC(t, g.x, g.y - 12, groundLabel(g) ? '#e8dcc0' : g.gold ? '#e8c840' : g.key ? '#ffe060' : g.torch ? '#ffb040' : g.pot === 'np' ? '#7ee0c8' : g.pot === 'rp' ? '#ffa850' : g.pot === 'mp' ? '#8098ff' : '#ff8080'); }
   for (const e of enemies) if (e.state === 'chase' && !e.T.boss && !e.hidden && !e.disg && dist(e, p) < 150 && !(e.T.ai === 'shade' && dist(e, p) > 40)) {
-    const w = 12, X = Math.round(e.x - w / 2), Y = Math.round(e.y - e.r - 9 - Math.round(e.z || 0));
+    if (!(e.superElite || settings.enemyHp !== false)) continue; // v0.7.17 M2: trash/elites hide; Super Elites stay (boss-tier)
+    const w = e.superElite ? 16 : 12, X = Math.round(e.x - w / 2), Y = Math.round(e.y - e.r - 9 - Math.round(e.z || 0));
+    if (e.maxShield > 0) {
+      ctx.fillStyle = '#102038'; ctx.fillRect(X - 1, Y - 4, w + 2, 3);
+      ctx.fillStyle = '#4090ff'; ctx.fillRect(X, Y - 3, Math.max(0, Math.round(w * clamp((e.shield || 0) / e.maxShield, 0, 1))), 2);
+    }
     ctx.fillStyle = '#000'; ctx.fillRect(X - 1, Y - 1, w + 2, 4);
     ctx.fillStyle = '#c02020'; ctx.fillRect(X, Y, Math.max(0, Math.round(w * e.hp / e.maxHp)), 2);
-    if (e.name) drawTextC(e.name, e.x, Y - 7, '#7a9cff');
+    if (e.name) drawTextC(e.name, e.x, Y - 7, e.superElite ? '#d8a040' : '#7a9cff');
   }
   drawInteractPrompt(); drawThought();
   for (const q of texts) drawFloater716(q);
@@ -6383,7 +6443,10 @@ function drawHUD() {
   drawDurWarn();
   if (!touchMode) { drawD2Panel(); drawSurvivalHUD(4, VH - 41, 16); drawBuffHUD(4, VH - 50); { const gl = 'GATE KEYS ' + (p.gateKeys || 0); drawText(gl, 96, VH - 41, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD ' + (p.rations || 0), 96 + textW(gl) + 6, VH - 41, p.rations ? '#d0b070' : '#777'); } } if (mapOpen) drawBigMap();
   const bo = activeBoss(); let my2 = touchMode ? 56 : 40, hy = bossBarY();
-  if (hoverEnemy && hoverEnemy !== bo && !touchMode) { hy = drawHoverBar(hoverEnemy, hy); my2 = Math.max(my2, hy + 2); }
+  const tgt = (typeof targetedEnemy717 === 'function') ? targetedEnemy717() : null;
+  if (tgt && tgt !== bo) { hy = drawHoverBar(tgt, hy); my2 = Math.max(my2, hy + 2); } // v0.7.17 M3: hover, else last hit / chase lock. Off when ENEMY HP is off.
+  const seBar = (typeof activeSuper717 === 'function') ? activeSuper717() : null;
+  if (seBar && seBar !== bo) { hy = drawBossBar(seBar, hy); my2 = Math.max(my2, hy + 2); }
   if (bo) my2 = Math.max(40, drawBossBar(bo, hy) + 2);
   if (bannerT > 0) my2 = Math.max(my2, bannerBottom() + 3);
   if (msg.life > 0) { const w = textW(msg.t), my3 = Math.round(Math.min(VH * .68, VH - 62)); ctx.save(); ctx.globalAlpha *= Math.min(1, msg.life * 2); msgDraw = { x: Math.round(VW / 2 - w / 2 - 3), y: my3, w: w + 6, h: 9 }; ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(VW / 2 - w / 2 - 3), my3, w + 6, 9); drawTextC(msg.t, VW / 2, my3 + 2, msg.col); ctx.restore(); } /* v0.7.3 §14: low band, clear of thought bubbles (was under the top HUD) */
@@ -6457,7 +6520,7 @@ function entranceLights(L, view) { const kind = entFxKind(), s = kind && entStai
   const col = kind === 'portal' ? PORTAL_LCOL[floorEnt.col] || 'violet' : kind === 'embers' || kind === 'drips' ? 'red' : kind === 'shimmer' || kind === 'incense' ? 'violet' : kind === 'dust' ? 'white' : 'ice';
   L.push({ x, y, r: kind === 'portal' ? 38 + Math.sin(time * 3) * 2 : 22, col, a: kind === 'portal' ? .55 : kind === 'drips' ? .15 : .3 }); }
 function climbSex() { const P = activeProfile() || {}; const s = player && player.look && player.look.sex || P.sex; if (s === 'f' || s === 'm') return s; return hashStr((P.id || '') + (player && player.pname || '')) % 2 ? 'f' : 'm'; }
-function startClimb() { const s = entStairs(), p = player; climb = { t: 0, dur: CLIMB_T, x0: p.x, y0: p.y, x: s ? (s.tx + .5) * TS : p.x, y: s ? (s.ty + .5) * TS : p.y, sex: climbSex(), d: depth };
+function startClimb() { if (typeof seBlocksDescend717 === 'function' && seBlocksDescend717(false)) return; if (typeof seMuteAmb717 === 'function') seMuteAmb717(false); const s = entStairs(), p = player; climb = { t: 0, dur: CLIMB_T, x0: p.x, y0: p.y, x: s ? (s.tx + .5) * TS : p.x, y: s ? (s.ty + .5) * TS : p.y, sex: climbSex(), d: depth };
   if (floorEnt && floorEnt.wall) { climb.door = 0; climb.pre = DOOR_OPEN_T; climb.y -= 4; cueAt(WALL_DOOR_CUE[floorEnt.wall] || 'wld_door_wood_open_01', climb.x, climb.y, 300, .9); } // v0.7.1 §6: the wall door swings open first
   climbStats.n++; sfx('stairs'); p.walk = null; p.swing = 0; p.roll = 0; if (typeof clickMark !== 'undefined') clickMark = null; }
 function climbFrame() { return climb ? Math.min(3, Math.floor(climb.t / climb.dur * 4)) : -1; }
@@ -6745,7 +6808,8 @@ const ENT_NAME = { E1: 'STAIRS', E2: 'ELEVATOR', E3: 'HOLE', E4: 'GATE', E5: 'DE
 const ENT_EXAM = { E1: 'STAIRS, WORN SMOOTH. THEY ONLY GO DOWN.', E2: 'A CAGE ON A ROTTEN CHAIN. IT SWAYS WHEN I BREATHE.', E3: 'A HOLE IN THE FLOOR. COLD AIR RISES FROM IT.', E9: 'THE PORTAL HUMS. IT KNOWS MY NAME.', E10: 'MY REFLECTION IS ALREADY ON THE OTHER SIDE.', E15: 'THE SEAL IS CRACKED. SOMETHING PUSHED FROM BELOW.', E16: 'INCENSE AND SOMETHING ROTTEN BEHIND THE CURTAIN.' };
 function entArmed() { return time - entArmT < ENT_ARM_T && entArmT > -99; }
 function entLabel() { return descendLabel074(); } // v0.7.4 F10: no EXAMINE - rotating descend prompts
-function entUse() { const bb = enemies.find(e => e.T.boss); if (climb || pitAct) return false;
+function entUse() { const bb = enemies.find(e => e.T.boss && e.hp > 0); if (climb || pitAct) return false;
+  if (typeof seBlocksDescend717 === 'function' && seBlocksDescend717(false)) return false; // v0.7.17 SE1: stairs, not iron gates
   if (bb) { flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); return false; }
   entArmT = -99; v071Stats.descends++; v074Stats.descends++; startClimb(); return true; }
 function v071Interact(L, close) { if (climb || pitAct) return; const s = entStairs();
@@ -7637,7 +7701,7 @@ let aiClock = 0, aiGrid = null, aiGridKey = '';
 function aiMap074() { const key = mapVer + '|' + doors.filter(d => d.open).length + '|' + (pblocks ? pblocks.map(b => b.x + ',' + b.y).join(';') : '') + '|' + (vineN || 0) + '|' + Math.floor(aiClock / 500);
   if (aiGrid && aiGridKey === key && aiGrid.length === MH) return aiGrid; aiGridKey = key; const g = new Array(MH);
   for (let y = 0; y < MH; y++) { const row = new Uint8Array(MW); for (let x = 0; x < MW; x++) row[x] = walkable(x, y) && !solidAt((x + .5) * TS, (y + .5) * TS) && !lethalFloor((x + .5) * TS, (y + .5) * TS) ? 0 : 1; g[y] = row; } return (aiGrid = g); } // v0.7.8 B1: lava and acid are not walkable
-function gridAIOn(e) { return GRID_AI.on && !e.T.boss && e.T.ai !== 'eel'; }
+function gridAIOn(e) { return GRID_AI.on && !e.T.boss && !e.superElite && e.T.ai !== 'eel'; }
 const AI_NO_LEGACY = { ram: 1, chase: 1, bat: 1, rat: 1, flies: 1, eel: 1 }; // pure movers: the state machine is all they need
 function aiInit074(e) { const M = aiMap074(); let tx = Math.floor(e.x / TS), ty = Math.floor(e.y / TS);
   if (!aiOpen(M, tx, ty)) { let best = null, bd = 1e9; for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) if (aiOpen(M, tx + i, ty + j)) { const d = Math.abs(i) + Math.abs(j); if (d < bd) { bd = d; best = [tx + i, ty + j]; } } if (best) [tx, ty] = best; }
@@ -9112,34 +9176,36 @@ function pxCanvas(w, h) {
   c.style.imageRendering = 'pixelated'; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return { c, x };
 }
 function pxText(ctx, s, x, y, col, shadow, maxX) {
-  s = String(s == null ? '' : s).toUpperCase();
+  s = String(s == null ? '' : s);
   const limit = maxX == null ? 9999 : maxX;
-  if (shadow) pxText(ctx, s, x + 1, y + 1, '#000', false, limit);
+  ctx.save();
+  ctx.font = uiFont(8, 700); ctx.textBaseline = 'top'; ctx.imageSmoothingEnabled = false;
+  ctx.beginPath(); ctx.rect(0, y - 2, Math.max(1, limit), 18); ctx.clip();
+  if (shadow) { ctx.fillStyle = '#000'; ctx.fillText(s, x + 1, y + 1); }
   ctx.fillStyle = col || SAT_TAN;
-  for (let i = 0; i < s.length; i++) {
-    const gx = x + i * 4; if (gx + 3 > limit) break;
-    const g = FONT[s[i]] || FONT['?'];
-    for (let r = 0; r < 5; r++) { const bits = g[r];
-      if (bits & 4) ctx.fillRect(gx, y + r, 1, 1);
-      if (bits & 2) ctx.fillRect(gx + 1, y + r, 1, 1);
-      if (bits & 1) ctx.fillRect(gx + 2, y + r, 1, 1); }
-  }
+  ctx.fillText(s, x, y);
+  ctx.restore();
 }
 function pxCenter(ctx, s, y, col, width) {
-  s = String(s == null ? '' : s).toUpperCase();
-  const tw = Math.max(0, s.length * 4 - 1);
+  s = String(s == null ? '' : s);
+  ctx.save(); ctx.font = uiFont(8, 700); const tw = ctx.measureText(s).width; ctx.restore();
   pxText(ctx, s, Math.max(4, Math.round((width - tw) / 2)), y, col, true, width - 4);
 }
 function pxFit(s, maxPx) {
-  s = String(s == null ? '' : s).toUpperCase();
-  const max = Math.max(1, Math.floor((maxPx + 1) / 4));
-  return s.length <= max ? s : s.slice(0, Math.max(1, max - 1));
+  s = String(s == null ? '' : s);
+  const c = pxWidth712.c || (pxWidth712.c = document.createElement('canvas').getContext('2d'));
+  c.font = uiFont(8, 700);
+  if (c.measureText(s).width <= maxPx) return s;
+  let lo = 1, hi = s.length;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (c.measureText(s.slice(0, mid)).width <= maxPx) lo = mid; else hi = mid - 1; }
+  return s.slice(0, Math.max(1, lo));
 }
 function pxWrap(ctx, s, x, y, maxW, col, maxLines) {
-  const words = String(s || '').toUpperCase().split(/\s+/).filter(Boolean);
+  const words = String(s || '').split(/\s+/).filter(Boolean);
   let line = '', row = 0;
-  const flush = t => { if (row < maxLines && t) { pxText(ctx, t, x, y + row * 9, col, true, x + maxW); row++; } };
-  words.forEach(w => { const trial = line ? line + ' ' + w : w; if (trial.length * 4 - 1 > maxW && line) { flush(line); line = w; } else line = trial; });
+  const widthOf = t => { ctx.save(); ctx.font = uiFont(8, 700); const w = ctx.measureText(t).width; ctx.restore(); return w; };
+  const flush = t => { if (row < maxLines && t) { pxText(ctx, t, x, y + row * 11, col, true, x + maxW); row++; } };
+  words.forEach(w => { const trial = line ? line + ' ' + w : w; if (widthOf(trial) > maxW && line) { flush(line); line = w; } else line = trial; });
   flush(line); return row;
 }
 function selectedItem() {
@@ -10036,7 +10102,8 @@ function drawScrollContainer(ctx, config, renderContent) {
   if (!(w > 0 && h > 0)) return;
   const fade = config.fadeSize == null ? 16 : config.fadeSize;
   const bg = config.bg || PANEL_BG_712;
-  const sy = config.scrollY || 0;
+  const sy = Math.round(config.scrollY || 0); // v0.7.17 B3: whole pixels so bitmap/UI text does not shimmer while a finger drags
+  ctx.imageSmoothingEnabled = false;
   ctx.save();
   ctx.beginPath();
   ctx.rect(x, y, w, h);
@@ -10076,6 +10143,7 @@ function bindScrollEl(el, id, scaleOf, repaint) {
     if (Math.abs(e.clientY - s.startY) > 4) s.moved = true;
     s.scrollY += deltaY;
     s.startY = e.clientY;
+    s.scrollY = Math.round(s.scrollY);
     clampScroll712(s);
     if (repaint) repaint();
   });
@@ -10085,22 +10153,29 @@ function bindScrollEl(el, id, scaleOf, repaint) {
   el.addEventListener('wheel', e => {
     if (!(s.maxScrollY > 0)) return;
     s.scrollY += e.deltaY / scale();
+    s.scrollY = Math.round(s.scrollY);
     clampScroll712(s);
     e.preventDefault();
     if (repaint) repaint();
   }, { passive: false });
 }
 
-function pxWidth712(str) { str = String(str || ''); return str.length ? str.length * 4 - 1 : 0; }
+function pxWidth712(str) {
+  str = String(str || ''); if (!str) return 0;
+  const c = pxWidth712.c || (pxWidth712.c = document.createElement('canvas').getContext('2d'));
+  c.font = uiFont(8, 700);
+  return Math.ceil(c.measureText(str).width);
+}
 function wrapPx712(text, maxW) {
-  const words = String(text || '').toUpperCase().split(/\s+/).filter(Boolean);
+  const words = String(text || '').split(/\s+/).filter(Boolean);
   const out = [];
   let line = '';
   const takeLong = (w) => {
     while (w && pxWidth712(w) > maxW && w.length > 1) {
-      const n = Math.max(1, Math.floor((maxW + 1) / 4));
-      out.push(w.slice(0, n));
-      w = w.slice(n);
+      let lo = 1, hi = w.length;
+      while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (pxWidth712(w.slice(0, mid)) <= maxW) lo = mid; else hi = mid - 1; }
+      out.push(w.slice(0, Math.max(1, lo)));
+      w = w.slice(Math.max(1, lo));
     }
     return w;
   };
@@ -10204,31 +10279,26 @@ function drawCardLines712(ctx, rows, x, maxX, centerW) {
     let sx = x;
     if (centerW) {
       const full = String(r.text || '') + String(r.delta || '');
-      const tw = full.length ? full.length * 4 - 1 : 0;
+      const tw = pxWidth712(full);
       sx = Math.max(4, Math.round((centerW - tw) / 2));
     }
     pxText(ctx, r.text, sx, r.y, r.red ? DELTA_RED : r.col, true, centerW ? centerW - 4 : maxX);
-    if (r.delta) pxText(ctx, r.delta, sx + String(r.text || '').length * 4, r.y, deltaColor713(r.delta) || r.col, true, centerW ? centerW - 4 : maxX);
+    if (r.delta) pxText(ctx, r.delta, sx + pxWidth712(r.text) + 3, r.y, deltaColor713(r.delta) || r.col, true, centerW ? centerW - 4 : maxX);
   });
 }
 const TITLE_LH_712 = 12;
 const TITLE_COLOR_712 = '#f4ecd4';
 const SPACER_712 = '#4E382A';
 function titleMeasure712(ctx, text) {
-  const s = String(text || '').toUpperCase();
+  const s = String(text || '');
   if (!s.length) return 0;
   const face = ctx && ctx.measureText ? ctx : titleMeasure712.ctx;
   const c = face && face.measureText ? face : (titleMeasure712.ctx = pxCanvas(4, 4).x);
   const prev = c.font;
-  c.font = '4px monospace';
-  const unit = c.measureText('M').width || 1;
-  const measured = c.measureText(s).width;
+  c.font = uiFont(8, 700);
+  const measured = Math.ceil(c.measureText(s).width);
   c.font = prev;
-  // pxText paints a 4px advance and drops the trailing gap. Scale measureText
-  // onto that face so a wrap decision matches the pixels we draw.
-  const bitmap = s.length * 4 - 1;
-  const scaled = measured * (4 / unit);
-  return Math.abs(scaled - (bitmap + 1)) <= 2 ? bitmap : Math.max(bitmap, Math.round(scaled) - 1);
+  return measured;
 }
 function maxTitleWidth712(panelW) {
   return Math.min(140, Math.max(72, (panelW | 0) - 48));
@@ -10236,7 +10306,7 @@ function maxTitleWidth712(panelW) {
 function wrapTitle712(ctx, text, maxTitleWidth) {
   const maxW = Math.max(24, maxTitleWidth == null ? 140 : maxTitleWidth | 0);
   const widthOf = (s) => titleMeasure712(ctx, s);
-  const words = String(text || '').toUpperCase().split(/\s+/).filter(Boolean);
+  const words = String(text || '').split(/\s+/).filter(Boolean);
   if (!words.length) return [''];
   const tokens = [];
   words.forEach(word => {
@@ -10715,20 +10785,15 @@ function crispShop713(cv, cssW, cssH) {
   return ctx;
 }
 function pxTextScale(ctx, s, x, y, col, scale, maxX) {
-  s = String(s == null ? '' : s).toUpperCase();
+  s = String(s == null ? '' : s);
   const sc = scale || 1;
-  const draw = (ox, oy, c) => {
-    ctx.fillStyle = c;
-    for (let i = 0; i < s.length; i++) {
-      const gx = x + ox + i * 4 * sc; if (maxX != null && gx + 3 * sc > maxX) break;
-      const g = FONT[s[i]] || FONT['?'];
-      for (let r = 0; r < 5; r++) { const bits = g[r];
-        if (bits & 4) ctx.fillRect(gx, y + oy + r * sc, sc, sc);
-        if (bits & 2) ctx.fillRect(gx + sc, y + oy + r * sc, sc, sc);
-        if (bits & 1) ctx.fillRect(gx + 2 * sc, y + oy + r * sc, sc, sc); }
-    }
-  };
-  draw(sc, sc, '#000'); draw(0, 0, col || SAT_TAN);
+  ctx.save();
+  ctx.font = uiFont(Math.max(6, Math.round(6 * sc)), 700);
+  ctx.textBaseline = 'top'; ctx.imageSmoothingEnabled = false;
+  if (maxX != null) { ctx.beginPath(); ctx.rect(0, 0, maxX, 9999); ctx.clip(); }
+  ctx.fillStyle = '#000'; ctx.fillText(s, x + 1, y + 1);
+  ctx.fillStyle = col || SAT_TAN; ctx.fillText(s, x, y);
+  ctx.restore();
 }
 function shopHit713(cv, clientX, clientY) {
   if (!cv) return -1;
@@ -11358,7 +11423,7 @@ function tickTexts716(dt) {
 }
 function drawFloater716(q) {
   if (!q) return;
-  const fade = (q.kind && q.kind !== 'banner' && q.max) ? Math.max(0, Math.min(1, q.life / (q.max * 0.22))) : 1;
+  const fade = (q.kind && q.kind !== 'banner') ? Math.max(0, Math.min(1, q.life / 0.75)) : 1; // v0.7.17 F1: fixed 0.75s fade, not 22% of life
   ctx.save();
   ctx.globalAlpha *= fade;
   if (q.crit) {
@@ -11393,7 +11458,7 @@ addText = function (x, y, t, col, big) {
     if (PLAYER_DMG_COL_712[c0] && /^-?\d+!?$/.test(s0)) return;
   }
   const kind = floaterKind716(t, !!big);
-  const life = kind === 'banner' ? 3.6 : kind === 'crit' ? 2.5 : 2.0;
+  const life = kind === 'banner' ? 3.6 : kind === 'crit' ? 1.5 : 1.0; // v0.7.17 F1: regular/heal/status/pickup 1s, crit 1.5s, banners stay
   const o = { x: x, y: y, t: String(t), col: col, life: life, max: life, kind: kind, crit: kind === 'crit', ease: kind !== 'banner', vx: 0, vy: kind === 'banner' ? -12 : 0 };
   if (o.ease) {
     const d = floaterDir716();
@@ -12225,6 +12290,470 @@ if (window.game) {
     satchelOpenTab: satchelOpenTab, paintChar: paintChar, startBoss713: startBoss713,
     preloadBoss713: preloadBoss713, loadBossBuf713: loadBossBuf713, watchBoss713: watchBoss713
   });
+}
+
+
+// ===== v0.7.17: M1–M3, B1–B5, F1, U1, SE1 Super Elites =====
+// Ambient stays muted for the whole Super Elite encounter and comes back when that Super Elite dies
+// or the player actually starts the climb. Music is mus_boss_01 only (one bed if a floor boss is also up).
+// Shields are a pool: any look on any Super Elite, not locked 1:1. Draw 8px up and left of the 48px body.
+
+function addFoeText(x, y, t, col) {
+  if (settings && settings.hitText === false) return null;
+  return addText(x, y, t, col);
+}
+let combatTargetId717 = 0;
+function noteTarget717(e) {
+  if (!e || e.dead || e.hp <= 0 || e.superElite || (e.T && e.T.boss)) return;
+  combatTargetId717 = e.id;
+}
+function targetedEnemy717() {
+  if (!settings || settings.enemyHp === false || !player || !enemies) return null;
+  const ok = e => e && e.hp > 0 && !e.dead && !e.hidden && !e.disg && !(e.T && e.T.boss) && !e.superElite && dist(e, player) < 240;
+  if (!touchMode && typeof hoverEnemy !== 'undefined' && ok(hoverEnemy)) return hoverEnemy;
+  const hit = enemies.find(e => e.id === combatTargetId717);
+  if (ok(hit) && (hit.state === 'chase' || dist(hit, player) < 180)) return hit;
+  const w = player.walk;
+  if (w && w.kind === 'enemy' && ok(w.ref)) return w.ref;
+  return null;
+}
+function activeSuper717() {
+  if (!enemies) return null;
+  for (const e of enemies) if (e.superElite && e.hp > 0 && !e.dead && (e.state === 'chase' || e.sePhase === 'drop' || e.sePhase === 'taunt' || e.sePhase === 'fight')) return e;
+  return null;
+}
+function enemyHpShown717(e) {
+  if (!e || e.hidden || e.disg) return false;
+  if ((e.T && e.T.boss) || e.superElite) return true;
+  return !settings || settings.enemyHp !== false;
+}
+
+const SE_SHIELD_FRAC = 0.10;
+const SE_GKEY_P = 0.065;
+const SE_ROSTER = [
+  { id: 'se_pale_shade', name: 'Pale Shade', archetype: 'spirit', family: 'spirit', attackVfx: 'spectral_wave', powerupVfx: 'shadow_bolt', taunt: 'Your torch is already mine.' },
+  { id: 'se_bonewarden', name: 'Bonewarden', archetype: 'undead melee', family: 'biped', attackVfx: 'smash_shockwave', powerupVfx: 'bone_shatter', taunt: 'The bones remember you.' },
+  { id: 'se_arachnex', name: 'Arachnex', archetype: 'beast/horror', family: 'quad', attackVfx: 'web_lash', powerupVfx: 'poison_spray', taunt: 'The web is the door.' },
+  { id: 'se_veilwraith', name: 'Veilwraith', archetype: 'spirit', family: 'spirit', attackVfx: 'spectral_wave', powerupVfx: 'frost_burst', taunt: 'I wore a face like yours.' },
+  { id: 'se_magmafiend', name: 'Magmafiend', archetype: 'elemental (fire)', family: 'heavy', attackVfx: 'fire_burst', powerupVfx: 'smash_shockwave', taunt: 'Burn, then descend.' },
+  { id: 'se_graveguard', name: 'Graveguard', archetype: 'spirit (armored)', family: 'biped', attackVfx: 'slash_arc', powerupVfx: 'spectral_wave', taunt: 'No one passes the grave.' },
+  { id: 'se_morbius', name: 'Morbius', archetype: 'undead melee', family: 'biped', attackVfx: 'poison_spray', powerupVfx: 'bite_chomp', taunt: 'I have tasted brighter blood.' },
+  { id: 'se_archon', name: 'Archon', archetype: 'mage/caster', family: 'robe', attackVfx: 'arcane_orb', powerupVfx: 'rune_slam', taunt: 'The stair is sealed in my name.' },
+  { id: 'se_ironbound', name: 'Ironbound', archetype: 'undead melee (armored)', family: 'heavy', attackVfx: 'smash_shockwave', powerupVfx: 'rune_slam', taunt: 'Iron does not step aside.' },
+  { id: 'se_ymir', name: 'Ymir', archetype: 'elemental (ice)', family: 'float', attackVfx: 'frost_burst', powerupVfx: 'smash_shockwave', taunt: 'The cold keeps the door.' },
+  { id: 'se_thanatos', name: 'Thanatos', archetype: 'spirit/caster', family: 'biped', attackVfx: 'shadow_bolt', powerupVfx: 'arcane_orb', taunt: 'Death stands where you would walk.' },
+  { id: 'se_nyx', name: 'Nyx', archetype: 'beast/horror (assassin)', family: 'biped', attackVfx: 'dagger_flash', powerupVfx: 'poison_spray', taunt: 'You will not hear the knife.' },
+  { id: 'se_golgoth', name: 'Golgoth', archetype: 'golem', family: 'heavy', attackVfx: 'smash_shockwave', powerupVfx: 'rune_slam', taunt: 'The floor ends at my feet.' },
+  { id: 'se_vorag', name: 'Vorag', archetype: 'beast/horror', family: 'float', attackVfx: 'bite_chomp', powerupVfx: 'shadow_bolt', taunt: 'Little light. Big mouth.' },
+  { id: 'se_roderick', name: 'Roderick', archetype: 'spirit (knight)', family: 'biped', attackVfx: 'slash_arc', powerupVfx: 'spectral_wave', taunt: 'My oath is the lock.' },
+  { id: 'se_blight_weaver', name: 'Blight-Weaver', archetype: 'mage/caster (gorgon)', family: 'slither', attackVfx: 'bite_chomp', powerupVfx: 'poison_spray', taunt: 'Look, and stay.' },
+  { id: 'se_xalkor', name: "Xal'kor", archetype: 'mage/caster', family: 'robe', attackVfx: 'shadow_bolt', powerupVfx: 'bone_shatter', taunt: 'The dark knows your name.' },
+  { id: 'se_ember_fiend', name: 'Ember-Fiend', archetype: 'elemental (fire)', family: 'biped', attackVfx: 'fire_burst', powerupVfx: 'lantern_flare', taunt: 'I am the last warm thing you meet.' },
+  { id: 'se_corpse_stalker', name: 'Corpse-Stalker', archetype: 'undead melee', family: 'biped', attackVfx: 'slash_arc', powerupVfx: 'bone_shatter', taunt: 'Fresh steps. Old hunger.' },
+  { id: 'se_overseer', name: 'Overseer', archetype: 'mage/caster', family: 'robe', attackVfx: 'lantern_flare', powerupVfx: 'arcane_orb', taunt: 'I watched you climb. You stop here.' }
+];
+const SE_IDS = SE_ROSTER.map(s => s.id);
+const SE_TAUNT_SHARED = ['You do not leave this floor.', 'The way down is mine.', 'Kneel, little torch.', 'Another soul for the door.'];
+const SE_ATK_CUE = {
+  se_pale_shade: 'enm_se_attack_01', se_bonewarden: 'enm_se_attack_03', se_arachnex: 'enm_se_attack_05', se_veilwraith: 'enm_se_attack_02',
+  se_magmafiend: 'enm_se_attack_07', se_graveguard: 'enm_se_attack_02', se_morbius: 'enm_se_attack_03', se_archon: 'enm_se_attack_08',
+  se_ironbound: 'enm_se_attack_04', se_ymir: 'enm_se_attack_06', se_thanatos: 'enm_se_attack_01', se_nyx: 'enm_se_attack_05',
+  se_golgoth: 'enm_se_attack_04', se_vorag: 'enm_se_attack_05', se_roderick: 'enm_se_attack_02', se_blight_weaver: 'enm_se_attack_08',
+  se_xalkor: 'enm_se_attack_08', se_ember_fiend: 'enm_se_attack_07', se_corpse_stalker: 'enm_se_attack_03', se_overseer: 'enm_se_attack_08'
+};
+const SE_SHIELD_IDS = [];
+for (let i = 1; i <= 20; i++) SE_SHIELD_IDS.push('shield_fx_' + (i < 10 ? '0' : '') + i);
+const SE_STATE_MS = { idle: 200, walk: 130, attack: 95, taunt: 110, death: 110, powerup: 100, hurt: 60 };
+let SE717 = null, sePrevId717 = '', sePrevShield717 = '';
+let SE_MAN = null, SE_IMG = {}, SE_CLIP = {}, SE_VFX = {}, SE_SHIELD = {}, SE_ERR = '';
+const seVfx717 = [], seCorpses717 = [];
+
+function seRoster717(id) { return SE_ROSTER.find(s => s.id === id) || SE_ROSTER[0]; }
+function seTauntLine717(id) {
+  const row = seRoster717(id);
+  const pool = [row.taunt].concat(SE_TAUNT_SHARED);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function seMaxHp717(d) {
+  d = d || depth || 1;
+  const base = Math.round(18 + 7 * (d - 1));
+  const champ = Math.round(base * 2.2);
+  return Math.round(champ * 1.4); // 1.4× champion, inside the 1.2–1.6 band, under a floor boss
+}
+function seDmg717(d) {
+  d = d || depth || 1;
+  const bump = (typeof dmgBump === 'function') ? dmgBump(d) : 1;
+  return (3.2 + 0.85 * (d - 1)) * bump * 1.4 * 1.15;
+}
+function sePickShield717() {
+  let sh = SE_SHIELD_IDS[Math.floor(Math.random() * SE_SHIELD_IDS.length)];
+  if (typeof window.__seShield === 'string' && SE_SHIELD_IDS.indexOf(window.__seShield) >= 0) return window.__seShield;
+  if (sh === sePrevShield717) sh = SE_SHIELD_IDS[(SE_SHIELD_IDS.indexOf(sh) + 1) % SE_SHIELD_IDS.length];
+  return sh;
+}
+function sePlan717(d) {
+  let id = (typeof window.__seId === 'string' && SE_IDS.indexOf(window.__seId) >= 0) ? window.__seId : SE_IDS[Math.floor(Math.random() * SE_IDS.length)];
+  if (!(typeof window.__seId === 'string') && id === sePrevId717 && SE_IDS.length > 1) id = SE_IDS[(SE_IDS.indexOf(id) + 1) % SE_IDS.length];
+  sePrevId717 = id;
+  const sh = sePickShield717();
+  sePrevShield717 = sh;
+  SE717 = { id: id, alive: true, introduced: false, spawned: false, shieldFx: sh, depth: d || depth };
+  seAmbHold717 = false;
+  return SE717;
+}
+function seMuteAmb717(on) {
+  seAmbHold717 = !!on;
+  if (typeof applyVolumes === 'function') applyVolumes(false);
+}
+function seGateAlive717() {
+  if (enemies && enemies.some(e => e.superElite && e.hp > 0 && !e.dead)) return true;
+  return !!(SE717 && SE717.alive);
+}
+function seBlocksDescend717(quiet) {
+  if (!seGateAlive717()) return false;
+  if (!quiet) flashMsg('A Super Elite bars the way down.', '#f66');
+  return true;
+}
+function seLiving717() {
+  return enemies && enemies.find(e => e.superElite && e.hp > 0 && !e.dead);
+}
+function seStairsXY717() {
+  const s = (typeof entStairs === 'function') ? entStairs() : null;
+  if (!s) return { x: player ? player.x : 80, y: player ? player.y : 80 };
+  let x = (s.tx + .5) * TS, y = (s.ty + .5) * TS;
+  const room = (typeof roomOf === 'function') ? roomOf(s.tx, s.ty) : null;
+  if (room) {
+    const cx = (room.cx + .5) * TS, cy = (room.cy + .5) * TS;
+    const dx = cx - x, dy = cy - y, L = Math.hypot(dx, dy) || 1;
+    x += dx / L * 14; y += dy / L * 14;
+  }
+  if (typeof solidAt === 'function' && solidAt(x, y) && typeof freeNear === 'function') { const q = freeNear(x, y, 8, 20); x = q.x; y = q.y; }
+  return { x: x, y: y };
+}
+function seSpawn717(id, phase) {
+  if (!enemies) return null;
+  const row = seRoster717(id || (SE717 && SE717.id));
+  const have = enemies.find(e => e.superElite && e.hp > 0);
+  if (have && have.seId === row.id) return have;
+  const spot = seStairsXY717();
+  const hp = seMaxHp717(depth);
+  const maxShield = Math.round(hp * SE_SHIELD_FRAC);
+  const sh = (SE717 && SE717.shieldFx) || sePickShield717();
+  const an = (row.family === 'float' || row.family === 'spirit') ? 'float' : 'biped';
+  const T = { superElite: true, boss: false, label: row.name, n: row.name, r: 12, spd: 36, aggro: 200, an: an, ai: 'se', noContact: true, S: null };
+  const e = {
+    id: ++entId, type: row.id, seId: row.id, superElite: true, T: T, B: { p3: false }, name: row.name,
+    x: spot.x, y: spot.y, r: 12, hp: hp, maxHp: hp, shield: maxShield, maxShield: maxShield, shieldFx: sh,
+    dmg: seDmg717(depth), spd: 36, elite: false, state: 'chase',
+    wx: 0, wy: 0, wt: 0, atkCd: 2, flash: 0, slow: 0, kx: 0, ky: 0, face: player && player.x < spot.x ? -1 : 1,
+    cd: 1, anim: 0, t: 0, mode: '', xp: Math.round((48 + 14 * depth)),
+    sePhase: phase || 'drop', seT: 0, seAct: '', seActT: 0, seHit: false, seCd: 0.8, seUnlocked: phase === 'fight', z: phase === 'drop' ? 78 : 0
+  };
+  enemies.push(e);
+  if (!SE717) SE717 = { id: row.id, alive: true, shieldFx: sh, depth: depth };
+  SE717.id = row.id; SE717.alive = true; SE717.spawned = true; SE717.introduced = true; SE717.shieldFx = sh;
+  if (e.sePhase === 'drop') { seMuteAmb717(true); if (typeof cue === 'function') cue('enm_se_drop_01'); }
+  else if (e.sePhase === 'fight') seMuteAmb717(true);
+  return e;
+}
+function seTryIntro717() {
+  if (!SE717 || !SE717.alive || SE717.spawned || state !== 'play' || !player || climb) return;
+  if (seLiving717()) { SE717.spawned = true; return; }
+  const s = (typeof entStairs === 'function') ? entStairs() : null;
+  if (!s) return;
+  const tx = Math.floor(player.x / TS), ty = Math.floor(player.y / TS);
+  const room = (typeof roomOf === 'function') ? roomOf(s.tx, s.ty) : null;
+  const inside = room ? inRect(tx, ty, room) : Math.hypot(player.x - (s.tx + .5) * TS, player.y - (s.ty + .5) * TS) < 56;
+  if (!inside) return;
+  seSpawn717(SE717.id, 'drop');
+}
+function seBeginTaunt717(e) {
+  e.sePhase = 'taunt'; e.seT = 0; e.z = 0; e.seAct = '';
+  const laughs = ['enm_se_laugh_01', 'enm_se_laugh_02', 'enm_se_laugh_03'];
+  if (typeof cue === 'function') cue(laughs[Math.floor(Math.random() * laughs.length)]);
+  if (typeof sayThought === 'function') sayThought(e, seTauntLine717(e.seId), 2.6);
+}
+function seUnlock717(e) {
+  if (e.seUnlocked) return;
+  e.seUnlocked = true; e.sePhase = 'fight'; e.state = 'chase'; e.seAct = ''; e.seCd = 0.45;
+  if (typeof cue === 'function') cue('enm_se_taunt_done_01'); // damage unlocks the same frame this cue fires
+}
+function seClip717(id) { return SE_CLIP[id] || null; }
+function seImg717(clip, t, face) {
+  if (!clip || !clip.frames || !clip.frames.length) return null;
+  let f = Math.floor((t || 0) * 1000 / (clip.ms || 100));
+  if (clip.loop) f = ((f % clip.frames.length) + clip.frames.length) % clip.frames.length;
+  else f = Math.min(clip.frames.length - 1, Math.max(0, f));
+  const fr = clip.frames[f];
+  if (!fr) return null;
+  return (face < 0 ? fr.l : fr.r) || fr.r;
+}
+function sePose717(e) {
+  const pack = seClip717(e.seId);
+  if (!pack) return null;
+  if (e.hp <= 0 && pack.death) return { clip: pack.death, t: e.seT || 0 };
+  if (e.sePhase === 'taunt' && pack.taunt) return { clip: pack.taunt, t: e.seT || 0 };
+  if (e.seAct && pack[e.seAct]) return { clip: pack[e.seAct], t: e.seActT || 0 };
+  const moving = e._seMoved && e.sePhase === 'fight';
+  if (moving && pack.walk) return { clip: pack.walk, t: e.anim || 0 };
+  return { clip: pack.idle || pack.walk, t: e.anim || 0 };
+}
+function seSpawnVfx717(id, x, y, face) {
+  const kit = SE_VFX[id];
+  if (!kit) return;
+  seVfx717.push({ id: id, x: x, y: y, face: face || 1, t: 0, ms: kit.ms, frames: kit.frames });
+}
+function seTick717(dt) {
+  seTryIntro717();
+  if (!enemies) return;
+  for (const e of enemies) {
+    if (!e.superElite || e.dead || e.hp <= 0) continue;
+    e.state = 'chase';
+    if (player) e.face = player.x < e.x ? -1 : 1;
+    if (e.sePhase === 'drop') {
+      e.seT += dt;
+      const k = Math.min(1, e.seT / 0.48);
+      e.z = Math.round((1 - k) * (1 - k) * 78);
+      if (k >= 1) { e.z = 0; seBeginTaunt717(e); }
+      continue;
+    }
+    if (e.sePhase === 'taunt') {
+      e.seT += dt;
+      if (e.seT >= 6 * 0.110) seUnlock717(e);
+      continue;
+    }
+    if (e.sePhase !== 'fight' || !player) continue;
+    const dx = player.x - e.x, dy = player.y - e.y, dd = Math.hypot(dx, dy) || 1;
+    const reach = e.r + player.r + 8;
+    if (!e.seAct && dd > reach) {
+      const sp = e.spd * (e.slow > 0 ? 0.5 : 1);
+      const ox = e.x, oy = e.y;
+      moveEnt(e, dx / dd * sp * dt, dy / dd * sp * dt);
+      e._seMoved = Math.hypot(e.x - ox, e.y - oy) > 0.2;
+    } else e._seMoved = false;
+    if (e.seAct) {
+      e.seActT += dt;
+      const pack = seClip717(e.seId);
+      const spec = pack && pack[e.seAct];
+      const ms = spec ? spec.ms : (e.seAct === 'powerup' ? 100 : 95);
+      const frames = spec ? spec.frames.length : (e.seAct === 'powerup' ? 6 : 4);
+      const frame = Math.floor(e.seActT * 1000 / ms);
+      const hitF = e.seAct === 'powerup' ? 3 : 2;
+      if (!e.seHit && frame >= hitF) {
+        e.seHit = true;
+        const cueId = SE_ATK_CUE[e.seId] || 'enm_se_attack_01';
+        if (typeof cueAt === 'function') cueAt(cueId, e.x, e.y, 320, e.seAct === 'powerup' ? 1 : 0.85);
+        const row = seRoster717(e.seId);
+        const fx = e.seAct === 'powerup' ? row.powerupVfx : row.attackVfx;
+        const fxX = e.x + e.face * 16, fxY = e.y - 10;
+        seSpawnVfx717(fx, fxX, fxY, e.face);
+        if (dd < reach + 18) hurtPlayer(e.dmg * (e.seAct === 'powerup' ? 1.7 : 1), e);
+      }
+      if (e.seActT >= frames * ms / 1000) e.seAct = '';
+    } else {
+      e.seCd -= dt;
+      if (e.seCd <= 0 && dd < reach + 10) {
+        e.seAct = Math.random() < 0.22 ? 'powerup' : 'attack';
+        e.seActT = 0; e.seHit = false;
+        e.seCd = e.seAct === 'powerup' ? 3.6 : 1.25;
+      }
+    }
+  }
+  for (let i = seVfx717.length - 1; i >= 0; i--) {
+    const v = seVfx717[i]; v.t += dt;
+    const dur = (v.frames.length * v.ms) / 1000;
+    if (v.t >= dur) seVfx717.splice(i, 1);
+  }
+  for (let i = seCorpses717.length - 1; i >= 0; i--) {
+    const c = seCorpses717[i]; c.t += dt;
+    if (c.t > c.dur + 0.45) seCorpses717.splice(i, 1);
+  }
+}
+function seLoot717(e) {
+  if (SE717) SE717.alive = false;
+  seMuteAmb717(false);
+  const x = e.x, y = e.y;
+  dropAt(ground, x - 8, y + 8, { gold: 25 });
+  dropAt(ground, x + 10, y + 6, { ration: 1 });
+  const it = bossUnique(Math.max(1, depth));
+  dropAt(ground, x, y - 6, { item: it });
+  if (it && it.rarity === 3 && typeof uniqueDropFx === 'function') uniqueDropFx(x, y - 6);
+  const roll = (typeof window.__seGkey === 'number') ? window.__seGkey : Math.random();
+  if (roll < SE_GKEY_P) dropAt(ground, x + 2, y + 14, { gkey: 1 });
+  const death = Math.random() < 0.5 ? 'enm_se_death_01' : 'enm_se_death_02';
+  if (typeof cueAt === 'function') cueAt(death, x, y, 380, 1);
+  const vic = Math.random() < 0.5 ? 'meta_se_victory_01' : 'meta_se_victory_02';
+  if (typeof cue === 'function') cue(vic, { delay: 0.4, vol: 0.95 });
+  flashMsg((e.name || 'The Super Elite') + ' falls. The way down is open.', '#d8a040');
+  const pack = seClip717(e.seId);
+  const frames = pack && pack.death ? pack.death.frames.length : 8;
+  const ms = pack && pack.death ? pack.death.ms : 110;
+  seCorpses717.push({ id: e.seId, x: x, y: y, face: e.face || 1, t: 0, r: e.r || 12, dur: frames * ms / 1000, shieldFx: e.shield > 0 ? e.shieldFx : '' });
+}
+function seSnap717() {
+  if (!SE717) return null;
+  const live = seLiving717();
+  return {
+    id: (live && live.seId) || SE717.id,
+    alive: !!(SE717.alive && (!live || live.hp > 0)),
+    introduced: !!(SE717.introduced || live),
+    shieldFx: (live && live.shieldFx) || SE717.shieldFx,
+    depth: depth
+  };
+}
+function seRestore717(snap) {
+  if (!snap || !snap.id) { if (!SE717) sePlan717(depth); return; }
+  SE717 = { id: snap.id, alive: snap.alive !== false, introduced: !!snap.introduced, spawned: false, shieldFx: snap.shieldFx || sePickShield717(), depth: snap.depth || depth };
+  sePrevId717 = SE717.id;
+  if (SE717.shieldFx) sePrevShield717 = SE717.shieldFx;
+  const live = enemies && enemies.find(e => e.superElite || e.seId === snap.id);
+  if (live) {
+    live.superElite = true; live.seId = live.seId || snap.id;
+    if (!live.sePhase) live.sePhase = 'fight';
+    if (live.T) { live.T.superElite = true; live.T.noContact = true; live.T.boss = false; }
+    SE717.spawned = true; SE717.alive = live.hp > 0; SE717.introduced = true;
+    if (live.hp > 0) seMuteAmb717(true);
+    return;
+  }
+  if (SE717.alive && SE717.introduced) seSpawn717(SE717.id, 'fight');
+}
+function drawSeSprite717(e) {
+  const pose = sePose717(e);
+  const img = pose && seImg717(pose.clip, pose.t, e.face);
+  const bw = img ? img.width : 48, bh = img ? img.height : 48;
+  const bob = (e.sePhase === 'fight' && e._seMoved) ? ((Math.floor(e.anim * 5) % 2) ? -1 : 0) : 0;
+  const z = Math.round(e.z || 0);
+  const X = Math.round(e.x - bw / 2), Y = Math.round(e.y - bh + e.r + 1 + bob - z);
+  if (e.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(X - 1, Y - 1, bw + 2, bh + 2); }
+  if (img) ctx.drawImage(img, X, Y);
+  else {
+    ctx.fillStyle = '#1a1020'; ctx.fillRect(X + 8, Y + 6, 32, 36);
+    ctx.fillStyle = '#c04048'; ctx.fillRect(X + 18, Y + 14, 4, 4); ctx.fillRect(X + 26, Y + 14, 4, 4);
+  }
+  if ((e.shield || 0) > 0 && e.shieldFx && SE_SHIELD[e.shieldFx]) {
+    const sh = SE_SHIELD[e.shieldFx];
+    const fr = seImg717(sh, time, 1);
+    if (fr) ctx.drawImage(fr, X - 8, Y - 8);
+  }
+}
+function drawSeCorpse717(c) {
+  const pack = seClip717(c.id);
+  const clip = pack && pack.death;
+  const img = clip && seImg717(clip, c.t, c.face);
+  if (!img) return;
+  const fade = c.t > c.dur ? Math.max(0, 1 - (c.t - c.dur) / 0.4) : 1;
+  const X = Math.round(c.x - img.width / 2), Y = Math.round(c.y - img.height + (c.r || 12) + 1);
+  ctx.save(); ctx.globalAlpha *= fade; ctx.drawImage(img, X, Y); ctx.restore();
+}
+function drawSeVfx717(v) {
+  const img = seImg717({ frames: v.frames, ms: v.ms, loop: false }, v.t, v.face);
+  if (!img) return;
+  ctx.drawImage(img, Math.round(v.x - img.width / 2), Math.round(v.y - img.height / 2));
+}
+const _drawEnemy717 = drawEnemy;
+drawEnemy = function (e) {
+  if (e && e.superElite && !e.hidden && !e.downT) return drawSeSprite717(e);
+  return _drawEnemy717(e);
+};
+const _smpAggro717 = smpAggro;
+smpAggro = function (e) { if (e && e.superElite) return; return _smpAggro717(e); };
+const _smpAtk717 = smpEnemyAttack;
+smpEnemyAttack = function (e) { if (e && e.superElite) return; return _smpAtk717(e); };
+const _musWant717 = musWantBed;
+musWantBed = function () {
+  if (player && state === 'play' && enemies && enemies.some(e => e.superElite && e.hp > 0 && (e.state === 'chase' || e.sePhase))) return 'mus_boss_01';
+  return _musWant717();
+};
+const _worldSnap717 = worldSnap;
+worldSnap = function () {
+  const w = _worldSnap717();
+  if (w) w.se717 = seSnap717();
+  return w;
+};
+const _worldRestore717 = worldRestore;
+worldRestore = function (w, sd) {
+  const ok = _worldRestore717(w, sd);
+  if (ok) seRestore717(w && w.se717);
+  return ok;
+};
+const _startFloor717 = startFloor;
+startFloor = function (d, fresh) {
+  sePlan717(d);
+  return _startFloor717(d, fresh);
+};
+const _tome717 = tomeEnts;
+tomeEnts = function (ents) {
+  if (typeof _tome717 === 'function') _tome717(ents);
+  for (const v of seVfx717) ents.push({ x: v.x, y: v.y, r: 4, v73draw: () => drawSeVfx717(v) });
+  for (const c of seCorpses717) ents.push({ x: c.x, y: c.y, r: 6, v73draw: () => drawSeCorpse717(c) });
+};
+const _upd717 = update;
+update = function (dt) {
+  const r = _upd717(dt);
+  if (state === 'play') seTick717(dt);
+  return r;
+};
+function loadSeArt717() {
+  if (location.protocol === 'file:' || typeof fetch !== 'function') return Promise.resolve(0);
+  return fetch('assets/super_elites/manifest.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('se manifest ' + r.status); return r.json(); }).then(j => {
+    SE_MAN = j;
+    const files = [];
+    (j.superElites || []).forEach(se => { (se.states || []).forEach(st => files.push(st.file)); if (se.portrait) files.push(se.portrait); });
+    (j.vfx || []).forEach(v => files.push(v.file));
+    ((j.shields && j.shields.pool) || []).forEach(s => files.push(s.file));
+    return Promise.all(files.map(f => new Promise(res => {
+      const im = new Image();
+      im.onload = () => { SE_IMG[f] = im; res(1); };
+      im.onerror = () => res(0);
+      im.src = 'assets/super_elites/' + f;
+    }))).then(ns => { buildSeClips717(); return ns.reduce((a, b) => a + b, 0); });
+  }).catch(e => { SE_ERR = String(e); return 0; });
+}
+function buildSeClips717() {
+  if (!SE_MAN) return 0;
+  SE_CLIP = {}; SE_VFX = {}; SE_SHIELD = {};
+  (SE_MAN.superElites || []).forEach(se => {
+    const pack = {};
+    (se.states || []).forEach(st => {
+      const im = SE_IMG[st.file]; if (!im) return;
+      pack[st.state] = { frames: sliceStrip716(im, st.cell || im.height || 48), ms: st.ms || SE_STATE_MS[st.state] || 100, loop: !!st.loop, hitFrame: st.hitFrame, holdLast: !!st.holdLast };
+    });
+    SE_CLIP[se.id] = pack;
+  });
+  (SE_MAN.vfx || []).forEach(v => {
+    const im = SE_IMG[v.file]; if (!im) return;
+    SE_VFX[v.id] = { frames: sliceStrip716(im, v.cell || im.height || 48), ms: v.ms || 80 };
+  });
+  ((SE_MAN.shields && SE_MAN.shields.pool) || []).forEach(s => {
+    const im = SE_IMG[s.file]; if (!im) return;
+    SE_SHIELD[s.id] = { frames: sliceStrip716(im, 64), ms: s.ms || 150, loop: true };
+  });
+  return Object.keys(SE_CLIP).length;
+}
+const _loadArt717 = loadArt;
+loadArt = async function () {
+  const n = await _loadArt717();
+  try { await loadSeArt717(); } catch (e) { SE_ERR = String(e); }
+  return n;
+};
+
+if (window.game) {
+  window.game.version = VERSION;
+  Object.assign(window.game, {
+    uiFont: uiFont, UI_FONT: UI_FONT, MUS_BUS_MAX: MUS_BUS_MAX, BOSS_HP_MUL: BOSS_HP_MUL, BOSS_SHIELD_FRAC: BOSS_SHIELD_FRAC,
+    addFoeText: addFoeText, targetedEnemy717: targetedEnemy717, noteTarget717: noteTarget717, activeSuper717: activeSuper717, enemyHpShown717: enemyHpShown717,
+    drawFloater716: drawFloater716, drawBigMap: drawBigMap, drawBossBar: drawBossBar,
+    SE_ROSTER: SE_ROSTER, SE_IDS: SE_IDS, SE_SHIELD_IDS: SE_SHIELD_IDS, SE_SHIELD_FRAC: SE_SHIELD_FRAC, SE_GKEY_P: SE_GKEY_P,
+    sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seLoot717: seLoot717, seSnap717: seSnap717,
+    seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,
+    startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
+  });
+  Object.defineProperty(window.game, 'SE717', { configurable: true, get() { return SE717; } });
+  Object.defineProperty(window.game, 'SE_CLIP', { configurable: true, get() { return SE_CLIP; } });
+  Object.defineProperty(window.game, 'SE_VFX', { configurable: true, get() { return SE_VFX; } });
+  Object.defineProperty(window.game, 'SE_SHIELD', { configurable: true, get() { return SE_SHIELD; } });
+  Object.defineProperty(window.game, 'SE_ERR', { configurable: true, get() { return SE_ERR; } });
+  Object.defineProperty(window.game, 'climb', { configurable: true, get() { return climb; } });
 }
 
 </script>

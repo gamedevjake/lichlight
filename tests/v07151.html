@@ -28,7 +28,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.16' && ver.indexOf('"0.7.16"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.17' && ver.indexOf('"0.7.17"') >= 0, (g && g.version) + ' ' + ver);
   check('update sees patch', w.semverGt('0.7.15.2', '0.7.15') === true && w.semverGt('0.7.15', '0.7.15.2') === false);
   check('pack b constants', g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394);
   check('integer transform not zoom', src.indexOf("art.style.transform = 'scale(' + m.scale + ')'") >= 0 && src.indexOf('zoom:var(--ui)') < 0);

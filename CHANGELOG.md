@@ -4,6 +4,24 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.17] - 2026-11-04
+
+_Super Elites, shields, and a font you can read_
+
+### Added
+- Hit text and enemy health can be turned off from the menu. Bosses and Super Elites still show their bars. When enemy health is on, the enemy you are pointing at or fighting gets a bar at the top of the screen, including on a phone.
+- Bosses have more health, and a blue shield that has to break before their health moves.
+- A Super Elite waits at the way down on every floor. You cannot descend until that one is dead. They drop from above, taunt, and only then can be hurt. Each one carries a random shield look, and the kill drops gold, food, a unique, and rarely a Gate Key.
+
+### Changed
+- All of the words you read, on the field and in the menus, use Pixelify Sans.
+- Damage numbers, heals, and pickup text leave sooner, and they fade out over the last part of that time. Big banners stay as long as they did.
+- Music can be turned up louder. The music slider still sets how loud it is.
+
+### Fixed
+- Dragging the satchel's item text on a phone no longer blurs the words.
+- The full map uses only the map slider for how solid it looks. Dimming the rest of the interface no longer washes the map out.
+
 ## [0.7.16] - 2026-11-03
 
 _Painted foes, a fuller character page, and a pedlar you can read_
@@ -863,6 +881,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 
 [0.7.15.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.15.2
 [0.7.15.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.15.1
+[0.7.17]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.17
 [0.7.15]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.15
 [0.7.14]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.14
 [0.7.13]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.13
