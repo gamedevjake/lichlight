@@ -4,6 +4,14 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.18] - 2026-11-04
+
+_Super Elite deaths stay playable, and the words are sharp_
+
+### Fixed
+- Killing a Super Elite no longer freezes the run or wipes the health bars. The stairs open, the fight music stops, and that character can move, open the satchel, and save. Loading the same character afterwards stays in the room with the Super Elite gone. A save that was stuck in that moment comes back playable.
+- Words on the field, the health display, the depth banner, and the satchel pages are sharp again. The tab labels and buttons were already sharp and stay that way.
+
 ## [0.7.17] - 2026-11-04
 
 _Super Elites, shields, and a font you can read_

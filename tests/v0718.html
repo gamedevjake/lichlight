@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!-- v0.7.18. Super Elite death must not freeze the frame, and canvas Pixelify is rasterized 1:1. -->
+<html>
+<head><meta charset="utf-8"><title>v0718</title>
+<style>html,body{margin:0;background:#000;height:100%;overflow:hidden}iframe{display:block}</style>
+</head>
+<body>
+<iframe id="g" src="../index.html?v=0718" style="width:844px;height:390px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 500) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); finish(); }
+});
+function hudInk(w) {
+  const layer = w.game && w.game.textLayer;
+  if (!layer) return 0;
+  const d = layer.getContext('2d').getImageData(0, 0, Math.min(layer.width, 220), Math.min(layer.height, 48)).data;
+  let n = 0;
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 40 && (d[i] + d[i + 1] + d[i + 2]) > 80) n++;
+  return n;
+}
+function ident(w) {
+  const t = w.document.getElementById('game').getContext('2d').getTransform();
+  return Math.abs(t.a - 1) < 0.01 && Math.abs(t.d - 1) < 0.01 && Math.abs(t.e) < 0.5 && Math.abs(t.f) < 0.5;
+}
+function glyphBox(ctx, w, h) {
+  const d = ctx.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = 0, maxY = 0, ink = 0, step = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    const s = d[i] + d[i + 1] + d[i + 2];
+    if (d[i + 3] > 20 && s > 40) {
+      ink++;
+      if (x < minX) minX = x; if (y < minY) minY = y; if (x > maxX) maxX = x; if (y > maxY) maxY = y;
+    }
+    if (x + 1 < w) {
+      const j = i + 4;
+      const ds = Math.abs(d[i] - d[j]) + Math.abs(d[i + 1] - d[j + 1]) + Math.abs(d[i + 2] - d[j + 2]);
+      if (ds > step) step = ds;
+    }
+  }
+  return { ink: ink, h: ink ? (maxY - minY + 1) : 0, w: ink ? (maxX - minX + 1) : 0, step: step };
+}
+function run(w) {
+  const g = w.game;
+  const ver = fetchText('../version.json');
+  const src = fetchText('../index.html?v=0718src');
+  check('version', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('pixelify kept', g.UI_FONT === 'Pixelify Sans' && src.indexOf('Courier New') < 0 && src.indexOf('uiFont(6, 700)') >= 0);
+
+  w.requestAnimationFrame = function () { return 0; };
+  g.newGame();
+  w.__seGkey = 0;
+  const ids = g.SE_IDS.slice();
+  check('roster 20', ids.length === 20);
+  let killFail = '';
+  ids.forEach(id => {
+    try {
+      if (g.SE717) g.SE717.dead = false;
+      const se = g.seSpawn717(id, 'fight');
+      if (!se) { killFail += id + ' nos pawn;'; return; }
+      se.sePhase = 'fight'; se.shield = 0; se.hp = 1;
+      w.damageEnemy(se, 500, 2, -1, '#fff', false);
+      if (g.enemies.some(e => e.superElite && e.hp > 0)) killFail += id + ' still up;';
+      if (g.seGateAlive717()) killFail += id + ' gate;';
+      const snap = g.seSnap717();
+      if (!snap || snap.alive !== false || snap.dead !== true) killFail += id + ' snap ' + JSON.stringify(snap) + ';';
+    } catch (e) { killFail += id + ' ' + (e && e.message) + ';'; }
+  });
+  check('all 20 se kills', !killFail, killFail);
+
+  g.newGame();
+  w.__seId = 'se_arachnex';
+  g.startFloor(1);
+  g.ground.length = 0;
+  w.__seGkey = 0;
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  se.sePhase = 'fight'; se.shield = se.maxShield; se.hp = 3;
+  const px0 = g.player.x;
+  let threw = null;
+  try { w.damageEnemy(se, se.maxShield + 50, 0, 0, '#fff', true); }
+  catch (e) { threw = e && e.stack || String(e); }
+  const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
+  const uniq = g.ground.filter(it => it.item && it.item.rarity === 3).length;
+  const rats = g.ground.filter(it => it.ration).length;
+  check('kill no throw', !threw, threw);
+  check('se loot', gold === 25 && rats >= 1 && uniq === 1, 'g' + gold + ' r' + rats + ' u' + uniq);
+  check('stairs open', g.seGateAlive717() === false && g.SE717 && g.SE717.dead === true && g.SE717.alive === false);
+  w.startClimb();
+  check('climb after kill', !!g.climb);
+  g.step(0.05, { x: 1, y: 0 });
+  check('still steps', g.state === 'play' || g.state === 'dying' || !!g.climb, g.state);
+
+  g.newGame();
+  const dark = g.seSpawn717('se_veilwraith', 'fight');
+  dark.sePhase = 'fight'; dark.hp = 40; dark.shield = 0;
+  g.player.torchT = 0;
+  g.player.x = dark.x + 90;
+  g.player.y = dark.y;
+  let darkErr = null;
+  try { w.render(); } catch (e) { darkErr = (e && e.stack || String(e)).split('\n').slice(0, 6).join(' | '); }
+  check('dark se render', !darkErr && ident(w) && hudInk(w) > 10, darkErr || ('tf ' + ident(w) + ' hud ' + hudInk(w)));
+
+  const aliveSnap = g.seSnap717();
+  check('living snap', aliveSnap && aliveSnap.alive === true && aliveSnap.dead === false, JSON.stringify(aliveSnap));
+  dark.hp = 1; dark.shield = 0;
+  try { w.damageEnemy(dark, 80, 0, 0, '#fff', false); } catch (e) { lines.push('FAIL dark kill :: ' + e); }
+  w.save();
+  g.continueGame();
+  let reloadErr = null;
+  try { w.render(); g.step(0.05); } catch (e) { reloadErr = e && e.message; }
+  const back = (g.enemies || []).filter(e => e.superElite);
+  check('reload stays dead', !reloadErr && g.seGateAlive717() === false && back.length === 0 && g.state === 'play' && hudInk(w) > 10, reloadErr || ('n ' + back.length + ' hud ' + hudInk(w) + ' ' + g.state));
+
+  g.newGame();
+  const brick = g.seSpawn717('se_nyx', 'fight');
+  brick.hp = 0; brick.dead = false; brick.shield = 0;
+  g.SE717.alive = true; g.SE717.dead = false;
+  w.save();
+  g.continueGame();
+  let brickErr = null;
+  try { w.render(); } catch (e) { brickErr = e && e.message; }
+  check('bricked save recovers', !brickErr && g.seGateAlive717() === false && !(g.enemies || []).some(e => e.superElite) && (g.SE717 && g.SE717.dead) && hudInk(w) > 10, brickErr || ('hud ' + hudInk(w)));
+
+  const orig = w.drawEmissive;
+  w.drawEmissive = function () { throw new Error('boom718'); };
+  try { w.loop(performance.now()); } catch (e) { lines.push('FAIL loop leaked :: ' + e); }
+  w.drawEmissive = orig;
+  w.document.getElementById('game').getContext('2d').setTransform(9, 0, 0, 9, 40, 40);
+  try { w.render(); } catch (e) { lines.push('FAIL render after boom :: ' + e); }
+  check('frame loop survives throw', ident(w) && (g.frameErr || '').indexOf('boom718') >= 0 && hudInk(w) > 10, g.frameErr);
+
+  g.syncTextLayer718();
+  const layer = g.textLayer;
+  const cssW = parseFloat(w.document.getElementById('game').style.width) || 0;
+  const dpr = w.devicePixelRatio || 1;
+  check('text layer 1:1', layer && Math.abs(layer.width - Math.round(cssW * dpr)) <= 1 && layer.width >= g.vw, layer && (layer.width + ' vs ' + Math.round(cssW * dpr) + ' vw ' + g.vw));
+  w.clearTextLayer718();
+  w.document.getElementById('game').getContext('2d').setTransform(1, 0, 0, 1, 0, 0);
+  w.drawText('HELLO', 8, 8, '#ffffff', true);
+  const box = glyphBox(layer.getContext('2d'), layer.width, Math.min(layer.height, 48));
+  const pix = g.textPix718();
+  check('hud text on device layer', box.ink > 15 && box.h + 2 >= Math.round(6 * pix) * 0.45, JSON.stringify(box) + ' pix ' + pix);
+  check('text snap helper', src.indexOf('textPix718') >= 0 && src.indexOf('syncTextLayer718') >= 0, 'src ' + src.length);
+
+  const sample = w.pxCanvas(72, 20);
+  const eff = g.uiEff718();
+  check('satchel backing store', sample.c.width === Math.round(72 * eff) && eff >= 2, sample.c.width + ' eff ' + eff);
+  w.pxText(sample.x, 'MANA FLASK', 4, 4, '#f4ecd4', false, 70);
+  const sat = glyphBox(sample.x, sample.c.width, sample.c.height);
+  check('satchel title crisp', sat.ink > 20 && sat.step > 180 && sat.h >= Math.round(8 * eff) * 0.45 && sat.h < sample.c.height, JSON.stringify(sat));
+
+  const tab = w.document.querySelector('#satTabs') || w.document.getElementById('satchel');
+  check('dom tabs untouched', !!w.document.getElementById('satClose') && src.indexOf('function paintTabs') >= 0);
+
+  finish();
+}
+</script>
+</body>
+</html>
