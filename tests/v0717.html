@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- v0.7.17. Hit text, enemy HP, targeted bar, boss shield and HP, map opacity, floater timing, Pixelify, Super Elite gate. -->
+<html>
+<head><meta charset="utf-8"><title>v0717</title>
+<style>html,body{margin:0;background:#000;height:100%;overflow:hidden}iframe{display:block}</style>
+</head>
+<body>
+<iframe id="g" src="../index.html?v=0717" style="width:844px;height:390px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+function fetchStatus(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status; }
+  catch (e) { return 0; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); finish(); }
+});
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.17' && ver.indexOf('"0.7.17"') >= 0, (g && g.version) + ' ' + ver);
+
+  const css = w.getComputedStyle(w.document.body).fontFamily;
+  const hitBtn = w.document.getElementById('mHit');
+  const hpBtn = w.document.getElementById('mEnemyHp');
+  check('pixelify css', /pixelify/i.test(css) && /pixelify/i.test(w.getComputedStyle(hitBtn).fontFamily), css);
+  check('pixelify file', fetchStatus('../assets/fonts/PixelifySans-Variable.ttf') === 200);
+  check('ui font helper', g.uiFont && g.uiFont(8, 700).indexOf('Pixelify Sans') >= 0 && g.UI_FONT === 'Pixelify Sans');
+  check('hud uses pixelify', g.drawBossBar && src.indexOf('function drawTextRaw') >= 0 && src.indexOf('uiFont(6, 700)') >= 0 && src.indexOf('function drawFloater716') >= 0 && src.indexOf('uiFont(8, 700)') >= 0);
+  check('no courier ui', src.indexOf('Courier New') < 0);
+
+  check('hit text default', g.settings.hitText !== false && hitBtn && hitBtn.textContent.indexOf('HIT TEXT') >= 0);
+  check('enemy hp default', g.settings.enemyHp !== false && hpBtn && hpBtn.textContent.indexOf('ENEMY HP') >= 0);
+  g.settings.hitText = false; g.settings.enemyHp = false;
+  if (w.syncAudioUI) w.syncAudioUI();
+  check('toggles off', hitBtn.textContent.indexOf('OFF') >= 0 && hpBtn.textContent.indexOf('OFF') >= 0);
+
+  g.texts.length = 0;
+  g.addText(8, 8, '4', '#fff');
+  g.addText(8, 8, '9!', '#ffe040');
+  g.addText(8, 8, 'BLOCK', '#aaa');
+  g.addText(8, 8, '+12G', '#e8c840');
+  g.addText(8, 8, '+4', '#80ff80');
+  g.addText(8, 8, 'LEVEL UP!', '#ffe040', true);
+  const T = g.texts;
+  check('floater timing', T[0].life === 1 && T[0].kind === 'regular' && T[1].life === 1.5 && T[1].kind === 'crit' && T[2].life === 1 && T[2].kind === 'status' && T[3].life === 1 && T[3].kind === 'status' && T[4].life === 1 && T[4].kind === 'heal' && T[5].life === 3.6 && T[5].kind === 'banner', T.map(t => t.kind + ':' + t.life).join(','));
+  check('fade window', src.indexOf('q.life / 0.75') >= 0 && src.indexOf('max * 0.22') < 0);
+
+  g.newGame();
+  g.settings.hitText = false;
+  g.texts.length = 0;
+  const slime = w.spawnEnemy('slime', g.player.x + 24, g.player.y, false);
+  const hp0 = slime.hp;
+  w.damageEnemy(slime, 4, 10, 0, '#fff', false);
+  check('hit text off hides numbers', g.texts.length === 0 && slime.hp < hp0, 'texts ' + g.texts.length + ' hp ' + slime.hp);
+  g.addText(g.player.x, g.player.y, 3, '#ff5050');
+  g.addText(g.player.x, g.player.y, '+TORCH', '#ffb040');
+  g.addText(g.player.x, g.player.y, 'LEVEL UP!', '#ffe040', true);
+  check('player and pickup stay', g.texts.length === 3 && g.texts[0].kind === 'regular' && g.texts[1].kind === 'status' && g.texts[2].kind === 'banner');
+  g.addFoeText(1, 1, 'STUNNED', '#ffe040');
+  check('foe helper respects toggle', g.texts.length === 3);
+  g.settings.hitText = true;
+  w.damageEnemy(slime, 3, -10, 0, '#fff', true);
+  const crit = g.texts[g.texts.length - 1];
+  check('hit text on restores', crit && crit.crit && crit.life === 1.5 && crit.t.indexOf('!') >= 0, crit && crit.t);
+
+  const trash = w.spawnEnemy('bat', g.player.x + 30, g.player.y, false);
+  trash.state = 'chase';
+  g.settings.enemyHp = false;
+  check('trash hp hidden', g.enemyHpShown717(trash) === false && g.enemyHpShown717(slime) === false);
+  g.settings.enemyHp = true;
+  check('trash hp shown', g.enemyHpShown717(trash) === true);
+  g.touchMode = true;
+  w.damageEnemy(trash, 1, 4, 0, '#fff', false);
+  const tgt = g.targetedEnemy717();
+  check('touch target bar', tgt && tgt.id === trash.id, tgt && tgt.type);
+  g.settings.enemyHp = false;
+  check('no top bar when hp off', g.targetedEnemy717() == null);
+  g.settings.enemyHp = true;
+  g.touchMode = false;
+
+  w.startFloor(5);
+  const boss = g.enemies.find(e => e.T && e.T.boss);
+  const want = Math.round((240 + 60 * 4) * 1.75);
+  check('boss hp x1.75', boss && boss.maxHp === want && boss.hp === want && g.BOSS_HP_MUL === 1.75, boss && boss.maxHp);
+  check('boss shield 25%', boss && boss.maxShield === Math.round(want * 0.25) && boss.shield === boss.maxShield && g.BOSS_SHIELD_FRAC === 0.25, boss && boss.maxShield);
+  const sh0 = boss.shield, hpB = boss.hp;
+  w.damageEnemy(boss, 40, 0, 0, '#fff', false);
+  check('shield absorbs first', boss.shield === sh0 - 40 && boss.hp === hpB, boss.shield + '/' + boss.hp);
+  w.damageEnemy(boss, boss.shield + 15, 0, 0, '#fff', true);
+  check('overflow hits hp', boss.shield === 0 && boss.hp === hpB - 15, boss.shield + '/' + boss.hp);
+  check('phase still on hp', boss.phase === 1 && boss.hp > boss.maxHp * 0.5);
+  const mob = w.spawnEnemy('skel', g.player.x + 18, g.player.y, false);
+  check('mobs have no shield', !(mob.maxShield > 0));
+  check('boss bar always', g.enemyHpShown717(boss) === true);
+  g.settings.enemyHp = false;
+  check('boss not the trash target', g.targetedEnemy717() == null || (g.targetedEnemy717().T && !g.targetedEnemy717().T.boss));
+
+  check('map ignores ui dim', src.indexOf('ctx.globalAlpha = op') >= 0 && src.indexOf('globalAlpha *= op') < 0 && g.MUS_BUS_MAX >= 0.85 && g.MUS_BUS_MAX <= 1);
+  check('music ceiling', src.indexOf('settings.musicVol / 100 * MUS_BUS_MAX') >= 0 && src.indexOf('musicVol / 100 * .55') < 0);
+  check('scroll snaps', src.indexOf('Math.round(config.scrollY || 0)') >= 0 && src.indexOf("s.scrollY = Math.round(s.scrollY)") >= 0);
+
+  w.__seId = 'se_morbius';
+  w.startFloor(1);
+  check('se planned', g.SE717 && g.SE717.id === 'se_morbius' && g.SE717.alive === true && g.seGateAlive717() === true);
+  w.startClimb();
+  check('stairs locked', !g.climb && g.seBlocksDescend717(true) === true);
+  const se = g.seSpawn717('se_morbius', 'drop');
+  const seHp = se.hp, seSh = se.shield;
+  check('se shield 10%', se.superElite && se.maxShield === Math.round(se.maxHp * 0.10) && se.shield === se.maxShield && se.maxHp === g.seMaxHp717(1), se.maxHp + '/' + se.maxShield);
+  g.settings.enemyHp = false;
+  check('se hp always', g.enemyHpShown717(se) === true && g.activeSuper717() && g.activeSuper717().id === se.id);
+  g.texts.length = 0;
+  w.damageEnemy(se, 25, 0, 0, '#fff', true);
+  check('intro invuln', se.hp === seHp && se.shield === seSh && se.sePhase === 'drop');
+  se.sePhase = 'fight';
+  w.damageEnemy(se, 4, 0, 0, '#fff', false);
+  check('se shield then hp', se.shield === seSh - 4 && se.hp === seHp);
+  g.ground.length = 0;
+  w.__seGkey = 0;
+  se.hp = 1; se.shield = 0;
+  w.damageEnemy(se, 20, 0, 0, '#fff', false);
+  const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
+  const uniq = g.ground.filter(it => it.item && it.item.rarity === 3);
+  const rats = g.ground.filter(it => it.ration);
+  const keys = g.ground.filter(it => it.gkey);
+  check('se loot', gold === 25 && rats.length >= 1 && uniq.length === 1 && keys.length === 1, 'g' + gold + ' r' + rats.length + ' u' + uniq.length + ' k' + keys.length);
+  check('se dead unlocks', g.seGateAlive717() === false && !(g.SE717 && g.SE717.alive));
+  w.startClimb();
+  check('climb after se', !!g.climb);
+  const snap = g.seSnap717();
+  check('se snap', snap && snap.alive === false && snap.id === 'se_morbius', JSON.stringify(snap));
+  check('roster 20', g.SE_IDS.length === 20 && g.SE_SHIELD_IDS.length === 20);
+  const cues = ['enm_se_drop_01','enm_se_laugh_01','enm_se_laugh_02','enm_se_laugh_03','enm_se_taunt_done_01','enm_se_attack_01','enm_se_attack_08','enm_se_death_01','enm_se_death_02','meta_se_victory_01','meta_se_victory_02'];
+  check('se cues', cues.every(id => fetchStatus('../assets/sfx/' + id + '.wav') === 200 && fetchText('../assets/sfx/sfx.json').indexOf('"' + id + '"') >= 0));
+  check('no boss laugh for se', src.indexOf('enm_se_laugh_01') >= 0 && src.indexOf("cue('enm_boss_laugh_") < 0);
+
+  g.settings.hitText = true; g.settings.enemyHp = true;
+  if (w.saveSettings) w.saveSettings();
+
+  const waitArt = (n) => {
+    g.loadSeArt717().then(count => {
+      try {
+        const ids = Object.keys(g.SE_CLIP || {});
+        check('se art', count >= 160 && ids.length === 20 && g.SE_CLIP.se_pale_shade && g.SE_CLIP.se_pale_shade.idle && g.SE_CLIP.se_overseer.death, count + ' ' + ids.length);
+        const idle = g.SE_CLIP.se_morbius.idle;
+        check('se cell', idle && idle.frames.length === 4 && idle.frames[0].r.width === 48 && idle.ms === 200 && g.SE_CLIP.se_morbius.attack.ms === 95 && g.SE_CLIP.se_morbius.taunt.frames.length === 6 && g.SE_CLIP.se_morbius.powerup.frames.length === 6);
+        check('se vfx shield', Object.keys(g.SE_VFX || {}).length >= 14 && Object.keys(g.SE_SHIELD || {}).length === 20, Object.keys(g.SE_VFX || {}).length + '/' + Object.keys(g.SE_SHIELD || {}).length);
+      } catch (e) { lines.push('FAIL se art :: ' + (e && e.stack || e)); }
+      const shields = g.SE_CLIP && fetchText('../assets/super_elites/manifest.json');
+      check('shield pool', shields.indexOf('shield_fx_01') >= 0 && shields.indexOf('shield_fx_20') >= 0 && fetchStatus('../assets/super_elites/shields/shield_fx_07_holy_halo.png') === 200);
+      check('vfx kit', fetchStatus('../assets/super_elites/vfx/vfx_slash_arc.png') === 200 && fetchStatus('../assets/super_elites/sprites/se_nyx/se_nyx_powerup.png') === 200);
+      finish();
+    }).catch(e => { lines.push('FAIL se load :: ' + e); finish(); });
+  };
+  waitArt();
+}
+</script>
+</body>
+</html>

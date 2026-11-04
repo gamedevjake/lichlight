@@ -33,7 +33,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.16' && ver.indexOf('"0.7.16"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.17' && ver.indexOf('"0.7.17"') >= 0, (g && g.version) + ' ' + ver);
   check('dev hud off on github.io', src.indexOf("h === 'github.io' || h.endsWith('.github.io')") >= 0 && src.indexOf('return false') >= 0);
   check('no text tab mode', src.indexOf("panelW > 520 ? 'text'") < 0 && src.indexOf('tab_blank_') < 0);
   check('pack b constants', g && g.PACK_B && g.PACK_B.cols === 7 && g.PACK_B.gridW === 216 && g.PACK_B.statW === 172 && g.PACK_B.panelW === 420 && g.PACK_B.cw === 394 && g.PACK_B.ccols === 5);

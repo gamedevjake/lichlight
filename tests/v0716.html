@@ -33,8 +33,8 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.16' && ver.indexOf('"0.7.16"') >= 0, (g && g.version) + ' ' + ver);
-  check('newer than 0.7.15.2', w.semverGt('0.7.16', '0.7.15.2') === true && w.semverGt('0.7.15.2', '0.7.16') === false);
+  check('version', g && g.version === '0.7.17' && ver.indexOf('"0.7.17"') >= 0, (g && g.version) + ' ' + ver);
+  check('newer than 0.7.15.2', w.semverGt('0.7.17', '0.7.15.2') === true && w.semverGt('0.7.15.2', '0.7.17') === false);
 
   check('begin uses live handler', src.indexOf("addEventListener('click', () => beginFight())") >= 0);
   check('boss format pick', src.indexOf('function bossFmt713') >= 0 && src.indexOf("return 'm4a'") >= 0 && src.indexOf('_phase') >= 0);
@@ -87,20 +87,21 @@ function run(w) {
   g.addText(10, 20, '+12G', '#e8c840');
   g.addText(10, 20, 'LEVEL UP!', '#ffe040', true);
   const T = g.texts;
-  check('floater lives', T[0].life === 2 && T[0].kind === 'regular' && T[0].ease && T[1].life === 2.5 && T[1].crit && T[2].life === 2 && T[2].kind === 'status' && T[3].life === 2 && T[3].kind === 'status' && T[4].life === 3.6 && T[4].kind === 'banner' && !T[4].ease, T.map(t => t.kind + ':' + t.life).join(','));
+  check('floater lives', T[0].life === 1 && T[0].kind === 'regular' && T[0].ease && T[1].life === 1.5 && T[1].crit && T[2].life === 1 && T[2].kind === 'status' && T[3].life === 1 && T[3].kind === 'status' && T[4].life === 3.6 && T[4].kind === 'banner' && !T[4].ease, T.map(t => t.kind + ':' + t.life).join(','));
   check('smack faces right', T[0].vx > 20 && T[1].vx > 20);
   g.player.fx = -1; g.player.fy = 0;
   g.addText(0, 0, '3', '#fff');
   check('smack faces left', g.texts[g.texts.length - 1].vx < -20, g.texts[g.texts.length - 1].vx);
 
+  g.settings.hitText = true;
   const slime = w.spawnEnemy('slime', 120, 120, false);
   const before = g.texts.length;
   w.damageEnemy(slime, 5, -50, 0, '#fff', false);
   const hit = g.texts[g.texts.length - 1];
-  check('hit floater follows knockback', hit && hit.kind === 'regular' && hit.life === 2 && hit.vx < 0 && g.texts.length > before, hit && hit.vx);
+  check('hit floater follows knockback', hit && hit.kind === 'regular' && hit.life === 1 && hit.vx < 0 && g.texts.length > before, hit && hit.vx);
   w.damageEnemy(slime, 6, 50, 0, '#fff', true);
   const crit = g.texts[g.texts.length - 1];
-  check('crit floater larger life', crit && crit.crit && crit.life === 2.5 && crit.vx > 0);
+  check('crit floater larger life', crit && crit.crit && crit.life === 1.5 && crit.vx > 0);
 
   [[844, 390], [740, 360], [667, 375]].forEach(pair => {
     const s = g.shopScaleFor716(pair[0], pair[1]);
