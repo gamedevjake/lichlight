@@ -419,7 +419,7 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 3 (crit e
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 3 — Critical Hits and Damage Scaling.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. This entry is the implementation on the Stage 3 branch. Rollback tag `combat-redesign-pre-stage3` points at `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash, PR #25, on main).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Crit and scaling implementation commit `41dbf74d28bb7a1e2e8ff0f53589947f2fd69cde`. Rollback tag `combat-redesign-pre-stage3` points at `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash, PR #25, on main).
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 4 has not been started.
 - **Objective:** Make player crit chance and crit damage configurable, apply that multiplier once, and add a fixed outgoing scale order plus controlled conversion. Keep Stage 2 penetration on one pass. Audit life steal. Do not retype live attacks. Do not change Hellmouth. Do not reinterpret `mods.fire`.
 
