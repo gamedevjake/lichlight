@@ -787,7 +787,7 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 6 (weapon
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 6 — Weapon identity and attack responsiveness.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage6` points at `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Implementation commit `4650ac21917b029950dac18d0b3c364bf959eb8d`. Rollback tag `combat-redesign-pre-stage6` points at `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28).
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 7 has not been started.
 - **Objective:** Give each weapon family its own swing, reach behavior, and poise, and make attacks answer the button without an animation-cancel. Keep hit points and the attack period where they were. Do not retype elements, do not retune `mods.fire`, and do not change Hellmouth.
 

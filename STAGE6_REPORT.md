@@ -2,6 +2,8 @@
 
 **Status: IMPLEMENTED, not VERIFIED.** This branch is for Jake's review. It is not merged, not deployed, and not live. `version.json` is still **0.7.18**. Stage 7 has not been started.
 
+Implementation commit `4650ac21917b029950dac18d0b3c364bf959eb8d`.
+
 Rollback tag `combat-redesign-pre-stage6` points at `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash, PR #28, on main).
 
 ```
