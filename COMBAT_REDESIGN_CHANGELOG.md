@@ -264,7 +264,7 @@ Wait for Jake. Do not merge this PR. Do not start Stage 2 (elemental resists, ca
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 2 — Armor and Resistances.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage2` points at `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash, PR #24).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Resist implementation commit `25fe766dd8b46f9797c60475a30e0ee06b8f9405`. Rollback tag `combat-redesign-pre-stage2` points at `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash, PR #24).
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 3 has not been started.
 - **Objective:** Give Fire, Cold, Lightning, Poison, and Shadow their own percent mitigation, with documented caps, penetration, and vulnerability. Keep `DEF / (DEF + 30)` on Physical only. Do not reclassify live attacks. Do not reinterpret `mods.fire`. Do not change Hellmouth.
 
