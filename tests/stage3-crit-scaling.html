@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<!-- Stage 3: crit chance and multiplier, one crit application, scaling order, conversion, penetration once, life steal. -->
+<html>
+<head><meta charset="utf-8"><title>stage3</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage3" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 100; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0; p.st.fire = 0;
+  p.st.crit = 5; p.st.critDmg = 0; p.st.critMul = 2;
+  p.st.flat = p.st.flatPhysical = p.st.flatFire = p.st.flatCold = p.st.flatLightning = p.st.flatPoison = p.st.flatShadow = 0;
+  p.st.inc = p.st.incPhysical = p.st.incFire = p.st.incCold = p.st.incLightning = p.st.incPoison = p.st.incShadow = 0;
+  p.st.more = p.st.morePhysical = p.st.moreFire = p.st.moreCold = p.st.moreLightning = p.st.morePoison = p.st.moreShadow = 1;
+  p.st.bonusPhysical = p.st.bonusFire = p.st.bonusCold = p.st.bonusLightning = p.st.bonusPoison = p.st.bonusShadow = 0;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.penFire = p.st.penCold = p.st.penLightning = p.st.penPoison = p.st.penShadow = 0;
+  p.st.maxResist = 0; p.st.ls = 0; p.st.block = 0;
+  p.inv0 = 0; p.roll = 0; p.barrier = 0; p.barrierMax = 0; p.torchT = 0;
+  p.isArmorActive = false; p.isInvincible = false; p.isPlayerUndetected = false;
+  w.__hurtSpread = 1; w.__champCrit = 1; w.__critRoll = 0;
+  g.clearSkillCrit(); g.setConversionEdges([]);
+  return p;
+}
+function foe(g, p, type, x) {
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const e = g.spawnEnemy(type || 'rat', x, p.y, false);
+  e.dead = false; e.hp = 500; e.maxHp = 500; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.mawVuln = 0; e.mode = ''; e.resists = null; e.spd = 0; e.hmFreeze = true;
+  return e;
+}
+function loss(e) { return 500 - e.hp; }
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage3src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('callers stay physical', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf('legacySkillPower') >= 0);
+  check('no new combat affixes', src.indexOf("k: 'critDmg'") < 0 && src.indexOf("k: 'flatFire'") < 0 && src.indexOf("k: 'inc'") < 0 && src.indexOf("k: 'more'") < 0 && src.indexOf("k: 'bonusFire'") < 0 && src.indexOf("k: 'resFire'") < 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('crit base is x2', g.CRIT_MUL_BASE === 2);
+
+  g.newGame();
+  let p = calm(g, w);
+  check('default sheet is baseline', p.st.crit === 5 && p.st.critMul === 2 && p.st.critDmg === 0 && p.st.flat === 0 && p.st.inc === 0 && p.st.more === 1 && p.st.ls === 0 && p.st.fire === 0, JSON.stringify({ crit: p.st.crit, mul: p.st.critMul, more: p.st.more }));
+  check('sheet chance matches the roll', g.critChance('melee') === p.st.crit && g.critMultiplier('melee') === p.st.critMul && g.critChance('bow') === 5 && g.critChance('whirlwind') === 5);
+
+  const bounds = [
+    [0, 0, false],
+    [-20, 0, false],
+    [5, 0, true],
+    [5, 0.05, false],
+    [100, 0, true],
+    [100, 0.999, true],
+    [250, 0.999, true]
+  ];
+  let boundMiss = '';
+  bounds.forEach(row => {
+    calm(g, w); p.st.crit = row[0]; w.__critRoll = row[1];
+    const hit = g.rollPlayerCrit('melee');
+    if (hit.crit !== row[2]) boundMiss += row[0] + '@' + row[1] + '=' + hit.crit + '; ';
+  });
+  check('crit chance boundaries', !boundMiss, boundMiss);
+  calm(g, w); p.st.crit = 250; w.__critRoll = 0.999;
+  check('over 100 still crits', g.rollPlayerCrit('melee').crit === true && g.critChance('melee') === 250);
+
+  calm(g, w); p.st.min = 10; p.st.max = 10; p.st.crit = 100; p.st.critMul = 2;
+  const rolled = w.rollDmg('melee');
+  check('roll applies x2 once', rolled.d === 20 && rolled.base === 10 && rolled.crit === true && rolled.critApplied === true, JSON.stringify(rolled));
+  const rat = foe(g, p, 'rat', p.x + 20);
+  w.damageEnemy(rat, rolled.d, 0, 0, '#fff', true, null, { critApplied: true, critPending: true, skill: 'melee' });
+  check('resolver does not crit again', loss(rat) === 20 && w.__lastDamage.crit === true, loss(rat));
+  rat.hp = 500;
+  w.damageEnemy(rat, 25, 0, 0, '#fff', true);
+  check('display crit flag does not double', loss(rat) === 25 && w.__lastDamage.crit === true, loss(rat));
+  rat.hp = 500;
+  w.__critRoll = 0; p.st.crit = 100; p.st.critMul = 2;
+  g.resolveDamage(rat, { amount: 40, type: 'Physical', attacker: 'player', critPending: true, critApplied: false, skill: 'melee' });
+  check('pending crit multiplies once', loss(rat) === 80, loss(rat));
+  rat.hp = 500;
+  g.resolveDamage(rat, { amount: 80, type: 'Physical', attacker: 'player', crit: true, critApplied: true, critPending: true });
+  check('pending ignored once applied', loss(rat) === 80, loss(rat));
+
+  calm(g, w);
+  p.equip.ring = { id: 's3-crit', slot: 'ring', name: 'Crit Ring', mods: { critDmg: 50 }, powers: [] };
+  w.computeStats();
+  check('crit damage adds to the x2', p.st.critMul === 2.5 && p.st.critDmg === 50, p.st.critMul);
+  p.st.min = 10; p.st.max = 10; p.st.crit = 100; w.__critRoll = 0;
+  check('x2.5 on a 10 roll', w.rollDmg('melee').d === 25, w.rollDmg('melee').d);
+  g.setSkillCrit('melee', { chance: 0, mul: 1 });
+  check('skill crit multi adds', g.critMultiplier('melee') === 3.5 && w.rollDmg('melee').d === 35, g.critMultiplier('melee') + ' d ' + w.rollDmg('melee').d);
+  g.setSkillCrit('melee', null);
+  check('skill crit cleared', g.critMultiplier('melee') === 2.5 && g.getSkillCrit('melee').mul === 0);
+
+  calm(g, w);
+  p.equip.ring = { id: 's3-ring', slot: 'ring', name: 'Test Ring', mods: { inc: 10, more: 10, crit: 1 }, powers: [] };
+  p.equip.amulet = { id: 's3-amulet', slot: 'amulet', name: 'Test Amulet', mods: { inc: 10, more: 10, critDmg: 50, fire: 6 }, powers: [] };
+  w.computeStats();
+  check('increased sums and more multiplies', p.st.inc === 20 && Math.abs(p.st.more - 1.21) < 1e-9 && p.st.crit === 6 && p.st.critMul === 2.5 && p.st.fire === 6, JSON.stringify({ inc: p.st.inc, more: p.st.more, crit: p.st.crit, fire: p.st.fire }));
+  w.renderInv();
+  const sheet = w.document.getElementById('stats').textContent;
+  check('text sheet shows chance and multiplier', sheet.indexOf('Crit 6% x2.5') >= 0 && sheet.indexOf('Leech') >= 0, sheet.split('\n').filter(l => l.indexOf('Crit') >= 0).join(' | '));
+
+  calm(g, w); p.st.flat = 20; p.st.inc = 50;
+  const incFirst = (100 * 1.5) + 20;
+  const flatFirst = g.scaleAmount(100, 'Physical', 1);
+  check('flat then increased', flatFirst === 180 && incFirst === 170 && flatFirst !== incFirst, flatFirst);
+
+  calm(g, w); p.st.flat = 10;
+  check('more after flat', g.scaleAmount(10, 'Physical', 2) === 40, g.scaleAmount(10, 'Physical', 2));
+
+  calm(g, w);
+  p.st.flat = 10; p.st.flatFire = 5; p.st.inc = 20; p.st.incFire = 30; p.st.more = 1.1; p.st.moreFire = 1.25; p.st.bonusFire = 10;
+  const full = g.scaleAmount(100, 'Fire', 1);
+  check('full scale integer', Math.abs(full - 260.90625) < 1e-9, full);
+  const burn = foe(g, p, 'rat', p.x + 24);
+  g.resolveDamage(burn, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'player', critApplied: true });
+  check('scaled fire deals 261', loss(burn) === 261 && w.__lastDamage.components[0].amount === full, loss(burn));
+
+  calm(g, w); p.st.min = 10; p.st.max = 10; p.st.crit = 100; p.st.critMul = 2; p.st.flat = 5; w.__critRoll = 0;
+  const critFlat = w.rollDmg('melee');
+  check('crit before flat inside the roll', critFlat.d === 20, critFlat.d);
+  const cf = foe(g, p, 'rat', p.x + 24);
+  w.damageEnemy(cf, critFlat.d, 0, 0, '#fff', true, null, { critApplied: true });
+  check('crit does not multiply flat', loss(cf) === 25, loss(cf));
+
+  calm(g, w); p.st.flat = 0; p.st.inc = 0;
+  const pkt = g.makeDamagePacket({ amount: 100, type: 'Fire', attacker: 'player', critApplied: true });
+  p.st.flatFire = 10;
+  const once = g.scaleOutgoingComponents(pkt.components, pkt);
+  const twice = g.scaleOutgoingComponents(once, pkt);
+  check('scaling is not applied twice', once[0].amount === 110 && twice[0].amount === 110 && twice[0].scaled === true, once[0].amount + '/' + twice[0].amount);
+
+  calm(g, w);
+  g.setConversionEdges([
+    { from: 'Physical', to: 'Fire', fraction: 0.6 },
+    { from: 'Physical', to: 'Cold', fraction: 0.6 }
+  ]);
+  const split = foe(g, p, 'rat', p.x + 24);
+  const splitRes = w.damageEnemy(split, 100, 0, 0, '#fff', false);
+  const splitSum = {};
+  (splitRes.components || []).forEach(c => { splitSum[c.type] = (splitSum[c.type] || 0) + c.amount; });
+  const splitTotal = (splitSum.Physical || 0) + (splitSum.Fire || 0) + (splitSum.Cold || 0);
+  check('conversion keeps the total', loss(split) === 100 && splitTotal === 100 && splitSum.Physical === 16 && splitSum.Fire === 60 && splitSum.Cold === 24, JSON.stringify(splitSum));
+
+  calm(g, w); p.st.inc = 100;
+  g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.5 }]);
+  const grown = foe(g, p, 'rat', p.x + 24);
+  const grownRes = w.damageEnemy(grown, 100, 0, 0, '#fff', false);
+  const grownSum = {};
+  (grownRes.components || []).forEach(c => { grownSum[c.type] = (grownSum[c.type] || 0) + c.amount; });
+  check('increased changes the total and conversion does not add more', loss(grown) === 200 && grownSum.Physical === 100 && grownSum.Fire === 100, JSON.stringify(grownSum));
+
+  calm(g, w);
+  let dup = '', cyc = '', self = '';
+  g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.5 }]);
+  try { g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.25 }, { from: 'Physical', to: 'Fire', fraction: 0.25 }]); } catch (e) { dup = String(e.message || e); }
+  try { g.setConversionEdges([{ from: 'Fire', to: 'Cold', fraction: 1 }, { from: 'Cold', to: 'Fire', fraction: 1 }]); } catch (e) { cyc = String(e.message || e); }
+  try { g.setConversionEdges([{ from: 'Shadow', to: 'Shadow', fraction: 1 }]); } catch (e) { self = String(e.message || e); }
+  check('duplicate cycle and self rejected', dup.indexOf('duplicate') >= 0 && cyc.indexOf('cycle') >= 0 && self.indexOf('self-edge') >= 0 && g.getConversionEdges().length === 1 && g.getConversionEdges()[0].chain === false, dup + ' ' + cyc + ' ' + self);
+
+  calm(g, w);
+  g.setConversionEdges([
+    { from: 'Physical', to: 'Fire', fraction: 1 },
+    { from: 'Fire', to: 'Cold', fraction: 1, chain: true },
+    { from: 'Cold', to: 'Lightning', fraction: 1, chain: true }
+  ]);
+  const hop = foe(g, p, 'rat', p.x + 24);
+  const hopRes = w.damageEnemy(hop, 100, 0, 0, '#fff', false);
+  const hopSum = {};
+  (hopRes.components || []).forEach(c => { hopSum[c.type] = (hopSum[c.type] || 0) + c.amount; });
+  check('chain hops once and does not copy', loss(hop) === 100 && hopSum.Cold === 100 && !hopSum.Lightning && !hopSum.Fire, JSON.stringify(hopSum));
+
+  calm(g, w);
+  g.setConversionEdges([
+    { from: 'Physical', to: 'Fire', fraction: 0.5 },
+    { from: 'Fire', to: 'Cold', fraction: 1 }
+  ]);
+  const nochain = foe(g, p, 'rat', p.x + 24);
+  const nc = w.damageEnemy(nochain, 100, 0, 0, '#fff', false);
+  const ncSum = {};
+  (nc.components || []).forEach(c => { ncSum[c.type] = (ncSum[c.type] || 0) + c.amount; });
+  check('converted damage does not chain by default', loss(nochain) === 100 && ncSum.Physical === 50 && ncSum.Fire === 50 && !ncSum.Cold, JSON.stringify(ncSum));
+  nochain.hp = 500;
+  const original = g.resolveDamage(nochain, { amount: 80, type: 'Fire', attacker: 'player', critApplied: true });
+  const origSum = {};
+  (original.components || []).forEach(c => { origSum[c.type] = (origSum[c.type] || 0) + c.amount; });
+  check('unconverted fire still converts', loss(nochain) === 80 && origSum.Cold === 80, JSON.stringify(origSum));
+
+  calm(g, w);
+  g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.5 }]);
+  const penned = foe(g, p, 'rat', p.x + 30);
+  penned.resists = { Fire: 0 };
+  p.st.penFire = 40;
+  const penRes = w.damageEnemy(penned, 100, 0, 0, '#fff', false);
+  const firePart = (penRes.components || []).filter(c => c.type === 'Fire')[0];
+  check('penetration once on the converted half', loss(penned) === 120 && firePart && firePart.penHits === 1 && firePart.pen === 40, loss(penned) + ' hits ' + (firePart && firePart.penHits));
+  const again = g.mitigateElement(firePart, penned, { penetration: null }, true);
+  check('second resist call does not penetrate again', again === firePart.mitigatedAmount && firePart.penHits === 1, again + ' hits ' + firePart.penHits);
+
+  calm(g, w); p.st.penFire = 20;
+  const both = foe(g, p, 'rat', p.x + 30);
+  both.resists = { Fire: 0 };
+  w.damageEnemy(both, 100, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], penetration: 20 });
+  check('sheet pen and packet pen add once', loss(both) === 140 && w.__lastDamage.components[0].penHits === 1 && w.__lastDamage.components[0].pen === 40, loss(both));
+
+  calm(g, w); p.st.penFire = 40; p.st.resFire = 0; p.hp = 400;
+  w.hurtPlayer(100, { x: p.x + 8, y: p.y, label: 'rat', T: { label: 'rat' } });
+  check('player pen does not reduce the player', p.hp === 300, p.hp);
+  calm(g, w); p.st.flat = 500; p.st.inc = 100; p.st.more = 3; p.hp = 400;
+  w.__hurtSpread = 1;
+  w.hurtPlayer(100, { x: p.x + 8, y: p.y, label: 'rat', T: { label: 'rat' } });
+  check('offensive scaling ignores incoming hits', p.hp === 300, p.hp);
+
+  calm(g, w); p.st.critMul = 9; p.st.def = 0; p.torchT = 40; p.hp = 400; w.__champCrit = 0; w.__hurtSpread = 1;
+  const champ = g.spawnEnemy('skel', 8, 8, true);
+  champ.dead = false; champ.hp = 20; champ.x = p.x + 14; champ.y = p.y;
+  w.hurtPlayer(100, champ);
+  check('champion crit stays +5 after armor', p.hp === 295 && p.torchT === 0 && p.lastChampCrit && p.lastChampCrit.bonus === 5, p.hp);
+
+  calm(g, w); p.x = 220; p.y = 180; p.fx = 1; p.fy = 0; p.atkCd = 0;
+  p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.st.ls = 20; p.hp = 100;
+  const tapped = foe(g, p, 'rat', p.x + 12);
+  w.doAttack(true);
+  check('tap leech is the pre-mitigation roll', loss(tapped) === 10 && w.__lastLeech && w.__lastLeech.source === 'melee' && w.__lastLeech.base === 10 && Math.abs(w.__lastLeech.healed - 2) < 1e-9 && Math.abs(p.hp - 102) < 1e-9, JSON.stringify(w.__lastLeech));
+
+  calm(g, w); p.x = 220; p.y = 180; p.fx = 1; p.fy = 0; p.atkCd = 0;
+  p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.st.ls = 20; p.hp = 100;
+  const powered = foe(g, p, 'rat', p.x + 12);
+  w.powerAttack074(0.9, true);
+  check('power attack multiplies damage not the leech', loss(powered) === 23 && w.__lastLeech && w.__lastLeech.source === 'power' && w.__lastLeech.base === 10 && Math.abs(w.__lastLeech.healed - 2) < 1e-9, loss(powered) + ' ' + JSON.stringify(w.__lastLeech));
+
+  calm(g, w); p.x = 220; p.y = 180; p.fx = 1; p.fy = 0; p.atkCd = 0;
+  p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.st.ls = 50; p.hp = 100;
+  const guard = foe(g, p, 'guard', p.x + 12);
+  guard.fa = Math.PI;
+  w.doAttack(true);
+  check('guard does not reduce life steal', loss(guard) === 2 && w.__lastLeech.base === 10 && Math.abs(w.__lastLeech.healed - 5) < 1e-9, loss(guard) + ' ' + JSON.stringify(w.__lastLeech));
+
+  calm(g, w); p.x = 220; p.y = 180; p.fx = 1; p.fy = 0;
+  p.lichTome.isAcquired = true; g.unlockSpell('spin');
+  p.lvl = 1; p.st.fire = 0; p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.mp = 80; p.cds[1] = 0; p.st.ls = 10; p.hp = 100;
+  g.setSkillCrit('whirlwind', { chance: 100, mul: 0 });
+  w.__critRoll = 0;
+  const spin = foe(g, p, 'rat', p.x);
+  w.castSkill(1);
+  check('whirlwind skill crit doubles the weapon roll only', loss(spin) === 29 && w.__lastLeech.source === 'whirlwind' && Math.abs(w.__lastLeech.base - 29) < 1e-9 && Math.abs(w.__lastLeech.healed - 2.9) < 1e-9, loss(spin) + ' ' + JSON.stringify(w.__lastLeech));
+  g.clearSkillCrit();
+  spin.hp = 500; p.st.crit = 0; p.mp = 80; p.cds[1] = 0; p.hp = 100;
+  w.castSkill(1);
+  check('whirlwind without crit leeches 15', loss(spin) === 15 && Math.abs(w.__lastLeech.base - 15) < 1e-9 && Math.abs(w.__lastLeech.healed - 1.5) < 1e-9, loss(spin) + ' ' + JSON.stringify(w.__lastLeech));
+
+  calm(g, w); p.x = 220; p.y = 180; p.fx = 1; p.fy = 0; p.atkCd = 0; p.st.ls = 50; p.hp = 40;
+  g.equipBow('default');
+  p.st.min = 8; p.st.max = 8; p.st.crit = 100; p.st.critMul = 2; p.st.ls = 50; p.st.regen = 0; p.st.inc = 0; p.st.more = 1; p.st.flat = 0; w.__critRoll = 0;
+  const beforeBow = p.hp;
+  w.fireBow(p.equip.weapon, true);
+  const arrow = g.projs.filter(q => q.kind === 'arrow' && q.owner === 'p').pop();
+  check('bow stores the crit and does not leech', arrow && arrow.dmg === 16 && arrow.critRolled === true && w.__lastLeech.skipped === true && w.__lastLeech.source === 'bow' && p.hp === beforeBow, (arrow && arrow.dmg) + ' ' + JSON.stringify(w.__lastLeech));
+  const arrowE = foe(g, p, 'rat', p.x + 16);
+  arrowE.r = 8;
+  if (arrow) { arrow.x = arrowE.x; arrow.y = arrowE.y; arrow.life = 0.2; }
+  g.step(0.05, { x: 0, y: 0 });
+  check('bow crit flag stays off the floater', loss(arrowE) === 16 && w.__lastDamage && w.__lastDamage.crit === false && p.hp === beforeBow, loss(arrowE) + ' crit ' + (w.__lastDamage && w.__lastDamage.crit) + ' hp ' + p.hp);
+
+  calm(g, w);
+  p.lichTome.isAcquired = true; g.unlockSpell('fireball'); g.unlockSpell('frostNova');
+  p.lvl = 10; p.st.fire = 20; p.mp = 100; p.cds[0] = 0; p.fx = 1; p.fy = 0; p.st.ls = 40; p.hp = 50;
+  g.setSkillCrit('fireball', { chance: 100, mul: 5 });
+  g.projs.length = 0;
+  w.castSkill(0);
+  const fb = g.projs.find(q => q.kind === 'fire');
+  check('fireball ignores crit mods and life steal', fb && Math.abs(fb.dmg - 64) < 1e-6 && w.__lastLeech.skipped === true && w.__lastLeech.source === 'fireball' && p.hp === 50, (fb && fb.dmg) + ' ' + JSON.stringify(w.__lastLeech));
+  g.clearSkillCrit();
+  const fbE = foe(g, p, 'rat', fb.x + fb.vx * 0.05, p.y);
+  fbE.x = fb.x + fb.vx * 0.05; fbE.y = fb.y + fb.vy * 0.05;
+  fbE.resists = { Fire: 90 }; fbE.maxResist = 15; fbE.r = 8;
+  const hpSpell = p.hp;
+  g.step(0.05, { x: 0, y: 0 });
+  check('fireball stays physical against fire resist', loss(fbE) === 64 && p.hp === hpSpell, loss(fbE));
+
+  calm(g, w);
+  p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
+  p.lvl = 1; p.st.fire = 0; p.mp = 80; p.cds[2] = 0; p.st.ls = 40; p.hp = 50;
+  const novaE = foe(g, p, 'rat', p.x + 10);
+  novaE.resists = { Cold: 90 }; novaE.maxResist = 15;
+  w.castSkill(2);
+  check('frost nova stays physical and does not leech', loss(novaE) === 8 && novaE.slow === 3.5 && w.__lastLeech.skipped === true && w.__lastLeech.source === 'frost' && p.hp === 50, loss(novaE) + ' ' + JSON.stringify(w.__lastLeech));
+
+  calm(g, w); p.st.min = 4; p.st.max = 4; p.st.crit = 0; p.st.fire = 40; w.__critRoll = 0;
+  check('melee roll ignores mods.fire', w.rollDmg('melee').d === 4, w.rollDmg('melee').d);
+
+  g.newGame(); p = calm(g, w);
+  let lootBad = false;
+  for (let i = 0; i < 40; i++) {
+    const it = g.makeItem(12, 1);
+    const mods = (it && it.mods) || {};
+    for (const k in mods) if (/^(flat|inc|more|bonus|critDmg)/.test(k)) lootBad = true;
+  }
+  check('loot does not roll stage 3 mods', !lootBad);
+
+  g.newGame(); p = calm(g, w);
+  p.equip.amulet = { id: 's3-save', slot: 'amulet', name: 'Save Charm', mods: { fire: 6, crit: 2, critDmg: 50, flat: 4, inc: 10, more: 10, bonusFire: 5 }, powers: [] };
+  w.computeStats();
+  const snap = { fire: p.st.fire, crit: p.st.crit, critMul: p.st.critMul, flat: p.st.flat, inc: p.st.inc, more: p.st.more, bonusFire: p.st.bonusFire };
+  check('save setup keeps fire as spell power', snap.fire === 6 && snap.crit === 7 && snap.critMul === 2.5 && snap.flat === 4 && snap.inc === 10 && Math.abs(snap.more - 1.1) < 1e-9 && snap.bonusFire === 5, JSON.stringify(snap));
+  w.save();
+  g.continueGame();
+  w.computeStats();
+  const q = g.player;
+  check('save reloads stage 3 stats and fire', q && q.st.fire === 6 && q.st.crit === 7 && q.st.critMul === 2.5 && q.st.flat === 4 && q.st.inc === 10 && Math.abs(q.st.more - 1.1) < 1e-9 && q.st.bonusFire === 5 && q.equip.amulet.mods.fire === 6, q && JSON.stringify({ fire: q.st.fire, crit: q.st.crit, mul: q.st.critMul, flat: q.st.flat, more: q.st.more }));
+  q.equip.amulet = { id: 'old-charm', slot: 'amulet', name: 'Old Charm', mods: { fire: 6 }, powers: [] };
+  w.computeStats();
+  check('old gear keeps fire and zeros new stats', q.st.fire === 6 && q.st.crit === 5 && q.st.critMul === 2 && q.st.flat === 0 && q.st.inc === 0 && q.st.more === 1 && q.st.bonusFire === 0 && q.st.penFire === 0, JSON.stringify({ fire: q.st.fire, crit: q.st.crit, mul: q.st.critMul, flat: q.st.flat, more: q.st.more }));
+
+  g.newGame(); p = calm(g, w);
+  g.startFloor(5, true);
+  p = calm(g, w);
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = -2; y <= 2; y++) for (let x = -1; x <= 8; x++) g.setTile(tx + x, ty + y, 1);
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  se.sePhase = 'fight'; se.x = p.x + 24; se.y = p.y; se.hp = 90; se.shield = 9; se.mawVuln = 0; se.dead = false; se.hidden = false; se.downT = 0;
+  se.resists = { Fire: 90 };
+  let boss = g.enemies.find(e => e.T && e.T.boss && e !== se);
+  if (!boss) boss = g.spawnBoss(p.x + 48, p.y);
+  boss.x = p.x + 48; boss.y = p.y; boss.dead = false; boss.hp = 400; boss.maxHp = 400; boss.shield = 200; boss.mawVuln = 0; boss.hidden = false;
+  p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth sinks se not boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss), 'n ' + sinks.length);
+  const sh0 = boss.shield;
+  w.damageEnemy(boss, 100, 0, 0, '#fff', false);
+  check('marked boss still takes 110', boss.shield === sh0 - 110 && boss.hp === 400, 'sh ' + boss.shield);
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('hellmouth still deletes se', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp + ' dead ' + se.dead);
+  check('edges stay empty in play', g.getConversionEdges().length === 0);
+}
+</script>
+</body>
+</html>
