@@ -1,6 +1,6 @@
 # Lichlight Combat Redesign Changelog
 
-This file is the permanent development record for the combat redesign. Do not delete or rewrite previous entries. Later stages append. Stage 0 is documentation only.
+This file is the permanent development record for the combat redesign. Do not delete or rewrite previous entries. Later stages append. Stage 0 is documentation only. Stage 1, recorded in a later entry, adds the damage resolver. The Stage 0 entry below is unchanged.
 
 Gameplay baseline inspected for this entry: tag **v0.7.18**, commit **25253a5586470e466f99f2122c4579ac69a666b1**. Live game: https://gamedevjake.github.io/lichlight/
 
@@ -15,8 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 0 — Baseline Audit and Project Preparation.
-- **Overall project status:** IN PROGRESS. Stage 0 is IMPLEMENTED and waiting for Jake's review. Stages 1–13 are NOT STARTED. Do not begin Stage 1 until Jake approves this audit.
+- **Current implementation stage:** Stage 1 — Universal Damage Architecture. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23 and GO'd Stage 1. Stage 0 stays IMPLEMENTED (not marked VERIFIED here). Stage 1 is IMPLEMENTED and waiting for Jake. Stages 2–13 are NOT STARTED. Do not begin Stage 2 until Jake approves Stage 1.
+- **Rollback tag:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash, includes this changelog's Stage 0 text plus gameplay `25253a5`).
 
 ---
 
@@ -25,7 +26,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | Stage | Name | Status |
 | --- | --- | --- |
 | 0 | Baseline audit and project preparation | IMPLEMENTED |
-| 1 | Universal damage architecture | NOT STARTED |
+| 1 | Universal damage architecture | IMPLEMENTED |
 | 2 | Armor and resistances | NOT STARTED |
 | 3 | Critical hits and damage scaling | NOT STARTED |
 | 4 | Status effects | NOT STARTED |
@@ -39,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. No gameplay test harness was executed in this session.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stage 1 did; the counts are in that entry.
 
 ---
 
@@ -143,13 +144,147 @@ Wait for Jake's approval before Stage 1. The recommended architecture is in [Des
 
 ---
 
+### 2026-11-05 — Stage 1: Universal Damage Architecture
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 1 — Universal Damage Architecture.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Rollback tag `combat-redesign-pre-stage1` points at `26e917f413531466aceed0577819110aa5e6dd17`. This entry's commit is the Stage 1 head on `cursor/combat-stage1-damage-architecture-0f6b` (SHA recorded in the report after commit).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. Stage 2 has not been started.
+- **Objective:** Add a thin DamagePacket and one resolveDamage. Migrate current callers as Physical so time-to-kill stays the same. Do not add elemental resists, do not reinterpret `mods.fire`, do not change Hellmouth's Super Elite delete.
+
+#### Existing Behavior
+
+Unchanged from the Stage 0 entry. One scalar pipe, `DEF/(DEF+30)` once inside hurtPlayer, Ethereal Shield ×0.75 in the tome wrapper before that function, four separate shields, `mods.fire` as spell power, Hellmouth sinking anything that is not `T.boss`.
+
+#### Changes Implemented
+
+- Added `DMG_TYPES` (Physical, Fire, Cold, Lightning, Poison, Shadow) and `DMG_TAGS` (Melee, Ranged, Spell, Projectile, AoE, DoT, Direct, Channelled). Channelled is accepted and unused.
+- Added `makeDamagePacket`, `resolveDamage`, `setConversionEdges`, `getConversionEdges`, `physicalArmorFraction`, and `elementalResist`. `elementalResist` returns 0 for every type. No resist stats were added.
+- `resolveDamage` is the only place that applies Ethereal Shield, block, the physical armor curve, champion crit, thorns, barrier, enemy guard/ram/Hellmouth vuln, the floor of 1, and boss/Super Elite shield. `damageEnemy` and `hurtPlayer` build a packet and call it. The v0.7.10 hurt wrapper no longer multiplies by 0.75 and no longer returns early for Shift or Clone, so those steps cannot run twice.
+- `envHurt` calls `resolveDamage` with `world: true`. That branch rounds, forces at least 1, honors Shift, and does not apply armor, block, barrier, or Ethereal Shield. Hunger, the pit climb-out, spike-gap ticks, and the blood door still write HP directly.
+- Conversion is a list of edges. The list starts empty. `setConversionEdges` rejects a self-edge and any cycle before it replaces the list, so a rejected update leaves the previous list in place. A moved component is marked and cannot take another edge. No gear adds an edge.
+- Current attacks are tagged and typed Physical: melee Melee+Direct, bow Ranged+Projectile+Direct, Fireball Spell+Projectile+AoE, Whirlwind Spell+AoE+Melee, Frost Nova Spell+AoE, thorns Direct, incoming contact Melee+Direct, incoming bolts Projectile+Direct, poison DoT, other hurtPlayer sources Direct. The crit ×2 stays inside `rollDmg`. The resolver does not multiply by 2 again. Bow impact still drops the crit flag.
+- Hellmouth, `T.boss` on Super Elites, and `killEnemy`'s Super Elite path were not edited.
+
+#### Files Modified
+
+- `index.html` — damage packet, resolver, adapters, attack tags. `version.json` was not edited.
+- `tests/stage1-damage.html` — new parity harness.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry and the living sections (checklist, reference, known issues, testing, approval). The Stage 0 history entry was not rewritten.
+
+#### Functions Added or Modified
+
+Added: `makeDamagePacket`, `normalizeTags`, `normalizeComponent`, `physicalArmorFraction`, `elementalResist`, `setConversionEdges`, `getConversionEdges`, `conversionCycle`, `applyConversion`, `tagsForIncoming`, `resolveDamage`, `resolvePlayerDamage`, `resolveEnemyDamage`, `resolveWorldDamage`.
+
+Modified: `damageEnemy` (adapter), `hurtPlayer` (adapter), `envHurt` (world packet), the v0.7.10 `hurtPlayer` wrapper (pass-through), the v0.7.16 `damageEnemy` wrapper (forwards the new tags argument), melee / Whirlwind / Frost Nova / Fireball / arrow / thorns call sites (tags only). `castHellmouth`, `tickHellmouth`, and `killEnemy` were not modified. `pw = fire + level * 2` was not modified; a comment marks it `legacySkillPower`.
+
+#### Combat Formulas
+
+No constant changed. Player Physical damage, one component, is still:
+
+```
+amount = incoming * (Ethereal Shield ? 0.75 : 1)
+reduction = DEF / (DEF + 30)
+dealt = max(1, round(amount * (1 - reduction) * spread))
+if champion crit: dealt += max(0, round(amount * 0.05))
+```
+
+Spread is still 0.85–1.15, pinned in tests with `__hurtSpread`. Champion crit is still 10% and still uses the post-Ethereal, pre-armor amount. Block, thorns, and barrier still see that same pre-armor amount. DoTs still take Ethereal Shield and the armor curve, and still skip block, champion crit, thorns, barrier, and the new invulnerability window.
+
+Enemy damage is still immunities, then guard ×0.15, then ram armor ×0.40 unless stunned, then Hellmouth ×1.10, then `max(1, round)`, then boss/Super Elite shield, then HP. A single unconverted component uses that expression once.
+
+Non-physical components skip `DEF/(DEF+30)` and use `elementalResist`, which is 0. No current caller sends a non-physical type. A mixed packet armors only the Physical part and rounds the sum once.
+
+World damage is still `max(1, round(amount))` with no armor. Empty conversion leaves the amount unchanged.
+
+#### Gameplay Impact
+
+None intended. Pinned-spread parity checks match the v0.7.18 integers (100 at DEF 0 stays 100, DEF 30 stays 50, Ethereal Shield stays 75, champion crit stays 105, DEF 30 plus champion crit stays 55, Ethereal plus champion crit stays 79). Live spread is still the old random range. Fireball, Whirlwind, and Frost Nova still use spell power. Hellmouth still deletes Super Elites.
+
+#### Compatibility Notes
+
+Packets are not saved. `mods.fire` is still spell power. A save written with an amulet `mods.fire = 6` reloaded the same `st.fire`, `st.crit`, `st.def`, `st.min`, and `st.max`. No migration runs.
+
+#### Tests Performed
+
+Headless Chrome (Puppeteer, system Google Chrome) against `python3 -m http.server` on 127.0.0.1, loading each `tests/*.html` harness. Executed. Not inferred.
+
+**Before any Stage 1 code**, on tag `combat-redesign-pre-stage1` / `26e917f`. 21 files, **811 passed, 95 failed**. Fully green: `v076.html` 48, `v07102.html` 54, `v0718.html` 20. Combat anchors, ignoring the version string each old file pins:
+
+- `tests/v079.html` — 49 pass, 1 fail (`version`, game is 0.7.18, harness expects 0.7.11). Champion crit checks passed.
+- `tests/v0710.html` — 36 pass, 1 fail (`version`, expects 0.7.11). Ethereal Shield 75, Shift, Clone, and Hellmouth line-of-sight checks passed.
+- `tests/v0717.html` — 47 pass, 1 fail (`version`, expects 0.7.17). Boss shield and Super Elite shield checks passed.
+- `tests/v0718.html` — 20 pass, 0 fail.
+
+Other first-run failures, all on the unmodified checkpoint:
+
+- `v075.html` 59/1 — f3 multi select.
+- `v077.html` 60/4 — version, version source, f4 pool, f5 shop boss.
+- `v078.html` 60/1 — version.
+- `v078-play.html` 25/1 — f11 champions only.
+- `v0781.html` 27/2 — version, f1 boss hits (49 at depth 5).
+- `v07101.html` 41/1 — version.
+- `v07103.html` 24/3 — version, stats canvas, name in panel.
+- `v0711.html` 42/5 — version, hundred gold, tome icon, stats scroll, stats canvas kept.
+- `v0712.html` 37/6 — version, whale title wraps, short title one line, sell grid cells, short detail fits frame, detail wraps whale name.
+- `v0713.html` 32/5 — version, whale still wraps, pedlar panel, sell grid 32, leave is red.
+- `v0714.html` 40/1 — version only, on this first run.
+- `v0715.html` 19/13 — version plus 12 satchel scale/layout checks (1080p, 1440p, 900p, 768p, 800×450, 915×412, 960×440, tome names, shield lines, glyphs, phone landscape, phone close).
+- `v07151.html` 8/45 — version plus integer transform, kept-scale checks, 25 short-viewport checks, narrow-width checks, desktop scale/art, and four 915px DOM checks.
+- `v07152.html` 34/3 — version, tab hits follow scale, slot hit follows scale.
+- `v0716.html` 49/1 — version.
+
+**After Stage 1**, same 21 files: **807 passed, 100 failed**. Combat anchors were unchanged: v079 49/1, v0710 36/1, v0717 47/1, v0718 20/0, and the same single version failure on v0712, v0716. File-level deltas versus the first run:
+
+- `v0714.html` 33/8. The seven new names are footer sort, footer mark seen, footer drop all, footer equip, footer drop, footer close, and tab hitboxes match art. Re-running that file against unmodified `index.html` from `26e917f` produced the same 33/8. It is pre-existing layout timing, not a Stage 1 damage change. The first run's 40/1 is the cold pass.
+- `v07152.html` 36/1 (version only). The same 36/1 happened on unmodified `26e917f` when re-run. The two hit-test failures from the first run did not reproduce.
+- `v0711.html` 43/5 versus 42/5 on the checkpoint. The five failure names match (version, hundred gold, tome icon, stats scroll, stats canvas kept). The extra pass is a conditional Hellmouth check that depends on whether that floor spawned a trash target. The named boss-devour assertions did not start failing.
+
+**New harness** `tests/stage1-damage.html`: **71 passed, 0 failed.** It locks the legacy integer formula against both `hurtPlayer` and `resolveDamage` (DEF 0/10/30/60/90/120/200, spreads 0.85/1/1.15, Ethereal Shield, champion crit, the floor of 1), block once, barrier partial and full, DoT versus block/barrier/i-frames, Shift versus combat and `envHurt`, Clone versus combat only, hunger ignoring DEF 500, guard front/flank/floor, ram armor and stun, ram plus Hellmouth vuln, crab shell, crit flag not doubling, boss shield then overflow, Super Elite intro immunity and shield, Hellmouth sinking a Super Elite and marking only the boss then deleting the Super Elite, `mods.fire` absent from melee and still driving Fireball (64 and 36) and Whirlwind (crit 29, non-crit 15), Frost Nova 8 plus slow 3.5, arrow tags, Fire skipping armor, mixed components armoring only Physical, conversion cycle/self-edge rejection, no chaining, and a save round-trip of `st.fire`.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. Recorded under Known Issues. Not changed. `elementalResist` is a stub. `mods.fire` is still spell power. The legacy suites' version pins and UI failures above are pre-existing on v0.7.18.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage1
+```
+
+That tag is `26e917f413531466aceed0577819110aa5e6dd17`. Gameplay under it is v0.7.18 / `25253a5`. Do not move the tag.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not start Stage 2 (elemental resists, caps, penetration). Stage 2 should add resist stats beside `physicalArmorFraction` and must not run `DEF/(DEF+30)` on Fire, Cold, Lightning, Poison, or Shadow.
+
+---
+
 ## Combat System Reference
 
-This section describes **implemented** behavior on v0.7.18 / `25253a5`. Planned Stage 1 behavior is only in Design Decisions.
+The Stage 1 block below is what the game does now. The rest of this section is the v0.7.18 baseline those numbers still follow. Planned work for later stages stays marked as planned.
+
+### Stage 1 implemented architecture
+
+Implemented now:
+
+- Types: Physical, Fire, Cold, Lightning, Poison, Shadow. Every current combat caller sends Physical.
+- Tags, separate from types: Melee, Ranged, Spell, Projectile, AoE, DoT, Direct, Channelled. Channelled is unused.
+- One resolver, `resolveDamage`. Player order: Shift/Clone, Ethereal Shield ×0.75, roll and hit-stun, block, `DEF/(DEF+30)` on Physical only, spread, floor 1, champion crit, thorns, barrier, HP. Enemy order: immunities, guard ×0.15, ram armor, Hellmouth ×1.10, floor 1, boss/Super Elite shield, HP. World (`envHurt`): Shift, then `max(1, round(amount))`, no armor and no Ethereal Shield.
+- `elementalResist` exists and returns 0. Resist caps, penetration, and vulnerability-as-a-resist are **planned** (Stage 2). Hellmouth's ×1.10 is the existing boss mark, not a resist.
+- Conversion graph exists, rejects self-edges and cycles, and has no edges. Chained conversion of an already moved component is rejected by the converted flag. Adding edges is **planned** (Stage 3).
+- Critical ×2 is still inside `rollDmg`, not in the resolver. Crit chance above the 5% base, and crit damage other than ×2, are **planned** (Stage 3).
+- `mods.fire` is still spell power (`pw = fire + level * 2`). It is not a Fire component. Reinterpreting it is **planned** (Stages 7, 10, 12).
+- Hunger, pit climb-out, spike-gap ticks, and blood doors still write HP directly. They are not combat packets.
+- Hellmouth still sinks Super Elites because `T.boss` is false, then `killEnemy` deletes them. Changing that is **planned** (Stage 9).
+
+Not implemented: status effects, stagger, poise, weapon identities, elite affixes, new boss phases, behavioral item affixes, damage-number presentation, character-sheet resists. Those remain later stages.
 
 ### Damage types
 
-Implemented types: none. Every combat number is a scalar.
+**Baseline record.** Current callers still produce these scalars, with the type field set to Physical.
+
+Every pre-Stage-1 combat number was a scalar. It still is, for every attack that exists today.
 
 There is no Fire, Cold, Lightning, Poison, or Shadow resist. Poison puddles and the on-fire environment effect are delivery rules, not damage types. Gear `mods.fire` is added only inside Fireball, Whirlwind, and Frost Nova as spell power:
 
@@ -159,7 +294,7 @@ pw = mods.fire + level * 2
 
 Weapon hits, bows, and enemy hits never add `pw`. The affix line is `+N Fire Damage (skills)`.
 
-Attack tags (Melee, Ranged, Spell, Projectile, Area, DoT, and so on) are not data. They are implied by which function was called.
+Before Stage 1, attack tags were not data. They were implied by which function was called. Stage 1 stores them on the packet. The call-site mapping is in the Stage 1 history. The formulas under this heading are still the live numbers.
 
 ### Where damage is born
 
@@ -498,7 +633,7 @@ No other brief formula that was evaluated disagreed with the code.
 
 ## Design Decisions
 
-These are Stage 0 recommendations. They are not implemented. **Wait for Jake's approval before Stage 1.**
+D1–D7 below are the Stage 0 recommendations. Stage 1 implemented them. The text of each decision is the original recommendation and was not rewritten. Stage 1 notes follow D7.
 
 ### D1 — Thin DamagePacket and one resolveDamage adapter
 
@@ -581,6 +716,15 @@ These are Stage 0 recommendations. They are not implemented. **Wait for Jake's a
 - **Expected gameplay impact.** None until Stage 9.
 - **Tradeoffs.** Hellmouth remains a stair-lock bypass on every floor that has a Super Elite in line of sight within 112 px. That is the live game.
 
+### Stage 1 implementation notes
+
+D1–D7 are in the code. Refinements forced by the existing formulas:
+
+- Crit ×2 stays in `rollDmg`. Conversion therefore sees an amount that already includes a melee or Whirlwind weapon crit. The resolver does not apply ×2 again. Moving the double into the resolver would have changed Whirlwind, which crits only the weapon roll and then adds spell power. That split stays until Stage 3.
+- A player packet with one Physical component uses the exact v0.7.18 expression `max(1, round(amount * (1 - DEF/(DEF+30)) * spread))`. Mixed components sum the post-mitigation floats and round once. Nothing in the live game sends two components yet.
+- The tome wrapper remains so later assignments still wrap the same function, but it no longer multiplies and no longer returns early. Shift, Clone, and Ethereal Shield live only in `resolveDamage`.
+- `envHurt` is a world packet. Hunger, pits, and blood doors stayed direct writes. A test locks both.
+
 ---
 
 ## Known Issues and Technical Debt
@@ -589,12 +733,12 @@ Severity is about how badly it will mislead a later stage or a player, not about
 
 ### CRITICAL
 
-- **Hellmouth deletes Super Elites.** `T.boss` is false, so they take the trash sink and `killEnemy`, skipping shield, taunt immunity, and the stair gate. Stage 9. OPEN. Do not fix in Stage 1. See D7.
+- **Hellmouth deletes Super Elites.** `T.boss` is false, so they take the trash sink and `killEnemy`, skipping shield, taunt immunity, and the stair gate. Stage 9. OPEN. Stage 1 did not change this. `tests/stage1-damage.html` asserts the current sink-and-delete. See D7.
 
 ### HIGH
 
-- **Three damage pipes and two `hurtPlayer` wrappers.** A new resist added in only one pipe will desync player hits, enemy hits, and lava. Stage 1. OPEN. D1 is the plan.
-- **Defense, block, Ethereal Shield, and barrier are easy to apply twice** once both the wrapper and the adapter exist. Stage 1–2. OPEN. D2 and D4.
+- **Three damage pipes and two `hurtPlayer` wrappers.** Stage 1 routed `damageEnemy` and `hurtPlayer` through `resolveDamage`, and `envHurt` through the world branch. Hunger, pit climb-out, and blood doors are still direct HP writes on purpose. A resist added only inside one leftover writer would still desync lava from hunger. Stage 2. OPEN for those direct writers. The combat path is no longer three copies of the armor curve.
+- **Defense, block, Ethereal Shield, and barrier are easy to apply twice.** Stage 1 removed the ×0.75 from the tome wrapper and covered the single application with parity tests (100 → 75 with the shield up, not 56; DEF 30 → 50, not 25). Still OPEN as a guardrail: putting the multiply back in the wrapper would double it. Stage 2 must not add a second armor step.
 - **`mods.fire` reads as Fire damage and is spell power.** Stage 7, 10, and 12. OPEN. D6.
 - **Character sheet and item card disagree with combat.** Pierce and range are blank fields that still print. Card crit `0` hides the 5% base. Fire power, resists, regen, and Ethereal Shield are absent. Bow crits do not mark the floater. Life steal does not apply to bows, Fireball, or Frost Nova. The sheet's `DMG` is the weapon roll, which Fireball and Frost Nova ignore. Stage 12. OPEN.
 - **Incoming player numbers are hidden** since v0.7.12 for the colors listed above. Players see `BLOCK`, `CRIT`, and `BARRIER`, and not the amount. Stage 11. OPEN. This is current design, and it makes defense bugs hard to see.
@@ -684,12 +828,24 @@ Do not add these to the game until Stage 1 is approved. They are the parity list
 
 ### Balance
 
-No time-to-kill was measured in this session. The formula anchors above are the numbers Stage 13 should be able to compare against. In particular, keep a note of depth-100 champion skeleton contact (~580), Oswin contact (~244), and Super Elite swing (~152), so a later "boss health bump" is not mistaken for a Stage 1 migration.
+No time-to-kill was measured in Stage 0. The formula anchors above are the numbers Stage 13 should be able to compare against. In particular, keep a note of depth-100 champion skeleton contact (~580), Oswin contact (~244), and Super Elite swing (~152), so a later "boss health bump" is not mistaken for a Stage 1 migration.
+
+### Stage 1 executed results
+
+Stage 1 ran the harness. Headline counts, with the per-file failures listed in the Stage 1 history entry:
+
+- Checkpoint, before the resolver existed: 21 legacy files, 811 passed, 95 failed. `v0718.html` was 20/0. `v079.html`, `v0710.html`, and `v0717.html` failed only their old version pin.
+- After the resolver: the same 21 files, 807 passed, 100 failed. The combat anchors did not gain a failure. `v0714.html`'s extra footer failures reproduce on unmodified `26e917f`.
+- `tests/stage1-damage.html`: 71 passed, 0 failed. Same inputs, same HP delta as the v0.7.18 integers.
+
+No resist, crit-damage, or status balance pass was run. Those systems are not in the game yet.
 
 ---
 
 ## Approval gate
 
-Stage 0 is IMPLEMENTED as of this file. Stages 1–13 are NOT STARTED.
+Stage 0 is IMPLEMENTED. Jake merged it as PR #23 and GO'd Stage 1. This log does not mark Stage 0 VERIFIED.
 
-**Wait for Jake's approval before Stage 1.** The recommended first implementation is Design Decisions D1–D7: a thin packet, one resolver, Physical-only migration, the live armor curve applied once, the four shields preserved, a conversion graph that cannot loop, `fire` left as spell power, and Hellmouth's Super Elite delete left for Stage 9.
+Stage 1 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 2.** Stage 2 is armor and elemental resistances. It depends on this resolver, must not run `DEF/(DEF+30)` on non-physical types, and must not change Hellmouth.

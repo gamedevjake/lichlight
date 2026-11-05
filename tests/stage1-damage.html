@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!-- Stage 1 parity: DamagePacket + resolveDamage must match v0.7.18 integers. -->
+<html>
+<head><meta charset="utf-8"><title>stage1</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage1" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 240) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function legacyPlayer(amount, def, spread, eth, champ) {
+  if (eth) amount *= 0.75;
+  const red = def / (def + 30);
+  let d = Math.max(1, Math.round(amount * (1 - red) * spread));
+  if (champ) d += Math.max(0, Math.round(amount * 0.05));
+  return d;
+}
+function legacyEnemy(amount, guard, armor, maw) {
+  if (guard) amount *= 0.15;
+  if (armor != null) amount *= armor;
+  if (maw) amount *= 1.1;
+  return Math.max(1, Math.round(amount));
+}
+function calm(g, w) {
+  const p = g.player;
+  p.hp = 400; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0;
+  p.inv0 = 0; p.roll = 0; p.barrier = 0; p.barrierMax = 0; p.torchT = 0;
+  p.isArmorActive = false; p.isInvincible = false; p.isPlayerUndetected = false; p.decoyObject = null;
+  if (p.equip) p.equip.shield = null;
+  p.st.block = 0;
+  w.__hurtSpread = 1; w.__champCrit = 1;
+  return p;
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage1src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('six types', g.DMG_TYPES && g.DMG_TYPES.join(',') === 'Physical,Fire,Cold,Lightning,Poison,Shadow');
+  check('eight tags', g.DMG_TAGS && g.DMG_TAGS.join(',') === 'Melee,Ranged,Spell,Projectile,AoE,DoT,Direct,Channelled');
+  check('resist noop', g.DMG_TYPES.every(t => g.elementalResist(null, t) === 0));
+  check('armor helper', g.physicalArmorFraction(0) === 0 && g.physicalArmorFraction(30) === 0.5 && Math.abs(g.physicalArmorFraction(60) - 60 / 90) < 1e-12);
+
+  let p = null;
+  function boot() { g.newGame(); p = calm(g, w); return p; }
+  boot();
+  const champ = g.spawnEnemy('skel', 8, 8, true);
+  champ.dead = false; champ.hp = 20; champ.x = 8; champ.y = 8;
+  const plain = { x: p.x + 14, y: p.y, label: 'rat', T: { label: 'rat' } };
+
+  const rows = [
+    [100, 0, 1, false, false],
+    [100, 30, 1, false, false],
+    [100, 10, 1, false, false],
+    [100, 60, 1, false, false],
+    [100, 90, 1, false, false],
+    [100, 120, 1, false, false],
+    [7, 20, 1, false, false],
+    [3, 200, 1, false, false],
+    [1, 0, 1, false, false],
+    [0, 0, 1, false, false],
+    [100, 0, 0.85, false, false],
+    [100, 30, 1.15, false, false],
+    [100, 0, 1, true, false],
+    [100, 30, 1, true, false],
+    [100, 90, 1, true, false],
+    [80, 0, 1, true, false],
+    [100, 0, 1, false, true],
+    [100, 30, 1, false, true],
+    [100, 0, 1, true, true],
+    [100, 30, 1, true, true],
+    [40, 10, 0.85, true, true]
+  ];
+  let mismatch = '';
+  rows.forEach((row, i) => {
+    const amount = row[0], def = row[1], spread = row[2], eth = row[3], isChamp = row[4];
+    const expect = legacyPlayer(amount, def, spread, eth, isChamp);
+    const srcHit = isChamp ? champ : plain;
+    calm(g, w); p.st.def = def; p.isArmorActive = eth; w.__hurtSpread = spread; w.__champCrit = isChamp ? 0 : 1;
+    const hp0 = p.hp;
+    w.hurtPlayer(amount, srcHit);
+    const viaHurt = hp0 - p.hp;
+    calm(g, w); p.st.def = def; p.isArmorActive = eth; w.__hurtSpread = spread; w.__champCrit = isChamp ? 0 : 1;
+    const hp1 = p.hp;
+    g.resolveDamage(p, { amount: amount, type: 'Physical', tags: ['Direct'], attacker: 'enemy', source: srcHit });
+    const viaRes = hp1 - p.hp;
+    if (viaHurt !== expect || viaRes !== expect) mismatch += '#' + i + ' exp ' + expect + ' hurt ' + viaHurt + ' res ' + viaRes + '; ';
+  });
+  check('player parity table', !mismatch, mismatch);
+  check('def 30 is half not quarter', legacyPlayer(100, 30, 1, false, false) === 50);
+  check('ethereal once', legacyPlayer(100, 0, 1, true, false) === 75);
+  check('champ after armor', legacyPlayer(100, 30, 1, false, true) === 55);
+  check('ethereal then champ uses 75', legacyPlayer(100, 0, 1, true, true) === 79);
+
+  calm(g, w); p.torchT = 40; w.__champCrit = 0;
+  w.hurtPlayer(100, champ);
+  check('champ torch', p.hp === 295 && p.torchT === 0, 'hp ' + p.hp + ' torch ' + p.torchT);
+  calm(g, w); p.torchT = 40; w.__champCrit = 0.95;
+  w.hurtPlayer(100, champ);
+  check('champ roll miss', p.hp === 300 && p.torchT === 40, 'hp ' + p.hp);
+  calm(g, w); p.torchT = 40; w.__champCrit = 0;
+  const bossSrc = { elite: true, T: { boss: true, label: 'Boss' }, x: p.x + 8, y: p.y, label: 'Boss' };
+  w.hurtPlayer(100, bossSrc);
+  check('boss is not champ crit', p.hp === 300 && p.torchT === 40, 'hp ' + p.hp);
+
+  calm(g, w); p.inv0 = 0.2;
+  w.hurtPlayer(50, plain);
+  check('iframe eats hit', p.hp === 400);
+  calm(g, w); p.roll = 0.1;
+  w.hurtPlayer(50, { dot: true, x: p.x, y: p.y, label: 'poison' });
+  check('roll eats dot', p.hp === 400 && p.inv0 === 0);
+
+  calm(g, w);
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  p.st.block = 100; p.barrier = 30;
+  const blocked = w.hurtPlayer(40, plain);
+  check('block negates', p.hp === 400 && blocked && blocked.prevented === 'block' && p.inv0 === 0.25 && p.barrier === 30, 'hp ' + p.hp + ' inv ' + p.inv0);
+
+  calm(g, w);
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  p.st.block = 100; p.barrier = 30; p.isArmorActive = true; p.st.def = 30;
+  const dotRes = w.hurtPlayer(100, { dot: true, x: p.x, y: p.y, label: 'poison' });
+  check('dot skips block barrier iframes', p.hp === 400 - 38 && p.barrier === 30 && p.inv0 === 0 && dotRes.dot === true && dotRes.tags.indexOf('DoT') >= 0, 'hp ' + p.hp + ' bar ' + p.barrier);
+
+  calm(g, w); p.barrier = 10;
+  w.hurtPlayer(40, plain);
+  check('barrier partial', p.hp === 370 && p.barrier === 0, 'hp ' + p.hp + ' bar ' + p.barrier);
+  calm(g, w); p.barrier = 1000;
+  const soaked = w.hurtPlayer(40, plain);
+  check('barrier full', p.hp === 400 && p.barrier === 960 && soaked.prevented === 'barrier' && p.inv0 === 0.3, 'bar ' + p.barrier);
+
+  calm(g, w);
+  w.hurtPlayer(15, plain);
+  const after = p.hp;
+  w.hurtPlayer(15, plain);
+  check('post-hit iframe', p.hp === after && p.inv0 > 0, 'hp ' + p.hp);
+
+  calm(g, w); p.isInvincible = true;
+  w.hurtPlayer(80, plain);
+  const worldShift = g.resolveDamage(p, { world: true, amount: 40, type: 'Physical', tags: ['Direct'], label: 'lava', lethal: true });
+  check('shift stops combat and world', p.hp === 400 && worldShift.prevented === 'shift' && w.envHurt(40, 'lava', true) === false, 'hp ' + p.hp);
+  calm(g, w); p.isPlayerUndetected = true;
+  w.hurtPlayer(40, plain);
+  w.envHurt(12, 'acid', true);
+  check('clone stops combat only', p.hp === 388, 'hp ' + p.hp);
+
+  calm(g, w); p.st.def = 90; p.isArmorActive = true; p.hp = 10;
+  w.envHurt(40, 'water', false);
+  check('env ignores armor ethereal and clamps', p.hp === 1, 'hp ' + p.hp);
+
+  calm(g, w); p.st.def = 500; p.st.maxHp = 1000; p.hp = 1000; p.hunger = 0; p.thirst = 100; p.fatigue = 100; p.sw = p.sw || {};
+  g.updateSurvival(1);
+  check('hunger ignores defense', Math.abs(p.hp - 994) < 1e-6, p.hp);
+  p.isInvincible = true; p.hp = 1000;
+  g.updateSurvival(1);
+  check('shift does not stop hunger', Math.abs(p.hp - 994) < 1e-6, p.hp);
+
+  check('pit still direct', src.indexOf('function endFall() { const p = player, dmg = Math.ceil(p.st.maxHp * PIT_DMG), before = p.hp; p.hp = Math.max(1, p.hp - dmg);') >= 0);
+  check('blood door still direct', src.indexOf('p.hp -= cost; addText(p.x, p.y - 12, \'-\' + cost, \'#ff3030\');') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('fireball still physical tag', src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf('legacySkillPower') >= 0);
+  check('melee and bow tags', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Ranged', 'Projectile', 'Direct']") >= 0);
+
+  boot();
+  p.x = 220; p.y = 180; p.fx = 1; p.fy = 0; p.atkCd = 0;
+  p.st.min = 4; p.st.max = 4; p.st.crit = 0; p.st.fire = 0; p.st.aspd = 1;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const rat = g.spawnEnemy('rat', p.x + 12, p.y, false);
+  rat.dead = false; rat.hp = 100; rat.hidden = false; rat.downT = 0;
+  const rollA = w.rollDmg().d;
+  p.st.fire = 40;
+  const rollB = w.rollDmg().d;
+  check('melee roll ignores fire', rollA === 4 && rollB === 4, rollA + '/' + rollB);
+  w.doAttack(true);
+  const melee = w.__lastDamage;
+  const lossFire = 100 - rat.hp;
+  rat.hp = 100; p.st.fire = 0; p.atkCd = 0;
+  w.doAttack(true);
+  check('swing damage ignores fire', lossFire === 4 && 100 - rat.hp === 4, lossFire + '/' + (100 - rat.hp));
+  check('swing tags', melee && melee.type === 'Physical' && melee.tags.indexOf('Melee') >= 0 && melee.tags.indexOf('Direct') >= 0 && melee.tags.indexOf('Fire') < 0, melee && melee.tags);
+
+  calm(g, w);
+  p.lichTome.isAcquired = true;
+  g.unlockSpell('fireball'); g.unlockSpell('spin'); g.unlockSpell('frostNova');
+  p.lvl = 10; p.st.fire = 20; p.mp = 100; p.cds[0] = 0; p.fx = 1; p.fy = 0;
+  g.projs.length = 0;
+  w.castSkill(0);
+  const fb = g.projs.find(q => q.kind === 'fire');
+  check('fireball power 20', fb && Math.abs(fb.dmg - 64) < 1e-6, fb && fb.dmg);
+  g.projs.length = 0; p.st.fire = 0; p.mp = 100; p.cds[0] = 0;
+  w.castSkill(0);
+  const fb0 = g.projs.find(q => q.kind === 'fire');
+  check('fireball power 0', fb0 && Math.abs(fb0.dmg - 36) < 1e-6, fb0 && fb0.dmg);
+
+  calm(g, w);
+  p.lichTome.isAcquired = true;
+  g.unlockSpell('spin');
+  p.lvl = 1; p.st.fire = 0; p.st.min = 10; p.st.max = 10; p.mp = 80; p.cds[1] = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const spinE = g.spawnEnemy('rat', p.x, p.y, false);
+  spinE.dead = false; spinE.hp = 500; spinE.hidden = false; spinE.downT = 0;
+  p.st.crit = 100;
+  w.castSkill(1);
+  const spinCrit = 500 - spinE.hp;
+  const spinTags = (w.__lastDamage && w.__lastDamage.tags || []).slice();
+  spinE.hp = 500; p.st.crit = 0; p.mp = 80; p.cds[1] = 0;
+  w.castSkill(1);
+  check('whirlwind crit does not double again', spinCrit === 29 && 500 - spinE.hp === 15, spinCrit + '/' + (500 - spinE.hp));
+  check('whirlwind tags', spinTags.indexOf('Spell') >= 0 && spinTags.indexOf('AoE') >= 0 && spinTags.indexOf('Melee') >= 0, spinTags.join(','));
+
+  calm(g, w);
+  p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
+  p.lvl = 1; p.st.fire = 0; p.mp = 80; p.cds[2] = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const novaE = g.spawnEnemy('rat', p.x + 10, p.y, false);
+  novaE.dead = false; novaE.hp = 100; novaE.slow = 0; novaE.hidden = false; novaE.downT = 0;
+  w.castSkill(2);
+  check('frost nova formula and tags', novaE.hp === 92 && novaE.slow === 3.5 && w.__lastDamage && w.__lastDamage.type === 'Physical' && w.__lastDamage.tags.indexOf('Spell') >= 0 && w.__lastDamage.tags.indexOf('AoE') >= 0, 'hp ' + novaE.hp + ' slow ' + novaE.slow);
+
+  calm(g, w);
+  g.projs.length = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const arrowE = g.spawnEnemy('rat', p.x + 16, p.y, false);
+  arrowE.dead = false; arrowE.hp = 100; arrowE.hidden = false; arrowE.downT = 0; arrowE.r = 6; arrowE.hmFreeze = true; arrowE.spd = 0;
+  g.projs.push({ x: p.x + 14, y: p.y, vx: 200, vy: 0, r: 3, dmg: 9, owner: 'p', kind: 'arrow', life: 1 });
+  g.step(0.05, { x: 0, y: 0 });
+  check('arrow stays physical', arrowE.hp === 91 && w.__lastDamage && w.__lastDamage.tags.indexOf('Projectile') >= 0 && w.__lastDamage.tags.indexOf('Ranged') >= 0, 'hp ' + arrowE.hp + ' ' + (w.__lastDamage && w.__lastDamage.tags));
+
+  function foe(type, x) {
+    const e = g.spawnEnemy(type, x, p.y, false);
+    e.dead = false; e.hp = 400; e.maxHp = 400; e.shield = 0; e.hidden = false; e.downT = 0; e.mawVuln = 0; e.mode = e.mode || '';
+    return e;
+  }
+  calm(g, w); p.x = 200; p.y = 200;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
+  const guard = foe('guard', p.x + 40);
+  guard.fa = Math.PI;
+  w.damageEnemy(guard, 100, 1, 0, '#fff', false);
+  check('guard front', guard.hp === 400 - legacyEnemy(100, true, null, false) && legacyEnemy(100, true, null, false) === 15, guard.hp);
+  guard.hp = 400; guard.fa = 0; guard.immT = 0;
+  w.damageEnemy(guard, 100, 1, 0, '#fff', false);
+  check('guard flank', guard.hp === 300, guard.hp);
+  guard.hp = 400; guard.fa = Math.PI;
+  w.damageEnemy(guard, 2, 0, 0, '#fff', false);
+  check('guard floor 1', guard.hp === 399, guard.hp);
+
+  const ram = foe('ram', p.x + 60);
+  ram.mode = '';
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false);
+  check('ram armor', ram.hp === 400 - 40, ram.hp);
+  ram.hp = 400; ram.mode = 'stun';
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false);
+  check('ram stun', ram.hp === 300, ram.hp);
+  ram.hp = 400; ram.mode = ''; ram.mawVuln = 3;
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false);
+  check('ram plus vuln', ram.hp === 400 - 44, ram.hp);
+
+  const crab = foe('crab', p.x + 80);
+  crab.mode = 'shell'; const crabHp = crab.hp;
+  w.damageEnemy(crab, 100, 0, 0, '#fff', false);
+  check('crab shell', crab.hp === crabHp && w.__lastDamage && w.__lastDamage.prevented === 'crab', crab.hp);
+  crab.mode = 'open'; crab.hp = 400;
+  w.damageEnemy(crab, 25, 0, 0, '#fff', true);
+  check('crit flag does not double', crab.hp === 375 && w.__lastDamage && w.__lastDamage.crit === true, crab.hp);
+
+  const hidden = foe('rat', p.x + 90);
+  hidden.hidden = true; const hidHp = hidden.hp;
+  w.damageEnemy(hidden, 50, 0, 0, '#fff', false);
+  check('hidden skip', hidden.hp === hidHp);
+  hidden.hidden = false; hidden.downT = 2; 
+  w.damageEnemy(hidden, 50, 0, 0, '#fff', false);
+  check('downed skip', hidden.hp === hidHp);
+
+  const fakeBoss = foe('skel', p.x + 70);
+  fakeBoss.T = Object.assign({}, fakeBoss.T, { boss: true, label: 'TEST BOSS' });
+  fakeBoss.B = { pal: ['#fff'], p1: [] };
+  fakeBoss.shield = 25; fakeBoss.maxShield = 25; fakeBoss.hp = 100; fakeBoss.maxHp = 100;
+  w.damageEnemy(fakeBoss, 10, 0, 0, '#fff', false);
+  check('boss shield first', fakeBoss.shield === 15 && fakeBoss.hp === 100, 'sh ' + fakeBoss.shield + ' hp ' + fakeBoss.hp);
+  w.damageEnemy(fakeBoss, 40, 0, 0, '#fff', true);
+  check('boss shield overflow', fakeBoss.shield === 0 && fakeBoss.hp === 75, 'sh ' + fakeBoss.shield + ' hp ' + fakeBoss.hp);
+
+  boot();
+  if (g.SE717) g.SE717.dead = false;
+  const seDrop = g.seSpawn717('se_nyx', 'drop');
+  seDrop.sePhase = 'drop';
+  const seHp = seDrop.hp, seSh = seDrop.shield;
+  w.damageEnemy(seDrop, 500, 0, 0, '#fff', false);
+  check('se intro immune', seDrop.hp === seHp && seDrop.shield === seSh && w.__lastDamage.prevented === 'super-elite', seDrop.hp);
+  seDrop.sePhase = 'fight'; seDrop.shield = 10; seDrop.hp = 50;
+  w.damageEnemy(seDrop, 40, 0, 0, '#fff', false);
+  check('se shield then hp', seDrop.shield === 0 && seDrop.hp === 20, 'sh ' + seDrop.shield + ' hp ' + seDrop.hp);
+
+  boot();
+  g.startFloor(5, true);
+  p = calm(g, w);
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = -2; y <= 2; y++) for (let x = -1; x <= 8; x++) g.setTile(tx + x, ty + y, 1);
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  se.sePhase = 'fight'; se.x = p.x + 24; se.y = p.y; se.hp = 90; se.shield = 9; se.mawVuln = 0; se.dead = false; se.hidden = false; se.downT = 0;
+  let boss = g.enemies.find(e => e.T && e.T.boss && e !== se);
+  if (!boss) boss = g.spawnBoss(p.x + 48, p.y);
+  boss.x = p.x + 48; boss.y = p.y; boss.dead = false; boss.hp = 400; boss.maxHp = 400; boss.shield = 200; boss.mawVuln = 0; boss.hidden = false;
+  p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth sinks se not boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss), 'n ' + sinks.length);
+  check('hellmouth vuln is boss only', (boss.mawVuln || 0) >= 3 && !(se.mawVuln > 0), 'boss ' + boss.mawVuln + ' se ' + se.mawVuln);
+  const sh0 = boss.shield;
+  w.damageEnemy(boss, 100, 0, 0, '#fff', false);
+  check('marked boss takes 110', boss.shield === sh0 - 110 && boss.hp === 400, 'sh ' + boss.shield);
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('hellmouth still deletes se', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp + ' dead ' + se.dead);
+  check('boss survives hellmouth', boss.hp === 400 && boss.dead !== true, boss.hp);
+
+  boot();
+  const am = { id: 'stage1-charm', slot: 'amulet', name: 'Test Charm', mods: { fire: 6, crit: 2, def: 3 }, powers: [] };
+  p.equip.amulet = am;
+  w.computeStats();
+  const snap = { min: p.st.min, max: p.st.max, def: p.st.def, crit: p.st.crit, fire: p.st.fire };
+  check('fire mod is spell power stat', snap.fire === 6 && snap.crit === 7 && snap.def >= 3, JSON.stringify(snap));
+  w.save();
+  g.continueGame();
+  w.computeStats();
+  const q = g.player;
+  check('save keeps legacy stats', q && q.st.fire === snap.fire && q.st.crit === snap.crit && q.st.def === snap.def && q.st.min === snap.min && q.st.max === snap.max && q.equip.amulet && q.equip.amulet.mods.fire === 6, q && JSON.stringify({ fire: q.st.fire, crit: q.st.crit, def: q.st.def, min: q.st.min, max: q.st.max }));
+
+  boot();
+  const pkt = g.makeDamagePacket({ amount: 5, type: 'Shadow', tags: ['Channelled', 'Spell', 'Nope'] });
+  check('channelled accepted', pkt.type === 'Shadow' && pkt.tags.indexOf('Channelled') >= 0 && pkt.tags.indexOf('Spell') >= 0 && pkt.tags.indexOf('Nope') < 0, pkt.tags.join(','));
+  calm(g, w); p.st.def = 30;
+  g.resolveDamage(p, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'enemy', source: plain });
+  check('fire type skips armor', p.hp === 300, p.hp);
+  calm(g, w); p.st.def = 30;
+  g.resolveDamage(p, {
+    components: [
+      { amount: 100, type: 'Physical', tags: ['Direct'] },
+      { amount: 100, type: 'Fire', tags: ['Spell'] }
+    ],
+    attacker: 'enemy', source: plain
+  });
+  check('mixed components armor once', p.hp === 250, p.hp);
+
+  const beforeEdges = g.getConversionEdges();
+  check('conversion starts empty', beforeEdges.length === 0);
+  let selfErr = '', cycleErr = '';
+  try { g.setConversionEdges([{ from: 'Fire', to: 'Fire', fraction: 0.5 }]); } catch (e) { selfErr = String(e.message || e); }
+  try { g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.5 }, { from: 'Fire', to: 'Physical', fraction: 0.5 }]); } catch (e) { cycleErr = String(e.message || e); }
+  check('self-edge rejected', selfErr.indexOf('self-edge') >= 0 && g.getConversionEdges().length === 0, selfErr);
+  check('cycle rejected', cycleErr.indexOf('cycle') >= 0 && g.getConversionEdges().length === 0, cycleErr);
+  g.setConversionEdges([{ from: 'Physical', to: 'Cold', fraction: 0.25 }]);
+  try { g.setConversionEdges([{ from: 'Cold', to: 'Lightning', fraction: 1 }, { from: 'Lightning', to: 'Cold', fraction: 1 }]); } catch (e) {}
+  check('failed set keeps previous edges', g.getConversionEdges().length === 1 && g.getConversionEdges()[0].to === 'Cold');
+  g.setConversionEdges([
+    { from: 'Physical', to: 'Fire', fraction: 0.5 },
+    { from: 'Fire', to: 'Cold', fraction: 1 }
+  ]);
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
+  const conv = g.spawnEnemy('rat', p.x + 30, p.y, false);
+  conv.dead = false; conv.hp = 500; conv.shield = 0; conv.hidden = false; conv.downT = 0; conv.mawVuln = 0;
+  const convRes = w.damageEnemy(conv, 100, 0, 0, '#fff', false);
+  const byType = {};
+  (convRes.components || []).forEach(c => { byType[c.type] = (byType[c.type] || 0) + c.amount; });
+  check('conversion does not chain or change total', conv.hp === 400 && byType.Physical === 50 && byType.Fire === 50 && !byType.Cold, JSON.stringify(byType));
+  conv.hp = 500;
+  const fireRes = g.resolveDamage(conv, { amount: 80, type: 'Fire', tags: ['Spell'], attacker: 'player' });
+  const fireTypes = {};
+  (fireRes.components || []).forEach(c => { fireTypes[c.type] = (fireTypes[c.type] || 0) + c.amount; });
+  check('original fire still converts', conv.hp === 420 && fireTypes.Cold === 80 && !fireTypes.Fire, JSON.stringify(fireTypes) + ' hp ' + conv.hp);
+  g.setConversionEdges([]);
+  check('edges cleared', g.getConversionEdges().length === 0);
+
+  boot();
+  p.hp = 30; p.st.maxHp = 100;
+  const killed = w.envHurt(50, 'lava', true, '#ff7030', 'fire');
+  check('lethal env still kills', killed === true && p.hp === 0, 'hp ' + p.hp + ' ' + killed);
+}
+</script>
+</body>
+</html>
