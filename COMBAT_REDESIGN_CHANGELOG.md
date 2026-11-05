@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 3 — Critical Hits and Damage Scaling. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, and Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), then GO'd Stage 3. Stages 0, 1, and 2 stay IMPLEMENTED (not marked VERIFIED here). Stage 3 is IMPLEMENTED and waiting for Jake. Stages 4–13 are NOT STARTED. Do not begin Stage 4 until Jake approves Stage 3.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). Do not move these tags.
+- **Current implementation stage:** Stage 4 — Status Effects. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), and Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), then GO'd Stage 4. Stages 0–3 stay IMPLEMENTED (not marked VERIFIED here). Stage 4 is IMPLEMENTED and waiting for Jake. Stages 5–13 are NOT STARTED. Do not begin Stage 5 until Jake approves Stage 4.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). Do not move these tags.
 
 ---
 
@@ -29,7 +29,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 1 | Universal damage architecture | IMPLEMENTED |
 | 2 | Armor and resistances | IMPLEMENTED |
 | 3 | Critical hits and damage scaling | IMPLEMENTED |
-| 4 | Status effects | NOT STARTED |
+| 4 | Status effects | IMPLEMENTED |
 | 5 | Stagger, poise, and crowd control | NOT STARTED |
 | 6 | Weapon identity and attack responsiveness | NOT STARTED |
 | 7 | Skill system and build specialization | NOT STARTED |
@@ -40,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, and 3 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, 3, and 4 did; the counts are in those entries.
 
 ---
 
@@ -547,9 +547,145 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 4 (status
 
 ---
 
+### 2026-11-05 — Stage 4: Status Effects
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 4 — Status Effects.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage4` points at `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash, PR #26, on main).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 5 has not been started.
+- **Objective:** One status bag for application, duration, ticks, refresh, stacking, expiry, removal, immunity, and source. Give Bleed, Burning, Chill, Freeze, Shock, Poison, and Curse distinct rules. Route damaging ticks through the Stage 1–3 pipeline once, without crit. Leave Frost Nova, poison ground, environmental burn, the chill aura, Hellmouth, and `mods.fire` alone.
+
+#### Existing Behavior
+
+Frost Nova sets `e.slow = 3.5`. Enemy speed uses `0.45` while that timer is up, `0.50` for a boss, and the chill aura multiplies by `1 - pct/100` (aura pct capped at 40 by the item power). Player `slowT` is `0.6` speed for webs and puddles. Poison ground calls `hurtPlayer` every 0.5s as a Physical DoT. Environmental burn is `p.burn` and `envHurt`, a world packet, 8% of max life over 4s. Fear, ram self-stun, and Hellmouth `hmFreeze` are their own fields. Nothing in that set stacks as a typed DoT. No live attack applies bleed, burning, shock, or curse.
+
+#### Changes Implemented
+
+- `ent.statuses` is the only clock for bleed, burning, poison, chill, freeze, shock, and curse. `applyStatus`, `removeStatus`, `clearStatuses`, `tickStatuses`, `getStatus`, and `listStatuses` are the API. A missing bag is the identity: move multiplier 1, shock multiplier 1, curse penalty 0.
+- Legacy fields are not moved. `legacyStatusView` reports frost slow, chill aura, `slowT`, environmental burn, fear, and stun mode. Their old code still decrements them. Frost Nova's line is unchanged.
+- DoT ticks are one `resolveDamage` packet per interval. Tags are `DoT`. `critPending` is false and `critApplied` is true. `scaleOutgoingComponents` also refuses a crit when `isDot` is set, so a caller cannot turn a tick into a crit by accident. Player-sourced ticks run `scaleAmount` once. Enemy-sourced ticks do not. Mitigation then runs once. Shock, if present, multiplies the mitigated amount once after Hellmouth's ×1.10 and before the floor of 1.
+- Stacks are a fixed array on one record. Refresh at the cap replaces the shortest stack's time and raises its base only when the new base is higher. The tick accumulator is not reset by a refresh. One call ticks at most 8 times.
+- Chill and freeze are separate. Bosses and Super Elites are freeze immune. Their chill slow is multiplied by `HEAVY_CHILL` (0.4) and their freeze buildup stays 0. A normal freeze does not extend, and expiry sets a 3s lockout.
+- Shock is a taken-damage percent, cap 25. It does not change `elementalResistPercent`. Curse can reduce the attacker's outgoing hit and the defender's raw resist. `lifeDrain` is returned by `curseHooks` and is not passed to `leech`. Life steal and the uncapped crit chance are unchanged on purpose.
+- Death, `removeEnemy`, and `startFloor` clear the engine bag. A save writes the bag and the lockout only when they are non-empty, so an old save has neither key. `statusSanitize` clamps a loaded bag. Enemy bags ride the existing floor snapshot.
+- No affix, no shop price, no attack retype, no Hellmouth edit, no version bump.
+
+#### Formulas and constants
+
+```
+bleed    max 5 stacks, 4s, tick every 1s, Physical
+burning  max 3 stacks, 3s, tick every 1s, Fire
+poison   max 8 stacks, 6s, tick every 1s, Poison
+chill    one instance, duration cap 4s, slow cap 60%, +40 buildup per apply
+freeze   at buildup 100, duration cap 1.5s, then immune for 3s
+shock    one instance, taken% cap 25, duration cap 4s
+curse    at most 3 ids, duration cap 6s
+         outPenalty cap 30, resistReduction cap 40, lifeDrain cap 10 (not healed)
+HEAVY_CHILL = 0.4    bosses and Super Elites
+STATUS_MAX_TICKS = 8
+```
+
+A stack's first tick is one interval after it is applied, not on the same instant. Ticks in a step happen before that step subtracts duration, so a 4s bleed with a 1s interval deals 4 ticks and then expires. Two 0.5s steps deal one tick. A refresh during the interval does not add a tick.
+
+Request slow on a boss or Super Elite is multiplied by 0.4 before the 60% cap. Freeze buildup on those actors stays 0, and `applyStatus(freeze)` returns `immune`.
+
+Outgoing player tick, once:
+
+```
+scaled = (stackSum + flat + flat[type])
+       * (1 + (inc + inc[type]) / 100)
+       * more * more[type] * packetMore
+       * (1 + bonus[type] / 100)
+       * curseOut
+```
+
+`curseOut` is 1 when the attacker has no curse. There is no crit factor. Then conversion, then Stage 2 mitigation, then shock:
+
+```
+taken = 1 + min(25, shock%) / 100     // 1 when unshocked
+```
+
+Pinned, one tick, spread forced to 1, no guard:
+
+| Case | Result |
+| --- | --- |
+| Bleed 10 on an enemy, no mods | 10. A 100% crit at ×9 stays 10 |
+| Bleed 10, +100% increased | 20 |
+| Burn 100, Fire pen 40, 0 resist | 140, and `penHits` is 1 |
+| Burn 10, 50 Fire resist | 5 |
+| Poison 10 on the player, DEF 30, 0 Poison resist | 10. Armor does not apply |
+| Poison 10 on the player, 90 Poison resist, DEF 30 | 3. The 75 cap binds. Armor still does not |
+| Bleed 10 on the player, DEF 30 | 5 |
+| Physical 100 into 20% shock | 120. Lightning resist stays 0 |
+| Fire 100 into −20 resist and 20% shock | 144. The two multipliers both run |
+| Marked boss, Physical 100, no shock | 110 |
+| Marked boss, Physical 100, 20% shock | 132 |
+| Curse outPenalty 30 on the attacker, Physical 100 | 70 |
+| Defender Fire resist 50, curse resist cut 20, Fire 100 | 70 |
+| 50% chill on a rat | move multiplier 0.5. A third +40 buildup freezes |
+| 50% chill on a boss or Super Elite | slow 20%, move 0.8, freeze `immune` |
+| Six bleed applies of base 4, then one of base 9 | 5 stacks, tick sum 25 |
+
+#### Files Modified
+
+- `index.html` — status bag, DoT packets, shock and curse hooks, movement multiplier, save field, legacy view. `version.json` was not edited.
+- `tests/stage4-status.html` — new harness.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry and the living sections. The Stage 0–3 history entries were not rewritten.
+- `STAGE4_REPORT.md` — implementation report for review.
+
+#### Functions Added or Modified
+
+Added: `applyStatus`, `removeStatus`, `clearStatuses`, `getStatus`, `listStatuses`, `tickStatuses`, `statusMoveMul`, `shockTakenMul`, `curseOutMul`, `curseResistCut`, `curseHooks`, `legacyStatusView`, `statusSanitize`, `statusSaveBag`, `dealDotTick`.
+
+Modified: `elementalResistPercent` (subtracts a curse cut, which is 0 when there is no curse), `scaleOutgoingComponents` (no crit on a DoT, curse penalty only when it is not 1), `resolvePlayerDamage`, `resolveEnemyDamage`, `update`, `updateEnemies`, `gridEnemyUpdate`, player and enemy speed, `removeEnemy`, `die`, `startFloor`, `save`, `continueGame`, `worldRestore`, `drawEnemy`.
+
+Not modified: `castHellmouth`, `tickHellmouth`, `castSkill` Frost Nova, `hurtPlayer`'s packet shape, `envHurt`, `updateBurn`, `igniteBurn`, `leech`, `rollDmg`, `AFFIX`, shop prices, `mods.fire`.
+
+#### Gameplay Impact
+
+None for a current save and a current attack. No dropped item applies a status. A hand-applied status changes that actor until it expires.
+
+#### Compatibility Notes
+
+Old saves have no `statuses` key. Load still recomputes the Stage 3 sheet. A save that does carry a bag restores it, and `statusSanitize` drops unknown ids and clamps stacks to the caps above. `startFloor` clears the player's bag so a new floor does not keep a bleed. World restore still clears `slowT`. Environmental burn is still not the Burning status, so both can exist and they do not add into one tick.
+
+#### Tests Performed
+
+Headless Chrome, SwiftShader, cache disabled. Details and the before/after file counts are in [Stage 4 executed results](#stage-4-executed-results). `tests/stage4-status.html` was 75/0: stack caps, refresh, tick phase, immunity, armor versus resist, shock versus negative resist, Hellmouth plus shock, boss and Super Elite chill, freeze lockout, curse hooks, life steal unchanged, poison ground still Physical, environmental burn still world, Frost Nova slow untouched, save/load, forged-bag clamp, death cleanup, and the Super Elite sink.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. `mods.fire` is still spell power. DoT ticks do not crit. Life steal still ignores mitigation and the power-attack multiplier, and crit chance is still uncapped. Those two are deferred balance, not Stage 4 bugs. Shock does not multiply world packets. A player DoT is still stopped by i-frames, and the tick is consumed. `hmFreeze` pauses status ticks for the sink. Grid-AI freeze holds the body while the shared AI clock keeps moving, so the glide can catch up when the freeze ends. Richer status art is Stage 11. Gear that applies these statuses is Stage 10.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage4
+```
+
+That tag is `57f085c76907a83f8650ca339b19188b467e82b6`. It is the Stage 3 squash on main. Gameplay version on it is 0.7.18. Do not move the tag.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 5 (stagger, poise, and crowd control). Do not reclassify Fireball, Frost Nova, poison puddles, or lava.
+
+---
+
 ## Combat System Reference
 
-The Stage 3 block is what the game does now. The Stage 2 block is the resist model Stage 3 kept. The Stage 1 block is the architecture under both. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat is set. Planned work for later stages stays marked as planned.
+The Stage 4 block is what the game does now. The Stage 3 block is the crit and scale model Stage 4 kept. The Stage 2 block is the resist model under that. The Stage 1 block is the architecture under all three. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat or status is set. Planned work for later stages stays marked as planned.
+
+### Stage 4 implemented architecture
+
+Implemented now, on top of Stage 3. With no status on either actor, hit math is the Stage 3 math.
+
+- One bag, `ent.statuses`. Apply, refresh, stack caps, tick, expire, remove, immunity, and source strings live there. There is no second timer for bleed, burning, poison, chill, freeze, shock, or curse.
+- Legacy frost slow (`e.slow`), chill aura (`auraT` / `auraPct`), player `slowT`, environmental `p.burn`, fear, and self-stun stay on their old clocks. `legacyStatusView` reads them. It does not tick them. Poison ground still calls `hurtPlayer` as Physical. Environmental flames still call `envHurt` as a world packet. Frost Nova still sets `e.slow = 3.5` and still deals Physical.
+- Damaging ticks build one packet per interval: Physical bleed, Fire burning, Poison poison. `critApplied` is set, `critPending` is not, and `scaleOutgoingComponents` refuses a crit on `isDot` even if a caller asks. Player-sourced ticks scale once. Enemy-sourced ticks do not use the player scale. Then conversion, then armor or resist and penetration once, then guard, ram armor, and Hellmouth ×1.10, then shock if the target has it, then the floor of 1, then a boss or Super Elite shield.
+- Shock is increased damage taken, capped at 25%, one instance. It is not negative resistance and it is not the Hellmouth mark. A marked boss with 20% shock takes 132 from a Physical 100 (110 × 1.20).
+- Chill slows movement, capped at 60%, and adds freeze buildup. Bosses and Super Elites take 40% of the requested slow and do not build freeze. Freeze lasts at most 1.5s, does not extend while active, and then blocks freeze for 3s. Freeze speed is 0, including a new dodge roll.
+- Curse is a capped debuff. Outgoing penalty and resist reduction are wired. Life drain is stored and is not applied to `leech`. No loot rolls any of this.
+- Hellmouth's `hmFreeze` still skips enemy AI, and status ticks wait with it, so a DoT cannot delete a sinking Super Elite. `mods.fire` is still spell power. Live attacks are still Physical.
 
 ### Stage 3 implemented architecture
 
@@ -590,7 +726,7 @@ Implemented now:
 - Hunger, pit climb-out, spike-gap ticks, and blood doors still write HP directly. They are not combat packets.
 - Hellmouth still sinks Super Elites because `T.boss` is false, then `killEnemy` deletes them. Changing that is **planned** (Stage 9).
 
-Not implemented: status effects, stagger, poise, weapon identities, elite affixes, new boss phases, behavioral item affixes, damage-number presentation, character-sheet resists. Those remain later stages.
+Stage 4 added the status engine described above. Not implemented: stagger, poise, weapon identities, elite affixes, new boss phases, behavioral item affixes, damage-number presentation, character-sheet resists. Those remain later stages.
 
 ### Damage types
 
@@ -1053,6 +1189,15 @@ D1–D7 below are the Stage 0 recommendations. Stage 1 implemented them. The tex
 - **Expected gameplay impact.** None on a current save. A hand-set `critDmg`, flat, increased, more, or type bonus changes that hit, and life steal follows the scaled pre-mitigation number except it still excludes the power-attack more.
 - **Tradeoffs.** Crit does not multiply flat damage. Two components each receive generic flat. The bow floater still has no `!`. The pixel sheet still shows chance only. The text stats line shows the multiplier.
 
+### D10 — Statuses are one bag, and legacy timers stay legacy
+
+- **Problem.** Bleed, burn, poison, chill, freeze, shock, and curse need application, duration, ticks, refresh, caps, immunity, and a source. The game already has frost slow, a chill aura, poison ground, environmental burn, fear, and self-stun. A second clock for the same legacy effect would either double the slow or change the damage type.
+- **Alternatives considered.** (a) Move every old timer into the new bag and retune the numbers. (b) Leave the old timers alone and add a new bag for the new effects, with a read-only view of the old ones. (c) Drive the old timers from the bag but keep the call sites setting the same fields.
+- **Selected approach.** (b), with the movement multiplier and the damage resolver reading the new bag only when a status is present. Poison ground and environmental burn are not retyped. Frost Nova still writes `e.slow`. DoT ticks are packets: no crit, scale once when the attacker is the player, mitigation once, then shock once if the target is shocked. Stack counts, durations, and the freeze lockout are capped. Bosses and Super Elites are freeze immune and take 40% chill. Curse can cut outgoing damage and resist. Its life-drain number is stored and does not change `leech`.
+- **Reason.** A current hit with no status is the Stage 3 hit. The old hazards keep the numbers the legacy harness already locks. The new effects are testable without a loot pass.
+- **Expected gameplay impact.** None until something applies a status. Nothing in live combat does. No affix and no shop price changed.
+- **Tradeoffs.** Two slow sources can multiply if a legacy slow and a new chill are both up. They are different effects and each is capped. Shock does not change world packets such as lava. A DoT on a player who is in i-frames is prevented and the interval is still spent, which matches poison ground. Hellmouth's sink pause also pauses status ticks.
+
 ### Stage 1 implementation notes
 
 D1–D7 are in the code. Refinements forced by the existing formulas:
@@ -1084,7 +1229,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 ### MEDIUM
 
 - **Champion crit adds 5% of pre-defense damage after armor**, so it punches through the curve, and it snuffs the torch. Stage 3 left this separate from player crit on purpose. OPEN as a balance quirk, not as missing crit math.
-- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3 audited this and kept it. `__lastLeech` records the base. OPEN only as a reminder that a later balance pass must not "fix" the heal without Jake's numbers.
+- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3 audited this and kept it. Stage 4 did not retune it, and did not cap crit chance. Both stay deferred balance. `__lastLeech` records the base. Curse `lifeDrain` is stored and is not added to the heal. OPEN only as a reminder that a later balance pass must not "fix" the heal without Jake's numbers.
 - **Whirlwind crit doubles only the weapon roll**, then adds fire power, and the floater marks the whole hit. Stage 3 kept the split so spell power is not doubled. The floater still marks the whole hit. Stage 7 if the spell portion becomes Fire. OPEN as presentation and as the future split, not as a double crit.
 - **Bow crits do not mark the floater.** The arrow damage includes the crit once. Impact still passes `crit: false`. Stage 11 or 12. OPEN.
 - **Pixel character sheet shows crit chance and not the multiplier.** The text stats line shows `Crit N% xM`. Stage 12. OPEN.
@@ -1100,7 +1245,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Bow charge plays a power-attack telegraph and fires a normal arrow.** Stage 6. OPEN.
 - **Melee damage is instant; the animation trails it.** Super Elite and projectiles hit on a later frame. Stage 6. OPEN.
 - **Two contact paths** (`updateEnemies` and grid AI, `GRID_AI.on` is true) both call `hurtPlayer`. Stage 1 must route both or one of them will skip the adapter. OPEN.
-- **No status resist** for slow, fear, or stun. Gear cannot roll pierce. The card still prints `PIERCE`. Stage 4, 5, and 12. OPEN.
+- **No gear status resist** for slow, fear, or stun. Gear cannot roll pierce. The card still prints `PIERCE`. Stage 4 added `statusImmune`, boss and Super Elite freeze immunity, and a 3s freeze lockout. It did not add a gear stat. Stage 5 and 12. OPEN.
 
 ### LOW
 
@@ -1108,7 +1253,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Barrier and dodge window do not sum copies.** Barrier keeps the max pool. Dodge keeps the max duration, cap 0.5s. Skill amp and thorns do sum. Stage 10, if affix stacking is specified. OPEN.
 - **Thorns require `src` to be the enemy object.** Beams and blasts pass a projectile-like source and do not thorn. Stage 10. OPEN.
 - **`itemLines` says Fast/Normal/Slow while the satchel card says `n/S`.** Stage 12. OPEN.
-- **Shift and Clone timers, barrier, burn, and cooldowns do not persist** across load. Enemy HP and shields do, because they ride the floor snapshot. Stage 1 should not start persisting a second combat state without a reason. OPEN, accepted current behavior.
+- **Shift and Clone timers, barrier, legacy burn, and cooldowns do not persist** across load. Enemy HP and shields do, because they ride the floor snapshot. Stage 4 saves the engine status bag and the freeze lockout when they are present, and omits them when they are empty. Legacy `p.burn` still does not persist, and world restore still clears `slowT`. OPEN for the legacy fields. The engine bag is the Stage 4 save.
 - **Hellmouth vulnerability is ×1.10 for 3s and only on `T.boss`.** Super Elites never receive the mark. They get deleted instead. Stage 9. OPEN.
 
 ---
@@ -1201,6 +1346,17 @@ Stage 3 ran the same harness, headless Chrome, before and after the crit and sca
 
 No loot retune and no time-to-kill pass was run. Live callers are still Physical. `version.json` is still 0.7.18.
 
+### Stage 4 executed results
+
+Stage 4 ran the same harness in headless Chrome (Puppeteer, system Google Chrome, SwiftShader WebGL, cache disabled) against `python3 -m http.server` on 127.0.0.1. Counts are pass/fail. The pre-change run is tag `combat-redesign-pre-stage4` / `57f085c`, before any Stage 4 code.
+
+- Before: 21 legacy files, **812 passed, 95 failed**. Per file: `v075` 59/1, `v076` 48/0, `v077` 60/4, `v078` 60/1, `v078-play` 25/1, `v0781` 27/2, `v079` 49/1, `v0710` 36/1, `v07101` 41/1, `v07102` 54/0, `v07103` 24/3, `v0711` 43/5, `v0712` 37/6, `v0713` 32/5, `v0714` 40/1, `v0715` 19/13, `v07151` 8/45, `v07152` 34/3, `v0716` 49/1, `v0717` 47/1, `v0718` 20/0. `tests/stage1-damage.html` 71/0. `tests/stage2-resist.html` 73/0. `tests/stage3-crit-scaling.html` 58/0.
+- An immediate re-run on that same checkpoint, before Stage 4 code, put `v0714` back at 33/8 (footer and tab hit-tests). `v076` stayed 48/0 and `v077` stayed 60/4. `v0711` stayed 43/5 on that re-run. The 40/1 and 33/8 pair is the layout flake Stage 1 already recorded.
+- After Stage 4, one sequential pass: legacy **804 passed, 102 failed**. The only count movement is `v0711` 43/5 → 42/5 (47 checks instead of 48, same five failure names) and `v0714` 40/1 → 33/8 (the footer flake above). A separate `v0711` re-run was 43/5 again. No new failure name appeared.
+- `tests/stage1-damage.html`: 71/0. `tests/stage2-resist.html`: 73/0. `tests/stage3-crit-scaling.html`: 57/1 on that sequential pass (`bow crit flag stays off the floater`, the arrow missed and dealt 0). Three immediate re-runs were 58/0. `tests/stage4-status.html`: **75/0**.
+
+No loot retune and no time-to-kill pass was run. Live callers are still Physical. `version.json` is still 0.7.18. Stage 5 was not started.
+
 ---
 
 ## Approval gate
@@ -1211,6 +1367,8 @@ Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #24 (`92edf84`) and G
 
 Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`) and GO'd Stage 3. This log does not mark Stage 2 VERIFIED.
 
-Stage 3 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`) and GO'd Stage 4. This log does not mark Stage 3 VERIFIED. The Stage 3 history entry above still describes that branch before the merge. It was not rewritten.
 
-**Wait for Jake's approval before Stage 4.** Stage 4 is status effects. It must not start from this branch. Stage 3 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.
+Stage 4 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 5.** Stage 5 is stagger, poise, and crowd control. It must not start from this branch. Stage 4 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<!-- Stage 4: status engine, DoT pipeline, chill/freeze limits, shock, curse hooks, legacy timers. -->
+<html>
+<head><meta charset="utf-8"><title>stage4</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage4" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 200; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0; p.st.fire = 0;
+  p.st.crit = 5; p.st.critDmg = 0; p.st.critMul = 2;
+  p.st.flat = p.st.flatPhysical = p.st.flatFire = p.st.flatCold = p.st.flatLightning = p.st.flatPoison = p.st.flatShadow = 0;
+  p.st.inc = p.st.incPhysical = p.st.incFire = p.st.incCold = p.st.incLightning = p.st.incPoison = p.st.incShadow = 0;
+  p.st.more = p.st.morePhysical = p.st.moreFire = p.st.moreCold = p.st.moreLightning = p.st.morePoison = p.st.moreShadow = 1;
+  p.st.bonusPhysical = p.st.bonusFire = p.st.bonusCold = p.st.bonusLightning = p.st.bonusPoison = p.st.bonusShadow = 0;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.penFire = p.st.penCold = p.st.penLightning = p.st.penPoison = p.st.penShadow = 0;
+  p.st.maxResist = 0; p.st.ls = 0; p.st.block = 0; p.st.ms = 1;
+  p.inv0 = 0; p.roll = 0; p.barrier = 0; p.barrierMax = 0; p.slowT = 0; p.burn = null; p.fearT = 0;
+  p.statusImmune = null; p.freezeImmune = 0;
+  g.clearStatuses(p);
+  w.__hurtSpread = 1; w.__champCrit = 1; w.__critRoll = 0;
+  g.clearSkillCrit(); g.setConversionEdges([]);
+  return p;
+}
+function foe(g, p, type, x) {
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const e = g.spawnEnemy(type || 'rat', x, p.y, false);
+  e.dead = false; e.hp = 500; e.maxHp = 500; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.mawVuln = 0; e.mode = ''; e.resists = null; e.spd = 0; e.hmFreeze = true; e.slow = 0; e.fearT = 0; e.auraT = 0;
+  e.statusImmune = null; e.freezeImmune = 0;
+  g.clearStatuses(e);
+  return e;
+}
+function loss(e) { return 500 - e.hp; }
+function dealt(out) { let n = 0; (out.ticks || []).forEach(t => { n += t.dealt || 0; }); return n; }
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage4src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('poison ground still hurtPlayer', src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0);
+  check('env burn still world flames', src.indexOf("envHurt(d, 'flames'") >= 0 && src.indexOf('p.burn = { vfx: BURN_VFX') >= 0);
+  check('frost nova still sets slow', src.indexOf('e.slow = 3.5') >= 0);
+  check('no stage 5 stagger', src.indexOf('staggerBuild') < 0 && src.indexOf('function applyPoise') < 0);
+  check('status caps', g.STATUS.bleed.max === 5 && g.STATUS.burning.max === 3 && g.STATUS.poison.max === 8 && g.STATUS.shock.cap === 25 && g.STATUS.chill.slowCap === 60 && g.STATUS.freeze.dur === 1.5 && g.STATUS.freeze.lockout === 3 && g.HEAVY_CHILL === 0.4 && g.STATUS.curse.max === 3, JSON.stringify({ bleed: g.STATUS.bleed.max, burn: g.STATUS.burning.max, poison: g.STATUS.poison.max }));
+
+  g.newGame();
+  let p = calm(g, w);
+  check('fresh actor has no statuses', !g.getStatus(p, 'bleed') && g.listStatuses(p).length === 0 && g.statusMoveMul(p) === 1 && g.shockTakenMul(p) === 1 && g.curseHooks(p).n === 0);
+
+  const rat = foe(g, p, 'rat', p.x + 24);
+  let ap = g.applyStatus(rat, 'bleed', { base: 10, source: { name: 'Test Axe', kind: 'weapon', id: 'axe1' }, attacker: 'player' });
+  check('bleed applies one stack', ap.ok && ap.reason === 'applied' && ap.stacks === 1 && g.getStatus(rat, 'bleed').n === 1 && g.getStatus(rat, 'bleed').stacks[0].source.name === 'Test Axe', ap.reason);
+  let tk = g.tickStatuses(rat, 0.5);
+  check('half interval does not tick', dealt(tk) === 0 && g.getStatus(rat, 'bleed').acc === 0.5 && rat.hp === 500, g.getStatus(rat, 'bleed').acc);
+  tk = g.tickStatuses(rat, 0.5);
+  check('two halves make one tick', dealt(tk) === 10 && tk.ticks.length === 1 && tk.ticks[0].crit === false && w.__lastDamage.crit === false && w.__lastStatusTick.sources[0].id === 'axe1', dealt(tk) + ' crit ' + (w.__lastDamage && w.__lastDamage.crit));
+  rat.hp = 500;
+  g.clearStatuses(rat);
+  g.applyStatus(rat, 'bleed', { base: 10, attacker: 'player' });
+  tk = g.tickStatuses(rat, 4);
+  check('four second bleed ticks four times then expires', dealt(tk) === 40 && tk.ticks.length === 4 && tk.expired.indexOf('bleed') >= 0 && !g.getStatus(rat, 'bleed'), dealt(tk) + ' exp ' + tk.expired.join(','));
+
+  rat.hp = 500; g.clearStatuses(rat);
+  g.applyStatus(rat, 'bleed', { base: 4, attacker: 'player' });
+  for (let i = 0; i < 4; i++) g.applyStatus(rat, 'bleed', { base: 4, attacker: 'player', source: { name: 'S' + i, kind: 'hit', id: 's' + i } });
+  let sixth = g.applyStatus(rat, 'bleed', { base: 4, attacker: 'player' });
+  check('bleed caps at 5 and the sixth refreshes', g.getStatus(rat, 'bleed').n === 5 && sixth.reason === 'refreshed' && sixth.stacks === 5, sixth.reason + ' n ' + g.getStatus(rat, 'bleed').n);
+  let seventh = g.applyStatus(rat, 'bleed', { base: 9, attacker: 'player', source: { name: 'Heavy', kind: 'hit', id: 'hv' } });
+  const bases = g.getStatus(rat, 'bleed').stacks.map(s => s.base).sort((a, b) => a - b);
+  check('full bleed upgrades the weakest stack', seventh.reason === 'refreshed' && bases.join(',') === '4,4,4,4,9', bases.join(','));
+  tk = g.tickStatuses(rat, 1);
+  check('capped bleed tick is the sum', dealt(tk) === 25 && tk.ticks[0].sources.some(s => s.name === 'Heavy'), dealt(tk));
+
+  rat.hp = 500; g.clearStatuses(rat);
+  g.applyStatus(rat, 'bleed', { base: 10, attacker: 'player' });
+  g.tickStatuses(rat, 0.4);
+  g.applyStatus(rat, 'bleed', { base: 10, attacker: 'player' });
+  tk = g.tickStatuses(rat, 0.6);
+  check('refresh does not reset the tick clock', tk.ticks.length === 1 && dealt(tk) === 20, tk.ticks.length + ' d ' + dealt(tk));
+
+  let keysBefore = 0;
+  rat.hp = 500; g.clearStatuses(rat);
+  for (let i = 0; i < 200; i++) g.applyStatus(rat, 'bleed', { base: 1, attacker: 'player', source: { name: 'N' + i, kind: 'spam', id: String(i) } });
+  keysBefore = rat.statuses ? Object.keys(rat.statuses).length : 0;
+  check('repeated bleed stays one record of 5', keysBefore === 1 && g.getStatus(rat, 'bleed').n === 5, 'keys ' + keysBefore + ' n ' + (g.getStatus(rat, 'bleed') && g.getStatus(rat, 'bleed').n));
+
+  calm(g, w); p = g.player;
+  const burn = foe(g, p, 'rat', p.x + 28);
+  p.st.crit = 100; p.st.critMul = 9; w.__critRoll = 0;
+  g.applyStatus(burn, 'burning', { base: 10, attacker: 'player' });
+  tk = g.tickStatuses(burn, 1);
+  check('burn tick does not crit', dealt(tk) === 10 && tk.ticks[0].crit === false && w.__lastDamage.crit === false && w.__lastDamage.type === 'Fire', dealt(tk) + ' type ' + (w.__lastDamage && w.__lastDamage.type));
+  burn.hp = 500; g.clearStatuses(burn); p.st.crit = 5; p.st.critMul = 2;
+  p.st.inc = 100;
+  g.applyStatus(burn, 'burning', { base: 10, attacker: 'player' });
+  tk = g.tickStatuses(burn, 1);
+  check('player burn scales once', dealt(tk) === 20, dealt(tk));
+  burn.hp = 500; g.clearStatuses(burn); p.st.inc = 0; p.st.penFire = 40;
+  g.applyStatus(burn, 'burning', { base: 100, attacker: 'player' });
+  tk = g.tickStatuses(burn, 1);
+  check('burn penetration once', dealt(tk) === 140 && w.__lastDamage.components[0].penHits === 1, dealt(tk) + ' hits ' + (w.__lastDamage.components && w.__lastDamage.components[0].penHits));
+  burn.hp = 500; g.clearStatuses(burn); p.st.penFire = 0;
+  for (let i = 0; i < 5; i++) g.applyStatus(burn, 'burning', { base: 3, attacker: 'player' });
+  check('burning caps at 3', g.getStatus(burn, 'burning').n === 3, g.getStatus(burn, 'burning').n);
+  burn.resists = { Fire: 50 };
+  g.clearStatuses(burn);
+  g.applyStatus(burn, 'burning', { base: 10, attacker: 'player' });
+  tk = g.tickStatuses(burn, 1);
+  check('burn uses fire resist once', dealt(tk) === 5 && w.__lastDamage.type === 'Fire', dealt(tk));
+
+  calm(g, w); p = g.player;
+  const pois = foe(g, p, 'rat', p.x + 30);
+  g.applyStatus(pois, 'poison', { base: 7, attacker: 'player', source: { name: 'Vial', kind: 'skill', id: 'vial' } });
+  for (let i = 0; i < 10; i++) g.applyStatus(pois, 'poison', { base: 7, attacker: 'player' });
+  check('poison caps at 8', g.getStatus(pois, 'poison').n === 8, g.getStatus(pois, 'poison').n);
+  g.clearStatuses(pois);
+  g.applyStatus(pois, 'poison', { base: 10, attacker: 'player', source: { name: 'Vial', kind: 'skill', id: 'vial' } });
+  pois.resists = { Poison: 50 };
+  tk = g.tickStatuses(pois, 1);
+  check('poison resist and source', dealt(tk) === 5 && tk.ticks[0].sources[0].name === 'Vial' && tk.ticks[0].sources[0].id === 'vial', dealt(tk));
+  pois.hp = 500; g.clearStatuses(pois); pois.resists = null;
+  p.st.def = 30; p.st.resPoison = 90; w.__hurtSpread = 1; w.__champCrit = 0;
+  g.applyStatus(p, 'poison', { base: 10, attacker: 'enemy', source: { name: 'Crawler', kind: 'enemy', id: 'c1' } });
+  tk = g.tickStatuses(p, 1);
+  check('poison uses the resist cap and not armor', dealt(tk) === 3 && w.__lastDamage.type === 'Poison', dealt(tk) + ' hp ' + p.hp);
+  p.hp = 200; g.clearStatuses(p); p.st.resPoison = 0;
+  g.applyStatus(p, 'poison', { base: 10, attacker: 'enemy' });
+  tk = g.tickStatuses(p, 1);
+  check('poison on the player ignores armor', dealt(tk) === 10 && p.hp === 190, dealt(tk) + ' hp ' + p.hp);
+  p.hp = 200; g.clearStatuses(p); p.st.resPoison = 50;
+  g.applyStatus(p, 'poison', { base: 10, attacker: 'enemy' });
+  tk = g.tickStatuses(p, 1);
+  check('poison on the player uses poison resist', dealt(tk) === 5, dealt(tk));
+  p.hp = 200; g.clearStatuses(p); p.st.def = 30; p.st.resPoison = 0;
+  g.applyStatus(p, 'bleed', { base: 10, attacker: 'enemy', source: { name: 'Wolf', kind: 'enemy', id: 'w1' } });
+  tk = g.tickStatuses(p, 1);
+  check('bleed on the player uses armor once', dealt(tk) === 5 && tk.ticks[0].sources[0].name === 'Wolf', dealt(tk));
+  check('champion crit does not ride a dot', w.__lastDamage.champCrit === false && w.__lastDamage.dot === true, 'champ ' + (w.__lastDamage && w.__lastDamage.champCrit));
+
+  calm(g, w); p = g.player;
+  const slow = foe(g, p, 'rat', p.x + 36);
+  let ch = g.applyStatus(slow, 'chill', { slowPct: 50, buildup: 0, duration: 4 });
+  check('chill slows and does not stack duration', ch.ok && g.statusMoveMul(slow) === 0.5 && g.getStatus(slow, 'chill').slowPct === 50, g.statusMoveMul(slow));
+  g.tickStatuses(slow, 1);
+  g.applyStatus(slow, 'chill', { slowPct: 20, duration: 10, buildup: 0 });
+  const chRec = g.getStatus(slow, 'chill');
+  check('chill refresh keeps the stronger slow and the cap', chRec.slowPct === 50 && chRec.dur <= 4 && chRec.dur > 2.5, JSON.stringify({ pct: chRec.slowPct, dur: chRec.dur }));
+  g.clearStatuses(slow);
+  g.applyStatus(slow, 'chill', { slowPct: 50, buildup: 40 });
+  g.applyStatus(slow, 'chill', { slowPct: 50, buildup: 40 });
+  let third = g.applyStatus(slow, 'chill', { slowPct: 50, buildup: 40 });
+  check('third chill freezes and spends buildup', third.froze === true && g.getStatus(slow, 'freeze') && g.getStatus(slow, 'freeze').dur === 1.5 && g.getStatus(slow, 'chill').buildup === 0 && g.statusMoveMul(slow) === 0, 'dur ' + (g.getStatus(slow, 'freeze') && g.getStatus(slow, 'freeze').dur));
+  const again = g.applyStatus(slow, 'freeze', { duration: 5 });
+  check('freeze does not extend', again.ok === false && again.reason === 'refresh-blocked' && g.getStatus(slow, 'freeze').dur === 1.5, again.reason);
+  g.tickStatuses(slow, 1.5);
+  check('freeze expiry starts lockout', !g.getStatus(slow, 'freeze') && slow.freezeImmune === 3, slow.freezeImmune);
+  const locked = g.applyStatus(slow, 'freeze');
+  check('lockout blocks freeze', locked.reason === 'freeze-lockout' && !g.getStatus(slow, 'freeze'), locked.reason);
+  g.tickStatuses(slow, 3);
+  const open = g.applyStatus(slow, 'freeze');
+  check('lockout ends', slow.freezeImmune === 0 && open.ok === true && g.getStatus(slow, 'freeze').dur === 1.5, open.reason + ' imm ' + slow.freezeImmune);
+
+  calm(g, w); p = g.player;
+  g.startFloor(5, true);
+  p = calm(g, w);
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = -3; y <= 3; y++) for (let x = -2; x <= 14; x++) g.setTile(tx + x, ty + y, 1);
+  p.x = (tx + 0.5) * 16; p.y = (ty + 0.5) * 16;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const x0 = p.x;
+  g.clearStatuses(p);
+  g.step(0.1, { x: 1, y: 0 });
+  const plain = p.x - x0;
+  p.x = x0;
+  g.applyStatus(p, 'chill', { slowPct: 50, buildup: 0, duration: 4 });
+  g.step(0.1, { x: 1, y: 0 });
+  const chilled = p.x - x0;
+  check('chill halves step distance', plain > 2 && Math.abs(chilled / plain - 0.5) < 0.08, plain + ' -> ' + chilled);
+  p.x = x0;
+  g.clearStatuses(p);
+  g.applyStatus(p, 'freeze', {});
+  g.step(0.1, { x: 1, y: 0 });
+  check('freeze holds the player', Math.abs(p.x - x0) < 0.01 && g.statusMoveMul(p) === 0, p.x - x0);
+
+  g.clearStatuses(p); p.freezeImmune = 0;
+  let boss = g.spawnBoss(p.x + 64, p.y);
+  boss.x = p.x + 64; boss.y = p.y; boss.hp = 400; boss.shield = 0; boss.mawVuln = 0; boss.dead = false;
+  const bch = g.applyStatus(boss, 'chill', { slowPct: 50, buildup: 100, duration: 4 });
+  const bfr = g.applyStatus(boss, 'freeze');
+  check('boss chill is reduced and freeze is immune', bch.ok && g.getStatus(boss, 'chill').slowPct === 20 && g.getStatus(boss, 'chill').buildup === 0 && g.statusMoveMul(boss) === 0.8 && bfr.reason === 'immune' && !g.getStatus(boss, 'freeze'), 'pct ' + (g.getStatus(boss, 'chill') && g.getStatus(boss, 'chill').slowPct) + ' fr ' + bfr.reason);
+
+  const sh = foe(g, p, 'rat', p.x + 40);
+  sh.resists = { Lightning: 0, Fire: 0 };
+  g.applyStatus(sh, 'shock', { takenPct: 40 });
+  check('shock caps at 25', g.getStatus(sh, 'shock').takenPct === 25 && g.shockTakenMul(sh) === 1.25, g.getStatus(sh, 'shock').takenPct);
+  g.clearStatuses(sh);
+  g.applyStatus(sh, 'shock', { takenPct: 20 });
+  g.resolveDamage(sh, { amount: 100, type: 'Physical', attacker: 'player', critApplied: true });
+  check('shock is taken damage not resist', loss(sh) === 120 && g.elementalResistPercent(sh, 'Lightning', 0) === 0, loss(sh));
+  sh.hp = 500;
+  g.resolveDamage(sh, { amount: 100, type: 'Fire', attacker: 'player', critApplied: true });
+  check('shock multiplies fire after a zero resist', loss(sh) === 120, loss(sh));
+  sh.hp = 500; g.clearStatuses(sh);
+  sh.resists = { Fire: -20 };
+  g.resolveDamage(sh, { amount: 100, type: 'Fire', attacker: 'player', critApplied: true });
+  check('negative resist still works without shock', loss(sh) === 120, loss(sh));
+  sh.hp = 500;
+  g.applyStatus(sh, 'shock', { takenPct: 20 });
+  g.resolveDamage(sh, { amount: 100, type: 'Fire', attacker: 'player', critApplied: true });
+  check('shock stacks with negative resist as a second multiplier', loss(sh) === 144, loss(sh));
+  sh.hp = 500; g.removeStatus(sh, 'shock');
+  check('shock remove', !g.getStatus(sh, 'shock') && g.shockTakenMul(sh) === 1);
+
+  calm(g, w); p = g.player;
+  const cur = foe(g, p, 'rat', p.x + 24);
+  g.applyStatus(p, 'curse', { curseId: 'a', outPenalty: 30, resistReduction: 0, lifeDrain: 0 });
+  g.applyStatus(p, 'curse', { curseId: 'b', outPenalty: 30, resistReduction: 0, lifeDrain: 5 });
+  g.applyStatus(p, 'curse', { curseId: 'c', outPenalty: 30, resistReduction: 0, lifeDrain: 0 });
+  const fourth = g.applyStatus(p, 'curse', { curseId: 'd', outPenalty: 30 });
+  const hooks = g.curseHooks(p);
+  check('curse cap and life drain stays unwired', fourth.reason === 'cap' && hooks.n === 3 && hooks.outPenalty === 30 && hooks.lifeDrain === 5 && hooks.lifeDrainWired === false, JSON.stringify(hooks) + ' ' + fourth.reason);
+  g.resolveDamage(cur, { amount: 100, type: 'Physical', attacker: 'player', critApplied: true });
+  check('curse penalty hits outgoing damage once', loss(cur) === 70, loss(cur));
+  p.hp = 40; p.st.ls = 50; p.st.maxHp = 400;
+  const before = p.hp;
+  w.leech(10, 'melee');
+  check('life drain does not change leech', p.hp - before === 5 && w.__lastLeech.healed === 5 && w.__lastLeech.base === 10, p.hp - before);
+  g.clearStatuses(p);
+  cur.hp = 500; cur.resists = { Fire: 50 };
+  g.applyStatus(cur, 'curse', { resistReduction: 20, outPenalty: 10, lifeDrain: 8 });
+  check('curse resist cut is not penetration', g.curseResistCut(cur, 'Fire') === 20 && g.elementalResistPercent(cur, 'Fire', 0) === 30, g.elementalResistPercent(cur, 'Fire', 0));
+  g.resolveDamage(cur, { amount: 100, type: 'Fire', attacker: 'player', critApplied: true });
+  check('cursed defender takes the reduced resist', loss(cur) === 70, loss(cur));
+  const hit0 = p.hp;
+  w.hurtPlayer(10, cur);
+  check('curse on the attacker cuts the hit', p.hp === hit0 - 9, hit0 - p.hp);
+
+  calm(g, w); p = g.player;
+  const both = foe(g, p, 'rat', p.x + 26);
+  both.resists = { Fire: 50 };
+  g.applyStatus(both, 'bleed', { base: 10, attacker: 'player' });
+  g.applyStatus(both, 'burning', { base: 10, attacker: 'player' });
+  g.applyStatus(both, 'poison', { base: 10, attacker: 'player' });
+  g.applyStatus(both, 'shock', { takenPct: 20 });
+  g.applyStatus(both, 'chill', { slowPct: 30, buildup: 0 });
+  tk = g.tickStatuses(both, 1);
+  check('overlap ticks each dot once with shock', dealt(tk) === 30 && tk.ticks.length === 3 && g.statusMoveMul(both) === 0.7, dealt(tk) + ' n ' + tk.ticks.length);
+  both.hp = 500; both.resists = null; g.clearStatuses(both);
+  g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.5 }]);
+  g.applyStatus(both, 'bleed', { base: 100, attacker: 'player' });
+  tk = g.tickStatuses(both, 1);
+  const parts = {};
+  (w.__lastDamage.components || []).forEach(c => { parts[c.type] = (parts[c.type] || 0) + c.amount; });
+  check('bleed conversion moves and does not copy', dealt(tk) === 100 && Math.round(parts.Physical) === 50 && Math.round(parts.Fire) === 50, dealt(tk) + ' ' + JSON.stringify(parts));
+  g.setConversionEdges([]);
+
+  g.clearStatuses(both);
+  both.statusImmune = { bleed: true, all: false };
+  const blocked = g.applyStatus(both, 'bleed', { base: 10, attacker: 'player' });
+  check('immunity refuses bleed', blocked.reason === 'immune' && !g.getStatus(both, 'bleed'), blocked.reason);
+  both.statusImmune = { all: true };
+  const blockedAll = g.applyStatus(both, 'shock', { takenPct: 10 });
+  check('all immunity refuses shock', blockedAll.reason === 'immune' && g.shockTakenMul(both) === 1, blockedAll.reason);
+  both.statusImmune = null;
+
+  calm(g, w); p = g.player;
+  p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
+  p.lvl = 1; p.st.fire = 0; p.mp = 80; p.cds[2] = 0; p.hp = 80;
+  const novaE = foe(g, p, 'rat', p.x + 10);
+  novaE.resists = { Cold: 90 }; novaE.maxResist = 15;
+  w.castSkill(2);
+  const slowBefore = novaE.slow;
+  g.tickStatuses(novaE, 1);
+  const legacy = g.legacyStatusView(novaE);
+  check('frost nova stays a legacy slow', loss(novaE) === 8 && slowBefore === 3.5 && novaE.slow === 3.5 && !g.getStatus(novaE, 'chill') && legacy.some(s => s.id === 'frostSlow' && s.legacy), loss(novaE) + ' slow ' + novaE.slow);
+
+  calm(g, w); p = g.player;
+  const auraE = foe(g, p, 'rat', p.x + 20);
+  auraE.auraT = 1e9; auraE.auraPct = 15;
+  check('chill aura stays legacy', g.statusMoveMul(auraE) === 1 && g.legacyStatusView(auraE).some(s => s.id === 'chillAura' && s.slowPct === 15), JSON.stringify(g.legacyStatusView(auraE)));
+  g.tickStatuses(auraE, 0.2);
+  check('engine tick does not clear the aura', auraE.auraT === 1e9 && g.statusMoveMul(auraE) === 1, auraE.auraT);
+
+  calm(g, w); p = g.player;
+  p.st.def = 30; p.st.resPoison = 90; p.inv0 = 0; p.roll = 0; p.hp = 200; w.__hurtSpread = 1;
+  g.hazards.push({ x: p.x, y: p.y, r: 12, kind: 'poison', life: 3, max: 3, dmg: 10, label: 'plague', tick: 0 });
+  g.step(0.05, { x: 0, y: 0 });
+  check('poison ground stays physical', w.__lastDamage && w.__lastDamage.dot === true && w.__lastDamage.world !== true && w.__lastDamage.type === 'Physical' && w.__lastDamage.dealt === 5 && !g.getStatus(p, 'poison'), (w.__lastDamage && w.__lastDamage.dealt) + ' ' + (w.__lastDamage && w.__lastDamage.type));
+
+  calm(g, w); p = g.player;
+  p.st.resFire = 90; p.hp = 200;
+  p.burn = { vfx: 3, dot: 4, acc: 10, tick: 1 };
+  w.updateBurn(0.1);
+  check('env burn stays a world packet', p.burn && w.__lastDamage && w.__lastDamage.world === true && w.__lastDamage.dealt === 10 && !g.getStatus(p, 'burning') && g.legacyStatusView(p).some(s => s.id === 'envBurn'), (w.__lastDamage && w.__lastDamage.dealt) + ' world ' + (w.__lastDamage && w.__lastDamage.world));
+  p.burn = null;
+
+  calm(g, w); p = g.player;
+  p.st.min = 4; p.st.max = 4; p.st.crit = 0; p.st.fire = 40; w.__critRoll = 0;
+  check('melee roll ignores mods.fire', w.rollDmg('melee').d === 4, w.rollDmg('melee').d);
+  let lootBad = false;
+  for (let i = 0; i < 30; i++) {
+    const it = g.makeItem(12, 1);
+    const mods = (it && it.mods) || {};
+    for (const k in mods) if (/bleed|burning|poison|shock|chill|freeze|curse|outPenalty/i.test(k)) lootBad = true;
+  }
+  check('loot does not roll status mods', !lootBad && src.indexOf("k: 'bleed'") < 0);
+
+  g.newGame(); p = calm(g, w);
+  g.applyStatus(p, 'bleed', { base: 6, attacker: 'enemy', source: { name: 'Saved', kind: 'test', id: 'sv' } });
+  g.applyStatus(p, 'bleed', { base: 4, attacker: 'enemy', source: { name: 'Saved2', kind: 'test', id: 'sv2' } });
+  const tagged = g.spawnEnemy('rat', p.x + 16, p.y, false);
+  tagged.hp = 432; tagged.maxHp = 432; tagged.hmFreeze = true; tagged.spd = 0;
+  g.applyStatus(tagged, 'poison', { base: 3, attacker: 'player', source: { name: 'Floor', kind: 'test', id: 'fl' } });
+  const snapN = g.getStatus(p, 'bleed').n;
+  w.save();
+  g.continueGame();
+  p = g.player;
+  const loaded = g.getStatus(p, 'bleed');
+  check('save keeps bleed stacks and sources', loaded && loaded.n === snapN && loaded.n === 2 && loaded.stacks.some(s => s.source && s.source.id === 'sv') && loaded.stacks.some(s => s.source && s.source.id === 'sv2'), loaded && JSON.stringify(loaded.stacks.map(s => s.base + ':' + (s.source && s.source.id))));
+  const keptRat = g.enemies.find(e => e.maxHp === 432);
+  const keptPoison = keptRat && g.getStatus(keptRat, 'poison');
+  check('floor snapshot keeps an enemy poison stack', !!(keptRat && keptPoison && keptPoison.n === 1 && keptPoison.stacks[0].source.id === 'fl'), keptRat ? (keptPoison && keptPoison.stacks[0].source.id) : 'missing rat');
+  const raw = JSON.parse(w.localStorage.getItem('cryptdelve'));
+  delete raw.p.statuses; delete raw.p.freezeImmune;
+  w.localStorage.setItem('cryptdelve', JSON.stringify(raw));
+  g.continueGame();
+  p = calm(g, w);
+  check('old save without statuses still loads', !g.getStatus(p, 'bleed') && p.st.crit === 5 && p.st.fire === 0 && p.st.more === 1, 'crit ' + p.st.crit);
+  p.statuses = { bleed: { id: 'bleed', kind: 'dot', dur: 99, acc: 0, interval: 1, attacker: 'player', scale: true, dmgType: 'Physical', stacks: [] } };
+  for (let i = 0; i < 40; i++) p.statuses.bleed.stacks.push({ base: 3, left: 99, source: { name: 'x', kind: 'x', id: String(i) } });
+  g.statusSanitize(p);
+  check('sanitize clamps a forged bag', g.getStatus(p, 'bleed').n === 5 && g.getStatus(p, 'bleed').dur <= 4, g.getStatus(p, 'bleed').n + ' dur ' + g.getStatus(p, 'bleed').dur);
+
+  g.newGame(); p = calm(g, w);
+  const dying = foe(g, p, 'rat', p.x + 20);
+  dying.hp = 15; dying.maxHp = 15;
+  g.applyStatus(dying, 'bleed', { base: 10, attacker: 'player' });
+  tk = g.tickStatuses(dying, 2);
+  check('lethal dot clears the bag', tk.died === true && dying.hp <= 0 && !dying.statuses && !g.getStatus(dying, 'bleed'), 'hp ' + dying.hp);
+  p.hp = 8; p.st.def = 0;
+  g.applyStatus(p, 'bleed', { base: 20, attacker: 'enemy' });
+  tk = g.tickStatuses(p, 1);
+  check('player death clears statuses', tk.died === true && p.hp <= 0 && !p.statuses, 'hp ' + p.hp + ' state ' + g.state);
+
+  g.newGame(); p = calm(g, w);
+  check('new game clears statuses', !g.getStatus(p, 'bleed') && g.listStatuses(p).filter(s => !s.legacy).length === 0);
+
+  g.startFloor(5, true);
+  p = calm(g, w);
+  const home2 = g.rooms && g.rooms[0];
+  if (home2) { p.x = (home2.cx + 0.5) * 16; p.y = (home2.cy + 0.5) * 16; }
+  const tx2 = Math.floor(p.x / 16), ty2 = Math.floor(p.y / 16);
+  for (let y = -2; y <= 2; y++) for (let x = -1; x <= 8; x++) g.setTile(tx2 + x, ty2 + y, 1);
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  se.sePhase = 'fight'; se.x = p.x + 24; se.y = p.y; se.hp = 90; se.shield = 9; se.mawVuln = 0; se.dead = false; se.hidden = false; se.downT = 0;
+  const seCh = g.applyStatus(se, 'chill', { slowPct: 50, buildup: 100 });
+  const seFr = g.applyStatus(se, 'freeze');
+  check('super elite chill is reduced and freeze is immune', seCh.ok && g.getStatus(se, 'chill').slowPct === 20 && seFr.reason === 'immune' && !g.getStatus(se, 'freeze'), seFr.reason + ' pct ' + (g.getStatus(se, 'chill') && g.getStatus(se, 'chill').slowPct));
+  g.clearStatuses(se);
+  let boss2 = g.enemies.find(e => e.T && e.T.boss && e !== se);
+  if (!boss2) boss2 = g.spawnBoss(p.x + 48, p.y);
+  boss2.x = p.x + 48; boss2.y = p.y; boss2.dead = false; boss2.hp = 400; boss2.maxHp = 400; boss2.shield = 200; boss2.mawVuln = 0; boss2.hidden = false;
+  p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth sinks se not boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss2), 'n ' + sinks.length);
+  const sh0 = boss2.shield;
+  w.damageEnemy(boss2, 100, 0, 0, '#fff', false);
+  check('marked boss still takes 110', boss2.shield === sh0 - 110 && boss2.hp === 400, 'sh ' + boss2.shield);
+  g.applyStatus(boss2, 'shock', { takenPct: 20 });
+  boss2.shield = 200; boss2.hp = 400;
+  w.damageEnemy(boss2, 100, 0, 0, '#fff', false);
+  check('shock does not replace the hellmouth mark', boss2.shield === 200 - 132 && boss2.hp === 400, 'sh ' + boss2.shield);
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('hellmouth still deletes se', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp + ' dead ' + se.dead);
+
+  finish();
+}
+</script>
+</body>
+</html>
