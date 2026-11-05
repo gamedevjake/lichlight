@@ -148,7 +148,7 @@ Wait for Jake's approval before Stage 1. The recommended architecture is in [Des
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 1 — Universal Damage Architecture.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Rollback tag `combat-redesign-pre-stage1` points at `26e917f413531466aceed0577819110aa5e6dd17`. This entry's commit is the Stage 1 head on `cursor/combat-stage1-damage-architecture-0f6b` (SHA recorded in the report after commit).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Implementation commit `485361698f134e2138646396c82db478de47922a` on `cursor/combat-stage1-damage-architecture-0f6b`. Rollback tag `combat-redesign-pre-stage1` points at `26e917f413531466aceed0577819110aa5e6dd17`.
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. Stage 2 has not been started.
 - **Objective:** Add a thin DamagePacket and one resolveDamage. Migrate current callers as Physical so time-to-kill stays the same. Do not add elemental resists, do not reinterpret `mods.fire`, do not change Hellmouth's Super Elite delete.
 
