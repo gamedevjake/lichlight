@@ -3062,7 +3062,7 @@ function lob(e, x, y, r, dur, dmg, haz) {
 // ---------- boss AI ----------
 function bossPick(e) { const pool = e.pool.filter(q => q !== e.last); return pick(pool.length ? pool : e.pool); }
 function bossAI(e, dt, d, ax, ay) {
-  const p = tomeSeek(), B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * (e.slow > 0 ? .5 : 1) * auraMul(e);
+  const p = tomeSeek(), B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * (e.slow > 0 ? .5 : 1) * auraMul(e) * statusMoveMul(e);
   // phase changes
   if (e.phase === 1 && e.hp < e.maxHp * .5) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('enrage'); }
   if (e.phase === 2 && B.p3 && e.hp < e.maxHp * .25) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
@@ -3110,17 +3110,18 @@ function bossAI(e, dt, d, ax, ay) {
 }
 
 // ---------- per-frame world update for enemies & hazards ----------
-function removeEnemy(e) { e.hp = 0; e.dead = true; const i = enemies.indexOf(e); if (i >= 0) enemies.splice(i, 1); }
+function removeEnemy(e) { clearStatuses(e); e.hp = 0; e.dead = true; const i = enemies.indexOf(e); if (i >= 0) enemies.splice(i, 1); }
 function updateEnemies(dt) {
   const p = player;
   for (const e of enemies.slice()) {
     if (e.dead) continue;
-    if (e.hmFreeze) { e.anim += dt; e.flash -= dt; continue; } // v0.7.10 Hellmouth: frozen while the maw opens and sinks
+    if (e.hmFreeze) { e.anim += dt; e.flash -= dt; continue; } // v0.7.10 Hellmouth: frozen while the maw opens and sinks. Status ticks wait too, so a DoT cannot delete the target mid-sink.
     e.anim += dt; e.flash -= dt; e.atkCd -= dt; e.slow -= dt; e.glow = Math.max(0, (e.glow || 0) - dt);
+    if (tickStatuses(e, dt).died || e.dead || e.hp <= 0) { if (state !== 'play') return; continue; }
     const sk = tomeSeek(), dSk = dist(e, sk), d = dist(e, p);
     if (d > 340 && dSk > 340 && !e.T.boss) continue; // far away: frozen (cheap)
     if (e.downT) { e.downT -= dt; if (e.downT <= 0) { e.downT = 0; e.hp = Math.round(e.maxHp * .5); flashMsg('The Revenant rises again!', '#c0c0ff'); burst(e.x, e.y, '#c0c0ff', 16, 60); e.state = 'chase'; } continue; }
-    const spd = e.spd * (e.slow > 0 ? .45 : 1) * auraMul(e);
+    const spd = e.spd * (e.slow > 0 ? .45 : 1) * auraMul(e) * statusMoveMul(e);
     if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt); const f = Math.pow(.001, dt); e.kx *= f; e.ky *= f; if (Math.abs(e.kx) + Math.abs(e.ky) < 2) e.kx = e.ky = 0; }
     if (e.disg) { if (d < 26) wakeMimic(e); continue; }
     if (gridAIOn(e)) { gridEnemyUpdate(e, dt, d, spd); if (state !== 'play') return; continue; } // v0.7.4 F11 axis-aligned state machine (replaces LOS chase)
@@ -3252,6 +3253,7 @@ function drawEnemy(e) {
   if (e.elite) drawChampOutline(img, X, Y);
   ctx.drawImage(img, X, Y);
   if (e.slow > 0 && e.flash <= 0) { const ic = T.boss ? null : (e.face > 0 ? S.iceR : S.iceL); if (ic) ctx.drawImage(ic, X, Y); }
+  if (e.statuses) { let sx = X; if (e.statuses.bleed) { ctx.fillStyle = '#c02020'; ctx.fillRect(sx, Y - 2, 1, 1); sx += 2; } if (e.statuses.burning) { ctx.fillStyle = '#ff7020'; ctx.fillRect(sx, Y - 2, 1, 1); sx += 2; } if (e.statuses.poison) { ctx.fillStyle = '#a0e040'; ctx.fillRect(sx, Y - 2, 1, 1); sx += 2; } if (e.statuses.shock) { ctx.fillStyle = '#ffe040'; ctx.fillRect(sx, Y - 2, 1, 1); } }
   ctx.globalAlpha = 1;
   if (T.ai === 'guard') { const fx = Math.round(e.x + Math.cos(e.fa) * 7), fy = Math.round(e.y - 3 + Math.sin(e.fa) * 5); ctx.fillStyle = '#8888a0'; ctx.fillRect(fx - 1, fy - 3, 3, 6); ctx.fillStyle = '#e8c840'; ctx.fillRect(fx, fy - 1, 1, 2); }
   if (e.mode === 'stun') { for (let i = 0; i < 3; i++) { const an = time * 6 + i * 2.1; ctx.fillStyle = '#ffe040'; ctx.fillRect(Math.round(e.x + Math.cos(an) * 6), Math.round(Y - 2 + Math.sin(an) * 2), 1, 1); } }
@@ -3298,7 +3300,7 @@ function startFloor(d, fresh) {
   deathAct = null; depth = d; V73 = v073Empty(); DPLANE = null; genDungeon(depth); populate(); setFloorEntrance(d); genV071(d); genV072(d); genV073(d); genV075(d); populateCritters(); v074Floor(d); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
-  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
+  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; clearStatuses(player); player.freezeImmune = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
   v077BuildRooms(); splitGoldPiles(); purgeBadSpawns(); save();
 }
 function badSpawnAt(x, y) {
@@ -3320,7 +3322,7 @@ function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null, statuses: statusSaveBag(p), freezeImmune: p.freezeImmune > 0 ? Math.round(p.freezeImmune * 1000) / 1000 : undefined } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -3372,6 +3374,7 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || solidAt(p.x, p.y) || pitHitAt(p.x, p.y, p.r)) { const r = rooms[0]; p.x = (r.cx + .5) * TS; p.y = (r.cy + .5) * TS; }
   computeStats(); debrisFix(); cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; p.slowT = 0; p.walk = null; p.pickT = null; p.useT = null; clickMark = null;
   ambEnsure(p); v077BuildRooms(); splitGoldPiles(); purgeBadSpawns(); /* v0.7.7: room letters from the saved seed; do not re-roll the bed */
+  if (Array.isArray(enemies)) for (let si = 0; si < enemies.length; si++) statusSanitize(enemies[si]);
   return true; }
 function debrisFix() { if (!Array.isArray(debris)) debris = []; }
 setInterval(() => { if (state === 'play' && player && time - lastSaveT > 12) save(); }, 4000); // v0.6.3 B10: autosave the live floor while playing
@@ -3415,6 +3418,7 @@ function continueGame() {
   if (s.world) { try { restored = worldRestore(s.world, s.depth); } catch (e) { restored = false; saveErr = 'restore: ' + (e && e.message || e); } }
   if (restored) { const st = player.st; player.hp = clamp(Number.isFinite(+s.p.hp) && +s.p.hp > 0 ? +s.p.hp : st.maxHp, 1, st.maxHp); player.mp = clamp(Number.isFinite(+s.p.mp) ? +s.p.mp : st.maxMp, 0, st.maxMp); save(); }
   else startFloor(s.depth, true);
+  statusSanitize(player);
   worldResumed = restored; setState('play');
 }
 // ---------- input: keyboard ----------
@@ -4127,6 +4131,9 @@ let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other
 // floor 1, boss/Super Elite shield, HP.
 // World packets (envHurt) skip combat mitigation, including resist, crit, and offensive scaling.
 // mods.fire is spell power, not a Fire resist and not a Fire damage type. Hellmouth ×1.10 is not a resist.
+// Stage 4: a DoT packet does not crit. Shock, if present, multiplies taken damage after mitigation.
+// A curse penalty, if present, multiplies outgoing damage after scale. Curse resist reduction
+// subtracts inside elementalResistPercent. With no status, each of those is skipped.
 // Champion crit stays the incoming +5% after armor. It is not the player crit multiplier.
 const DMG_TYPES = ['Physical', 'Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
 const DMG_TAGS = ['Melee', 'Ranged', 'Spell', 'Projectile', 'AoE', 'DoT', 'Direct', 'Channelled'];
@@ -4165,7 +4172,8 @@ function rawElementalResist(defender, type) {
 function elementalResistPercent(defender, type, pen) {
   if (!RESIST_KEYS[type]) return 0;
   const p = Number.isFinite(+pen) ? +pen : 0;
-  return Math.max(RESIST_MIN, Math.min(resistCap(defender), rawElementalResist(defender, type) - p));
+  const raw = rawElementalResist(defender, type) - curseResistCut(defender, type);
+  return Math.max(RESIST_MIN, Math.min(resistCap(defender), raw - p));
 }
 function elementalResist(defender, type, pen) { return elementalResistPercent(defender, type, pen) / 100; }
 function packetPen(packet, type, attackerIsPlayer) {
@@ -4334,7 +4342,9 @@ function scaleAmount(amount, type, packetMore) {
 function scaleOutgoingComponents(comps, packet) {
   packet = packet || {};
   if (packet.attacker !== 'player' || packet.scale === false || packet.world) return comps;
-  const wantCrit = !!packet.critPending && !packet.critApplied;
+  // DoT ticks never crit, even if a caller sets critPending. Hits are unchanged when isDot is false.
+  const dot = !!(packet && (packet.isDot || (packet.tags && packet.tags.indexOf('DoT') >= 0)));
+  const wantCrit = !dot && !!packet.critPending && !packet.critApplied;
   let critNow = false, mul = 1;
   if (wantCrit) { const hit = rollPlayerCrit(packet.skill || 'melee'); critNow = hit.crit; mul = hit.mul; }
   return comps.map(c => {
@@ -4342,7 +4352,10 @@ function scaleOutgoingComponents(comps, packet) {
     let amount = c.amount;
     let crit = !!c.crit || !!packet.crit;
     if (wantCrit && !c.critApplied && critNow) { amount *= mul; crit = true; }
+    if (dot) crit = false;
     amount = scaleAmount(amount, c.type, packet.more);
+    const cMul = curseOutMul(player);
+    if (cMul !== 1) amount *= cMul;
     return {
       amount: amount, type: c.type, tags: c.tags.slice(), crit: crit, converted: !!c.converted, chainUsed: !!c.chainUsed,
       critApplied: true, critPending: false, scaled: true
@@ -4393,6 +4406,8 @@ function resolvePlayerDamage(packet) {
   if (p && p.isInvincible) return preventedHit('shift', packet);
   if (p && p.isPlayerUndetected) return preventedHit('clone', packet);
   let comps = applyConversion(packet.components);
+  const cMul = curseOutMul(hurtAttacker(packet.source));
+  if (cMul !== 1) comps = comps.map(c => ({ amount: c.amount * cMul, type: c.type, tags: c.tags.slice(), crit: !!c.crit, converted: !!c.converted, chainUsed: !!c.chainUsed, critApplied: !!c.critApplied, scaled: !!c.scaled }));
   if (p && p.isArmorActive) comps = comps.map(c => ({ amount: c.amount * 0.75, type: c.type, tags: c.tags.slice(), crit: !!c.crit, converted: !!c.converted }));
   if (p.inv0 > 0 || p.roll > 0 || state !== 'play' || state === 'dying' || deathAct) return preventedHit('iframe', packet, comps);
   const dot = !!(packet.isDot || (src && src.dot));
@@ -4408,9 +4423,11 @@ function resolvePlayerDamage(packet) {
     else kept += mitigateElement(c, p, packet, false);
   }
   // Single Physical component uses the v0.7.18 expression unchanged, including the one round.
+  // Shock multiplies that result once. With no shock the expression is the old one.
+  const taken = shockTakenMul(p);
   let d = (comps.length === 1 && comps[0].type === 'Physical')
-    ? Math.max(1, Math.round(comps[0].amount * (1 - red) * spread))
-    : Math.max(1, Math.round(kept * spread));
+    ? Math.max(1, Math.round(taken === 1 ? comps[0].amount * (1 - red) * spread : comps[0].amount * (1 - red) * spread * taken))
+    : Math.max(1, Math.round(taken === 1 ? kept * spread : kept * spread * taken));
   let champCrit = false;
   if (!dot && isChampion(hurtAttacker(src))) {
     const roll = typeof window.__champCrit === 'number' ? window.__champCrit : Math.random();
@@ -4468,6 +4485,8 @@ function resolveEnemyDamage(e, packet) {
   }
   if (T.armor && e.mode !== 'stun') dmg *= T.armor;
   if (e.mawVuln > 0) dmg *= 1.1;
+  const taken = shockTakenMul(e);
+  if (taken !== 1) dmg *= taken;
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
   let hpDmg = dmg, shieldAbs = 0;
@@ -4616,6 +4635,414 @@ function hurtPlayer(dmg, src) {
   });
 }
 
+// ===== Stage 4: status effects =====
+// One bag per actor, `ent.statuses`. Legacy frost slow, chill aura, webs, poison ground,
+// environmental burn, fear, and self-stun keep their own timers. legacyStatusView reads them.
+// It does not tick them. Damaging statuses below build one DoT packet per tick and resolve once.
+// DoT ticks do not crit. No live attack applies these. No loot rolls them.
+const STATUS = {
+  // Dot types are DMG_TYPES indexes. 0 Physical, 1 Fire, 4 Poison.
+  bleed:   { kind: 'dot', type: DMG_TYPES[0], max: 5, dur: 4, interval: 1, col: '#c02020', label: 'BLEED' },
+  burning: { kind: 'dot', type: DMG_TYPES[1], max: 3, dur: 3, interval: 1, col: '#ff7020', label: 'BURN' },
+  poison:  { kind: 'dot', type: DMG_TYPES[4], max: 8, dur: 6, interval: 1, col: '#a0e040', label: 'POISON' },
+  chill:   { kind: 'chill',  max: 1, dur: 4, slowCap: 60, build: 40, freezeAt: 100, col: '#80d0ff', label: 'CHILL' },
+  freeze:  { kind: 'freeze', max: 1, dur: 1.5, lockout: 3, col: '#e8f8ff', label: 'FREEZE' },
+  shock:   { kind: 'shock',  max: 1, dur: 4, cap: 25, col: '#ffe040', label: 'SHOCK' },
+  curse:   { kind: 'curse',  max: 3, dur: 6, penaltyCap: 30, resistCap: 40, drainCap: 10, col: '#c080e0', label: 'CURSE' }
+};
+const HEAVY_CHILL = 0.4; // bosses and Super Elites: chill slow and only chill. Freeze does not land.
+const STATUS_MAX_TICKS = 8; // one tickStatuses call cannot burst more than this many ticks
+
+function statusHeavy(ent) { return !!(ent && (ent.superElite || (ent.T && (ent.T.boss || ent.T.superElite)))); }
+function statusSource(src) {
+  if (!src) return { name: '', kind: 'status', id: '' };
+  if (typeof src === 'string') return { name: src.slice(0, 48), kind: 'status', id: '' };
+  return {
+    name: String(src.name || src.label || '').slice(0, 48),
+    kind: String(src.kind || 'status').slice(0, 24),
+    id: String(src.id != null ? src.id : '').slice(0, 32)
+  };
+}
+function curseKey(spec) {
+  const raw = String((spec && spec.curseId) || 'curse').slice(0, 16);
+  if (!/^[a-z0-9]+$/i.test(raw)) return '';
+  return 'curse:' + raw.toLowerCase();
+}
+function statusBlock(ent, id) {
+  const imm = ent && ent.statusImmune;
+  if (imm && (imm.all || imm[id])) return 'immune';
+  if (id === 'freeze' && statusHeavy(ent)) return 'immune';
+  if (id === 'freeze' && ent.freezeImmune > 0) return 'freeze-lockout';
+  return '';
+}
+function statusSnap(rec) {
+  if (!rec) return null;
+  const stacks = (rec.stacks || []).map(s => ({ base: s.base, left: s.left, source: s.source || null }));
+  return {
+    id: rec.id, key: rec.key || rec.id, kind: rec.kind, dur: rec.dur, acc: rec.acc || 0,
+    interval: rec.interval || 0, attacker: rec.attacker || '', scale: !!rec.scale, dmgType: rec.dmgType || '',
+    slowPct: rec.slowPct || 0, buildup: rec.buildup || 0, takenPct: rec.takenPct || 0,
+    outPenalty: rec.outPenalty || 0, resistReduction: rec.resistReduction || 0,
+    resistByType: rec.resistByType || null, lifeDrain: rec.lifeDrain || 0,
+    stacks: stacks, n: stacks.length, source: rec.source || (stacks[0] && stacks[0].source) || null
+  };
+}
+function legacyStatusView(ent) {
+  const out = [];
+  if (!ent) return out;
+  if (ent.slow > 0) out.push({ id: 'frostSlow', legacy: true, dur: ent.slow, slowMul: ent.T && ent.T.boss ? 0.5 : 0.45, source: { kind: 'frostNova', name: 'Frost Nova', id: '' } });
+  if (ent.auraT > time) out.push({ id: 'chillAura', legacy: true, dur: ent.auraT - time, slowPct: ent.auraPct || 0, source: { kind: 'slowAura', name: 'Chill aura', id: '' } });
+  if (ent.slowT > 0) out.push({ id: 'slowT', legacy: true, dur: ent.slowT, slowMul: 0.6, source: { kind: 'hazard', name: 'Slow', id: '' } });
+  if (ent.burn && ent.burn.dot > 0) out.push({ id: 'envBurn', legacy: true, dur: ent.burn.dot, source: { kind: 'environment', name: 'flames', id: '' } });
+  if (ent.fearT > 0) out.push({ id: 'fear', legacy: true, dur: ent.fearT, source: { kind: 'fear', name: 'Fear', id: '' } });
+  if (ent.mode === 'stun') out.push({ id: 'stun', legacy: true, dur: ent.t || 0, source: { kind: 'stun', name: 'Stun', id: '' } });
+  return out;
+}
+function listStatuses(ent) {
+  const out = [];
+  const bag = ent && ent.statuses;
+  if (bag) for (const k in bag) { const snap = statusSnap(bag[k]); if (snap) { snap.key = k; out.push(snap); } }
+  return out.concat(legacyStatusView(ent));
+}
+function getStatus(ent, id) {
+  const bag = ent && ent.statuses;
+  if (!bag || !id) return null;
+  if (bag[id]) return statusSnap(bag[id]);
+  if (id === 'curse' && bag['curse:curse']) return statusSnap(bag['curse:curse']);
+  return null;
+}
+function clearStatuses(ent) { if (ent && ent.statuses) delete ent.statuses; }
+function removeStatus(ent, id) {
+  const bag = ent && ent.statuses;
+  if (!bag || !id) return false;
+  const key = bag[id] ? id : (id === 'curse' && bag['curse:curse'] ? 'curse:curse' : '');
+  if (!key || !bag[key]) return false;
+  delete bag[key];
+  if (!Object.keys(bag).length) delete ent.statuses;
+  return true;
+}
+function statusFloater(ent, label, col) {
+  if (!ent || !Number.isFinite(+ent.x) || !label) return;
+  if (ent === player) addText(ent.x, ent.y - 14, label, col);
+  else if (typeof addFoeText === 'function') addFoeText(ent.x, ent.y - 14, label, col);
+}
+function statusSaveBag(ent) {
+  if (!ent || !ent.statuses) return undefined;
+  const keys = Object.keys(ent.statuses);
+  if (!keys.length) return undefined;
+  const bag = {};
+  for (let i = 0; i < keys.length; i++) {
+    const rec = ent.statuses[keys[i]];
+    if (!rec) continue;
+    bag[keys[i]] = {
+      id: rec.id, key: keys[i], kind: rec.kind, dur: rec.dur, acc: rec.acc || 0, interval: rec.interval || 0,
+      attacker: rec.attacker || 'player', scale: !!rec.scale, dmgType: rec.dmgType || '',
+      slowPct: rec.slowPct || 0, buildup: rec.buildup || 0, takenPct: rec.takenPct || 0,
+      outPenalty: rec.outPenalty || 0, resistReduction: rec.resistReduction || 0,
+      resistByType: rec.resistByType ? Object.assign({}, rec.resistByType) : null,
+      lifeDrain: rec.lifeDrain || 0, source: rec.source || null,
+      stacks: (rec.stacks || []).map(s => ({ base: s.base, left: s.left, source: s.source || null }))
+    };
+  }
+  return Object.keys(bag).length ? bag : undefined;
+}
+function statusSanitize(ent) {
+  if (!ent) return;
+  if (!ent.statuses || typeof ent.statuses !== 'object' || Array.isArray(ent.statuses)) { delete ent.statuses; return; }
+  const bag = ent.statuses;
+  const keys = Object.keys(bag);
+  let curses = 0;
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    const known = k.indexOf('curse:') === 0 ? 'curse' : k;
+    const def = STATUS[known];
+    const rec = bag[k];
+    if (!def || !rec || typeof rec !== 'object') { delete bag[k]; continue; }
+    if (known === 'curse') { curses++; if (curses > def.max) { delete bag[k]; continue; } }
+    rec.id = known;
+    rec.key = k;
+    rec.kind = def.kind;
+    rec.dur = Math.max(0, Math.min(def.dur || 0, +rec.dur || 0));
+    rec.acc = Math.max(0, +rec.acc || 0);
+    rec.interval = def.interval || 0;
+    if (def.kind === 'dot') {
+      if (!Array.isArray(rec.stacks)) rec.stacks = [];
+      if (rec.stacks.length > def.max) rec.stacks.length = def.max;
+      for (let s = rec.stacks.length - 1; s >= 0; s--) {
+        const st = rec.stacks[s];
+        if (!st || typeof st !== 'object') { rec.stacks.splice(s, 1); continue; }
+        st.base = Math.max(0, +st.base || 0);
+        st.left = Math.max(0, Math.min(def.dur, +st.left || 0));
+        st.source = statusSource(st.source);
+      }
+    }
+    if (def.kind === 'chill') {
+      rec.slowPct = Math.max(0, Math.min(def.slowCap, +rec.slowPct || 0));
+      rec.buildup = Math.max(0, Math.min(def.freezeAt, +rec.buildup || 0));
+    }
+    if (def.kind === 'shock') rec.takenPct = Math.max(0, Math.min(def.cap, +rec.takenPct || 0));
+    if (def.kind === 'curse') {
+      rec.outPenalty = Math.max(0, Math.min(def.penaltyCap, +rec.outPenalty || 0));
+      rec.resistReduction = Math.max(0, Math.min(def.resistCap, +rec.resistReduction || 0));
+      rec.lifeDrain = Math.max(0, Math.min(def.drainCap, +rec.lifeDrain || 0));
+      rec.source = statusSource(rec.source);
+    } else rec.source = statusSource(rec.source);
+  }
+  if (ent.freezeImmune) ent.freezeImmune = Math.max(0, +ent.freezeImmune || 0);
+  if (!Object.keys(bag).length) delete ent.statuses;
+}
+function curseOutMul(ent) {
+  const bag = ent && ent.statuses;
+  if (!bag) return 1;
+  let pen = 0;
+  for (const k in bag) {
+    const rec = bag[k];
+    if (!rec || rec.kind !== 'curse' || !(rec.dur > 0)) continue;
+    pen += +rec.outPenalty || 0;
+  }
+  if (!(pen > 0)) return 1;
+  if (pen > STATUS.curse.penaltyCap) pen = STATUS.curse.penaltyCap;
+  return 1 - pen / 100;
+}
+function curseResistCut(defender, type) {
+  const bag = defender && defender.statuses;
+  if (!bag) return 0;
+  let cut = 0;
+  for (const k in bag) {
+    const rec = bag[k];
+    if (!rec || rec.kind !== 'curse' || !(rec.dur > 0)) continue;
+    cut += +rec.resistReduction || 0;
+    if (rec.resistByType && Number.isFinite(+rec.resistByType[type])) cut += +rec.resistByType[type];
+  }
+  if (!(cut > 0)) return 0;
+  return cut > STATUS.curse.resistCap ? STATUS.curse.resistCap : cut;
+}
+function curseHooks(ent) {
+  const C = STATUS.curse;
+  const hooks = { n: 0, outPenalty: 0, resistReduction: 0, lifeDrain: 0, lifeDrainWired: false, outWired: true, resistWired: true };
+  const bag = ent && ent.statuses;
+  if (!bag) return hooks;
+  for (const k in bag) {
+    const rec = bag[k];
+    if (!rec || rec.kind !== 'curse' || !(rec.dur > 0)) continue;
+    hooks.n++;
+    hooks.outPenalty += +rec.outPenalty || 0;
+    hooks.resistReduction += +rec.resistReduction || 0;
+    hooks.lifeDrain += +rec.lifeDrain || 0;
+  }
+  if (hooks.outPenalty > C.penaltyCap) hooks.outPenalty = C.penaltyCap;
+  if (hooks.resistReduction > C.resistCap) hooks.resistReduction = C.resistCap;
+  if (hooks.lifeDrain > C.drainCap) hooks.lifeDrain = C.drainCap;
+  return hooks;
+}
+function shockTakenMul(ent) {
+  const rec = ent && ent.statuses && ent.statuses.shock;
+  if (!rec || !(rec.dur > 0) || !(rec.takenPct > 0)) return 1;
+  const pct = Math.min(STATUS.shock.cap, rec.takenPct);
+  return 1 + pct / 100;
+}
+function statusMoveMul(ent) {
+  const bag = ent && ent.statuses;
+  if (!bag) return 1;
+  const fr = bag.freeze;
+  if (fr && fr.dur > 0) return 0;
+  const ch = bag.chill;
+  if (!ch || !(ch.dur > 0) || !(ch.slowPct > 0)) return 1;
+  return 1 - Math.min(STATUS.chill.slowCap, ch.slowPct) / 100;
+}
+function dealDotTick(ent, rec) {
+  let base = 0;
+  const sources = [];
+  const stacks = rec.stacks || [];
+  for (let i = 0; i < stacks.length; i++) {
+    if (!(stacks[i].left > 0)) continue;
+    base += stacks[i].base;
+    if (stacks[i].source && sources.length < 8) sources.push(stacks[i].source);
+  }
+  const info = { id: rec.id, type: rec.dmgType, base: base, sources: sources, dealt: 0, killed: false, crit: false, prevented: null };
+  if (!(base > 0) || ent.dead || (ent.hp != null && ent.hp <= 0 && ent !== player)) return info;
+  const res = resolveDamage(ent, {
+    amount: base, type: rec.dmgType, tags: ['DoT'], isDot: true, attacker: rec.attacker || 'player',
+    scale: rec.scale !== false && rec.attacker === 'player', crit: false, critApplied: true, critPending: false,
+    source: { status: rec.id, label: rec.id, sources: sources }, skill: rec.id, col: STATUS[rec.id] ? STATUS[rec.id].col : '#fff'
+  });
+  info.dealt = res && res.dealt || 0;
+  info.killed = !!(res && res.killed);
+  info.crit = !!(res && res.crit);
+  info.prevented = res && res.prevented || null;
+  info.result = res;
+  window.__lastStatusTick = info;
+  return info;
+}
+function applyStatus(ent, id, spec) {
+  spec = spec || {};
+  if (!ent || ent.dead || (ent !== player && ent.hp != null && ent.hp <= 0)) return { ok: false, id: id || '', reason: 'invalid' };
+  const defId = id === 'curse' ? 'curse' : id;
+  const def = STATUS[defId];
+  const key = defId === 'curse' ? curseKey(spec) : defId;
+  if (!def || !key) return { ok: false, id: id || '', reason: 'unknown' };
+  const blocked = statusBlock(ent, defId);
+  if (blocked) return { ok: false, id: defId, reason: blocked, dur: ent.statuses && ent.statuses[key] ? ent.statuses[key].dur : 0 };
+  if (!ent.statuses) ent.statuses = {};
+  const bag = ent.statuses;
+  const src = statusSource(spec.source);
+  let reason = 'applied';
+  let froze = false;
+  if (def.kind === 'dot') {
+    const dur = Math.min(def.dur, Math.max(def.interval, Number.isFinite(+spec.duration) ? +spec.duration : def.dur));
+    const base = Math.max(0, Number.isFinite(+spec.base) ? +spec.base : 0);
+    const attacker = spec.attacker === 'enemy' || spec.attacker === 'world' ? spec.attacker : 'player';
+    let rec = bag[key];
+    if (!rec) {
+      rec = bag[key] = { id: defId, key: key, kind: 'dot', dmgType: def.type, interval: def.interval, acc: 0, dur: 0, stacks: [], attacker: attacker, scale: attacker === 'player' && spec.scale !== false, source: src };
+    }
+    rec.attacker = attacker;
+    rec.scale = attacker === 'player' && spec.scale !== false;
+    const addN = Math.max(1, Math.min(def.max, spec.stacks | 0 || 1));
+    for (let n = 0; n < addN; n++) {
+      if (rec.stacks.length < def.max) {
+        rec.stacks.push({ base: base, left: dur, source: src });
+        reason = rec.stacks.length === 1 ? 'applied' : 'stacked';
+      } else {
+        let wi = 0;
+        for (let s = 1; s < rec.stacks.length; s++) if (rec.stacks[s].left < rec.stacks[wi].left) wi = s;
+        const st = rec.stacks[wi];
+        st.left = dur;
+        if (base > st.base) st.base = base;
+        st.source = src;
+        reason = 'refreshed';
+      }
+    }
+    let maxLeft = 0;
+    for (let s = 0; s < rec.stacks.length; s++) if (rec.stacks[s].left > maxLeft) maxLeft = rec.stacks[s].left;
+    rec.dur = maxLeft;
+    rec.source = src;
+  } else if (def.kind === 'chill') {
+    let slow = spec.slowPct != null ? +spec.slowPct : 30;
+    if (!Number.isFinite(slow) || slow < 0) slow = 0;
+    if (statusHeavy(ent)) slow *= HEAVY_CHILL;
+    if (slow > def.slowCap) slow = def.slowCap;
+    const want = Math.min(def.dur, Math.max(0.05, Number.isFinite(+spec.duration) ? +spec.duration : def.dur));
+    let rec = bag.chill;
+    if (!rec) { rec = bag.chill = { id: 'chill', key: 'chill', kind: 'chill', dur: 0, slowPct: 0, buildup: 0, source: src }; reason = 'applied'; }
+    else reason = 'refreshed';
+    rec.dur = Math.min(def.dur, Math.max(rec.dur, want));
+    rec.slowPct = Math.min(def.slowCap, Math.max(rec.slowPct, slow));
+    rec.source = src;
+    if (!statusHeavy(ent)) {
+      const gain = spec.buildup == null ? def.build : Math.max(0, +spec.buildup || 0);
+      rec.buildup = Math.min(def.freezeAt, (rec.buildup || 0) + gain);
+      if (rec.buildup >= def.freezeAt) {
+        rec.buildup = 0;
+        const fr = applyStatus(ent, 'freeze', { source: spec.source, quiet: true });
+        froze = !!(fr && fr.ok);
+      }
+    } else rec.buildup = 0;
+  } else if (def.kind === 'freeze') {
+    if (bag.freeze && bag.freeze.dur > 0) return { ok: false, id: 'freeze', reason: 'refresh-blocked', dur: bag.freeze.dur, stacks: 0 };
+    const want = Math.min(def.dur, Math.max(0.05, Number.isFinite(+spec.duration) ? +spec.duration : def.dur));
+    bag.freeze = { id: 'freeze', key: 'freeze', kind: 'freeze', dur: want, source: src };
+    reason = 'applied';
+  } else if (def.kind === 'shock') {
+    let pct = spec.takenPct != null ? +spec.takenPct : (spec.pct != null ? +spec.pct : 15);
+    if (!Number.isFinite(pct) || pct < 0) pct = 0;
+    if (pct > def.cap) pct = def.cap;
+    const want = Math.min(def.dur, Math.max(0.05, Number.isFinite(+spec.duration) ? +spec.duration : def.dur));
+    let rec = bag.shock;
+    if (!rec) { rec = bag.shock = { id: 'shock', key: 'shock', kind: 'shock', dur: 0, takenPct: 0, source: src }; reason = 'applied'; }
+    else reason = 'refreshed';
+    rec.dur = Math.min(def.dur, Math.max(rec.dur, want));
+    rec.takenPct = Math.min(def.cap, Math.max(rec.takenPct, pct));
+    rec.source = src;
+  } else if (def.kind === 'curse') {
+    const curseKeys = Object.keys(bag).filter(k => k.indexOf('curse:') === 0);
+    if (!bag[key] && curseKeys.length >= def.max) return { ok: false, id: 'curse', reason: 'cap', stacks: curseKeys.length };
+    let outP = spec.outPenalty != null ? +spec.outPenalty : 10;
+    let cut = spec.resistReduction != null ? +spec.resistReduction : 0;
+    let drain = spec.lifeDrain != null ? +spec.lifeDrain : 0;
+    if (!Number.isFinite(outP) || outP < 0) outP = 0;
+    if (!Number.isFinite(cut) || cut < 0) cut = 0;
+    if (!Number.isFinite(drain) || drain < 0) drain = 0;
+    outP = Math.min(def.penaltyCap, outP);
+    cut = Math.min(def.resistCap, cut);
+    drain = Math.min(def.drainCap, drain);
+    const want = Math.min(def.dur, Math.max(0.05, Number.isFinite(+spec.duration) ? +spec.duration : def.dur));
+    let rec = bag[key];
+    if (!rec) {
+      rec = bag[key] = { id: 'curse', key: key, kind: 'curse', dur: 0, outPenalty: 0, resistReduction: 0, lifeDrain: 0, resistByType: null, source: src };
+      reason = 'applied';
+    } else reason = 'refreshed';
+    rec.dur = Math.min(def.dur, Math.max(rec.dur, want));
+    rec.outPenalty = Math.min(def.penaltyCap, Math.max(rec.outPenalty, outP));
+    rec.resistReduction = Math.min(def.resistCap, Math.max(rec.resistReduction, cut));
+    rec.lifeDrain = Math.min(def.drainCap, Math.max(rec.lifeDrain, drain));
+    if (spec.resistByType && typeof spec.resistByType === 'object') {
+      rec.resistByType = rec.resistByType || {};
+      for (const t in spec.resistByType) if (RESIST_KEYS[t] && Number.isFinite(+spec.resistByType[t])) rec.resistByType[t] = Math.max(0, Math.min(def.resistCap, +spec.resistByType[t]));
+    }
+    rec.source = src;
+  }
+  const rec = bag[key];
+  if (!spec.quiet && (reason === 'applied' || reason === 'stacked')) statusFloater(ent, def.label, def.col);
+  if (froze && !spec.quiet) statusFloater(ent, STATUS.freeze.label, STATUS.freeze.col);
+  return {
+    ok: true, id: defId, key: key, reason: reason, dur: rec ? rec.dur : 0,
+    stacks: rec && rec.stacks ? rec.stacks.length : (rec ? 1 : 0),
+    slowPct: rec && rec.slowPct || 0, buildup: rec && rec.buildup || 0, takenPct: rec && rec.takenPct || 0,
+    froze: froze
+  };
+}
+function tickStatuses(ent, dt) {
+  const out = { ticks: [], expired: [], died: false };
+  if (!ent || !(dt > 0)) return out;
+  if (ent.freezeImmune > 0) ent.freezeImmune = Math.max(0, ent.freezeImmune - dt);
+  const bag = ent.statuses;
+  if (!bag) return out;
+  const ids = Object.keys(bag);
+  for (let i = 0; i < ids.length; i++) {
+    if (ent.dead || (ent !== player && ent.hp != null && ent.hp <= 0)) { out.died = true; return out; }
+    const id = ids[i];
+    const rec = bag[id];
+    if (!rec) continue;
+    if (rec.kind === 'dot' && rec.interval > 0 && rec.stacks && rec.stacks.length) {
+      rec.acc = (rec.acc || 0) + dt;
+      let n = 0;
+      while (rec.acc >= rec.interval - 1e-9 && n < STATUS_MAX_TICKS && rec.stacks.length) {
+        rec.acc -= rec.interval;
+        n++;
+        const hit = dealDotTick(ent, rec);
+        out.ticks.push(hit);
+        if (hit.killed || ent.dead || (ent !== player && ent.hp != null && ent.hp <= 0) || (ent === player && ent.hp <= 0)) {
+          out.died = true;
+          clearStatuses(ent);
+          return out;
+        }
+      }
+    }
+    if (!ent.statuses || !ent.statuses[id]) continue;
+    rec.dur -= dt;
+    if (rec.stacks) {
+      for (let s = rec.stacks.length - 1; s >= 0; s--) {
+        rec.stacks[s].left -= dt;
+        if (rec.stacks[s].left <= 1e-9) rec.stacks.splice(s, 1);
+      }
+      let maxLeft = 0;
+      for (let s = 0; s < rec.stacks.length; s++) if (rec.stacks[s].left > maxLeft) maxLeft = rec.stacks[s].left;
+      rec.dur = maxLeft;
+      if (!rec.stacks.length) {
+        delete ent.statuses[id];
+        out.expired.push(id);
+      }
+    } else if (rec.dur <= 0) {
+      if (id === 'freeze') ent.freezeImmune = STATUS.freeze.lockout;
+      delete ent.statuses[id];
+      out.expired.push(id);
+    }
+  }
+  if (ent.statuses && !Object.keys(ent.statuses).length) delete ent.statuses;
+  return out;
+}
+
 let deathAct = null;
 function classifyDeath(killer, cause) {
   if (cause === 'starve' || cause === 'battle' || cause === 'fire') return cause;
@@ -4626,7 +5053,7 @@ function classifyDeath(killer, cause) {
 }
 function die(killer, cause) {
   const p = player; if (!p || deathAct || state === 'dead' || state === 'dying') return;
-  p.hp = 0; p.walk = null; p.roll = 0; p.swing = 0;
+  p.hp = 0; p.walk = null; p.roll = 0; p.swing = 0; clearStatuses(p); p.freezeImmune = 0;
   const why = classifyDeath(killer, cause);
   deathAct = { cause: why, t: 0, dur: 3.5, killer: killer || '', x: p.x, y: p.y, bits: null, overlay: false };
   if (why === 'battle') deathAct.bits = deathBits(p);
@@ -4840,10 +5267,13 @@ function update(dt) {
   p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1); p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
   for (let i = 0; i < p.cds.length; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.regen * dt); p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * .1) * dt);
+  if (tickStatuses(p, dt).died) return;
   const stand = !touchMode && !!keys.Control; if (stand && p.walk) p.walk = null; // Ctrl held = stand in place (attack / cast without moving)
-  const mv = stand ? { x: 0, y: 0 } : moveInput(), sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * ((held.attack && p.chg >= PWR.min) || (dm.left && p.mchg >= PWR.min) ? .6 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed() * webSlow() * hazSlow();
+  const moveMul = statusMoveMul(p);
+  let mv = stand ? { x: 0, y: 0 } : moveInput(); if (moveMul === 0) mv = { x: 0, y: 0 };
+  const sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * ((held.attack && p.chg >= PWR.min) || (dm.left && p.mchg >= PWR.min) ? .6 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed() * webSlow() * hazSlow() * (moveMul === 0 ? 0 : moveMul);
   p.rollCd = Math.max(0, p.rollCd - dt); p.rollQ -= dt;
-  if (p.rollQ > 0 && p.roll <= 0 && p.rollCd <= 0) startRoll(mv);
+  if (p.rollQ > 0 && p.roll <= 0 && p.rollCd <= 0 && moveMul !== 0) startRoll(mv);
   if (p.roll > 0) {
     p.roll -= dt; p.walkT = 0; if (p.roll <= 0) { const dw = dodgeWindow(); if (dw > 0) p.inv0 = Math.max(p.inv0, dw); }
     const steps = 3; for (let i = 0; i < steps; i++) moveEnt(p, p.rx * ROLL_SPEED * dt / steps, p.ry * ROLL_SPEED * dt / steps);
@@ -8209,7 +8639,7 @@ function aiInit074(e) { const M = aiMap074(); let tx = Math.floor(e.x / TS), ty 
   e.ai = createEnemyAI(tx, ty, aiClock, e.elite ? { patrolMs: 340 } : null); e.state = 'idle'; return e.ai; }
 function aiProvoke074(e) { const A = e.ai || aiInit074(e); if (A.state === 'CHASE' || A.state === 'ALERT') { A.engagedUntil = aiClock + A.cfg.engagedMs; return; } A.state = 'ALERT'; A.spotted = false; A.showAlertIcon = true; A.nextTick = aiClock + A.cfg.alertMs; A.lastTick = aiClock; A.fromX = A.tx; A.fromY = A.ty; A.engagedUntil = aiClock + A.cfg.alertMs + A.cfg.engagedMs; aiAlertFx(e); }
 function aiAlertFx(e) { v074Stats.alerts++; try { onAggroV04(e); smpAggro(e); vocAlert(e); } catch (_) {} }
-function gridEnemyUpdate(e, dt, d, spd) { const p = player, T = e.T; let A = e.ai; if (!A || !A.cfg) A = aiInit074(e);
+function gridEnemyUpdate(e, dt, d, spd) { const sm = statusMoveMul(e); if (sm === 0) return; const p = player, T = e.T; let A = e.ai; if (!A || !A.cfg) A = aiInit074(e);
   if (A.nextTick > aiClock + 5000 || A.lastTick > aiClock) { A.nextTick = aiClock; A.lastTick = aiClock; } // restored save: the ms clock restarted
   const M = aiMap074(); e.cd -= dt * (e.elite ? 1.35 : 1);
   // something else moved the body (teleport, leap, shove): adopt its tile
@@ -8221,7 +8651,7 @@ function gridEnemyUpdate(e, dt, d, spd) { const p = player, T = e.T; let A = e.a
   const sk = tomeSeek(), pt = { tx: Math.floor(sk.x / TS), ty: Math.floor(sk.y / TS) };
   if (A.state === 'PATROL' && !(e.fearT > 0) && (aiAxisDir(A, pt, M) || aiNearDir075(A, pt, M))) A.nextTick = Math.min(A.nextTick, aiClock); // v0.7.5 B1: close LOS spots immediately
   const occ = new Set(); for (const q of enemies) if (q !== e && q.ai && !q.dead) occ.add(q.ai.ty * MW + q.ai.tx);
-  const ev = updateEnemyAI(A, pt, M, aiClock, { blocked: e.spd === 0 ? () => true : (x, y) => occ.has(y * MW + x), /* spd 0 = rooted (tests, statues) */ slow: e.slow > 0 ? 1.8 : 1, flee: e.fearT > 0 });
+  const ev = updateEnemyAI(A, pt, M, aiClock, { blocked: e.spd === 0 ? () => true : (x, y) => occ.has(y * MW + x), /* spd 0 = rooted (tests, statues) */ slow: (e.slow > 0 ? 1.8 : 1) * (sm < 1 ? 1 / sm : 1), flee: e.fearT > 0 });
   if (e.fearT > 0) e.fearT -= dt;
   if (ev) { v074Stats.aiTicks++;
     if (ev === 'alert') aiAlertFx(e);
@@ -13330,6 +13760,10 @@ if (window.game) {
     RESIST_MIN: RESIST_MIN, RESIST_SOFT: RESIST_SOFT, RESIST_HARD: RESIST_HARD, CRIT_MUL_BASE: CRIT_MUL_BASE,
     scaleAmount: scaleAmount, scaleOutgoingComponents: scaleOutgoingComponents, mitigateElement: mitigateElement,
     critChance: critChance, critMultiplier: critMultiplier, rollPlayerCrit: rollPlayerCrit,
+    STATUS: STATUS, HEAVY_CHILL: HEAVY_CHILL, STATUS_MAX_TICKS: STATUS_MAX_TICKS,
+    applyStatus: applyStatus, removeStatus: removeStatus, clearStatuses: clearStatuses, getStatus: getStatus, listStatuses: listStatuses,
+    tickStatuses: tickStatuses, statusMoveMul: statusMoveMul, shockTakenMul: shockTakenMul, curseHooks: curseHooks, curseResistCut: curseResistCut,
+    legacyStatusView: legacyStatusView, statusSanitize: statusSanitize, statusSaveBag: statusSaveBag,
     setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
     flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
