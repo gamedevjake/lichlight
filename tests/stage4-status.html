@@ -66,7 +66,7 @@ function run(w) {
   check('poison ground still hurtPlayer', src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0);
   check('env burn still world flames', src.indexOf("envHurt(d, 'flames'") >= 0 && src.indexOf('p.burn = { vfx: BURN_VFX') >= 0);
   check('frost nova still sets slow', src.indexOf('e.slow = 3.5') >= 0);
-  check('no stage 5 stagger', src.indexOf('staggerBuild') < 0 && src.indexOf('function applyPoise') < 0);
+  check('stagger is a status not a second clock', typeof g.applyPoiseDamage === 'function' && g.STATUS.stagger && g.STATUS.stagger.kind === 'stagger' && src.indexOf('staggerBuild') < 0 && src.indexOf("kind: 'stagger'") >= 0);
   check('status caps', g.STATUS.bleed.max === 5 && g.STATUS.burning.max === 3 && g.STATUS.poison.max === 8 && g.STATUS.shock.cap === 25 && g.STATUS.chill.slowCap === 60 && g.STATUS.freeze.dur === 1.5 && g.STATUS.freeze.lockout === 3 && g.HEAVY_CHILL === 0.4 && g.STATUS.curse.max === 3, JSON.stringify({ bleed: g.STATUS.bleed.max, burn: g.STATUS.burning.max, poison: g.STATUS.poison.max }));
 
   g.newGame();

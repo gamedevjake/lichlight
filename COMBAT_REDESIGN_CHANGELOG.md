@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 4 — Status Effects. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), and Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), then GO'd Stage 4. Stages 0–3 stay IMPLEMENTED (not marked VERIFIED here). Stage 4 is IMPLEMENTED and waiting for Jake. Stages 5–13 are NOT STARTED. Do not begin Stage 5 until Jake approves Stage 4.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). Do not move these tags.
+- **Current implementation stage:** Stage 5 — Stagger, poise, and crowd control. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), and Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), then GO'd Stage 5. Stages 0–4 stay IMPLEMENTED (not marked VERIFIED here). Stage 5 is IMPLEMENTED and waiting for Jake. Stages 6–13 are NOT STARTED. Do not begin Stage 6 until Jake approves Stage 5.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). Do not move these tags.
 
 ---
 
@@ -30,7 +30,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 2 | Armor and resistances | IMPLEMENTED |
 | 3 | Critical hits and damage scaling | IMPLEMENTED |
 | 4 | Status effects | IMPLEMENTED |
-| 5 | Stagger, poise, and crowd control | NOT STARTED |
+| 5 | Stagger, poise, and crowd control | IMPLEMENTED |
 | 6 | Weapon identity and attack responsiveness | NOT STARTED |
 | 7 | Skill system and build specialization | NOT STARTED |
 | 8 | Enemy resistances and elite affixes | NOT STARTED |
@@ -40,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, 3, and 4 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, 3, 4, and 5 did; the counts are in those entries.
 
 ---
 
@@ -671,9 +671,131 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 5 (stagge
 
 ---
 
+### 2026-11-05 — Stage 5: Stagger, Poise, and Crowd Control
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 5 — Stagger, poise, and crowd control.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Implementation commit `1aa5657176f80627e7dcd9f92d6349d670aa85d8`. Rollback tag `combat-redesign-pre-stage5` points at `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 6 has not been started.
+- **Objective:** Add a poise resource separate from HP, a short stagger when it breaks, and one crowd-control order for stagger, stun, knockback, chill, and freeze. Differentiate light, heavy, power, and skill hits. Keep bosses and Super Elites from being stun-locked. Do not retune HP damage, attack timing, `mods.fire`, or Hellmouth.
+
+#### Existing Behavior
+
+There was no poise and no stagger. Knockback was an `kx`/`ky` impulse (`0.1` on bosses, `0.3` on golems, `1` otherwise). Ram wall-hits and boss charges set `mode = 'stun'` on their own clocks. Freeze and chill were Stage 4 statuses. Frost Nova still wrote `e.slow = 3.5`. Webs, brine, and the chill aura were separate multipliers with no combined floor. Boss awaken set `bossIntro = 2.8` and `patCd = 1.4`. That banner was not an HP immunity. Super Elite drop/taunt and the crab shell were HP immunities. Boss and Super Elite shields absorbed HP only.
+
+#### Changes Implemented
+
+- Poise is a number on the actor (`poise`, `poiseMax`, `poiseDelay`). It is not a second status clock. Stagger is a Stage 4 status, `STATUS.stagger`. Freeze, chill, shock, bleed, burning, poison, and curse are unchanged. No live skill calls `applyStatus` for those. Frost Nova still only sets `e.slow`.
+- Outgoing poise is a flat amount by attack class, then the target's `taken` multiplier. It does not pass through armor, resist, barrier, or the boss/Super Elite shield. A successful block deals 0. A guard's front glance multiplies poise by `GUARD_POISE` (0.2), the same factor already used on that hit's knockback. DoTs, world packets, and plain Direct hits (thorns) deal 0.
+- Breaking poise applies stagger for the tier duration, refills poise to 45% of max, and interrupts the current action (player swing, charge, cast, and roll; enemy mode, busy, and that actor's telegraphs). A second stagger does not extend the first. Expiry starts `staggerImmune`. A break during freeze, legacy stun, or that immunity is refused. Repeated breaks inside a 6s chain shorten duration by `0.65` down to a `0.12s` floor. `poiseBreaks` is capped at 8.
+- Hard crowd control precedence is freeze, then stagger, then legacy stun. Knockback still displaces and does not root. Slows never multiply below `MIN_MOVE_MUL` (0.2) unless the actor is frozen or staggered, which are real stops at 0. Super Elites still ignore the chill aura. Their frost slow stays `0.5`.
+- Boss awaken (`bossIntro > 0` on that boss) blocks poise and stagger and does not block HP. Super Elite drop/taunt and the crab shell still block both. Boss and Super Elite shields still absorb HP and do not absorb poise. Hellmouth is unchanged. A sinking actor is not interrupted.
+- `tickStatuses` still performs at most `STATUS_MAX_TICKS` (8) interval crossings per status per call. Time beyond the remaining duration does not create extra ticks. Intervals past the cap stay on `rec.debt`, bounded to 64 intervals, and are paid on later calls. Anything past that bound is counted on `out.dropped` and is not paid later. A 4s bleed still ticks 4 times, including when one call passes 20s.
+- Saves write `poise` only when the bar is not full. An old save has no key and loads full poise. Stagger rides the existing status bag. `version.json` was not edited.
+
+#### Formulas and constants
+
+```
+POISE_CLASS_DMG  light 18, heavy 34, power 52, skill 14, none 0
+power charge     amount * (0.70 + 0.30 * frac)     frac 0 at the 1.50x charge, 1 at 2.25x
+skill splash     amount * more, only when 0 < more < 1
+POISE_IN         light 10, heavy 22, power 34, skill 8
+                 player-facing: trash contact, boss contact or charge, Super Elite powerup, projectile or Super Elite swing
+GUARD_POISE 0.2    MIN_MOVE_MUL 0.2    POISE_RECOVER 0.45
+POISE_DR 0.65      POISE_DR_FLOOR 0.12s    POISE_CHAIN 6s    POISE_BREAKS_CAP 8
+```
+
+| Tier | Who | Max | Taken | Stagger | Immune | Regen | Delay |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| light | bat, rat, flies, slimelet, wisp, spider, slime | 50 | 1 | 0.55s | 1.6s | 0.45 /s | 2.2s |
+| medium | everyone else | 80 | 1 | 0.50s | 2.0s | 0.40 /s | 2.4s |
+| heavy | golem, guard, knight, ram, crab, drowned | 140 | 0.75 | 0.45s | 2.5s | 0.34 /s | 2.6s |
+| champion | `elite`, not a boss | 120 | 0.70 | 0.40s | 2.8s | 0.34 /s | 2.6s |
+| super | Super Elite | 360 | 0.30 | 0.32s | 4.8s | 0.24 /s | 3.2s |
+| boss | `T.boss` | 560 | 0.20 | 0.28s | 5.5s | 0.20 /s | 3.4s |
+| player | the player | 140 | 1 | 0.35s | 3.2s | 0.50 /s | 2.4s |
+
+Regen is a fraction of max per second, and it waits out `poiseDelay` after each poise hit. Delay that ends mid-step spends the leftover time on regen.
+
+What does not change the poise number: `DEF/(DEF+30)`, elemental resist, the player barrier, boss and Super Elite shields, shock, Hellmouth's ×1.10, ram armor. What does: the class amount, the tier `taken` multiplier, a guard glance ×0.2, and a block (zero).
+
+Attack class, from the packet, not from the weapon:
+
+| Class | Live source | Poise |
+| --- | --- | --- |
+| light | melee tap, bow impact | 18 |
+| heavy | Whirlwind | 34 |
+| power | charged melee, 36.4 at the minimum charge to 52 at full | 52 × (0.70 + 0.30 × frac) |
+| skill | Fireball, Frost Nova. Splash uses the 0.6 more | 14, or 8.4 on a 0.6 splash |
+| none | thorns, DoTs, world packets | 0 |
+
+Boss light hit: `18 × 0.20 = 3.6`. First stagger at 156 hits. Boss full-power hit: `52 × 0.20 = 10.4`. First stagger at 54 hits. A scripted 8-damage light loop on a 5000 HP boss lost 640 HP in 80 hits and did not stagger (poise left 272). The same 8-damage power loop staggered on hit 54 and had lost 432 HP. Per-hit HP was 8 in both loops. Floor-5 Mother Murk is 840 HP plus a 210 shield. At 8 HP a light hit, that pool ends before 156 hits, so light attacks do not stagger her. A full-power loop can open one 0.28s stagger and then waits 5.5s.
+
+Player versus a boss contact: incoming poise 22, break on the 7th hit. Eight hits of 10 dealt 80 HP. The break did not change the HP.
+
+Crowd control: freeze, else stagger, else legacy stun, else knockback (displacement only), else slow. Freeze and stagger are speed 0. Stacked slows floor at 0.2. Frost alone stays 0.45 (0.50 on a boss or Super Elite). Aura 40 stays 0.6. Chill 60 stays 0.4. Player `slowT` stays 0.6. Grid frost weight stays 1.8. A 400-step spam with a 0.20s stagger and a 0.40s immunity never held an enemy through the gap, and `poiseBreaks` stayed at or under 8.
+
+`STATUS_MAX_TICKS` is still 8. A 4s bleed at a 1s interval deals 4 ticks in forty 0.1s steps, in one 4s step, and in one 20s step. The 20s step does not deal an 8th tick, and the next call deals 0. A 0.25s interval over 40s (160 intervals) deals 8 immediately, keeps 64 intervals of debt, reports 88 dropped, and the following calls pay the debt for 72 ticks total. The drop is on `out.dropped`. It is not silent, and those intervals are not paid twice.
+
+#### Files Modified
+
+- `index.html` — poise, stagger status, crowd-control order, movement floor, tick debt. `version.json` was not edited.
+- `tests/stage5-poise.html` — new harness.
+- `tests/stage4-status.html` — the negative "stage 5 does not exist" check now locks that stagger is a status in the same bag. Count stays 75.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry and the living sections. The Stage 0–4 history entries were not rewritten.
+- `STAGE5_REPORT.md` — implementation report for review.
+
+#### Functions Added or Modified
+
+Added: `ensurePoise`, `resetPoise`, `poiseSanitize`, `poiseSaveVal`, `poiseTierOf`, `poiseTierName`, `applyPoiseDamage`, `notePoise`, `poiseClassOf`, `poiseHitAmount`, `poiseFromPacket`, `staggerDuration`, `beginStaggerImmune`, `tickPoise`, `ccImmobilized`, `ccState`, `ccMoveMul`, `seMoveMul`, `gridSlowMul`, `interruptControl`, `immuneFor`, `poiseBlockedReason`.
+
+Modified: `applyStatus`, `tickStatuses`, `statusMoveMul`, `statusBlock`, `statusSanitize`, `resolveEnemyDamage`, `resolvePlayerDamage`, `makeDamagePacket`, `damageEnemy`, `doAttack`, `castSkill`, `fireBow`, `update`, `updateEnemies`, `bossAI`, `gridEnemyUpdate`, `seTick717`, `spawnEnemy`, `spawnBoss`, `seSpawn717`, `startFloor`, `save`, `die`.
+
+Not modified: `castHellmouth`, `killEnemy`'s Super Elite path, `mods.fire` / `pw`, attack swing times, `PWR` damage multipliers, the armor curve, resist, the four shield systems.
+
+#### Gameplay Impact
+
+HP formulas are unchanged. A hit that does not break poise is the Stage 4 hit plus a poise number. Trash can be staggered: a light enemy breaks on the third tap or one full power attack, then cannot act for 0.55s and cannot be re-staggered for 1.6s. Bosses and Super Elites take a fraction of that poise and, once broken, get a short stagger and a multi-second immunity. The awaken banner blocks poise only. Measured boss HP loss per hit did not change. A player who eats seven boss contacts in a row is staggered for 0.35s. Curse life drain is still not healed. Life steal and the uncapped crit chance are still the Stage 3 behavior.
+
+#### Compatibility Notes
+
+Old saves have no `poise` key. Load fills the bar. A partial bar is saved as `{v, d, i, b, c}` and `poiseSanitize` unpacks it. Enemy poise rides the floor snapshot. `startFloor` and death reset the player's bar. Forged `poiseMax` above 5000 is clamped. `mods.fire` is still spell power. Hellmouth still deletes Super Elites.
+
+#### Tests Performed
+
+Headless Chrome, SwiftShader, cache disabled. Counts and the per-name diff against the Stage 4 checkpoint are in [Stage 5 executed results](#stage-5-executed-results). `tests/stage5-poise.html` was 78/0.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. `mods.fire` is still spell power. Curse `lifeDrain` is stored and is not added to `leech`. Life steal still ignores mitigation and the power-attack multiplier. Crit chance is still uncapped. Those stay deferred. A hitch larger than 72 intervals on one status reports `out.dropped` and does not pay those intervals later. Grid AI still does not tick while frozen or staggered, so the shared clock can catch up when the stop ends. Weapon identity is Stage 6. Elemental retyping is Stage 7.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage5
+```
+
+That tag is `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`. It is the Stage 4 squash on main, PR #27. Gameplay version on it is 0.7.18. Do not move the tag. The older tags `combat-redesign-pre-stage1` through `combat-redesign-pre-stage4` were not moved.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 6 (weapon identity and attack timing). Do not reclassify Fireball, Frost Nova, poison puddles, or lava.
+
+---
+
 ## Combat System Reference
 
-The Stage 4 block is what the game does now. The Stage 3 block is the crit and scale model Stage 4 kept. The Stage 2 block is the resist model under that. The Stage 1 block is the architecture under all three. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat or status is set. Planned work for later stages stays marked as planned.
+The Stage 5 block is what the game does now. The Stage 4 block is the status model under it. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat, status, or poise break is in play. Planned work for later stages stays marked as planned.
+
+### Stage 5 implemented architecture
+
+Implemented now, on top of Stage 4. With poise unbroken and no status, hit math is the Stage 4 math.
+
+- Poise is separate from HP. `applyPoiseDamage` runs after a landed hit. It does not call the armor curve, resist, barrier, or the boss/Super Elite shield. Block zeroes it. A guard glance multiplies it by 0.2. DoTs and world packets do not call it.
+- Stagger is `ent.statuses.stagger`. The Stage 4 bag is the only timer. Duration comes from the tier, then diminishing returns, and is capped by `STATUS.stagger.dur` (0.55s). Expiry sets `staggerImmune` from the tier. Bosses and Super Elites are not freeze-immune to stagger. They are hard to break and short to lock.
+- Precedence is freeze, stagger, legacy stun, knockback, slow. Freeze and stagger are speed 0 and they interrupt. Knockback still slides. Slows floor at 0.2.
+- Boss intro blocks poise for that boss while `bossIntro > 0`. HP and the shield are unchanged. Super Elite intro and the crab shell still return before the hit, so they block both.
+- Live classes are light (tap and bow, 18), heavy (Whirlwind, 34), power (charged melee, 36.4 to 52), and skill (Fireball and Frost Nova, 14). No weapon-family pass. That is Stage 6.
 
 ### Stage 4 implemented architecture
 
@@ -726,7 +848,7 @@ Implemented now:
 - Hunger, pit climb-out, spike-gap ticks, and blood doors still write HP directly. They are not combat packets.
 - Hellmouth still sinks Super Elites because `T.boss` is false, then `killEnemy` deletes them. Changing that is **planned** (Stage 9).
 
-Stage 4 added the status engine described above. Not implemented: stagger, poise, weapon identities, elite affixes, new boss phases, behavioral item affixes, damage-number presentation, character-sheet resists. Those remain later stages.
+Stage 4 added the status engine described above. Stage 5 added poise and stagger on that bag. Not implemented: weapon identities, elite affixes, new boss phases, behavioral item affixes, damage-number presentation, character-sheet resists. Those remain later stages.
 
 ### Damage types
 
@@ -1196,7 +1318,16 @@ D1–D7 below are the Stage 0 recommendations. Stage 1 implemented them. The tex
 - **Selected approach.** (b), with the movement multiplier and the damage resolver reading the new bag only when a status is present. Poison ground and environmental burn are not retyped. Frost Nova still writes `e.slow`. DoT ticks are packets: no crit, scale once when the attacker is the player, mitigation once, then shock once if the target is shocked. Stack counts, durations, and the freeze lockout are capped. Bosses and Super Elites are freeze immune and take 40% chill. Curse can cut outgoing damage and resist. Its life-drain number is stored and does not change `leech`.
 - **Reason.** A current hit with no status is the Stage 3 hit. The old hazards keep the numbers the legacy harness already locks. The new effects are testable without a loot pass.
 - **Expected gameplay impact.** None until something applies a status. Nothing in live combat does. No affix and no shop price changed.
-- **Tradeoffs.** Two slow sources can multiply if a legacy slow and a new chill are both up. They are different effects and each is capped. Shock does not change world packets such as lava. A DoT on a player who is in i-frames is prevented and the interval is still spent, which matches poison ground. Hellmouth's sink pause also pauses status ticks.
+- **Tradeoffs.** Two slow sources can multiply if a legacy slow and a new chill are both up. They are different effects and each is capped. Shock does not change world packets such as lava. A DoT on a player who is in i-frames is prevented and the interval is still spent, which matches poison ground. Hellmouth's sink pause also pauses status ticks. Stage 5 put a 0.2 floor under the product, and a hard stop at 0 for freeze and stagger.
+
+### D11 — Poise is not a second damage pipe, and stagger is a status
+
+- **Problem.** Stage 5 needs a stability resource, a short interrupt, and one rule for stagger, stun, knockback, chill, and freeze. Routing that through HP mitigation would make armor, resist, and shields silently change who staggers. A second timer beside `ent.statuses` would split crowd control across two clocks.
+- **Alternatives considered.** (a) Spend poise as a percent of mitigated HP. (b) A parallel poise clock with its own tick. (c) Flat poise by attack class, mitigation left on the HP pipe, stagger stored as a Stage 4 status.
+- **Selected approach.** (c). Classes are light, heavy, power, and skill. Tiers set max, taken, duration, immunity, regen, and delay. Block zeroes poise. A guard glance uses the existing 0.2 knockback factor. Armor, resist, barriers, and boss/Super Elite shields do not. Boss intro blocks poise and not HP. Breaks refill 45%, then an immunity, and further breaks in a 6s chain shrink by 0.65 down to 0.12s. Slows floor at 0.2. Freeze and stagger are 0.
+- **Reason.** HP time-to-kill stays measurable and unchanged per hit. The opening is the lost action, not a damage bonus. The status bag stays the only crowd-control clock.
+- **Expected gameplay impact.** Trash can be staggered. Bosses and Super Elites need many hits and then get a short lock plus a long immunity. A player who eats seven boss contacts is staggered for 0.35s. Stacked slows cannot go under 20% speed unless frozen or staggered.
+- **Tradeoffs.** Bows share the light number until Stage 6. Curse life drain, life steal, and the uncapped crit chance are still untouched. A single hitch can drop DoT intervals past the debt cap, and that drop is reported rather than paid twice.
 
 ### Stage 1 implementation notes
 
@@ -1229,7 +1360,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 ### MEDIUM
 
 - **Champion crit adds 5% of pre-defense damage after armor**, so it punches through the curve, and it snuffs the torch. Stage 3 left this separate from player crit on purpose. OPEN as a balance quirk, not as missing crit math.
-- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3 audited this and kept it. Stage 4 did not retune it, and did not cap crit chance. Both stay deferred balance. `__lastLeech` records the base. Curse `lifeDrain` is stored and is not added to the heal. OPEN only as a reminder that a later balance pass must not "fix" the heal without Jake's numbers.
+- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3 audited this and kept it. Stage 4 did not retune it, and did not cap crit chance. Stage 5 did not either. Curse `lifeDrain` is stored and is not added to the heal. `curseHooks(...).lifeDrainWired` is false. OPEN only as a reminder that a later balance pass must not "fix" the heal without Jake's numbers.
 - **Whirlwind crit doubles only the weapon roll**, then adds fire power, and the floater marks the whole hit. Stage 3 kept the split so spell power is not doubled. The floater still marks the whole hit. Stage 7 if the spell portion becomes Fire. OPEN as presentation and as the future split, not as a double crit.
 - **Bow crits do not mark the floater.** The arrow damage includes the crit once. Impact still passes `crit: false`. Stage 11 or 12. OPEN.
 - **Pixel character sheet shows crit chance and not the multiplier.** The text stats line shows `Crit N% xM`. Stage 12. OPEN.
@@ -1357,6 +1488,54 @@ Stage 4 ran the same harness in headless Chrome (Puppeteer, system Google Chrome
 
 No loot retune and no time-to-kill pass was run. Live callers are still Physical. `version.json` is still 0.7.18. Stage 5 was not started.
 
+### Stage 5 executed results
+
+Stage 5 ran the same harness in headless Chrome (Puppeteer, system Google Chrome, SwiftShader WebGL, cache disabled) against `python3 -m http.server` on 127.0.0.1. The pre-change run is tag `combat-redesign-pre-stage5` / `d4fbc3c`, before any Stage 5 code. Counts are pass/fail. New and cleared names are listed. A count change with the same failure names is the emission or layout flake already on record.
+
+Checkpoint, before Stage 5 code:
+
+| File | Pass/fail | Failure names |
+| --- | --- | --- |
+| `v075` | 58/2 | `f3 multi select`, `f7 walkable pit` |
+| `v076` | 48/0 | |
+| `v077` | 60/4 | `version`, `version source`, `f4 pool`, `f5 shop boss` |
+| `v078` | 60/1 | `version 0.7.11` |
+| `v078-play` | 25/1 | `f11 champions only` |
+| `v0781` | 27/2 | `version`, `f1 boss hits` |
+| `v079` | 49/1 | `version` |
+| `v0710` | 36/1 | `version` |
+| `v07101` | 41/1 | `version` |
+| `v07102` | 54/0 | |
+| `v07103` | 24/3 | `version`, `stats canvas`, `name in panel` |
+| `v0711` | 41/5 | `version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept` |
+| `v0712` | 37/6 | `version`, `whale title wraps`, `short title one line`, `sell grid cells`, `short detail fits frame`, `detail wraps whale name` |
+| `v0713` | 32/5 | `version`, `whale still wraps`, `pedlar panel`, `sell grid 32`, `leave is red` |
+| `v0714` | 33/8 | `version`, `footer sort`, `footer mark seen`, `footer drop all`, `footer equip`, `footer drop`, `footer close`, `tab hitboxes match art` |
+| `v0715` | 19/13 | `version` plus the twelve scale, wrap, glyph, and phone names already in that file |
+| `v07151` | 8/45 | `version` plus the scale and DOM names already in that file |
+| `v07152` | 36/1 | `version` |
+| `v0716` | 49/1 | `version` |
+| `v0717` | 47/1 | `version` |
+| `v0718` | 20/0 | |
+| `stage1-damage` | 71/0 | |
+| `stage2-resist` | 73/0 | |
+| `stage3-crit-scaling` | 58/0 | |
+| `stage4-status` | 75/0 | |
+
+That checkpoint total is 1081 passed, 101 failed. Legacy files are 804 passed, 101 failed.
+
+After Stage 5, one sequential pass: legacy plus Stages 1–4 is 1082 passed, 101 failed. `tests/stage5-poise.html` is 78/0. The only name movement:
+
+- `v075` 58/2 → 59/1. Cleared `f7 walkable pit`. `f3 multi select` remains. A re-run was 59/1 with that same name.
+- `v0711` 41/5 → 42/5. Same five failure names. One passing check was emitted this time (47 lines instead of 46). A re-run was 42/5 with those five names. This is the emission flake.
+- `v0714` stayed 33/8. A re-run was 33/8 with the same footer and tab names.
+- `stage3-crit-scaling` 58/0 → 57/1 on the sequential pass. The new name was `bow crit flag stays off the floater`. Three immediate re-runs: 57/1, then 58/0, then 58/0. The miss is the arrow dealing 0, which Stage 4 already recorded.
+- `stage4-status` stayed 75/0. The check formerly named `no stage 5 stagger` is now `stagger is a status not a second clock`. That rename is this stage. It is not a failed combat check.
+
+No other failure name was added. `v079`, `v0710`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18. Stage 6 was not started.
+
+Boss measurement inside `tests/stage5-poise.html`, spread pinned, scale off, 8 HP a hit, shield 0, intro cleared: 80 light hits dealt 640 HP and 288 poise and did not stagger a 560 poise boss. Full-power hits staggered on hit 54, at 432 HP. Eight boss contacts of 10 on the player dealt 80 HP and staggered on the seventh. Per-hit HP matched the no-poise number.
+
 ---
 
 ## Approval gate
@@ -1369,6 +1548,8 @@ Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #25 (`6be0fbedfedf1a5
 
 Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`) and GO'd Stage 4. This log does not mark Stage 3 VERIFIED. The Stage 3 history entry above still describes that branch before the merge. It was not rewritten.
 
-Stage 4 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. This log does not mark Stage 4 VERIFIED. The Stage 4 history entry above still describes that branch before the merge. It was not rewritten.
 
-**Wait for Jake's approval before Stage 5.** Stage 5 is stagger, poise, and crowd control. It must not start from this branch. Stage 4 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.
+Stage 5 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 6.** Stage 6 is weapon identity and attack timing. It must not start from this branch. Stage 5 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.
