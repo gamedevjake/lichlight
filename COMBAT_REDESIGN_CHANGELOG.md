@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 2 — Armor and Resistances. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23 and Stage 1 PR #24, then GO'd Stage 2. Stage 0 and Stage 1 stay IMPLEMENTED (not marked VERIFIED here). Stage 2 is IMPLEMENTED and waiting for Jake. Stages 3–13 are NOT STARTED. Do not begin Stage 3 until Jake approves Stage 2.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). Do not move either tag.
+- **Current implementation stage:** Stage 3 — Critical Hits and Damage Scaling. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, and Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), then GO'd Stage 3. Stages 0, 1, and 2 stay IMPLEMENTED (not marked VERIFIED here). Stage 3 is IMPLEMENTED and waiting for Jake. Stages 4–13 are NOT STARTED. Do not begin Stage 4 until Jake approves Stage 3.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). Do not move these tags.
 
 ---
 
@@ -28,7 +28,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 0 | Baseline audit and project preparation | IMPLEMENTED |
 | 1 | Universal damage architecture | IMPLEMENTED |
 | 2 | Armor and resistances | IMPLEMENTED |
-| 3 | Critical hits and damage scaling | NOT STARTED |
+| 3 | Critical hits and damage scaling | IMPLEMENTED |
 | 4 | Status effects | NOT STARTED |
 | 5 | Stagger, poise, and crowd control | NOT STARTED |
 | 6 | Weapon identity and attack responsiveness | NOT STARTED |
@@ -40,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stage 1 and Stage 2 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, and 3 did; the counts are in those entries.
 
 ---
 
@@ -415,9 +415,154 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 3 (crit e
 
 ---
 
+### 2026-11-05 — Stage 3: Critical Hits and Damage Scaling
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 3 — Critical Hits and Damage Scaling.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Crit and scaling implementation commit `41dbf74d28bb7a1e2e8ff0f53589947f2fd69cde`. Rollback tag `combat-redesign-pre-stage3` points at `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash, PR #25, on main).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 4 has not been started.
+- **Objective:** Make player crit chance and crit damage configurable, apply that multiplier once, and add a fixed outgoing scale order plus controlled conversion. Keep Stage 2 penetration on one pass. Audit life steal. Do not retype live attacks. Do not change Hellmouth. Do not reinterpret `mods.fire`.
+
+#### Existing Behavior
+
+Unchanged for a character with no new mods. `rollDmg` rolled min–max and multiplied by 2 when `random * 100 < crit%` (`st.crit` is `5 + mods.crit`, no cap). Melee leeched that roll, then multiplied by `PWR_MUL`. Whirlwind doubled only the weapon roll, then added `pw * 0.5`, then leeched the sum. The bow stored the doubled roll and passed `crit: false` on impact, so the floater had no `!`. Fireball and Frost Nova did not crit and did not leech. Champion crit stayed `+ round(pre-mitigation * 0.05)` after armor or resist. The conversion graph had no edges, rejected self-edges and cycles, and refused to chain a component that had already moved. Penetration ran once per elemental component inside the Stage 2 loop.
+
+#### Changes Implemented
+
+- One player crit step. `rollDmg(skill)` rolls the weapon, applies `critMultiplier(skill)` once, and marks the result `critApplied`. The resolver multiplies again only when a packet sets `critPending` and does not set `critApplied`. `damageEnemy(..., crit)` remains the floater flag. It does not multiply. Champion crit is not this step.
+- Chance is `st.crit + skillCritChance(skill)`. There is no cap. A chance of 0 or below never crits. A chance of 100 or more crits for every roll in `[0, 1)`. `__critRoll` forces the roll in tests the way `__champCrit` forces a champion crit.
+- Crit damage is `st.critMul = max(0, 2 + critDmg / 100)`, then plus a skill add. `critDmg` mods sum. No gear rolls `critDmg`. Default 0 keeps ×2. Skill adds live in `setSkillCrit` and are cleared on a new game or a load. They are not saved.
+- Outgoing player damage, once per component, before conversion: `(amount + flat + flatType) * (1 + (inc + incType) / 100) * more * moreType * packetMore * (1 + bonusType / 100)`. A `scaled` flag stops a second pass. Enemy hits, world packets, and direct HP writes skip it. Defaults are flat 0, increased 0, more factors 1, type bonus 0, so a current hit is the same number.
+- `more` mods multiply. Two `+10% more` mods are ×1.21. Increased mods sum. `packetMore` carries the power-attack multiplier and the Fireball splash (1 or 0.6). Splash stays a more factor so a future flat is inside the 0.6 instead of being added after it. With flat 0 the splash number is unchanged.
+- Conversion still moves a fraction. It does not copy. A duplicate `from → to` edge is rejected. Self-edges and cycles are still rejected. A moved component does not take another edge unless that later edge sets `chain: true`, and that hop sets `chainUsed` so a third edge cannot take it. No loot adds edges. `newGame` and `continueGame` clear the list.
+- `mitigateElement` applies Stage 2 resist and penetration once per elemental component and stores the result. A second call returns the stored amount and does not add penetration again. The player's own pen still does not reduce the player's own resist.
+- Life steal is audited, not retuned for default gear. Melee and power attacks leech `scaleAmount(post-crit roll, Physical, 1)`, so the power-attack more is still excluded and enemy armor, guard, and resist are still excluded. Whirlwind leeches the scaled skill sum, which is the old sum when the new stats are default. Bows, Fireball, and Frost Nova still do not heal. `window.__lastLeech` records the source, the base, and whether the hit skipped leech. The bow still drops the crit flag at impact.
+- The text stats line shows `Crit N% xM` from `st.crit` and `st.critMul`. The pixel satchel lines still show chance only. Stage 12 owns that layout.
+- Live attack types were not edited. Hellmouth was not edited. `AFFIX` was not given crit damage, flat, increased, more, bonus, conversion, or resist keys.
+
+#### Formulas
+
+```
+chance = st.crit + skillChance(skill)
+st.crit = 5 + sum(mods.crit)
+
+st.critMul = max(0, 2 + sum(mods.critDmg) / 100)
+multiplier = max(0, st.critMul + skillMul(skill))
+
+weapon = irand(min, max)
+if roll * 100 < chance and chance > 0: weapon *= multiplier   // once, inside rollDmg
+
+scaled = (weaponOrSpell + flat + flat[type])
+       * (1 + (inc + inc[type]) / 100)
+       * more * more[type] * packetMore
+       * (1 + bonus[type] / 100)
+```
+
+`more` and `more[type]` are factors. Missing factors are 1. Each gear `more` mod of `v` multiplies the factor by `(1 + v / 100)`.
+
+Then conversion, then the Stage 2 mitigation order. Physical still uses `DEF / (DEF + 30)` only on the player. Elemental resist and penetration still use the Stage 2 clamp, once.
+
+Pinned, one component, spread not involved (enemy target, no guard, no resist):
+
+| Case | Result |
+| --- | --- |
+| 10 roll, 100% crit, ×2, no flat | 20, and a second resolve with `critPending` stays 20 |
+| 10 roll, ×2, flat 5 | 25. Crit does not multiply the flat |
+| 100 + flat 20, then +50% increased | 180, not 170 |
+| 10 + flat 10, then ×2 more | 40, not 30 |
+| 100 Fire, flat 10, flatFire 5, inc 20, incFire 30, more 1.1, moreFire 1.25, bonusFire 10 | 260.90625, rounds to 261 |
+| 100 Physical, 60% to Fire and 60% of the remainder to Cold | 16 Physical + 60 Fire + 24 Cold. Total 100 |
+| 100 Physical, 100% to Fire, chain once to Cold, chain edge onward to Lightning | 100 Cold. Not Lightning. Total 100 |
+| 100 Physical, half to Fire, Fire pen 40, 0 resist | 50 + 70 = 120. `penHits` stays 1 |
+| Power attack full (×2.25) on a 10, 20% leech | enemy loses 23. Heal is 2, from the 10, not from 22.5 |
+| Whirlwind, level 1, fire 0, weapon 10, crit | 29 dealt, leech base 29. Without crit, 15 |
+
+Champion crit on an incoming 100 at 0 defense is still 105 and still snuffs the torch, including when `st.critMul` is 9.
+
+#### Proposed attack and hazard mapping
+
+Not applied. The Stage 2 table is still the proposal. Stage 7 retypes spells. Stage 9 touches Hellmouth and Super Elites.
+
+#### Files Modified
+
+- `index.html` — crit step, scale order, conversion chain flag and duplicate rejection, one-shot penetration, life-steal attribution. `version.json` was not edited.
+- `tests/stage3-crit-scaling.html` — new harness.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry and the living sections. The Stage 0, Stage 1, and Stage 2 history entries were not rewritten.
+- `STAGE3_REPORT.md` — implementation report for review.
+
+#### Functions Added or Modified
+
+Added: `clearSkillCrit`, `getSkillCrit`, `setSkillCrit`, `critChance`, `critMultiplier`, `critMulLabel`, `rollPlayerCrit`, `sheetNum`, `sheetFactor`, `flatFor`, `incFor`, `moreFor`, `bonusFor`, `scaleAmount`, `scaleOutgoingComponents`, `mitigateElement`, `conversionCarry`, `noteLeechSkip`.
+
+Modified: `computeStats`, `rollDmg`, `leech`, `doAttack`, `castSkill`, `fireBow`, `makeDamagePacket`, `normalizeComponent`, `setConversionEdges`, `getConversionEdges`, `applyConversion`, `resolveEnemyDamage`, `resolvePlayerDamage` (elemental branch calls `mitigateElement`), `damageEnemy`, `newGame`, `continueGame`, the text stats line.
+
+Not modified: `hurtPlayer`'s packet shape, `envHurt`, `castHellmouth`, `tickHellmouth`, `killEnemy`, `pw = fire + level * 2`, `AFFIX`, shop prices, the pixel satchel crit line, Hellmouth.
+
+#### Gameplay Impact
+
+None intended for a current save or a current attack. New stats default to the identity transform, crit multiplier defaults to 2, and no dropped item grants the new mods. A test-only `setSkillCrit` or a hand-set mod changes that hit on purpose.
+
+#### Compatibility Notes
+
+Old items do not have the new keys. `computeStats` leaves flat, increased, and type bonus at 0, more factors at 1, and `critMul` at 2. `mods.fire` is still spell power. A save with `mods.fire = 6` plus test-only `critDmg`, `flat`, `inc`, `more`, and `bonusFire` reloaded the same `st.fire` and the same new stats. Stripping those keys and recomputing returns the new stats to identity while `st.fire` stays 6. Packets and skill-crit overrides are not saved. Conversion edges are cleared on load.
+
+#### Tests Performed
+
+Headless Chrome (Puppeteer, system Google Chrome, cache disabled) against `python3 -m http.server` on 127.0.0.1. Executed on this branch. Not inferred.
+
+**Before any Stage 3 code**, on `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` / tag `combat-redesign-pre-stage3`. 21 legacy files: **804 passed, 102 failed**. `tests/stage1-damage.html`: **71 passed, 0 failed**. `tests/stage2-resist.html`: **73 passed, 0 failed**.
+
+Per-file baseline: `v075` 59/1, `v076` 48/0, `v077` 60/4, `v078` 60/1, `v078-play` 25/1, `v0781` 27/2, `v079` 49/1, `v0710` 36/1, `v07101` 41/1, `v07102` 54/0, `v07103` 24/3, `v0711` 42/5, `v0712` 37/6, `v0713` 32/5, `v0714` 33/8, `v0715` 19/13, `v07151` 8/45, `v07152` 34/3, `v0716` 49/1, `v0717` 47/1, `v0718` 20/0.
+
+Combat anchors on that run failed only the old version pin, or were clean: `v079` version, `v0710` version, `v0717` version, `v0718` 20/0.
+
+**After Stage 3**, same 21 files in one sequential run: **810 passed, 95 failed**. `tests/stage1-damage.html`: **71 passed, 0 failed**. `tests/stage2-resist.html`: **73 passed, 0 failed**. `tests/stage3-crit-scaling.html`: **58 passed, 0 failed**.
+
+No legacy file gained a failure that stayed on a re-run. The count movement is the same layout and spawn noise Stage 1 and Stage 2 already recorded, plus two one-off map checks:
+
+- `v0714.html` 33/8 → 40/1. Seven footer and tab-hitbox names passed. The remaining failure is the version pin. Stage 1 saw both results on unmodified code.
+- `v07152.html` 34/3 → 36/1. Two scale hit-tests passed. The remaining failure is the version pin. Stage 1's clean re-run was also 36/1.
+- `v076.html` 48/0 → 47/1 on the sequential pass (`b3 damage no snap`, lost 32 and the position check). Three immediate re-runs were 48/0. The spike-walk harness does not use crit or the new scale stats.
+- `v077.html` 60/4 → 58/5 on the sequential pass. The floor did not spawn a wall torch, so `f2 wall torch` failed and the following `f2 snuffed` check was not emitted (63 checks instead of 64). A re-run was 60/4 with the same four baseline names (version, version source, f4 pool, f5 shop boss).
+
+`v079`, `v0710`, `v0717`, and `v0718` were unchanged. No combat anchor failed for a formula reason.
+
+`tests/stage3-crit-scaling.html` locks chance boundaries (0, negative, 5, 100, 250), one ×2 application, ×2.5 from `critDmg` 50, a skill multiplier add, flat-then-increased 180, more-after-flat 40, the 261 Fire scale, crit-before-flat 25, a second scale pass that stays 110, conversion totals, one chain hop, duplicate/cycle/self rejection, penetration once, life steal on a tap, a power attack, a guard, and Whirlwind, no leech on bow/Fireball/Frost Nova, the bow crit flag staying off, `mods.fire` still spell power, Fireball 64 Physical against 90 Fire resist, Frost Nova 8, no new loot mods, a save round-trip, champion crit still +5, and Hellmouth still sinking a Super Elite while a marked boss takes 110.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. `mods.fire` is still spell power. The proposed type table is not applied. Bow crits still do not mark the floater. Life steal still ignores the power-attack multiplier and enemy mitigation, and still ignores bows, Fireball, and Frost Nova. That is the preserved baseline, recorded on `__lastLeech`. Champion crit is still a separate +5% after mitigation. The pixel sheet still shows crit chance and not the multiplier. The legacy version pins and UI failures above are pre-existing on v0.7.18.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage3
+```
+
+That tag is `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`. It is the Stage 2 squash on main. Gameplay version on it is 0.7.18. Do not move the tag.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 4 (status effects). Do not reclassify Fireball, Frost Nova, poison puddles, or lava until Jake accepts or edits the mapping table.
+
+---
+
 ## Combat System Reference
 
-The Stage 2 block is what the game does now. The Stage 1 block is the architecture Stage 2 kept. The rest of this section is the v0.7.18 baseline those Physical numbers still follow. Planned work for later stages stays marked as planned.
+The Stage 3 block is what the game does now. The Stage 2 block is the resist model Stage 3 kept. The Stage 1 block is the architecture under both. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat is set. Planned work for later stages stays marked as planned.
+
+### Stage 3 implemented architecture
+
+Implemented now, on top of Stage 2:
+
+- Player crit chance is `st.crit + skillChance`. `st.crit` is still `5 + sum(mods.crit)`. No cap. 0 or below never crits. 100 or above always crits for a roll in `[0, 1)`.
+- Player crit multiplier is `max(0, st.critMul + skillMul)` with `st.critMul = max(0, 2 + sum(critDmg) / 100)`. Default is ×2. `rollDmg` applies it once and sets `critApplied`. The resolver does not apply it again. A `crit: true` flag on `damageEnemy` is the floater only.
+- Champion crit is still `+ round(pre-mitigation amount * 0.05)` after armor or resist. It is not the player multiplier.
+- Player outgoing scale, once, before conversion: flat, then increased, then more (including power-attack and Fireball splash), then a type bonus. Defaults are an identity. Enemy incoming hits and world packets skip it.
+- Conversion moves a fraction. It does not copy. Duplicate edges, self-edges, and cycles are rejected. A moved component chains only when the next edge sets `chain: true`, and only once. No loot adds edges.
+- Stage 2 penetration still runs once per elemental component. `mitigateElement` returns the stored amount on a second call.
+- Life steal still uses the pre-mitigation melee roll (power-attack more excluded) or the Whirlwind skill sum. Bows, Fireball, and Frost Nova still do not heal.
+- `mods.fire` is still `pw = fire + level * 2`. Every live attack is still Physical. Hellmouth is unchanged.
 
 ### Stage 2 implemented architecture
 
@@ -439,8 +584,8 @@ Implemented now:
 - Tags, separate from types: Melee, Ranged, Spell, Projectile, AoE, DoT, Direct, Channelled. Channelled is unused.
 - One resolver, `resolveDamage`. Player order: Shift/Clone, Ethereal Shield ×0.75, roll and hit-stun, block, `DEF/(DEF+30)` on Physical only, spread, floor 1, champion crit, thorns, barrier, HP. Enemy order: immunities, guard ×0.15, ram armor, Hellmouth ×1.10, floor 1, boss/Super Elite shield, HP. World (`envHurt`): Shift, then `max(1, round(amount))`, no armor and no Ethereal Shield.
 - `elementalResist` existed in Stage 1 and returned 0. Stage 2 fills that function. The caps, penetration, and negative-resist vulnerability are in the Stage 2 block above. Hellmouth's ×1.10 is the existing boss mark, not a resist.
-- Conversion graph exists, rejects self-edges and cycles, and has no edges. Chained conversion of an already moved component is rejected by the converted flag. Adding edges is **planned** (Stage 3).
-- Critical ×2 is still inside `rollDmg`, not in the resolver. Crit chance above the 5% base, and crit damage other than ×2, are **planned** (Stage 3).
+- Conversion graph rejects self-edges, duplicate edges, and cycles. A moved component does not chain unless the next edge sets `chain: true`, and that hop cannot chain again. The list is empty in play. Stage 3 added the chain flag and the duplicate rejection. No loot adds an edge.
+- Critical ×2 for a default character is still applied once inside `rollDmg`. Stage 3 made the multiplier `2 + critDmg/100` and kept the resolver from applying it a second time. Champion crit stays separate.
 - `mods.fire` is still spell power (`pw = fire + level * 2`). It is not a Fire component. Reinterpreting it is **planned** (Stages 7, 10, 12).
 - Hunger, pit climb-out, spike-gap ticks, and blood doors still write HP directly. They are not combat packets.
 - Hellmouth still sinks Super Elites because `T.boss` is false, then `killEnemy` deletes them. Changing that is **planned** (Stage 9).
@@ -899,11 +1044,20 @@ D1–D7 below are the Stage 0 recommendations. Stage 1 implemented them. The tex
 - **Expected gameplay impact.** None on current characters and current attacks. A future Fireball retargeted to Fire would then use this curve.
 - **Tradeoffs.** Overcap above 75 absorbs penetration before the cap binds, which is easy to misread as "100 resist is 100%." The sheet stores the raw sum. The resolver clamps. Enemy content resists stay 0 until Stage 8, so the curve is real and the content is not.
 
+### D9 — Player crit is one multiplier, and scaling is an identity until a mod says otherwise
+
+- **Problem.** `rollDmg` already multiplies by 2. A resolver crit step on the same flag would double Whirlwind's weapon roll and would also double the spell-power add. Life steal samples a different number than the hit. Conversion can copy damage if an edge both moves and leaves the original.
+- **Alternatives considered.** (a) Move the ×2 into the resolver and split Whirlwind into two components now. (b) Leave ×2 in `rollDmg`, mark the packet already crit, and let the resolver multiply only a packet that explicitly asks. (c) Unify champion crit with the player multiplier.
+- **Selected approach.** (b). Chance stays `5 + mods.crit`, uncapped. Crit damage is `2 + critDmg/100`, default ×2. Skill adds are test-only and are not saved. Outgoing order is crit on the base, then flat, then increased, then more, then a type bonus, then conversion, then the Stage 2 mitigation. Power-attack and Fireball splash are more factors. Conversion moves a fraction, rejects duplicate edges, and chains only when an edge says `chain: true`, once. Penetration stays the Stage 2 function and stores its result so a second call does not add pen again. Life steal keeps the pre-mitigation, pre-power-attack base for melee and the skill sum for Whirlwind. Bows and the other two spells still do not heal. Champion crit stays the +5% after mitigation. No affix was added. `mods.fire` stays spell power. Hellmouth stays.
+- **Reason.** Default gear then produces the same integers Stage 1 and Stage 2 locked. The new knobs exist for tests and for later loot without changing time-to-kill now.
+- **Expected gameplay impact.** None on a current save. A hand-set `critDmg`, flat, increased, more, or type bonus changes that hit, and life steal follows the scaled pre-mitigation number except it still excludes the power-attack more.
+- **Tradeoffs.** Crit does not multiply flat damage. Two components each receive generic flat. The bow floater still has no `!`. The pixel sheet still shows chance only. The text stats line shows the multiplier.
+
 ### Stage 1 implementation notes
 
 D1–D7 are in the code. Refinements forced by the existing formulas:
 
-- Crit ×2 stays in `rollDmg`. Conversion therefore sees an amount that already includes a melee or Whirlwind weapon crit. The resolver does not apply ×2 again. Moving the double into the resolver would have changed Whirlwind, which crits only the weapon roll and then adds spell power. That split stays until Stage 3.
+- Crit ×2 stays in `rollDmg` for a default character. Conversion therefore sees an amount that already includes a melee or Whirlwind weapon crit. The resolver does not apply ×2 again. Moving the double into the resolver would have changed Whirlwind, which crits only the weapon roll and then adds spell power. Stage 3 kept that split and made the multiplier configurable. The resolver still does not multiply a packet marked `critApplied`.
 - A player packet with one Physical component uses the exact v0.7.18 expression `max(1, round(amount * (1 - DEF/(DEF+30)) * spread))`. Mixed components sum the post-mitigation floats and round once. Nothing in the live game sends two components yet.
 - The tome wrapper remains so later assignments still wrap the same function, but it no longer multiplies and no longer returns early. Shift, Clone, and Ethereal Shield live only in `resolveDamage`.
 - `envHurt` is a world packet. Hunger, pits, and blood doors stayed direct writes. A test locks both.
@@ -929,10 +1083,11 @@ Severity is about how badly it will mislead a later stage or a player, not about
 
 ### MEDIUM
 
-- **Champion crit adds 5% of pre-defense damage after armor**, so it punches through the curve, and it snuffs the torch. Stage 3. OPEN.
-- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3. OPEN.
-- **Whirlwind crit doubles only the weapon roll**, then adds fire power, and the floater marks the whole hit. Stage 3 and 7. OPEN.
-- **Crit chance and crit damage:** base 5%, no cap, flat ×2, no crit-damage stat. Stage 3. OPEN.
+- **Champion crit adds 5% of pre-defense damage after armor**, so it punches through the curve, and it snuffs the torch. Stage 3 left this separate from player crit on purpose. OPEN as a balance quirk, not as missing crit math.
+- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3 audited this and kept it. `__lastLeech` records the base. OPEN only as a reminder that a later balance pass must not "fix" the heal without Jake's numbers.
+- **Whirlwind crit doubles only the weapon roll**, then adds fire power, and the floater marks the whole hit. Stage 3 kept the split so spell power is not doubled. The floater still marks the whole hit. Stage 7 if the spell portion becomes Fire. OPEN as presentation and as the future split, not as a double crit.
+- **Bow crits do not mark the floater.** The arrow damage includes the crit once. Impact still passes `crit: false`. Stage 11 or 12. OPEN.
+- **Pixel character sheet shows crit chance and not the multiplier.** The text stats line shows `Crit N% xM`. Stage 12. OPEN.
 - **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7. OPEN.
 - **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
 - **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 8–9. OPEN.
@@ -1034,6 +1189,18 @@ Stage 2 ran the same harness, headless Chrome, before and after the resist chang
 
 No loot retune and no time-to-kill pass was run. Live callers are still Physical.
 
+### Stage 3 executed results
+
+Stage 3 ran the same harness, headless Chrome, before and after the crit and scaling change. Counts are pass/fail.
+
+- Checkpoint `6be0fbe` / tag `combat-redesign-pre-stage3`, before the new math: 21 legacy files, 804 passed, 102 failed. `tests/stage1-damage.html` 71/0. `tests/stage2-resist.html` 73/0. Combat anchors `v079`, `v0710`, and `v0717` failed only their old version pin. `v0718` was 20/0.
+- After Stage 3, one sequential pass of the same 21 files: 810 passed, 95 failed. `v0714` 33/8 → 40/1 and `v07152` 34/3 → 36/1 match the layout flake from Stage 1. `v076` reported one spike-walk failure that passed 48/0 on three immediate re-runs. `v077` missed a wall torch on that floor (58/5, and the snuffed check was not emitted); a re-run was the baseline 60/4. Combat anchors did not move.
+- `tests/stage1-damage.html`: 71 passed, 0 failed, unchanged.
+- `tests/stage2-resist.html`: 73 passed, 0 failed, unchanged.
+- `tests/stage3-crit-scaling.html`: 58 passed, 0 failed. Chance boundaries, one crit application, scale order, conversion, penetration once, life steal, save compatibility, `mods.fire`, and the Hellmouth Super Elite delete are pinned there.
+
+No loot retune and no time-to-kill pass was run. Live callers are still Physical. `version.json` is still 0.7.18.
+
 ---
 
 ## Approval gate
@@ -1042,6 +1209,8 @@ Stage 0 is IMPLEMENTED. Jake merged it as PR #23 and GO'd Stage 1. This log does
 
 Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #24 (`92edf84`) and GO'd Stage 2. This log does not mark Stage 1 VERIFIED.
 
-Stage 2 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`) and GO'd Stage 3. This log does not mark Stage 2 VERIFIED.
 
-**Wait for Jake's approval before Stage 3.** Stage 3 is critical hits and damage scaling. It must not start from this branch. Stage 2 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.
+Stage 3 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 4.** Stage 4 is status effects. It must not start from this branch. Stage 3 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.

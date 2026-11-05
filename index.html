@@ -1730,23 +1730,36 @@ const _newPlayer06 = newPlayer;
 newPlayer = function () { const P = _newPlayer06(); if (window.__legacyStart) { P.learned = [true, true, true]; P.equip.weapon = makeItem(1, 0, 'Short Sword'); P.gotRusty = true; } return P; }; // test hook: pre-0.6 suites start armed + skilled
 function xpNeed(l) { return Math.floor(30 * Math.pow(l, 1.55)); }
 function computeStats() {
-  const p = player, m = { dmg: 0, def: 0, hp: 0, mp: 0, ias: 0, ls: 0, crit: 0, fire: 0, ms: 0, regen: 0, light: 0,
+  const p = player, m = { dmg: 0, def: 0, hp: 0, mp: 0, ias: 0, ls: 0, crit: 0, critDmg: 0, fire: 0, ms: 0, regen: 0, light: 0,
     resFire: 0, resCold: 0, resLightning: 0, resPoison: 0, resShadow: 0, resAll: 0, maxResist: 0,
-    penFire: 0, penCold: 0, penLightning: 0, penPoison: 0, penShadow: 0, penAll: 0 };
+    penFire: 0, penCold: 0, penLightning: 0, penPoison: 0, penShadow: 0, penAll: 0,
+    flat: 0, flatPhysical: 0, flatFire: 0, flatCold: 0, flatLightning: 0, flatPoison: 0, flatShadow: 0,
+    inc: 0, incPhysical: 0, incFire: 0, incCold: 0, incLightning: 0, incPoison: 0, incShadow: 0,
+    bonusPhysical: 0, bonusFire: 0, bonusCold: 0, bonusLightning: 0, bonusPoison: 0, bonusShadow: 0 };
+  // `more` mods multiply. They are not summed. 10 and 10 is ×1.21, not ×1.20.
+  const moreAcc = { more: 1, morePhysical: 1, moreFire: 1, moreCold: 1, moreLightning: 1, morePoison: 1, moreShadow: 1 };
   let wmin = 1, wmax = 3, wspd = 1, def = 0, block = 0; const pw = [];
   for (const s of SLOTS) { const it = p.equip[s]; if (!it) continue; // no weapon (e.g. it shattered) = bare fists 1-3
     if (it.min) { wmin = it.min; wmax = it.max; wspd = it.spd; }
     if (it.def) def += it.def; if (it.block) block += it.block;
-    for (const k in it.mods) if (k in m) m[k] += it.mods[k];
+    for (const k in it.mods) {
+      if (k in moreAcc) { const v = +it.mods[k]; if (Number.isFinite(v)) moreAcc[k] *= (1 + v / 100); }
+      else if (k in m) m[k] += it.mods[k];
+    }
     (it.powers || []).forEach((q, i) => { if (POWERS[q.t]) pw.push(Object.assign({ id: it.id + ':' + i }, q)); }); }
   const lv = p.lvl, b = Math.floor(lv / 2);
   p.st = { min: wmin + m.dmg + b, max: wmax + m.dmg + b, def: def + m.def,
     maxHp: 50 + lv * 10 + m.hp, maxMp: 20 + lv * 5 + m.mp, aspd: wspd * (1 + m.ias / 100), ls: m.ls, crit: 5 + m.crit,
+    critDmg: m.critDmg, critMul: Math.max(0, 2 + m.critDmg / 100),
     fire: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05, block: Math.min(BLOCK_CAP, block), powers: pw,
     resFire: m.resFire + m.resAll, resCold: m.resCold + m.resAll, resLightning: m.resLightning + m.resAll,
     resPoison: m.resPoison + m.resAll, resShadow: m.resShadow + m.resAll, maxResist: m.maxResist,
     penFire: m.penFire + m.penAll, penCold: m.penCold + m.penAll, penLightning: m.penLightning + m.penAll,
-    penPoison: m.penPoison + m.penAll, penShadow: m.penShadow + m.penAll };
+    penPoison: m.penPoison + m.penAll, penShadow: m.penShadow + m.penAll,
+    flat: m.flat, flatPhysical: m.flatPhysical, flatFire: m.flatFire, flatCold: m.flatCold, flatLightning: m.flatLightning, flatPoison: m.flatPoison, flatShadow: m.flatShadow,
+    inc: m.inc, incPhysical: m.incPhysical, incFire: m.incFire, incCold: m.incCold, incLightning: m.incLightning, incPoison: m.incPoison, incShadow: m.incShadow,
+    more: moreAcc.more, morePhysical: moreAcc.morePhysical, moreFire: moreAcc.moreFire, moreCold: moreAcc.moreCold, moreLightning: moreAcc.moreLightning, morePoison: moreAcc.morePoison, moreShadow: moreAcc.moreShadow,
+    bonusPhysical: m.bonusPhysical, bonusFire: m.bonusFire, bonusCold: m.bonusCold, bonusLightning: m.bonusLightning, bonusPoison: m.bonusPoison, bonusShadow: m.bonusShadow };
   p.hp = Math.min(p.hp, p.st.maxHp); p.mp = Math.min(p.mp, p.st.maxMp);
 }
 function dropAt(list, x, y, obj) {
@@ -3364,9 +3377,10 @@ function debrisFix() { if (!Array.isArray(debris)) debris = []; }
 setInterval(() => { if (state === 'play' && player && time - lastSaveT > 12) save(); }, 4000); // v0.6.3 B10: autosave the live floor while playing
 window.addEventListener('pagehide', () => { if (player && state !== 'menu' && state !== 'dead') save(); });
 function loadSave() { try { return JSON.parse(localStorage.getItem('cryptdelve')); } catch (e) { return null; } }
-function newGame() { player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
+function newGame() { clearSkillCrit(); setConversionEdges([]); player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
 let worldResumed = false;
 function continueGame() {
+  clearSkillCrit(); setConversionEdges([]);
   const s = loadSave(); if (!s) return newGame();
   cue('meta_load_01'); // P2
   player = newPlayer(); Object.assign(player, s.p); itemId = s.itemId || 1000;
@@ -3997,7 +4011,7 @@ function renderInv() {
     el.addEventListener('pointerdown', e => { e.preventDefault(); if ((e.pointerType === 'touch' || e.pointerType === 'pen') && invDragArm(e, act)) return; act(); }); // v0.7.2 §10: touch selects on lift, a drag scrolls
     slotTipHandlers(el, it, true); g.appendChild(el); });
   const st = p.st;
-  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}` + (st.block ? `  Block ${st.block}%` : '') + `\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%\nRest ${Math.round(p.fatigue)}%` + (p.xpBuffT > 0 ? `\nGlimmer blessing: ${buffText()}` : '');
+  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}` + (st.block ? `  Block ${st.block}%` : '') + `\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}% x${critMulLabel()}  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%\nRest ${Math.round(p.fatigue)}%` + (p.xpBuffT > 0 ? `\nGlimmer blessing: ${buffText()}` : '');
   $('ratN').textContent = p.rations || 0; $('fragN').textContent = (p.mapFrags || 0) + '/' + FRAG_NEED; $('gkN').textContent = 'GATE ' + (p.gateKeys || 0); $('dropAllBtn').disabled = !p.inv.some(Boolean);
   $('gold').textContent = p.gold + 'g';
   const dt = $('dtext'), db = $('dbtns'); dt.innerHTML = ''; db.innerHTML = '';
@@ -4106,14 +4120,18 @@ function moveEnt(e, dx, dy) {
 let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other hits get a throttled enemy flinch
 // ===== Stage 1: universal damage architecture =====
 // One resolver owns mitigation. Callers still enter through damageEnemy / hurtPlayer / envHurt.
-// Order for the player: Shift/Clone → Ethereal ×0.75 → roll/i-frames → block → DEF/(DEF+30) on Physical only
-// and elemental resist once per other component → champion crit → thorns → barrier → HP.
-// Enemy: immunities → elemental resist once per non-Physical component → guard → ram armor → Hellmouth ×1.10
-// → floor 1 → boss/Super Elite shield → HP. World packets (envHurt) skip combat mitigation, including resist.
+// Player incoming: Shift/Clone → Ethereal ×0.75 → roll/i-frames → block → DEF/(DEF+30) on Physical only
+// and elemental resist+pen once per other component → champion crit → thorns → barrier → HP.
+// Player outgoing, once, before that enemy mitigation: crit (only if not already applied) →
+// flat → increased → more → type bonus → conversion. Then resist+pen once, guard, ram, Hellmouth ×1.10,
+// floor 1, boss/Super Elite shield, HP.
+// World packets (envHurt) skip combat mitigation, including resist, crit, and offensive scaling.
 // mods.fire is spell power, not a Fire resist and not a Fire damage type. Hellmouth ×1.10 is not a resist.
+// Champion crit stays the incoming +5% after armor. It is not the player crit multiplier.
 const DMG_TYPES = ['Physical', 'Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
 const DMG_TAGS = ['Melee', 'Ranged', 'Spell', 'Projectile', 'AoE', 'DoT', 'Direct', 'Channelled'];
-let conversionEdges = []; // {from, to, fraction}. Empty in Stage 1. No gameplay caller adds edges.
+const CRIT_MUL_BASE = 2; // sheet critMul with no critDmg mod. Chance base is the 5 inside computeStats.
+let conversionEdges = []; // {from, to, fraction, chain}. Empty until a test or a later stage adds edges. No loot adds edges.
 
 // Stage 2 resist model. One number per type, not a second vulnerability multiplier.
 // eff = clamp(raw - penetration, RESIST_MIN, resistCap)
@@ -4171,20 +4189,30 @@ function normalizeTags(tags) {
 function normalizeComponent(c, fallbackTags) {
   const type = c && DMG_TYPES.indexOf(c.type) >= 0 ? c.type : 'Physical';
   const amount = c && Number.isFinite(+c.amount) ? +c.amount : 0;
-  return { amount: amount, type: type, tags: normalizeTags((c && c.tags) || fallbackTags || []), crit: !!(c && c.crit), converted: !!(c && c.converted) };
+  return {
+    amount: amount, type: type, tags: normalizeTags((c && c.tags) || fallbackTags || []),
+    crit: !!(c && c.crit), converted: !!(c && c.converted), chainUsed: !!(c && c.chainUsed),
+    critApplied: !!(c && c.critApplied), critPending: !!(c && c.critPending), scaled: !!(c && c.scaled)
+  };
 }
 function makeDamagePacket(spec) {
   spec = spec || {};
   const tags = normalizeTags(spec.tags);
   const type = DMG_TYPES.indexOf(spec.type) >= 0 ? spec.type : 'Physical';
+  // A crit flag alone is the floater. The multiplier is already in the amount unless critPending is set
+  // and critApplied is not. rollDmg sets critApplied. damageEnemy's crit argument does not multiply again.
+  const critPending = !!spec.critPending && spec.critApplied !== true;
+  const critApplied = spec.critApplied != null ? !!spec.critApplied : !critPending;
   let components;
   if (Array.isArray(spec.components) && spec.components.length) components = spec.components.map(c => normalizeComponent(c, tags));
-  else components = [normalizeComponent({ amount: spec.amount, type: type, tags: tags, crit: spec.crit }, tags)];
+  else components = [normalizeComponent({ amount: spec.amount, type: type, tags: tags, crit: spec.crit, critApplied: critApplied, critPending: critPending }, tags)];
   const isDot = !!(spec.isDot || tags.indexOf('DoT') >= 0 || components.some(c => c.tags.indexOf('DoT') >= 0));
   let sum = 0;
   for (let i = 0; i < components.length; i++) sum += components[i].amount;
   return {
     amount: sum, type: type, tags: tags, components: components, source: spec.source || null, crit: !!spec.crit,
+    critApplied: critApplied, critPending: critPending && !critApplied, skill: spec.skill || '',
+    more: Number.isFinite(+spec.more) ? +spec.more : 1, scale: spec.scale !== false,
     attacker: spec.attacker || 'player', isDot: isDot, world: !!spec.world, kx: spec.kx, ky: spec.ky, col: spec.col,
     label: spec.label, lethal: spec.lethal, cause: spec.cause, penetration: spec.penetration
   };
@@ -4210,35 +4238,129 @@ function conversionCycle(edges) {
 }
 function setConversionEdges(edges) {
   if (!Array.isArray(edges)) throw new Error('conversion edges must be a list');
-  const list = [];
+  const list = [], seen = {};
   for (let i = 0; i < edges.length; i++) {
     const e = edges[i] || {};
     if (DMG_TYPES.indexOf(e.from) < 0 || DMG_TYPES.indexOf(e.to) < 0) throw new Error('bad conversion type');
     if (e.from === e.to) throw new Error('conversion self-edge');
     const fraction = +e.fraction;
     if (!(fraction > 0) || fraction > 1) throw new Error('bad conversion fraction');
-    list.push({ from: e.from, to: e.to, fraction: fraction });
+    const key = e.from + '>' + e.to;
+    if (seen[key]) throw new Error('conversion duplicate');
+    seen[key] = true;
+    list.push({ from: e.from, to: e.to, fraction: fraction, chain: !!e.chain });
   }
   if (conversionCycle(list)) throw new Error('conversion cycle');
   conversionEdges = list;
   return getConversionEdges();
 }
-function getConversionEdges() { return conversionEdges.map(e => ({ from: e.from, to: e.to, fraction: e.fraction })); }
+function getConversionEdges() { return conversionEdges.map(e => ({ from: e.from, to: e.to, fraction: e.fraction, chain: !!e.chain })); }
+function conversionCarry(c, amount, type, converted, chainUsed) {
+  return {
+    amount: amount, type: type, tags: c.tags.slice(), crit: !!c.crit, converted: !!converted, chainUsed: !!chainUsed,
+    critApplied: !!c.critApplied, scaled: !!c.scaled
+  };
+}
 function applyConversion(components) {
-  let comps = components.map(c => ({ amount: c.amount, type: c.type, tags: c.tags.slice(), crit: !!c.crit, converted: !!c.converted }));
+  let comps = components.map(c => conversionCarry(c, c.amount, c.type, c.converted, c.chainUsed));
   if (!conversionEdges.length) return comps;
   for (let i = 0; i < conversionEdges.length; i++) {
     const edge = conversionEdges[i], next = [];
     for (let k = 0; k < comps.length; k++) {
       const c = comps[k];
-      if (c.converted || c.type !== edge.from || !(c.amount > 0)) { next.push(c); continue; }
+      // Default: a moved component does not take another edge. chain:true allows exactly one further hop.
+      if (c.chainUsed || (c.converted && !edge.chain) || c.type !== edge.from || !(c.amount > 0)) { next.push(c); continue; }
       const moved = c.amount * edge.fraction;
-      next.push({ amount: c.amount - moved, type: c.type, tags: c.tags.slice(), crit: c.crit, converted: false });
-      if (moved > 0) next.push({ amount: moved, type: edge.to, tags: c.tags.slice(), crit: c.crit, converted: true });
+      const hopped = !!c.converted;
+      next.push(conversionCarry(c, c.amount - moved, c.type, c.converted, hopped || c.chainUsed));
+      if (moved > 0) next.push(conversionCarry(c, moved, edge.to, true, hopped));
     }
     comps = next;
   }
   return comps;
+}
+const skillCritMods = Object.create(null);
+function clearSkillCrit() { for (const k in skillCritMods) delete skillCritMods[k]; }
+function getSkillCrit(skill) {
+  const m = skill ? skillCritMods[skill] : null;
+  return { chance: m ? m.chance : 0, mul: m ? m.mul : 0 };
+}
+function setSkillCrit(skill, mod) {
+  if (!skill) throw new Error('skill crit needs a name');
+  if (!mod) { delete skillCritMods[skill]; return getSkillCrit(skill); }
+  skillCritMods[skill] = {
+    chance: Number.isFinite(+mod.chance) ? +mod.chance : 0,
+    mul: Number.isFinite(+mod.mul) ? +mod.mul : 0
+  };
+  return getSkillCrit(skill);
+}
+function critChance(skill) {
+  const sheet = player && player.st && Number.isFinite(+player.st.crit) ? +player.st.crit : 5;
+  return sheet + getSkillCrit(skill).chance;
+}
+function critMultiplier(skill) {
+  const sheet = player && player.st && Number.isFinite(+player.st.critMul) ? +player.st.critMul : CRIT_MUL_BASE;
+  return Math.max(0, sheet + getSkillCrit(skill).mul);
+}
+function critMulLabel() {
+  const m = player && player.st && Number.isFinite(+player.st.critMul) ? +player.st.critMul : CRIT_MUL_BASE;
+  return String(Math.round(m * 1000) / 1000);
+}
+function rollPlayerCrit(skill) {
+  const chance = critChance(skill);
+  const mul = critMultiplier(skill);
+  const roll = typeof window.__critRoll === 'number' ? window.__critRoll : Math.random();
+  const crit = chance > 0 && roll * 100 < chance;
+  return { crit: crit, mul: crit ? mul : 1, chance: chance, roll: roll };
+}
+function sheetNum(key) {
+  if (!player || !player.st || !Number.isFinite(+player.st[key])) return 0;
+  return +player.st[key];
+}
+function sheetFactor(key) {
+  if (!player || !player.st || !Number.isFinite(+player.st[key])) return 1;
+  return +player.st[key];
+}
+function flatFor(type) { return sheetNum('flat') + sheetNum('flat' + type); }
+function incFor(type) { return sheetNum('inc') + sheetNum('inc' + type); }
+function moreFor(type) { return sheetFactor('more') * sheetFactor('more' + type); }
+function bonusFor(type) { return 1 + sheetNum('bonus' + type) / 100; }
+// base (crit already in it, or applied below) → flat → increased → more → type bonus. Identity is a no-op.
+function scaleAmount(amount, type, packetMore) {
+  const t = DMG_TYPES.indexOf(type) >= 0 ? type : 'Physical';
+  const more = moreFor(t) * (Number.isFinite(+packetMore) ? +packetMore : 1);
+  return (amount + flatFor(t)) * (1 + incFor(t) / 100) * more * bonusFor(t);
+}
+function scaleOutgoingComponents(comps, packet) {
+  packet = packet || {};
+  if (packet.attacker !== 'player' || packet.scale === false || packet.world) return comps;
+  const wantCrit = !!packet.critPending && !packet.critApplied;
+  let critNow = false, mul = 1;
+  if (wantCrit) { const hit = rollPlayerCrit(packet.skill || 'melee'); critNow = hit.crit; mul = hit.mul; }
+  return comps.map(c => {
+    if (c.scaled) return c;
+    let amount = c.amount;
+    let crit = !!c.crit || !!packet.crit;
+    if (wantCrit && !c.critApplied && critNow) { amount *= mul; crit = true; }
+    amount = scaleAmount(amount, c.type, packet.more);
+    return {
+      amount: amount, type: c.type, tags: c.tags.slice(), crit: crit, converted: !!c.converted, chainUsed: !!c.chainUsed,
+      critApplied: true, critPending: false, scaled: true
+    };
+  });
+}
+function mitigateElement(component, defender, packet, attackerIsPlayer) {
+  if (!component) return 0;
+  if (component.penApplied) return component.mitigatedAmount;
+  const pen = packetPen(packet, component.type, attackerIsPlayer);
+  const pct = elementalResistPercent(defender, component.type, pen);
+  const out = component.amount * (100 - pct) / 100;
+  component.penApplied = true;
+  component.pen = pen;
+  component.resistPct = pct;
+  component.mitigatedAmount = out;
+  component.penHits = (component.penHits || 0) + 1;
+  return out;
 }
 function tagsForIncoming(src) {
   if (src && src.dot) return ['DoT'];
@@ -4283,10 +4405,7 @@ function resolvePlayerDamage(packet) {
   for (let i = 0; i < comps.length; i++) {
     const c = comps[i];
     if (c.type === 'Physical') kept += c.amount * (1 - red);
-    else {
-      const pct = elementalResistPercent(p, c.type, packetPen(packet, c.type, false));
-      kept += c.amount * (100 - pct) / 100;
-    }
+    else kept += mitigateElement(c, p, packet, false);
   }
   // Single Physical component uses the v0.7.18 expression unchanged, including the one round.
   let d = (comps.length === 1 && comps[0].type === 'Physical')
@@ -4331,17 +4450,16 @@ function resolveEnemyDamage(e, packet) {
     return { phase: 'immune', target: 'enemy', prevented: 'crab', dealt: 0, killed: false };
   }
   let kx = packet.kx, ky = packet.ky;
-  const src = packet.source, crit = !!packet.crit, col = packet.col || '#fff';
-  const comps = applyConversion(packet.components);
+  const src = packet.source, col = packet.col || '#fff';
   const fromPlayer = packet.attacker === 'player';
+  const scaledComps = fromPlayer ? scaleOutgoingComponents(packet.components, packet) : packet.components;
+  const comps = applyConversion(scaledComps);
+  let crit = !!packet.crit || comps.some(c => c.crit);
   let dmg = 0;
   for (let i = 0; i < comps.length; i++) {
     const c = comps[i];
     if (c.type === 'Physical') dmg += c.amount;
-    else {
-      const pct = elementalResistPercent(e, c.type, packetPen(packet, c.type, fromPlayer));
-      dmg += c.amount * (100 - pct) / 100;
-    }
+    else dmg += mitigateElement(c, e, packet, fromPlayer);
   }
   let guardFront = false;
   if (T.ai === 'guard') {
@@ -4383,10 +4501,13 @@ function resolveDamage(target, packet) {
 }
 function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
   meta = meta || {};
+  const critPending = !!meta.critPending && meta.critApplied !== true;
+  const critApplied = meta.critApplied != null ? !!meta.critApplied : !critPending;
   return resolveDamage(e, {
     amount: dmg, type: meta.type || 'Physical', tags: Array.isArray(meta.tags) ? meta.tags : ['Direct'],
     source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false,
-    penetration: meta.penetration
+    penetration: meta.penetration, more: Number.isFinite(+meta.more) ? +meta.more : 1,
+    critApplied: critApplied, critPending: critPending, skill: meta.skill || '', scale: meta.scale !== false
   });
 }
 
@@ -4570,8 +4691,30 @@ function drink(t) {
     p.mpPot--; p.mp = Math.min(p.st.maxMp, p.mp + p.st.maxMp * .6 + 10); burst(p.x, p.y, '#4060ff', 12, 40); }
   sfx('drink');
 }
-function rollDmg() { const s = player.st; let d = irand(s.min, s.max); const crit = Math.random() * 100 < s.crit; if (crit) d *= 2; return { d, crit }; }
-function leech(d) { if (player.st.ls) player.hp = Math.min(player.st.maxHp, player.hp + d * player.st.ls / 100); }
+function rollDmg(skill) {
+  const s = player.st, key = skill || 'melee';
+  const base = irand(s.min, s.max);
+  const hit = rollPlayerCrit(key);
+  const d = hit.crit ? base * hit.mul : base;
+  return { d: d, base: base, crit: hit.crit, mul: hit.mul, critApplied: true, skill: key };
+}
+function leech(d, source) {
+  const pct = player && player.st && player.st.ls ? +player.st.ls : 0;
+  const base = Number.isFinite(+d) ? +d : 0;
+  let healed = 0;
+  if (pct && player && player.st) {
+    const before = player.hp;
+    player.hp = Math.min(player.st.maxHp, player.hp + base * pct / 100);
+    healed = player.hp - before;
+  }
+  window.__lastLeech = { source: source || 'hit', base: base, pct: pct || 0, healed: healed, skipped: false };
+  return window.__lastLeech;
+}
+function noteLeechSkip(source, base) {
+  const pct = player && player.st && player.st.ls ? +player.st.ls : 0;
+  window.__lastLeech = { source: source, base: Number.isFinite(+base) ? +base : 0, pct: pct, healed: 0, skipped: true };
+  return window.__lastLeech;
+}
 function doAttack(fixed) {
   const p = player, t = nearestEnemy(44), mv = moveInput();
   // auto-aim: always on touch; on keyboard only when standing still; 'fixed' = facing already set (click-to-attack)
@@ -4586,8 +4729,10 @@ function doAttack(fixed) {
     if (d > weaponReach713() + e.r) continue;
     const da = Math.abs(((Math.atan2(dy, dx) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (da > 1.1 && d > 8 + e.r) continue;
-    const { d: dmg, crit } = rollDmg(); leech(dmg);
-    damageEnemy(e, dmg * PWR_MUL, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', crit, null, { type: 'Physical', tags: ['Melee', 'Direct'] }); landed = true; if (crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
+    const rolled = rollDmg('melee');
+    const leechBase = scaleAmount(rolled.d, 'Physical', 1);
+    leech(leechBase, PWR_MUL > 1 ? 'power' : 'melee');
+    damageEnemy(e, rolled.d, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', rolled.crit, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: PWR_MUL, critApplied: true, skill: 'melee' }); landed = true; if (rolled.crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
   }
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
@@ -4612,17 +4757,21 @@ function castSkill(i) {
     let ax = p.fx, ay = p.fy; const t = nearestEnemy(160), ma = mouseAim();
     if (ma) { ax = ma.x; ay = ma.y; p.fx = ax; p.fy = ay; }
     else if (t) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); p.fx = ax; p.fy = ay; }
-    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: (8 + pw * 1.4) * amp, owner: 'p', kind: 'fire', life: 1.4, skill: 0 });
+    const fb = (8 + pw * 1.4) * amp;
+    noteLeechSkip('fireball', fb);
+    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: fb, owner: 'p', kind: 'fire', life: 1.4, skill: 0 });
     sfx(S.snd || 'fire'); fxCast074(0, ax, ay);
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
-    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = (dm * 1.4 + pw * .5) * amp; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'] }); } }
+    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg('whirlwind'); const dd = (dm * 1.4 + pw * .5) * amp; leech(scaleAmount(dd, 'Physical', 1), 'whirlwind'); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind' }); } }
     sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, 32, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
     breakSecretsAt(p.x, p.y, 70, true); snuffTorchesNear(p.x, p.y, 70);
     sfx(S.snd || 'nova'); fxCast074(2);
-    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, (6 + pw * 1.1) * amp, 0, 0, '#80d0ff', false, null, { type: 'Physical', tags: ['Spell', 'AoE'] }); } }
+    const nova = (6 + pw * 1.1) * amp;
+    noteLeechSkip('frost', nova);
+    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, nova, 0, 0, '#80d0ff', false, null, { type: 'Physical', tags: ['Spell', 'AoE'], critApplied: true, skill: 'frost' }); } }
   }
 }
 
@@ -4735,7 +4884,7 @@ function update(dt) {
       projs.splice(i, 1);
       if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8', false, null, { type: 'Physical', tags: ['Ranged', 'Projectile', 'Direct'] }); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
       if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); if (pr.skill === 0) fxImpact074(pr.x, pr.y); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
-        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'] }); } }
+        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) { const splash = d < e.r + 4 ? 1 : .6; damageEnemy(e, pr.dmg, (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], more: splash, critApplied: true, skill: 'fireball' }); } } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
     }
@@ -8606,9 +8755,10 @@ function fireBow(bow, fixed) {
   p.fx = ax; p.fy = ay;
   p.swing = 0.16;
   p.atkCd = 0.45 / (p.st.aspd || 1);
-  const rolled = rollDmg();
+  const rolled = rollDmg('bow');
   const style = arrowStyleOf(bow);
-  projs.push({ x: p.x + ax * 8, y: p.y - 2 + ay * 8, vx: ax * BOW_SPEED, vy: ay * BOW_SPEED, r: 3, dmg: rolled.d, owner: 'p', kind: 'arrow', life: 0.95, visualStyle: style });
+  noteLeechSkip('bow', rolled.d);
+  projs.push({ x: p.x + ax * 8, y: p.y - 2 + ay * 8, vx: ax * BOW_SPEED, vy: ay * BOW_SPEED, r: 3, dmg: rolled.d, owner: 'p', kind: 'arrow', life: 0.95, visualStyle: style, critRolled: !!rolled.crit, critApplied: true });
   const cueId = style === 'Scream of the Banshee' ? 'player_bow_banshee_01' : style === 'Spine of the First Lich' ? 'player_bow_spine_01' : style === 'Hellmouth Strider' ? 'player_bow_hellmouth_01' : '';
   if (cueId) cue(cueId);
   else { if (!cue('player_bow_release')) cue('player_swing_light_01'); }
@@ -13177,7 +13327,11 @@ if (window.game) {
     resolveDamage: resolveDamage, makeDamagePacket: makeDamagePacket, setConversionEdges: setConversionEdges, getConversionEdges: getConversionEdges,
     DMG_TYPES: DMG_TYPES, DMG_TAGS: DMG_TAGS, physicalArmorFraction: physicalArmorFraction, elementalResist: elementalResist,
     elementalResistPercent: elementalResistPercent, resistCap: resistCap, rawElementalResist: rawElementalResist,
-    RESIST_MIN: RESIST_MIN, RESIST_SOFT: RESIST_SOFT, RESIST_HARD: RESIST_HARD,
+    RESIST_MIN: RESIST_MIN, RESIST_SOFT: RESIST_SOFT, RESIST_HARD: RESIST_HARD, CRIT_MUL_BASE: CRIT_MUL_BASE,
+    scaleAmount: scaleAmount, scaleOutgoingComponents: scaleOutgoingComponents, mitigateElement: mitigateElement,
+    critChance: critChance, critMultiplier: critMultiplier, rollPlayerCrit: rollPlayerCrit,
+    setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
+    flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });
   Object.defineProperty(window.game, 'textLayer', { configurable: true, get() { return textCan718; } });
