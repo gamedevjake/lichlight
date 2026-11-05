@@ -1730,7 +1730,9 @@ const _newPlayer06 = newPlayer;
 newPlayer = function () { const P = _newPlayer06(); if (window.__legacyStart) { P.learned = [true, true, true]; P.equip.weapon = makeItem(1, 0, 'Short Sword'); P.gotRusty = true; } return P; }; // test hook: pre-0.6 suites start armed + skilled
 function xpNeed(l) { return Math.floor(30 * Math.pow(l, 1.55)); }
 function computeStats() {
-  const p = player, m = { dmg: 0, def: 0, hp: 0, mp: 0, ias: 0, ls: 0, crit: 0, fire: 0, ms: 0, regen: 0, light: 0 };
+  const p = player, m = { dmg: 0, def: 0, hp: 0, mp: 0, ias: 0, ls: 0, crit: 0, fire: 0, ms: 0, regen: 0, light: 0,
+    resFire: 0, resCold: 0, resLightning: 0, resPoison: 0, resShadow: 0, resAll: 0, maxResist: 0,
+    penFire: 0, penCold: 0, penLightning: 0, penPoison: 0, penShadow: 0, penAll: 0 };
   let wmin = 1, wmax = 3, wspd = 1, def = 0, block = 0; const pw = [];
   for (const s of SLOTS) { const it = p.equip[s]; if (!it) continue; // no weapon (e.g. it shattered) = bare fists 1-3
     if (it.min) { wmin = it.min; wmax = it.max; wspd = it.spd; }
@@ -1740,7 +1742,11 @@ function computeStats() {
   const lv = p.lvl, b = Math.floor(lv / 2);
   p.st = { min: wmin + m.dmg + b, max: wmax + m.dmg + b, def: def + m.def,
     maxHp: 50 + lv * 10 + m.hp, maxMp: 20 + lv * 5 + m.mp, aspd: wspd * (1 + m.ias / 100), ls: m.ls, crit: 5 + m.crit,
-    fire: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05, block: Math.min(BLOCK_CAP, block), powers: pw };
+    fire: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05, block: Math.min(BLOCK_CAP, block), powers: pw,
+    resFire: m.resFire + m.resAll, resCold: m.resCold + m.resAll, resLightning: m.resLightning + m.resAll,
+    resPoison: m.resPoison + m.resAll, resShadow: m.resShadow + m.resAll, maxResist: m.maxResist,
+    penFire: m.penFire + m.penAll, penCold: m.penCold + m.penAll, penLightning: m.penLightning + m.penAll,
+    penPoison: m.penPoison + m.penAll, penShadow: m.penShadow + m.penAll };
   p.hp = Math.min(p.hp, p.st.maxHp); p.mp = Math.min(p.mp, p.st.maxMp);
 }
 function dropAt(list, x, y, obj) {
@@ -4101,14 +4107,60 @@ let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other
 // ===== Stage 1: universal damage architecture =====
 // One resolver owns mitigation. Callers still enter through damageEnemy / hurtPlayer / envHurt.
 // Order for the player: Shift/Clone → Ethereal ×0.75 → roll/i-frames → block → DEF/(DEF+30) on Physical only
-// → champion crit → thorns → barrier → HP. Enemy: immunities → guard → ram armor → Hellmouth vuln → floor 1
-// → boss/Super Elite shield → HP. World packets (envHurt) skip combat mitigation. mods.fire is not a type.
+// and elemental resist once per other component → champion crit → thorns → barrier → HP.
+// Enemy: immunities → elemental resist once per non-Physical component → guard → ram armor → Hellmouth ×1.10
+// → floor 1 → boss/Super Elite shield → HP. World packets (envHurt) skip combat mitigation, including resist.
+// mods.fire is spell power, not a Fire resist and not a Fire damage type. Hellmouth ×1.10 is not a resist.
 const DMG_TYPES = ['Physical', 'Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
 const DMG_TAGS = ['Melee', 'Ranged', 'Spell', 'Projectile', 'AoE', 'DoT', 'Direct', 'Channelled'];
 let conversionEdges = []; // {from, to, fraction}. Empty in Stage 1. No gameplay caller adds edges.
 
+// Stage 2 resist model. One number per type, not a second vulnerability multiplier.
+// eff = clamp(raw - penetration, RESIST_MIN, resistCap)
+// multiplier = 1 - eff/100
+// resistCap defaults to RESIST_SOFT (75). st.maxResist / defender.maxResist raises it, never past RESIST_HARD (90).
+// Overcap above the cap is real on the sheet and absorbs penetration before the cap binds.
+// Negative eff increases damage. -100 is ×2. Hellmouth's ×1.10 is applied later, once, and is not this.
+const RESIST_MIN = -100, RESIST_SOFT = 75, RESIST_HARD = 90;
+const RESIST_KEYS = { Fire: 'resFire', Cold: 'resCold', Lightning: 'resLightning', Poison: 'resPoison', Shadow: 'resShadow' };
+const PEN_KEYS = { Fire: 'penFire', Cold: 'penCold', Lightning: 'penLightning', Poison: 'penPoison', Shadow: 'penShadow' };
+
 function physicalArmorFraction(def) { return def / (def + 30); }
-function elementalResist(defender, type) { return 0; } // Stage 2. Non-physical mitigation is a no-op until then.
+function resistCap(defender) {
+  let bonus = 0;
+  if (defender && defender.st && Number.isFinite(+defender.st.maxResist)) bonus = +defender.st.maxResist;
+  else if (defender && Number.isFinite(+defender.maxResist)) bonus = +defender.maxResist;
+  return Math.max(0, Math.min(RESIST_HARD, RESIST_SOFT + bonus));
+}
+function rawElementalResist(defender, type) {
+  const key = RESIST_KEYS[type];
+  if (!key || !defender) return 0;
+  // Player sheet already includes resAll. A finite st value, including 0, wins over enemy-style fields.
+  if (defender.st && Number.isFinite(+defender.st[key])) return +defender.st[key];
+  let raw = 0;
+  if (defender.resists && Number.isFinite(+defender.resists[type])) raw += +defender.resists[type];
+  else if (Number.isFinite(+defender[key])) raw += +defender[key];
+  if (defender.resists && Number.isFinite(+defender.resists.All)) raw += +defender.resists.All;
+  else if (Number.isFinite(+defender.resAll)) raw += +defender.resAll;
+  return raw;
+}
+function elementalResistPercent(defender, type, pen) {
+  if (!RESIST_KEYS[type]) return 0;
+  const p = Number.isFinite(+pen) ? +pen : 0;
+  return Math.max(RESIST_MIN, Math.min(resistCap(defender), rawElementalResist(defender, type) - p));
+}
+function elementalResist(defender, type, pen) { return elementalResistPercent(defender, type, pen) / 100; }
+function packetPen(packet, type, attackerIsPlayer) {
+  let pen = 0;
+  const spec = packet && packet.penetration;
+  if (typeof spec === 'number' && Number.isFinite(spec)) pen += spec;
+  else if (spec && typeof spec === 'object' && Number.isFinite(+spec[type])) pen += +spec[type];
+  if (attackerIsPlayer && player && player.st) {
+    const key = PEN_KEYS[type];
+    if (key && Number.isFinite(+player.st[key])) pen += +player.st[key];
+  }
+  return pen;
+}
 
 function normalizeTags(tags) {
   const out = [];
@@ -4134,7 +4186,7 @@ function makeDamagePacket(spec) {
   return {
     amount: sum, type: type, tags: tags, components: components, source: spec.source || null, crit: !!spec.crit,
     attacker: spec.attacker || 'player', isDot: isDot, world: !!spec.world, kx: spec.kx, ky: spec.ky, col: spec.col,
-    label: spec.label, lethal: spec.lethal, cause: spec.cause
+    label: spec.label, lethal: spec.lethal, cause: spec.cause, penetration: spec.penetration
   };
 }
 function conversionCycle(edges) {
@@ -4231,7 +4283,10 @@ function resolvePlayerDamage(packet) {
   for (let i = 0; i < comps.length; i++) {
     const c = comps[i];
     if (c.type === 'Physical') kept += c.amount * (1 - red);
-    else kept += c.amount * (1 - elementalResist(p, c.type));
+    else {
+      const pct = elementalResistPercent(p, c.type, packetPen(packet, c.type, false));
+      kept += c.amount * (100 - pct) / 100;
+    }
   }
   // Single Physical component uses the v0.7.18 expression unchanged, including the one round.
   let d = (comps.length === 1 && comps[0].type === 'Physical')
@@ -4278,8 +4333,16 @@ function resolveEnemyDamage(e, packet) {
   let kx = packet.kx, ky = packet.ky;
   const src = packet.source, crit = !!packet.crit, col = packet.col || '#fff';
   const comps = applyConversion(packet.components);
+  const fromPlayer = packet.attacker === 'player';
   let dmg = 0;
-  for (let i = 0; i < comps.length; i++) dmg += comps[i].amount;
+  for (let i = 0; i < comps.length; i++) {
+    const c = comps[i];
+    if (c.type === 'Physical') dmg += c.amount;
+    else {
+      const pct = elementalResistPercent(e, c.type, packetPen(packet, c.type, fromPlayer));
+      dmg += c.amount * (100 - pct) / 100;
+    }
+  }
   let guardFront = false;
   if (T.ai === 'guard') {
     const s = src || player, a = Math.atan2(s.y - e.y, s.x - e.x), da = Math.abs(((a - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
@@ -4322,7 +4385,8 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
   meta = meta || {};
   return resolveDamage(e, {
     amount: dmg, type: meta.type || 'Physical', tags: Array.isArray(meta.tags) ? meta.tags : ['Direct'],
-    source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false
+    source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false,
+    penetration: meta.penetration
   });
 }
 
@@ -13112,6 +13176,8 @@ if (window.game) {
     crispCtx: crispCtx, uiEff718: uiEff718, textPix718: textPix718, syncTextLayer718: syncTextLayer718,
     resolveDamage: resolveDamage, makeDamagePacket: makeDamagePacket, setConversionEdges: setConversionEdges, getConversionEdges: getConversionEdges,
     DMG_TYPES: DMG_TYPES, DMG_TAGS: DMG_TAGS, physicalArmorFraction: physicalArmorFraction, elementalResist: elementalResist,
+    elementalResistPercent: elementalResistPercent, resistCap: resistCap, rawElementalResist: rawElementalResist,
+    RESIST_MIN: RESIST_MIN, RESIST_SOFT: RESIST_SOFT, RESIST_HARD: RESIST_HARD,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });
   Object.defineProperty(window.game, 'textLayer', { configurable: true, get() { return textCan718; } });
