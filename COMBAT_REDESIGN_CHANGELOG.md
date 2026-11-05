@@ -1,0 +1,695 @@
+# Lichlight Combat Redesign Changelog
+
+This file is the permanent development record for the combat redesign. Do not delete or rewrite previous entries. Later stages append. Stage 0 is documentation only.
+
+Gameplay baseline inspected for this entry: tag **v0.7.18**, commit **25253a5586470e466f99f2122c4579ac69a666b1**. Live game: https://gamedevjake.github.io/lichlight/
+
+Source of truth is `index.html` on that commit (single-file game, 12,941 lines). The supplied combat design brief was treated as a map and re-checked against that file. Where the brief and the code differ, the difference is recorded under [Brief versus code](#brief-versus-code).
+
+---
+
+## Project Overview
+
+- **Project name:** Lichlight.
+- **Objective:** Redesign combat in controlled stages so weapons, skills, damage types, defenses, and builds have distinct identities. Introduce six damage types, one damage pipeline, armor and elemental resistances, a deeper critical system, conversion and penetration, status effects, stagger and poise, weapon identity, clearer skills, enemy resists and elite affixes, stronger boss and Super Elite fights, build-defining gear, readable feedback, an accurate character sheet, and depth-based balance. Keep each stage playable. Do not replace design with flat health or damage inflation.
+- **Original version:** v0.7.18.
+- **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
+- **Redesign start date:** 2026-11-05.
+- **Current implementation stage:** Stage 0 — Baseline Audit and Project Preparation.
+- **Overall project status:** IN PROGRESS. Stage 0 is IMPLEMENTED and waiting for Jake's review. Stages 1–13 are NOT STARTED. Do not begin Stage 1 until Jake approves this audit.
+
+---
+
+## Master Implementation Checklist
+
+| Stage | Name | Status |
+| --- | --- | --- |
+| 0 | Baseline audit and project preparation | IMPLEMENTED |
+| 1 | Universal damage architecture | NOT STARTED |
+| 2 | Armor and resistances | NOT STARTED |
+| 3 | Critical hits and damage scaling | NOT STARTED |
+| 4 | Status effects | NOT STARTED |
+| 5 | Stagger, poise, and crowd control | NOT STARTED |
+| 6 | Weapon identity and attack responsiveness | NOT STARTED |
+| 7 | Skill system and build specialization | NOT STARTED |
+| 8 | Enemy resistances and elite affixes | NOT STARTED |
+| 9 | Boss and Super Elite redesign | NOT STARTED |
+| 10 | Equipment, loot, and build-changing affixes | NOT STARTED |
+| 11 | Combat feedback and presentation | NOT STARTED |
+| 12 | Character sheet and tooltip accuracy | NOT STARTED |
+| 13 | Balance, performance, and final verification | NOT STARTED |
+
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. No gameplay test harness was executed in this session.
+
+---
+
+## Stage Development History
+
+### 2026-11-05 — Stage 0: Baseline Audit and Project Preparation
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 0 — Baseline Audit and Project Preparation.
+- **Version / Commit:** Gameplay baseline `25253a5586470e466f99f2122c4579ac69a666b1` (tag `v0.7.18`). This stage adds no gameplay commit. The Stage 0 checkpoint is the docs-only commit that adds this file. Roll gameplay back by staying on `25253a5`; this file is not loaded by the game.
+- **Status:** IMPLEMENTED.
+- **Objective:** Inspect current combat, record the architecture and known issues, open the changelog, and recommend the Stage 1 damage adapter. Do not change gameplay.
+
+#### Existing Behavior
+
+Combat is one scalar. There is no damage type, no elemental resist, no crit-damage stat, no pierce, no stagger, and no poise. "Fire" on gear is spell power. Four different protections are all called shields and do not share a pool.
+
+Player hits enter `damageEnemy`. Almost every monster hit enters `hurtPlayer`. Most environment damage enters `envHurt` or writes `player.hp` directly. `hurtPlayer` is wrapped twice after its original definition: the v0.7.10 tome wrapper (Shift, Clone, Ethereal Shield) and the v0.7.12 wrapper that hides numeric player damage floaters.
+
+Full formulas, call order, and the brief mismatches are in [Combat System Reference](#combat-system-reference) and [Brief versus code](#brief-versus-code).
+
+#### Changes Implemented
+
+- Created this changelog from a line-level read of `index.html` at `25253a5`.
+- Re-checked the v0.7.18 combat brief against that source. Spot-checked monster base rows, boss and Super Elite formulas, spell numbers, and the defense curve. They match, with the discrepancies listed below.
+- Read the existing HTML harnesses and listed what they already lock in, and what they do not cover.
+- Wrote the Stage 1 architecture recommendation. No adapter was coded.
+
+#### Files Modified
+
+- `COMBAT_REDESIGN_CHANGELOG.md` — created. Documentation only.
+
+No other repo file was modified. `index.html`, `version.json`, tests, and assets are unchanged.
+
+#### Functions Added or Modified
+
+None. The audit named the live functions Stage 1 will have to wrap. They were not edited.
+
+Player offense: `computeStats`, `rollDmg`, `leech`, `doAttack`, `powerAttack074`, `fireBow`, `castSkill`, `skillAmp`, `manaCost`, `castHellmouth`, `mawTargets`.
+
+Enemy defense and death: `damageEnemy`, `killEnemy`.
+
+Player defense: `hurtPlayer` (original at the combat section, then reassigned near the tome block, then wrapped again by `noPlayerDmg712`), `tryBlock`, `absorbBarrier`, `raiseBarrier`, `powersOnHurt`, `dodgeWindow`.
+
+Environment and costs: `envHurt`, `igniteBurn`, `updateBurn`, `tickSpikeWalk`, `endFall`, `updateSurvival`, `survDrip`, `bloodCost`, `useDoor`, `trapDmg`, `updateTraps`, `blast`.
+
+Scaling and content: `spawnEnemy`, `dmgBump`, `mobDmgMul`, `spawnBoss`, `bossAI`, `seMaxHp717`, `seDmg717`, `seSpawn717`, `seTick717`, `mobAI`.
+
+Sheet and items: `charPairs712`, `paintChar`, `fillInvStats`, `itemLines`, `makeItem`, `rollShopUnique`, `destroyItem`.
+
+Feedback: `addText`, `addFoeText`.
+
+#### Combat Formulas
+
+No formula was changed. The live formulas are recorded in the reference section so later stages can diff against them.
+
+#### Gameplay Impact
+
+None. Players on v0.7.18 see the same combat. This commit is a markdown file the game does not load.
+
+#### Compatibility Notes
+
+Stage 1 must keep these save fields working without a migration that drops gear:
+
+- Player blob: `lvl`, `xp`, `hp`, `mp`, `equip` (including `min`, `max`, `spd`, `def`, `block`, `mods.fire`, `mods.dmg`, `mods.crit`, `mods.ls`, `powers`), `learned`, `lichTome`, `spellBar`, `hunger`, `thirst`, `fatigue`.
+- Floor snapshot (`worldSnap`): enemy `hp`, `shield`, `maxShield`, `dmg`, `phase`, `sePhase`, `superElite`, `T.boss`. Super Elite gate state is also stored as `se717`.
+- Load clears player `barrier`, `slowT`, decoy, Ethereal Shield, and Ethereal Shift. Spell cooldowns and burn are not part of the player blob. `fixItem` clamps durability to at least 1, so a zero-durability item in an old save comes back with 1 durability rather than shattering.
+- The affix key `fire` must keep meaning spell power until a later stage rewrites tooltips and migrates the stat on purpose.
+
+#### Tests Performed
+
+Source inspection and hand evaluation of formulas only. The browser harness was not launched, so this entry does not claim that any HTML test passed in this session.
+
+Checked by reading code and evaluating the expressions:
+
+- `dmgBump(1) = 1.25`, `dmgBump(5) = 1.182`, `dmgBump(6) = 1.165`, `dmgBump(11) = 1.08`, `dmgBump(d, true) = 1.08`.
+- `densityCapDepth() = 12`. `mobDmgMul` is 1 through depth 12, then `min(2.5, 1 + 0.08 * (d - 12))`. Depth 100 is ×2.5.
+- Depth-1 skeleton: 20 HP, 6.25 contact. Champion: 44 HP, 8.75 contact.
+- Depth-100 skeleton contact: 414.45, champion 580.23. Brief rounds to 414 and 580.
+- Floor-5 Mother Murk: 840 HP, 210 shield, 18.144 contact (brief 18.1).
+- Floor-100 Oswin (`hp` 1.6, cycle 0): 17304 HP, 4326 shield, 243.864 contact (brief 244).
+- Floor-105 Murk cycle 1: 17010 HP, 4253 shield, 319.68 contact (brief 320).
+- Super Elite depth 1: 56 HP, 6 shield, 6.44 attack, 10.95 powerup (brief 6.4 and 11.0).
+- Super Elite depth 100: 2190 HP, 219 shield, 151.88 attack (brief 152).
+- Fireball with no amp: level 1 and 0 fire = 10.8; level 10 and 0 fire = 36; level 10 and 20 fire = 64.
+- Defense keep fraction: 0 → 100%, 30 → 50%, 60 → 33%, 90 → 25%.
+- Ethereal path with DEF 0 and spread pinned at 1: 100 becomes 75. That is what `tests/v0710.html` already asserts (`quiet()` sets `__hurtSpread = 1` and `st.def = 0`).
+- Champion crit with DEF 0 and spread 1: 100 becomes 105 (`round(100 * 0.05)` added after defense). That is what `tests/v079.html` already asserts.
+
+#### Known Issues
+
+Recorded in [Known Issues and Technical Debt](#known-issues-and-technical-debt). The one that must not be "fixed" silently in Stage 1 is Hellmouth deleting Super Elites. That is Stage 9.
+
+#### Rollback Notes
+
+This stage does not change gameplay. Restore the pre-audit tree by reverting the commit that added `COMBAT_REDESIGN_CHANGELOG.md`. The playable game remains `25253a5586470e466f99f2122c4579ac69a666b1`.
+
+#### Next Steps
+
+Wait for Jake's approval before Stage 1. The recommended architecture is in [Design Decisions](#design-decisions). Stage 1 should add a thin `DamagePacket` and `resolveDamage` adapter, route current callers through it, keep Physical mitigation as the existing `DEF / (DEF + 30)` curve applied once, leave elemental resists for Stage 2, preserve the four shield systems, and add an explicit conversion graph that cannot loop. Baseline time-to-kill should stay approximately the same. Do not retune `fire`, and do not change Hellmouth's Super Elite behavior in Stage 1.
+
+---
+
+## Combat System Reference
+
+This section describes **implemented** behavior on v0.7.18 / `25253a5`. Planned Stage 1 behavior is only in Design Decisions.
+
+### Damage types
+
+Implemented types: none. Every combat number is a scalar.
+
+There is no Fire, Cold, Lightning, Poison, or Shadow resist. Poison puddles and the on-fire environment effect are delivery rules, not damage types. Gear `mods.fire` is added only inside Fireball, Whirlwind, and Frost Nova as spell power:
+
+```
+pw = mods.fire + level * 2
+```
+
+Weapon hits, bows, and enemy hits never add `pw`. The affix line is `+N Fire Damage (skills)`.
+
+Attack tags (Melee, Ranged, Spell, Projectile, Area, DoT, and so on) are not data. They are implied by which function was called.
+
+### Where damage is born
+
+**Player**
+
+| Source | Function | What the number is |
+| --- | --- | --- |
+| Fists, melee | `rollDmg` → `doAttack` → `damageEnemy` | Integer from sheet min–max inclusive. Crit ×2 inside the roll. |
+| Power attack | `powerAttack074` sets `PWR_MUL` then `doAttack` | The roll, then ×1.50 to ×2.25. Life steal uses the pre-multiplier roll. |
+| Bow | `fireBow` | One `rollDmg` stored on the arrow. No power multiplier, no life steal. Crit flag is dropped on impact, so the floater has no `!`. |
+| Fireball | `castSkill(0)` | `(8 + pw * 1.4) * amp`. No crit, no life steal. Splash if center distance `< 18 + enemy radius`: full when `< enemy radius + 4`, otherwise ×0.6. Bolt 170 px/s, life 1.4s. |
+| Whirlwind | `castSkill(1)` | `(weaponRoll * 1.4 + pw * 0.5) * amp`. Crit doubles only the weapon roll, before `pw` is added. Life steal uses the summed skill number, before enemy reduction. Radius `32 + enemy radius`. Instant. |
+| Frost Nova | `castSkill(2)` | `(6 + pw * 1.1) * amp`. No crit, no life steal. Sets `e.slow = 3.5` before `damageEnemy`, so the slow lands even when the hit is immune. Test is center distance `< 70`. |
+| Hellmouth | `castHellmouth` | Not a damage number. See Hellmouth below. |
+| Thorns | `powersOnHurt` / `tryBlock` | `pct%` of the pre-defense combat amount (already after Ethereal Shield), sent back through `damageEnemy`. Copies add. Only when `src` is the enemy object, so contact thorns and beams, bolts, and blasts do not. A blocked hit still thorns. Result is still floored at 1 by `damageEnemy`. |
+
+`amp = 1 + skillAmp(i) / 100`. `skillAmp` sums `skillAmp` powers whose skill key matches Fireball, Whirlwind, or Frost Nova. No cap.
+
+Mana: `manaCost` is `ceil(base * m)` with `m = 1`, plus 0.6 if thirst is 0, plus 1.0 if fatigue is 0. Both empty is ×2.6.
+
+**Enemies**
+
+Almost every hit is `e.dmg` times a pattern multiplier, then `hurtPlayer` or `blast` → `hurtPlayer`. The multiplier does not change a type, because there is no type.
+
+| Delivery | Rule |
+| --- | --- |
+| Contact | `updateEnemies` and the grid-AI contact path. Cooldown 1.1s, boss body 1.0s. Charge ×1.3. |
+| Cultist bolt | ×1, speed 90. |
+| Archer | 3 arrows ×0.8. |
+| Wisp | ×1 bolt after a blink. |
+| Spider web bolt | ×0.5 and a 2.2s player slow. |
+| Siren ring | ×0.7. |
+| Exarch orb | ×1, homing. |
+| Seer snipe | ×1.2. |
+| Eel erupt | ×1 blast, radius 14. |
+| Ghoul leap | ×1 blast, radius 14. |
+| Golem slam | ×1.3 blast, radius 36. |
+| Bloater | ×1 blast, then poison ground ×0.15 of `e.dmg`. No contact (`noContact`). |
+| Crawler trail | poison ×0.12 of `e.dmg` every time the trail is laid. |
+| Lobber / boss lob | blast uses the passed damage; poison ground is ×0.15 of that damage. Boss lobs pass `dm * 0.9`. |
+| Boss patterns | ring ×0.7, spiral ×0.6, spread ×0.7, hop ×1.1 plus an enraged ring ×0.6, nova ×1.1, slam ×1.15, beam ×1, teleport arrival ring ×0.6. |
+| Super Elite | `seTick717`: ×1 on attack frame 2, ×1.7 on powerup frame 3, only if still within about 43 px. About 22% powerups. Next swing 1.25s, or 3.6s after a powerup. `noContact`. |
+| Traps | `trapDmg() = 6 + depth * 1.6`, then jet ×0.7, pitfall ×1.3, darts ×1, ceiling ×1, boulder ×1.5. These go through `blast` / enemy projectiles into `hurtPlayer`, not `envHurt`. |
+
+Poison ground in `updateEnemies`: every 0.5s, `hurtPlayer(max(1, h.dmg), { dot: true })`, skipped entirely while `isInvincible` (Ethereal Shift). A roll or hit-stun window still consumes the tick inside `hurtPlayer` and deals 0.
+
+**Environment and other direct HP writes**
+
+`envHurt` rounds, forces at least 1, subtracts from HP, and does not call `hurtPlayer`. It ignores defense, block, barrier, and Ethereal Shield. Ethereal Shift makes the v0.7.10 `envHurt` wrapper return before damage. Non-lethal sources clamp at 1 HP instead of killing.
+
+| Source | Formula | Kills? | Pipe |
+| --- | --- | --- | --- |
+| Hazard water | 1.5% max HP per second, ticked from an accumulator every 0.5s | No, stops at 1 | `envHurt` |
+| Hazard acid | 6% max HP / s | Yes | `envHurt` |
+| Hazard lava | 12% max HP / s, and calls `igniteBurn` | Yes | `envHurt` |
+| On fire | 8% max HP spread over 4s (`BURN_PCT = 0.08`, `BURN_DOT = 4`) | Yes | `envHurt` |
+| Spike-room cycle | 10% max HP when spikes are up (cycle 2.4s, up 1.0s). Also sets `inv0 = 0.3` | Yes | `envHurt` |
+| Spike-gap floor | 5% max HP over 2s while stood on (`SPIKE_BITE`) | No, stops at 1 | direct HP in `tickSpikeWalk` |
+| Bottomless pit | 50% max HP on the way out (`PIT_DMG = 0.5`), `ceil` | No, stops at 1 | direct HP in `endFall` |
+| Hunger / thirst / exhaustion | 0.6% max HP / s times the sum of empty-need weights (hunger 1, thirst 1, fatigue 1.5). All three empty = 2.1% / s | Only while hunger is empty. If hunger is above 0, HP stops at 1 | direct HP in `updateSurvival` |
+| Blood door | `ceil(15% max HP)`, paid up front. Refuses when `hp <= cost` | No, the door will not open if the payment would hit 0 or below | direct HP in `useDoor` |
+
+A dodge roll subtracts 1s from the burn's remaining `dot` (and from the visual timer). Water clears burn. Ethereal Shift clears burn and `slowT` every tick and refuses new ignites.
+
+Shift does **not** wrap `updateSurvival`, `endFall`, or `useDoor`. Hunger drain, the pit climb-out, and the blood door still cut HP during Shift. Spike-gap ticks are wrapped and do stop. Clone (`isPlayerUndetected`) stops `hurtPlayer` only. Lava, acid, burn, spike rooms, spike gaps, hunger, and pits still land during Clone.
+
+### Player offense pipeline
+
+`computeStats` sums equipped items. Durability above 0 is full stats. At 0, `wearItem` calls `destroyItem`, which deletes the item. There is no partial-durability penalty. `isBroken` is defined and never called. The comment above the durability block still says a broken item stays in the bag and gives no stats. That comment is stale. On load, `fixItem` raises a saved durability of 0 up to 1 rather than shattering.
+
+| Stat | Formula |
+| --- | --- |
+| Weapon min / max | Item min / max, or fists 1–3. Then `+ mods.dmg`. Then `+ floor(level / 2)` on both ends. |
+| Attack speed | `weapon.spd * (1 + attackSpeed% / 100)`. Fists use 1. |
+| Swing cooldown | `0.45 / attack speed` seconds. While fatigue is 0 the cooldown clock advances at 80% speed, so the wait is 1.25×. |
+| Crit chance | `5 + sum of crit mods`. No cap. |
+| Life steal | Sum of leech mods, percent. No cap. Heals `roll * leech / 100` of the pre-mitigation melee or whirlwind number. Fractional HP is kept. Bows, Fireball, and Frost Nova never call `leech`. |
+| Fire power | Sum of `mods.fire`, including a staff's built-in fire. Built-in staff fire is not scaled by item level. Unique fire mods are scaled by `(1 + itemLevel * 0.05)` and then the unscaled staff fire is added. |
+| Max HP | `50 + level * 10 + life mods`. A new level-1 character starts at 60 / 60 before gear. |
+| Max mana | `20 + level * 5 + mana mods`. Level 1 starts at 25 / 25. |
+| Life regen | `0.4 + regen mods + level * 0.05` HP per second. |
+| Mana regen | `1.4 + level * 0.1` per second. No gear mod. |
+| Defense | Sum of helm, armor, boots, and shield `def`, plus `+Defense` mods. Rings and amulets contribute mods only. |
+| Block | `min(40, shield.block)`. One shield slot. `BLOCK_CAP = 40`. |
+
+Item level on drop: weapon `scale = 1 + itemLevel * 0.06` on min and max. Uniques then ×1.3 on that weapon damage. Defense on a drop is `baseDef + floor(itemLevel / 3)`, uniques ×1.3. Unique listed mods use `(1 + itemLevel * 0.05)`.
+
+Shop sealed uniques (`rollShopUnique`) roll a unique at a derived item level, then multiply again:
+
+```
+mul = 1 + depth * 0.015 * tier + min(1.2, price / 700)
+min, max, def *= mul
+block = min(40, round(block * (1 + tier * 0.04)))
+each mod *= (1 + tier * 0.12 + depth * 0.004)
+```
+
+Weapon bases before item-level scale:
+
+| Base | Min–max | Spd | Reach |
+| --- | --- | --- | --- |
+| Fists | 1–3 | 1.00 | 18 |
+| Rusty Sword | 1–4 | 1.00 | 24, `noDrop` |
+| Short Sword | 2–5 | 1.00 | 24 |
+| Hand Axe | 3–7 | 0.90 | 28 |
+| Broad Sword | 5–10 | 1.00 | 24 |
+| Gnarled Staff | 3–6 | 1.00 | 40, +4 fire |
+| War Axe | 8–15 | 0.85 | 28 |
+| Great Maul | 12–24 | 0.70 | 34 |
+| Rune Blade | 12–20 | 1.10 | 24 |
+| Archon Staff | 8–14 | 1.00 | 40, +12 fire |
+| Short Bow | 3–7 | 1.05 | arrow travels `220 * 0.95` ≈ 209 px |
+
+Reach is by icon inside `weaponReach713` (`sword` 24, `axe` 28, `maul` 34, `staff` 40). An item `range` field would override the icon, and nothing that drops sets `range`. Power attacks add +6 px (`PWR.reach`). The melee cone rejects targets more than 1.1 rad off facing (about 126° total) unless they are inside `8 + enemy radius`, which includes hits from behind.
+
+Melee order:
+
+1. Roll min–max inclusive (`irand`).
+2. If `random * 100 < crit%`, double the roll.
+3. Life steal from that roll.
+4. Multiply by `PWR_MUL` (1 unless a power attack is resolving).
+5. Each enemy in the cone gets a fresh roll.
+6. `damageEnemy` applies enemy reductions, rounds, floors at 1, then spends boss or Super Elite shield before HP.
+7. HP changes on the frame the swing starts. `player.swing` is 0.22s for a tap and 0.30s for a power attack, and that timer is only animation and the 55% move-speed penalty. A connecting melee swing advances `WEAR_HITS` (6). A bow calls `wearWeapon` even when the arrow misses.
+
+Power attack: hold at least 0.35s, full at 0.9s, multiplier linear from ×1.50 to ×2.25, knockback ×2, reach +6. Move speed is 60% while the charge is past 0.35s and 55% during the swing. A bow still shows the charge ring. `doAttack` sees the bow and calls `fireBow`, which ignores `PWR_MUL`.
+
+Unique bows change the arrow graphic and their mods only: Scream of the Banshee +5 damage / +10 crit, Spine of the First Lich +6 / +6, Hellmouth Strider +4 damage / +8 fire. That fire still only feeds spells.
+
+Other tome spells, not in the weapon roll:
+
+| Spell | Mana / cd | Effect |
+| --- | --- | --- |
+| Spectral Clone | 12 / 8s | Decoy for 4s. `tomeSeek` retargets enemies. The `hurtPlayer` wrapper returns immediately while `isPlayerUndetected`. Environment damage still lands. |
+| Ethereal Shield | 10 / 15s | `isArmorActive` for 5s. The wrapper multiplies the incoming `hurtPlayer` amount by 0.75 before defense, block, and the DoT check. |
+| Ethereal Shift | 14 / 12s | `isInvincible` for 4s. Clears burn and slow. The wrapper skips combat hits. Separate wrappers skip `envHurt`, new ignites, and spike-gap ticks. |
+| Hellmouth | 18 / 6s | See below. |
+
+### What `damageEnemy` does
+
+Order, then `max(1, round)`:
+
+1. Return if dead, hidden, downed (revenant), or a Super Elite whose `sePhase` is not `fight`. Floater `IMMUNE` on the Super Elite case.
+2. Crab whose `mode` is not `open`: immune. Floater `IMMUNE`.
+3. Hollowmere Guard, hit from the front (`da < 1.0` rad, about 57°): ×0.15, floater `BLOCK`. Knockback ×0.2.
+4. Bone Ram, unless `mode === 'stun'`: ×0.40 (`armor: 0.4`).
+5. `mawVuln > 0`: ×1.10.
+6. Floor at 1.
+7. If a boss or Super Elite still has `shield`, that pool spends first. Overflow hits HP. A hit that only touches the shield shows a blue number and no crit mark.
+8. Crit floater (`N!`) only when HP actually dropped.
+
+No pierce, no elemental resist, no second roll.
+
+Crab contact is the other way around from the shell: `updateEnemies` allows contact while the shell is closed and suppresses contact while `mode === 'open'`. The open window is when the player can hurt it, and the crab is not biting on that tick.
+
+### What `hurtPlayer` does
+
+Call order across the two wrappers and the original function:
+
+1. v0.7.12 wrapper sets `hidePlayerDmg712` so numeric floaters in `PLAYER_DMG_COL_712` are swallowed for this call.
+2. v0.7.10 wrapper: if `isInvincible` or `isPlayerUndetected`, return. No damage.
+3. v0.7.10 wrapper: if `isArmorActive`, `dmg *= 0.75`.
+4. Original: if `inv0 > 0` or `roll > 0` or state is not `play` or a death is already running, return. The 0.75 from step 3 has already been applied to a number that is then discarded.
+5. If this is not a DoT, `tryBlock`. Success: 0 damage, `inv0 = 0.25`, 1 shield durability, on-block barrier rolls, thorns from the post-shield pre-defense amount, return.
+6. `reduction = DEF / (DEF + 30)`.
+7. Spread ×0.85 to ×1.15 (`window.__hurtSpread` pins it in tests).
+8. `d = max(1, round(amount * (1 - reduction) * spread))`.
+9. If not a DoT and the attacker is a champion (`elite` and not `T.boss`): 10% chance to add `round(amount * 0.05)` **after** defense. The bonus uses the pre-defense number, so armor does not shrink it. It snuffs a held torch when HP actually falls. Floater word is `CRIT`. Bosses do not use this crit. Super Elites are not `elite`, so they do not either.
+10. If not a DoT: `powersOnHurt` (on-hurt barrier, fear pulse, thorns), then `absorbBarrier`. If the barrier eats the whole remaining hit, `inv0 = 0.3` and HP does not fall.
+11. HP drops. A real HP loss on a non-DoT grants `inv0 = 0.45`, a small knockback, and a 40% chance to wear 1 durability off a random armor piece (`ARMOR_WEAR_P = 0.4`). DoTs do not grant invulnerability, do not wear armor, do not thorns, do not roll block, do not use barrier, and do not roll champion crits. DoTs **do** receive the Ethereal Shield ×0.75 and the defense curve, because those happen before the DoT branch.
+
+Defense keep fraction:
+
+| DEF | Damage kept |
+| --- | --- |
+| 0 | 100% |
+| 10 | 75% |
+| 30 | 50% |
+| 60 | 33% |
+| 90 | 25% |
+| 120 | 20% |
+| 200 | 13% |
+
+There is no defense cap. The floor of 1 means a hit that gets past block and barrier always removes at least 1 HP, including poison ticks and guard-front or ram-reduced hits.
+
+Invulnerability windows:
+
+| Window | Length | Stops |
+| --- | --- | --- |
+| Dodge roll | 0.30s (`ROLL_TIME`), then up to +0.50s from the largest Dodge power (`dodgeWindow`, cap 0.5) | `hurtPlayer`, including poison ticks |
+| After HP loss | 0.45s | same |
+| After a block | 0.25s | same |
+| After barrier eats the hit | 0.30s | same |
+| Ethereal Shift | 4s | combat, `envHurt`, new burns, spike-gap ticks |
+| Spectral Clone | 4s | combat only |
+
+The player has no stun. Rams and boss charges stun themselves on a wall. Slows on the player multiply move speed only: web corridor ×0.45, hazard water ×0.55, any `slowT` ×0.6. Hunger, thirst, and fatigue under 25% each shave move speed, down to ×0.70 combined (`survSpeed`). Enemy frost slow is a different field: trash move speed ×0.45 while `e.slow > 0`, bosses ×0.5, Super Elite chase ×0.5.
+
+Life potions heal `45% max HP + 10`. They do not interact with defense.
+
+Barrier amount is `round(maxHP * pct / 100)` for the power's duration (data is about 5–8s). Several copies do not add. `Math.max` keeps the bigger pool. Fear pulse shoves non-bosses. A Super Elite has `T.boss === false`, so it receives `fearT`, and `updateEnemies` will step it away. `seTick717` then steps it toward the player in the same frame. Chill aura writes `auraPct` onto enemies in range, capped at 40% slower, and boss/trash movement honors `auraMul`. Super Elite chase in `seTick717` does not read `auraMul`.
+
+### Enemy scaling
+
+Trash and champions (`spawnEnemy`):
+
+```
+HP  = round( hp0 + hp1 * (depth - 1) ) * (champion ? 2.2 : 1)   // the 2.2 is applied with round()
+DMG = ( dm0 + dm1 * (depth - 1) ) * dmgBump(depth) * mobDmgMul(depth) * (champion ? 1.4 : 1)
+```
+
+```
+dmgBump(d, boss) = 1.08 + (boss ? 0 : 0.17 * max(0, 1 - (d - 1) / 10))
+mobDmgMul(d)     = d > 12 ? min(2.5, 1 + 0.08 * (d - 12)) : 1
+```
+
+`mobDmgMul` hits trash and champions only. Bosses use `dmgBump(d, true)` which is a flat ×1.08. Super Elites use non-boss `dmgBump` and do not use `mobDmgMul`.
+
+The `MOBS` table in `index.html` matches the brief's base HP and damage columns (depth-1 values before the bump). Champion contact can crit. Boss contact cannot.
+
+Worked skeleton contact after bump and the post-12 ramp:
+
+| Depth | Skeleton | Champion skeleton |
+| --- | --- | --- |
+| 1 | 20 HP, 6.25 dmg | 44 HP, 8.75 dmg |
+| 100 | 614 HP, 414.45 dmg | 1351 HP, 580.23 dmg |
+
+### Bosses
+
+Every 5th floor. Twenty bosses, then the list repeats with a cycle (`bossForDepth`).
+
+```
+HP  = round( (240 + 60 * (depth - 1)) * boss.hp * 1.5^cycle * 1.75 )
+SH  = round( HP * 0.25 )
+DMG = (8 + 2.2 * (depth - 1)) * 1.25^cycle * 1.08
+```
+
+`BOSS_HP_MUL = 1.75`. `BOSS_SHIELD_FRAC = 0.25`. Per-boss HP multipliers: Ossuary Colossus ×1.3 (floor 55), Captain Brannoc ×1.2 (floor 65), Oswin ×1.6 (floor 100). Cycle starts at floor 105.
+
+Phases read **HP only**, after the shield is already broken (shield is spent before HP moves, and the phase check compares `e.hp` to `e.maxHp`):
+
+| Phase | When | What changes |
+| --- | --- | --- |
+| 1 | Start | Pattern list `p1`. |
+| 2 | HP < 50% | `enr = 1.25` move speed. Gains `p2`. Pattern clock runs ×1.5 (`patCd` decays ×1.5). `e.dmg` does not change. |
+| 3 | Oswin only, HP < 25% | `enr = 1.4` move. Gains `p3`. Pattern clock stays ×1.5. |
+
+A cantor heals a boss for 4% of max HP and anyone else for 25%. The heal does not refill shield.
+
+### Super Elites
+
+One per floor, at the stairs (`sePlan717` / `seSpawn717`). Descent is refused while `seGateAlive717()`. All 20 roster ids share one stat line. Art, taunt, and VFX names differ. `T.boss` is false. `T.superElite` is true. `elite` is false.
+
+```
+HP  = round( round( round(18 + 7 * (depth - 1)) * 2.2 ) * 1.4 )
+SH  = round( HP * 0.10 )
+DMG = (3.2 + 0.85 * (depth - 1)) * dmgBump(depth) * 1.4 * 1.15
+```
+
+Speed 36 (player base 62). Radius 12. XP `round(48 + 14 * depth)`.
+
+Phases are time-based, not HP thresholds: drop 0.48s (immune), taunt 0.66s (6 × 0.110s, immune), then fight. Frost slow is written before `damageEnemy`'s immune return, and `e.slow` keeps ticking during the intro, so some of the 3.5s can expire before the fight phase. Once fighting, chase speed is ×0.5 while `e.slow > 0`.
+
+Killing one does not run boss death. Loot is 25 gold, a ration, a unique, and a 6.5% Gate Key (`SE_GKEY_P`). `killEnemy` commits the Super Elite dead before loot so a throw cannot freeze the run (the v0.7.18 fix).
+
+### Hellmouth
+
+`mawTargets` gathers living, visible, not-downed, not-disguised enemies in line of sight within `SPELL_RADIUS` (112 px).
+
+`castHellmouth` splits that list with `e.T && e.T.boss`:
+
+- Bosses get `mawVuln = max(current, 3)` and are not sunk. `damageEnemy` multiplies by 1.10 while `mawVuln > 0`. The timer decays in the v0.7.11 update hook.
+- Everyone else, **including Super Elites**, is frozen and sunk. After the sink animation passes frame 90 (about 1.5s at 60 fps), `killEnemy` runs. That deletes the Super Elite, shield included, and opens the stairs. `damageEnemy`'s taunt immunity is never consulted.
+
+This is intentional-looking code (`T.boss` is hardcoded false on Super Elites) and it bypasses the stair lock. It is a Stage 9 issue. Stage 1 must not change it while moving damage through an adapter, or the bypass gets lost in the migration.
+
+### The four shields
+
+| Name | What it is | Code |
+| --- | --- | --- |
+| Equipped shield | Block chance. A success negates the hit. Cap 40%. | `tryBlock`, `st.block` |
+| Boss / Super Elite shield | A blue absorb pool in front of their HP. No regen. | `e.shield` inside `damageEnemy` |
+| Ethereal Shield | 25% cut to incoming `hurtPlayer` damage for 5s, including DoTs, before defense. | `isArmorActive`, hurtPlayer wrapper |
+| Barrier | A flat life pool that soaks post-defense combat damage. Not used on DoTs. | `absorbBarrier` |
+
+### Sheet, tooltips, and feedback
+
+The live character dossier is `charPairs712`, drawn by the latest `paintChar`. It shows level, depth, life, mana, weapon `DMG` min–max, `DEF`, `BLK` (capped), `CRIT` (includes the 5% base), `ATK` as `round(aspd * 100)%`, `LEECH`, food, water, rest, gold, keys, consumables, kill tolls, favorite spell, and favorite weapon.
+
+It does not show fire power, any resist, move speed, life regen, mana regen, Ethereal Shield, barrier, or the defense keep-percent.
+
+Satchel item card (`fillInvStats`):
+
+| Line | Shows | Combat uses |
+| --- | --- | --- |
+| DMG | The item's own min–max | Melee, bow, and the weapon half of Whirlwind, after `+Damage` and `floor(level / 2)`, which the card omits. |
+| SPD | `n/S` from the weapon's base speed | Sheet `ATK %` is the haste-adjusted attack rate. Cooldown is `0.45 / aspd`. |
+| CRIT | That item's crit mod, or the string `0` | Sheet crit is `5 + sum of mods`. |
+| RANGE | `-` unless `it.range` is set | Reach is by icon, 18–40, or the bow's flight distance. |
+| PIERCE | `-` unless a `pierce` field exists | Nothing rolls pierce. Arrows die on the first body. |
+| Compare | Average of raw min/max, or base def | Ignores `+Damage`, level bonus, and mods. |
+
+`itemLines` (the older text list) prints speed as the words Fast / Normal / Slow, not `n/S`. Both surfaces are still in the file.
+
+Outgoing enemy floaters (`addFoeText`) honor the Hit Text setting. White number is HP removed after shield and reductions. Gold `N!` is a player crit that reached HP. Blue number is shield absorbed. `BLOCK` on a foe is the guard reduction, and damage was not zero. `IMMUNE` is crab shell or a Super Elite still dropping or taunting. `BLOCK` on you is your shield. `CRIT` on you is the champion bonus word; the red amount is hidden. `BARRIER` and the blue `-N` (`#80e8ff`) still show, because that color is not in `PLAYER_DMG_COL_712`. Numeric player damage in `#ff5050`, `#ffe060`, `#a0e040`, `#ff3030`, `#ff7040`, `#ffa040`, `#ff7030`, `#80b0ff`, and `#e07060` is hidden while `hurtPlayer`, `envHurt`, `endFall`, `spikeDotBody`, `tickSpikeWalk`, or `useDoor` is on the stack. Boss and Super Elite bars stay up when trash bars are hidden.
+
+### Important constants
+
+`BLOCK_CAP = 40`. Defense curve constant `30`. Crit base `5`, multiplier `2`. `CHAMP_CRIT_P = 0.10`, `CHAMP_CRIT_BONUS = 0.05`. `PWR = { min: 0.35, full: 0.9, mulMin: 1.5, mulMax: 2.25, reach: 6, kb: 2 }`. `ROLL_TIME = 0.3`. Post-hit i-frames `0.45`, block `0.25`, full barrier absorb `0.3`. `WEAR_HITS = 6`. `ARMOR_WEAR_P = 0.4`. `BOSS_HP_MUL = 1.75`. `BOSS_SHIELD_FRAC = 0.25`. `SE_SHIELD_FRAC = 0.10`. `SE_GKEY_P = 0.065`. `SPELL_RADIUS = 112`. `BOW_SPEED = 220`. `HAZ_DPS = { water: 0.015, acid: 0.06, lava: 0.12 }`. `BURN_PCT = 0.08`, `BURN_DOT = 4`. `SPIKE_HIT = 0.10`. `SPIKE_BITE = 0.05` over 2s. `PIT_DMG = 0.5`. `DMG_BUMP = { base: 1.08, early: 0.17, fade: 10 }`. `MOB_DMG_STEP = 0.08`, `MOB_DMG_MAX = 2.5`, cap depth 12. Ethereal Shield duration 5s at ×0.75. Shift and Clone durations 4s.
+
+### Save-data dependencies
+
+See the Stage 0 compatibility notes. The short version: gear mods and enemy HP/shield live in the save. Barrier, Ethereal Shield, Shift, Clone, burn, and spell cooldowns do not survive a load (barrier and the tome buffs are explicitly cleared). A Stage 1 packet must be derived at resolve time from these fields, not stored as a second source of truth that can drift from `mods.fire` or `e.dmg`.
+
+---
+
+## Brief versus code
+
+The v0.7.18 brief is accurate on the systems that matter for Stage 1: one scalar pipe, `DEF / (DEF + 30)`, the four shields, spell formulas, scaling, boss and Super Elite numbers, and Hellmouth treating Super Elites as non-bosses. The `MOBS` rows match the brief's base HP and damage columns. These are the places the code is more specific than the brief, or the brief's wording is slightly wide.
+
+1. **Wrapper order.** The brief lists roll and hit-stun before Ethereal Shield, and groups Shift and Clone with that early-out. In code, Shift and Clone return in the tome wrapper first, Ethereal Shield then multiplies, and roll / `inv0` return inside the original `hurtPlayer` after that multiply. A hit that is already going to be ignored is still multiplied by 0.75 and then thrown away. Final HP matches the brief.
+2. **Whirlwind crit.** The brief says crit and life steal use the whole skill number. Life steal does. Crit doubles only the weapon roll inside `rollDmg`. Fire power is added after the double. The crit floater still marks the whole HP loss.
+3. **Fireball splash radius** is `18 + enemy radius`, not a flat 18 px. Full damage when the blast center is inside `enemy radius + 4`.
+4. **Frost Nova** tests center distance `< 70`. Whirlwind tests `< 32 + enemy radius`. A large enemy can be clipped by Whirlwind when its edge overlaps, and missed by Frost Nova until its center is inside 70.
+5. **Chill aura does not slow Super Elite chase.** `updatePowers` still writes `auraT` / `auraPct` onto them. `seTick717` never reads `auraMul`. Trash and bosses do.
+6. **Ethereal Shift's coverage.** Shift blocks `hurtPlayer`, `envHurt`, new ignites, and spike-gap ticks. It does not block hunger / thirst / exhaustion drain, the 50% pit climb-out, or the blood-door payment. The brief's "Shift stops it" under the environment section is wider than the wrappers.
+7. **Crab contact while open is suppressed**, and contact while shelled still runs. Shell immunity to incoming damage matches the brief. The brief does not mention the inverted contact rule.
+8. **Hellmouth is not an instant delete.** The sink lasts until animation frame 90, about 1.5s, with `hmFreeze` set, then `killEnemy`. The outcome matches the brief: Super Elites die, shield included, because `T.boss` is false.
+9. **Shop unique rescaling** is the `rollShopUnique` formula above, not a single extra constant. The brief's "+4% of block per shop tier, then the 40% cap" matches the block line.
+10. **Power-attack animation** is 0.30s. A normal swing's `player.swing` is 0.22s. Both apply damage on the first frame.
+11. **Stale durability text** is the code comment at the durability block, plus the unused `isBroken` helper. No separate player-facing sentence saying "stays in the bag" was found. Behavior is shatter-and-remove, which the brief describes correctly.
+12. **Super Elite depth-10 attack** evaluates to about 19.16. The brief prints 19.2. Same formula, rounding.
+
+No other brief formula that was evaluated disagreed with the code.
+
+---
+
+## Design Decisions
+
+These are Stage 0 recommendations. They are not implemented. **Wait for Jake's approval before Stage 1.**
+
+### D1 — Thin DamagePacket and one resolveDamage adapter
+
+- **Problem.** Player offense, player defense, and environment damage are three pipes, and `hurtPlayer` already has two wrappers. Stage 2–11 will each add a rule. If every caller grows its own copy, armor will be applied twice or skipped.
+- **Alternatives considered.** (a) Rewrite every caller onto a new combat module in one pass. (b) Leave the functions alone and bolt resists onto `hurtPlayer` only. (c) Introduce a packet and a single resolver, and make the current functions forward to it.
+- **Selected approach.** (c). A packet is a plain object:
+
+  - `amount` — pre-mitigation magnitude of this component.
+  - `type` — one of `Physical`, `Fire`, `Cold`, `Lightning`, `Poison`, `Shadow`.
+  - `tags` — zero or more of `Melee`, `Ranged`, `Spell`, `Projectile`, `AoE`, `DoT`, `Direct`, `Channelled`. Tags are not types.
+  - `source` — the attacker object, a projectile, or null.
+  - `crit` — whether this component already crit. The ×2 stays inside the roll during Stage 1 so the floater can still be driven by the flag. The resolver must not multiply by 2 again.
+  - `attacker` — `player`, `enemy`, or `world`.
+
+  Stage 1's `resolveDamage(target, packet)` implements today's order and nothing else. `damageEnemy` and `hurtPlayer` become adapters. `envHurt` and the direct writers (hunger, pit, blood door) either stay on a clearly named world path or send a packet tagged so the combat curve is skipped. New code calls `resolveDamage`. Old callers are migrated one at a time and deleted only when the adapter result matches.
+- **Reason.** The game is one HTML file. A full module split is a larger change than Stage 1 needs. Leaving resists only on `hurtPlayer` would miss `damageEnemy` and make enemy armor in Stage 8 a third copy.
+- **Expected gameplay impact.** None visible, if the parity checks below hold.
+- **Tradeoffs.** The adapter will sit beside the wrappers for a while. Stage 1 has to fold the tome wrapper and the floater-hiding wrapper into the adapter's call path so Ethereal Shield is not applied both outside and inside.
+
+### D2 — Physical armor stays DEF / (DEF + 30), applied once
+
+- **Problem.** The live curve is soft mitigation, not flat armor and not a resist. Renaming it carelessly, or running it in the adapter and again in `hurtPlayer`, would change time-to-kill.
+- **Alternatives considered.** Flat armor subtract, a hard cap, or a new curve in Stage 1.
+- **Selected approach.** Keep `reduction = DEF / (DEF + 30)` as the Physical rule. Name it in comments as physical armor mitigation. Call it once, on Physical components that use the combat pipe. Environment and cost packets skip it. The integer floor of 1 stays. The 0.85–1.15 spread stays. Stage 2 adds elemental resists as separate stats. It must not run this curve on Fire, Cold, Lightning, Poison, or Shadow.
+- **Reason.** The curve is the game's defense identity, and the brief's tuning notes depend on the constant 30.
+- **Expected gameplay impact.** None in Stage 1.
+- **Tradeoffs.** High DEF remains strong and never reaches immunity. That is current design. Changing the constant is a balance change and is out of scope until Stage 13, and only with Jake's numbers.
+
+### D3 — Stage 1 migrates callers as Physical and keeps baseline time-to-kill
+
+- **Problem.** The six type names need a home before Stage 2, but no content deals Fire or Cold yet. Inventing elemental numbers now would change kills per minute.
+- **Alternatives considered.** Give Fireball the Fire type immediately and leave it unresisted, or wait to introduce the type enum until Stage 2.
+- **Selected approach.** The enum exists in Stage 1. Every current combat caller is tagged `Physical` plus the right attack tags (melee swing: `Melee` + `Direct`; bow and enemy bolts: `Projectile`; Fireball: `Spell` + `Projectile` + `AoE`; Whirlwind: `Spell` + `AoE` + `Melee`; Frost Nova: `Spell` + `AoE`; poison puddle: `DoT`; traps that use `hurtPlayer`: `Direct`). They still use the Physical curve, block, barrier, and Ethereal Shield exactly as today. Elemental resists are Stage 2. A parity check is part of the stage: pinned spread, known DEF, known packet in, known HP out.
+- **Reason.** Tags can be correct before the numbers change. Fireball becoming Fire damage is a content change that belongs with resists and tooltips, not with the empty adapter.
+- **Expected gameplay impact.** Approximately the same time-to-kill. "Approximately" means pinned-spread unit checks are exact, and live spread remains the existing random 0.85–1.15.
+- **Tradeoffs.** For one stage, Fireball is still Physical in the resolver even though the art is fire. The packet's tags may say `Spell` without saying `Fire` until the migration in a later stage. Do not half-migrate.
+
+### D4 — The four shields stay four systems
+
+- **Problem.** One shared "shield" stat would merge block chance, boss absorb, the 25% spell, and the barrier pool, and every one of those has different rules.
+- **Alternatives considered.** A single absorb pool with four modes.
+- **Selected approach.** Preserve them as separate steps inside `resolveDamage`, in today's order:
+
+  1. Ethereal Shield ×0.75 on combat packets, including DoTs, before armor.
+  2. Block chance on non-DoT combat packets. Success ends the hit.
+  3. Physical armor curve, spread, floor 1, then champion crit add.
+  4. Thorns from the pre-armor amount.
+  5. Barrier pool on non-DoT combat packets.
+  6. On an enemy target, boss / Super Elite absorb pool, then HP.
+
+  Environment packets skip steps 1–5. Shift and Clone stay early-outs, not shields.
+- **Reason.** This is the order that reproduces v0.7.10 and v0.7.9 tests (100 damage with the spell up loses 75; a champion crit on 100 at 0 defense loses 105).
+- **Expected gameplay impact.** None if the order is kept.
+- **Tradeoffs.** The word "shield" will remain overloaded in UI until Stage 11 and 12 rename the surfaces. The code should use the four names above so later stages do not merge them by accident.
+
+### D5 — Conversion is an explicit DAG, and Stage 1 does not convert anything
+
+- **Problem.** Stage 3 adds damage conversion. A recursive "50% of physical becomes fire, 50% of fire becomes physical" loop would duplicate damage.
+- **Alternatives considered.** Convert in place with a recursion cap, or forbid conversion until Stage 3 and design the graph then.
+- **Selected approach.** Stage 1 ships the rule even though no edge exists. Conversion is a list of edges `from → to` with a fraction. The resolver applies each edge once, in list order, and marks the moved amount so it cannot take another edge. A self-edge is rejected. A cycle in the declared list is rejected at build time, not clamped at runtime. With an empty list, the packet is unchanged.
+- **Reason.** The invariant is cheap to lock with a test now, and expensive to rediscover after items start rolling conversion.
+- **Expected gameplay impact.** None in Stage 1.
+- **Tradeoffs.** Stage 3 cannot express "convert back and forth until a cap." That is the point.
+
+### D6 — Gear `fire` stays spell power until a deliberate migration
+
+- **Problem.** The affix text says `+N Fire Damage (skills)`. Combat adds it to `pw` for three spells and never to weapon hits. If Stage 1 starts adding `mods.fire` to a Fire component on every hit, melee and bows gain a damage source they do not have, and spell power double-counts once `pw` is also left in place.
+- **Alternatives considered.** Rename the mod to `spellPower` in Stage 1, or split it into real Fire damage now.
+- **Selected approach.** Leave the key `fire` and the `pw = fire + level * 2` formula untouched through Stage 1. Record the flag `legacySkillPower` on that mod in this changelog. A later stage (skill migration, then gear affixes, then tooltips) may turn it into Fire damage. That stage rewrites the tooltip in the same change. Stage 1 does not show it as a Fire component on the packet.
+- **Reason.** The stat is load-bearing for current casters and for saved items.
+- **Expected gameplay impact.** None until the migration stage.
+- **Tradeoffs.** The type named Fire exists in the enum while the only "fire" number in the save is still spell power. The changelog flag is there so that does not get "cleaned up" accidentally.
+
+### D7 — Hellmouth versus Super Elites is frozen until Stage 9
+
+- **Problem.** `castHellmouth` deletes any target that is not `T.boss`. Super Elites set `T.boss` to false on purpose, so Hellmouth removes them, their shield, their taunt immunity, and the stair lock, after a short sink.
+- **Alternatives considered.** Fix it in Stage 1 while touching `damageEnemy`, or special-case Super Elites inside the new resolver.
+- **Selected approach.** Do not change Hellmouth, `T.boss`, or `killEnemy`'s Super Elite path in Stages 1–8. Add a proposed test that asserts the **current** behavior so a Stage 9 change is visible. The fix belongs with boss and Super Elite rules, where crowd-control immunity and phase protection are designed together.
+- **Reason.** Fixing it now is a gameplay change the Stage 0 directive forbids, and fixing it inside a damage adapter would hide an encounter rule inside damage code.
+- **Expected gameplay impact.** None until Stage 9.
+- **Tradeoffs.** Hellmouth remains a stair-lock bypass on every floor that has a Super Elite in line of sight within 112 px. That is the live game.
+
+---
+
+## Known Issues and Technical Debt
+
+Severity is about how badly it will mislead a later stage or a player, not about how old the code is. Resolution is OPEN unless noted.
+
+### CRITICAL
+
+- **Hellmouth deletes Super Elites.** `T.boss` is false, so they take the trash sink and `killEnemy`, skipping shield, taunt immunity, and the stair gate. Stage 9. OPEN. Do not fix in Stage 1. See D7.
+
+### HIGH
+
+- **Three damage pipes and two `hurtPlayer` wrappers.** A new resist added in only one pipe will desync player hits, enemy hits, and lava. Stage 1. OPEN. D1 is the plan.
+- **Defense, block, Ethereal Shield, and barrier are easy to apply twice** once both the wrapper and the adapter exist. Stage 1–2. OPEN. D2 and D4.
+- **`mods.fire` reads as Fire damage and is spell power.** Stage 7, 10, and 12. OPEN. D6.
+- **Character sheet and item card disagree with combat.** Pierce and range are blank fields that still print. Card crit `0` hides the 5% base. Fire power, resists, regen, and Ethereal Shield are absent. Bow crits do not mark the floater. Life steal does not apply to bows, Fireball, or Frost Nova. The sheet's `DMG` is the weapon roll, which Fireball and Frost Nova ignore. Stage 12. OPEN.
+- **Incoming player numbers are hidden** since v0.7.12 for the colors listed above. Players see `BLOCK`, `CRIT`, and `BARRIER`, and not the amount. Stage 11. OPEN. This is current design, and it makes defense bugs hard to see.
+- **Post-depth-12 `mobDmgMul` is trash and champion only.** At depth 100 a champion skeleton's contact (~580) is higher than Oswin's contact (~244) and the Super Elite swing (~152). Boss threat is pattern count and the HP pool. Stage 13. OPEN. Do not "fix" this by inflating boss HP inside Stage 1.
+
+### MEDIUM
+
+- **Champion crit adds 5% of pre-defense damage after armor**, so it punches through the curve, and it snuffs the torch. Stage 3. OPEN.
+- **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3. OPEN.
+- **Whirlwind crit doubles only the weapon roll**, then adds fire power, and the floater marks the whole hit. Stage 3 and 7. OPEN.
+- **Crit chance and crit damage:** base 5%, no cap, flat ×2, no crit-damage stat. Stage 3. OPEN.
+- **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7. OPEN.
+- **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
+- **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 8–9. OPEN.
+- **Crab bites while shelled and does not contact-tick while open.** Stage 8. OPEN.
+- **Floor of 1** after defense makes guard-front (×0.15) and ram armor (×0.40) chip instead of stopping a small hit, and makes thorns at least 1. Stage 2. OPEN.
+- **Enrage does not add boss damage.** Phase 2/3 move faster and cast faster. Stage 9. OPEN.
+- **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. Stage 9. OPEN.
+- **Super Elite body is a fixed synthetic champion**, not 1.4× the strongest monster on the floor. A depth-10 champion golem is about 532 HP against the Super Elite's 249. The Super Elite's job is the stair lock and the immune intro. Stage 9. OPEN.
+- **Durability comment and `isBroken` are stale.** Items shatter at 0. Load clamps 0 up to 1. Stage 10–12 if tooltips ever repeat the comment. OPEN.
+- **Bow charge plays a power-attack telegraph and fires a normal arrow.** Stage 6. OPEN.
+- **Melee damage is instant; the animation trails it.** Super Elite and projectiles hit on a later frame. Stage 6. OPEN.
+- **Two contact paths** (`updateEnemies` and grid AI, `GRID_AI.on` is true) both call `hurtPlayer`. Stage 1 must route both or one of them will skip the adapter. OPEN.
+- **No status resist** for slow, fear, or stun. Gear cannot roll pierce. The card still prints `PIERCE`. Stage 4, 5, and 12. OPEN.
+
+### LOW
+
+- **Block is binary and capped at 40.** Choir Pavise unique is 25% before shop scaling. Stage 2 and 10. OPEN.
+- **Barrier and dodge window do not sum copies.** Barrier keeps the max pool. Dodge keeps the max duration, cap 0.5s. Skill amp and thorns do sum. Stage 10, if affix stacking is specified. OPEN.
+- **Thorns require `src` to be the enemy object.** Beams and blasts pass a projectile-like source and do not thorn. Stage 10. OPEN.
+- **`itemLines` says Fast/Normal/Slow while the satchel card says `n/S`.** Stage 12. OPEN.
+- **Shift and Clone timers, barrier, burn, and cooldowns do not persist** across load. Enemy HP and shields do, because they ride the floor snapshot. Stage 1 should not start persisting a second combat state without a reason. OPEN, accepted current behavior.
+- **Hellmouth vulnerability is ×1.10 for 3s and only on `T.boss`.** Super Elites never receive the mark. They get deleted instead. Stage 9. OPEN.
+
+---
+
+## Testing and Balance Results
+
+Stage 0 established anchors. It did not re-run the suite and it did not play the live build. No balance change was made. Subjective "feel" is intentionally absent.
+
+### What the existing suite already encodes
+
+Harnesses live in `tests/*.html`. They boot `index.html` in an iframe and call into `window.game`. They are version-scoped. They are not a single combat regression pack. These are the checks that matter as combat anchors. They were read, not executed, in this session.
+
+| File | What it locks |
+| --- | --- |
+| `tests/v079.html` | Champion crit: DEF 0, spread 1, `hurtPlayer(100)` from a champion loses 105 and snuffs the torch. A roll of 0.95 does not crit and leaves the torch. A non-elite hit does not snuff. Boss hits do not use that crit. `champCritP === 0.10`, `champCritBonus === 0.05`. |
+| `tests/v0710.html` | `quiet()` pins `__hurtSpread = 1`, DEF 0, no barrier, no block. Clone: `hurtPlayer(40)` deals 0. Ethereal Shield: `hurtPlayer(100)` loses exactly 75. Shift: `hurtPlayer(80)` deals 0 and `igniteBurn` does not start a burn. Hellmouth hits a rat in line of sight and misses one behind a wall, then the seen rat dies after the sink steps. Bows store a `visualStyle` and replace the melee swing. |
+| `tests/v0717.html` | Boss HP uses `BOSS_HP_MUL` 1.75 and shield 25% of that HP. Damage 40 comes off the shield and not HP. Overflow reaches HP. Phase stays 1 while HP is still above half. Trash has no shield. Super Elite shield is 10% of `seMaxHp717`. Intro phase ignores `damageEnemy`. Roster size 20. Loot is 25 gold, a ration, a unique, and the gate key when the roll is forced. Stairs unlock after death. |
+| `tests/v0718.html` | All 20 Super Elite ids can be spawned in the fight phase and killed through `damageEnemy` without freezing the frame. A kill that overflows the shield does not throw, drops 25 gold, a ration, and a unique, and allows the climb. A save reloads with the Super Elite staying dead. A bricked `hp: 0` save recovers. This is death-and-font coverage, not a damage-formula test. |
+| `tests/v0712.html` | One `hurtPlayer(8)` call exists as a smoke hit. Hellmouth Strider is in the unique pool. Not a formula test. |
+
+Older files (`v075.html` through `v0781.html`, `v0711.html`–`v0716.html`) cover movement, UI, lighting, shops, and hazards around the combat code. They are not a damage-type suite. There is no test that walks `DEF / (DEF + 30)` across a table, no Fireball numeric test, no block-chance test, no life-steal test, no poison-tick test, and no test that Hellmouth deletes a Super Elite.
+
+### What is not covered
+
+- Defense curve at DEF 10, 30, 60, 90, including the floor of 1.
+- Block chance, block i-frames, shield durability, thorns on a blocked hit.
+- Barrier full absorb versus partial absorb, and the "largest pool wins" rule.
+- DoT versus Ethereal Shield, defense, block, barrier, and i-frames.
+- Environment versus Shift: lava and hunger should differ, and no test says so.
+- Life steal versus power attack, bows, and spells.
+- Whirlwind crit versus the fire-power add.
+- Guard ×0.15, ram ×0.40, crab shell, revenant down.
+- Hellmouth on a Super Elite (the bypass) and Hellmouth's ×1.10 on a boss.
+- `mods.fire` absent from a melee roll.
+- Save/load leaving `st.min`, `st.def`, and `st.crit` unchanged.
+- Any time-to-kill at depth 1, 10, 25, 50, or 100.
+
+### Proposed Stage 1 checks
+
+Do not add these to the game until Stage 1 is approved. They are the parity list the adapter should satisfy. Pin `__hurtSpread` and `__champCrit` the way `v079.html` and `v0710.html` already do.
+
+1. Physical 100, DEF 0, no block, no barrier, no Ethereal Shield, spread 1 → lose 100. Same call through `hurtPlayer` and through `resolveDamage`.
+2. DEF 30, spread 1, amount 100 → lose 50.
+3. DEF 0, Ethereal Shield up, amount 100 → lose 75. Matches the v0.7.10 assertion.
+4. DEF 0, champion attacker, crit forced, amount 100 → lose 105, torch snuffed. Matches the v0.7.9 assertion.
+5. DEF 30, champion crit forced, amount 100 → armor applies to the 100, then `round(100 * 0.05)` is added on top. Document the exact integer before coding so the adapter does not "fix" the post-armor bonus.
+6. DoT packet: no block roll, no thorns, no barrier, no new `inv0`. Ethereal Shield and the defense curve still apply. A pre-existing `inv0` or roll eats the tick.
+7. World packet (lava-style): no defense, no block, no barrier, no Ethereal Shield. Shift still zeroes it. Hunger-style drain stays off the combat curve.
+8. Enemy target: guard front ×0.15 then floor at 1; ram ×0.40 unless stunned; crab shell loses no HP; boss shield spends before HP; crit `!` only if HP dropped.
+9. Super Elite in `drop` or `taunt`: `damageEnemy` / `resolveDamage` changes nothing. Hellmouth still sinks them. Assert current behavior so Stage 9 is the commit that flips it.
+10. Melee roll does not change when `mods.fire` changes. Fireball still uses `8 + (fire + level * 2) * 1.4`.
+11. Calling the adapter does not also run the old curve. One mitigation.
+12. Empty conversion list returns the same amount. A self-edge or a cycle in the edge list is rejected. A converted component is not converted again.
+13. An old save with no type fields still produces the same `st.min`, `st.max`, `st.def`, `st.crit`, and `st.fire`.
+
+### Balance
+
+No time-to-kill was measured in this session. The formula anchors above are the numbers Stage 13 should be able to compare against. In particular, keep a note of depth-100 champion skeleton contact (~580), Oswin contact (~244), and Super Elite swing (~152), so a later "boss health bump" is not mistaken for a Stage 1 migration.
+
+---
+
+## Approval gate
+
+Stage 0 is IMPLEMENTED as of this file. Stages 1–13 are NOT STARTED.
+
+**Wait for Jake's approval before Stage 1.** The recommended first implementation is Design Decisions D1–D7: a thin packet, one resolver, Physical-only migration, the live armor curve applied once, the four shields preserved, a conversion graph that cannot loop, `fire` left as spell power, and Hellmouth's Super Elite delete left for Stage 9.
