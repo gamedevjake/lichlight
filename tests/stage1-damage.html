@@ -175,7 +175,7 @@ function run(w) {
   check('pit still direct', src.indexOf('function endFall() { const p = player, dmg = Math.ceil(p.st.maxHp * PIT_DMG), before = p.hp; p.hp = Math.max(1, p.hp - dmg);') >= 0);
   check('blood door still direct', src.indexOf('p.hp -= cost; addText(p.x, p.y - 12, \'-\' + cost, \'#ff3030\');') >= 0);
   check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
-  check('fireball still physical tag', src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf('legacySkillPower') >= 0);
+  check('fireball keeps spell tags', src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf('legacySkillPower') >= 0);
   check('melee and bow tags', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Ranged', 'Projectile', 'Direct']") >= 0);
 
   boot();
@@ -232,7 +232,7 @@ function run(w) {
   const novaE = g.spawnEnemy('rat', p.x + 10, p.y, false);
   novaE.dead = false; novaE.hp = 100; novaE.slow = 0; novaE.hidden = false; novaE.downT = 0;
   w.castSkill(2);
-  check('frost nova formula and tags', novaE.hp === 92 && novaE.slow === 3.5 && w.__lastDamage && w.__lastDamage.type === 'Physical' && w.__lastDamage.tags.indexOf('Spell') >= 0 && w.__lastDamage.tags.indexOf('AoE') >= 0, 'hp ' + novaE.hp + ' slow ' + novaE.slow);
+  check('frost nova formula tags and cold', novaE.hp === 92 && novaE.slow === 3.5 && w.__lastDamage && w.__lastDamage.type === 'Cold' && w.__lastDamage.tags.indexOf('Spell') >= 0 && w.__lastDamage.tags.indexOf('AoE') >= 0, 'hp ' + novaE.hp + ' slow ' + novaE.slow);
 
   calm(g, w);
   g.projs.length = 0;

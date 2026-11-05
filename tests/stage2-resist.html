@@ -221,7 +221,7 @@ function run(w) {
   check('blood door still direct', src.indexOf('p.hp -= cost; addText(p.x, p.y - 12, \'-\' + cost, \'#ff3030\');') >= 0);
   check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
   check('legacy spell power untouched', src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('legacySkillPower') >= 0);
-  check('live calls stay physical', src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf("tags: ['Spell', 'AoE']") >= 0 && src.indexOf("type: 'Fire'") < 0);
+  check('melee stays physical and fireball is fire', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf("tags: ['Spell', 'AoE']") >= 0 && src.indexOf("type: 'Fire'") >= 0 && src.indexOf("type: 'Cold'") >= 0);
   check('envHurt stays world physical', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0);
   check('no resist affix in the loot table', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
 
@@ -345,7 +345,7 @@ function run(w) {
   burn.dead = false; burn.hp = 500; burn.hidden = false; burn.downT = 0; burn.spd = 0; burn.hmFreeze = true;
   burn.resists = { Fire: 90 }; burn.maxResist = 15;
   g.step(0.05, { x: 0, y: 0 });
-  check('fireball stays physical against fire resist', fb && Math.abs(fb.dmg - 64) < 1e-6 && burn.hp === 436, 'dmg ' + (fb && fb.dmg) + ' hp ' + burn.hp + ' type ' + (w.__lastDamage && w.__lastDamage.type));
+  check('fireball is fire and resist applies', fb && Math.abs(fb.dmg - 64) < 1e-6 && burn.hp === 494 && w.__lastDamage && w.__lastDamage.type === 'Fire', 'dmg ' + (fb && fb.dmg) + ' hp ' + burn.hp + ' type ' + (w.__lastDamage && w.__lastDamage.type));
 
   calm(g, w);
   p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
@@ -354,7 +354,7 @@ function run(w) {
   const novaE = g.spawnEnemy('rat', p.x + 10, p.y, false);
   novaE.dead = false; novaE.hp = 100; novaE.hidden = false; novaE.downT = 0; novaE.resists = { Cold: 90 }; novaE.maxResist = 15;
   w.castSkill(2);
-  check('frost nova stays physical', novaE.hp === 92 && w.__lastDamage && w.__lastDamage.type === 'Physical', 'hp ' + novaE.hp + ' ' + (w.__lastDamage && w.__lastDamage.type));
+  check('frost nova is cold and resist applies', novaE.hp === 99 && w.__lastDamage && w.__lastDamage.type === 'Cold', 'hp ' + novaE.hp + ' ' + (w.__lastDamage && w.__lastDamage.type));
 
   calm(g, w);
   p.lvl = 1; p.st.min = 4; p.st.max = 4; p.st.crit = 0; p.st.fire = 40; p.st.aspd = 1;

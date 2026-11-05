@@ -193,7 +193,7 @@ function run(w) {
   wear(g, p, 'Gnarled Staff', 1);
   const nova = foe(g, p, p.x + 10);
   w.castSkill(2);
-  check('frost nova still slows and a staff adds skill poise', loss(nova) === 8 && nova.slow === 3.5 && !g.getStatus(nova, 'chill') && w.__lastPoise.cls === 'skill' && Math.abs(w.__lastPoise.dealt - 22) < 1e-6, loss(nova) + ' slow ' + nova.slow + ' poise ' + (w.__lastPoise && w.__lastPoise.dealt));
+  check('frost nova slows, chills, and a staff adds skill poise', loss(nova) === 8 && nova.slow === 3.5 && g.getStatus(nova, 'chill') && g.getStatus(nova, 'chill').slowPct === 0 && w.__lastPoise.cls === 'skill' && Math.abs(w.__lastPoise.dealt - 22) < 1e-6, loss(nova) + ' slow ' + nova.slow + ' poise ' + (w.__lastPoise && w.__lastPoise.dealt));
 
   calm(g, w); p = g.player;
   p.lichTome.isAcquired = true; g.unlockSpell('fireball');

@@ -300,7 +300,7 @@ function run(w) {
   const slowBefore = novaE.slow;
   g.tickStatuses(novaE, 1);
   const legacy = g.legacyStatusView(novaE);
-  check('frost nova stays a legacy slow', loss(novaE) === 8 && slowBefore === 3.5 && novaE.slow === 3.5 && !g.getStatus(novaE, 'chill') && legacy.some(s => s.id === 'frostSlow' && s.legacy), loss(novaE) + ' slow ' + novaE.slow);
+  check('frost nova keeps legacy slow and adds chill', loss(novaE) === 1 && slowBefore === 3.5 && novaE.slow === 3.5 && g.getStatus(novaE, 'chill') && g.getStatus(novaE, 'chill').slowPct === 0 && legacy.some(s => s.id === 'frostSlow' && s.legacy), loss(novaE) + ' slow ' + novaE.slow + ' chill ' + (g.getStatus(novaE, 'chill') && g.getStatus(novaE, 'chill').slowPct));
 
   calm(g, w); p = g.player;
   const auraE = foe(g, p, 'rat', p.x + 20);

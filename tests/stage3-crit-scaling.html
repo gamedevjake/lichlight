@@ -299,7 +299,7 @@ function run(w) {
   fbE.resists = { Fire: 90 }; fbE.maxResist = 15; fbE.r = 8;
   const hpSpell = p.hp;
   g.step(0.05, { x: 0, y: 0 });
-  check('fireball stays physical against fire resist', loss(fbE) === 64 && p.hp === hpSpell, loss(fbE));
+  check('fireball fire resist does not leech', loss(fbE) === 6 && p.hp === hpSpell, loss(fbE));
 
   calm(g, w);
   p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
@@ -307,7 +307,7 @@ function run(w) {
   const novaE = foe(g, p, 'rat', p.x + 10);
   novaE.resists = { Cold: 90 }; novaE.maxResist = 15;
   w.castSkill(2);
-  check('frost nova stays physical and does not leech', loss(novaE) === 8 && novaE.slow === 3.5 && w.__lastLeech.skipped === true && w.__lastLeech.source === 'frost' && p.hp === 50, loss(novaE) + ' ' + JSON.stringify(w.__lastLeech));
+  check('frost nova cold resist does not leech', loss(novaE) === 1 && novaE.slow === 3.5 && w.__lastLeech.skipped === true && w.__lastLeech.source === 'frost' && p.hp === 50, loss(novaE) + ' ' + JSON.stringify(w.__lastLeech));
 
   calm(g, w); p.st.min = 4; p.st.max = 4; p.st.crit = 0; p.st.fire = 40; w.__critRoll = 0;
   check('melee roll ignores mods.fire', w.rollDmg('melee').d === 4, w.rollDmg('melee').d);

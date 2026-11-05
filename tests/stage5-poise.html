@@ -64,9 +64,9 @@ function run(w) {
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
   check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
-  check('frost nova still sets slow and not chill', src.indexOf('e.slow = 3.5') >= 0 && src.indexOf("applyStatus(e, 'chill'") < 0 && src.indexOf('applyStatus(e, "chill"') < 0);
+  check('frost nova sets slow and chill', src.indexOf('e.slow = 3.5') >= 0 && src.indexOf("applyStatus(e, 'chill'") >= 0);
   const castBody = src.split('function castSkill(i)')[1].split('const PCOL')[0];
-  check('live skills do not call applyStatus', castBody.indexOf('applyStatus') < 0 && castBody.indexOf('e.slow = 3.5') >= 0);
+  check('cast keeps legacy slow and routes chill', castBody.indexOf('e.slow = 3.5') >= 0 && castBody.indexOf('chillFromNova') >= 0 && castBody.indexOf('applyStatus') < 0);
   check('curse life drain still unwired', g.STATUS.curse.drainCap === 10);
   check('poise constants', g.MIN_MOVE_MUL === 0.2 && g.POISE_CLASS_DMG.light === 18 && g.POISE_CLASS_DMG.heavy === 34 && g.POISE_CLASS_DMG.power === 52 && g.POISE_CLASS_DMG.skill === 14 && g.POISE_TIER.boss.immune === 5.5 && g.GUARD_POISE === 0.2 && g.POISE_RECOVER === 0.45, JSON.stringify(g.POISE_TIER.boss));
 
@@ -192,7 +192,7 @@ function run(w) {
   if (g.unlockSpell) g.unlockSpell('frostNova'); if (p.lichTome) p.lichTome.isAcquired = true;
   act.hp = 800; act.slow = 0; act.staggerImmune = 0; g.clearStatuses(act); g.tickStatuses(act, 0.01);
   g.castSkill(2);
-  check('frost nova still slows and deals skill poise without chill', act.slow === 3.5 && !g.getStatus(act, 'chill') && w.__lastPoise.cls === 'skill' && act.hp < 800, 'slow ' + act.slow + ' cls ' + (w.__lastPoise && w.__lastPoise.cls) + ' hp ' + act.hp + ' cd ' + p.cds[2] + ' mp ' + p.mp);
+  check('frost nova slows, chills, and deals skill poise', act.slow === 3.5 && g.getStatus(act, 'chill') && g.getStatus(act, 'chill').slowPct === 0 && w.__lastPoise.cls === 'skill' && act.hp < 800, 'slow ' + act.slow + ' cls ' + (w.__lastPoise && w.__lastPoise.cls) + ' hp ' + act.hp + ' cd ' + p.cds[2] + ' mp ' + p.mp);
 
   const fr = foe(g, p, 'rat', p.x + 180);
   g.applyStatus(fr, 'freeze', { duration: 1.5 });

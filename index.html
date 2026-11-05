@@ -1437,7 +1437,7 @@ const AFFIX = [
   { k: 'ias', p: ['Swift', 'Restless', 'Twitching'], s: ['of Haste'], roll: L => irand(5, 10 + L * 2), txt: v => `+${v}% Attack Speed`, slots: ['weapon', 'ring', 'helm', 'amulet'] },
   { k: 'ls', p: ['Vampiric', 'Leeching', 'Thirsting'], s: ['of the Leech', 'of the Ghoul'], roll: L => irand(2, 4 + Math.floor(L / 2)), txt: v => `${v}% Life Steal`, slots: ['weapon', 'ring', 'amulet'] },
   { k: 'crit', p: ['Deadly', 'Keen', 'Murderous'], s: ['of Precision', 'of Ill Omen'], roll: L => irand(3, 6 + L), txt: v => `+${v}% Crit Chance`, slots: ['weapon', 'ring', 'helm', 'amulet'] },
-  { k: 'fire', p: ['Blazing', 'Smoldering', 'Pyreborn'], s: ['of Embers', 'of the Pyre'], roll: L => irand(2, 4 + L * 2), txt: v => `+${v} Fire Damage (skills)`, slots: null },
+  { k: 'fire', p: ['Blazing', 'Smoldering', 'Pyreborn'], s: ['of Embers', 'of the Pyre'], roll: L => irand(2, 4 + L * 2), txt: v => `+${v} Spell Power`, slots: null },
   { k: 'ms', p: ['Fleet', 'Fleeing'], s: ['of the Fox', 'of the Courier'], roll: L => irand(5, 10 + L), txt: v => `+${v}% Move Speed`, slots: ['boots', 'ring', 'amulet'] },
   { k: 'light', p: ['Glowing', 'Lich-lit', 'Pale-lit'], s: ['of the Lich-light', 'of the Lantern'], roll: L => irand(6, 10 + L), txt: v => `+${v} Light Radius`, slots: ['ring', 'helm', 'amulet', 'shield'] },
   { k: 'regen', p: ['Hale', 'Mending', 'Undying'], s: ['of Renewal', 'of the Grave Moss'], roll: L => irand(1, 2 + Math.floor(L / 3)), txt: v => `+${v} Life/sec`, slots: ['armor', 'helm', 'ring', 'amulet', 'shield'] },
@@ -1725,7 +1725,7 @@ function newPlayer() {
   return { x: 0, y: 0, r: 5, fx: 0, fy: 1, lvl: 1, xp: 0, hp: 60, mp: 25, gold: 0, hpPot: 3, mpPot: 2, npPot: 0,
     inv: new Array(INV_SIZE).fill(null), equip: { weapon: null, shield: null, helm: null, armor: null, boots: null, ring: null, amulet: null },
     atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100, mapFrags: 0, bagBonus: 0, xpBuffT: 0, st: {},
-    learned: [false, false, false], slotsFilled: {}, look: cleanLook(activeProfile().look), pname: activeProfile().name, gotRusty: false, notes: [] }; // v0.6.0: fists first, skills from Spell Books; v0.7.5 notes
+    learned: [false, false, false], skillSpec: ['base', 'base', 'base'], slotsFilled: {}, look: cleanLook(activeProfile().look), pname: activeProfile().name, gotRusty: false, notes: [] }; // v0.6.0: fists first, skills from Spell Books; v0.7.5 notes. skillSpec defaults are Stage 7.
 }
 const _newPlayer06 = newPlayer;
 newPlayer = function () { const P = _newPlayer06(); if (window.__legacyStart) { P.learned = [true, true, true]; P.equip.weapon = makeItem(1, 0, 'Short Sword'); P.gotRusty = true; } return P; }; // test hook: pre-0.6 suites start armed + skilled
@@ -1752,7 +1752,7 @@ function computeStats() {
   p.st = { min: wmin + m.dmg + b, max: wmax + m.dmg + b, def: def + m.def,
     maxHp: 50 + lv * 10 + m.hp, maxMp: 20 + lv * 5 + m.mp, aspd: wspd * (1 + m.ias / 100), ls: m.ls, crit: 5 + m.crit,
     critDmg: m.critDmg, critMul: Math.max(0, 2 + m.critDmg / 100),
-    fire: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05, block: Math.min(BLOCK_CAP, block), powers: pw,
+    fire: m.fire, spell: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05, block: Math.min(BLOCK_CAP, block), powers: pw,
     resFire: m.resFire + m.resAll, resCold: m.resCold + m.resAll, resLightning: m.resLightning + m.resAll,
     resPoison: m.resPoison + m.resAll, resShadow: m.resShadow + m.resAll, maxResist: m.maxResist,
     penFire: m.penFire + m.penAll, penCold: m.penCold + m.penAll, penLightning: m.penLightning + m.penAll,
@@ -2942,6 +2942,8 @@ function eShoot(e, a, spd, o = {}) {
   let n = 0; for (const q of projs) if (q.owner === 'e') n++;
   if (n >= MAX_EPROJ) return null;
   const pr = Object.assign({ x: e.x, y: e.y - 2, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, r: 3, dmg: e.dmg * (o.mul || 1), owner: 'e', kind: 'bolt', life: 3, label: e.T.label, from: e }, o);
+  // Boss and Super Elite shots stay Physical. Stage 9 owns those patterns.
+  if (!e || e.superElite || (e.T && e.T.boss) || DMG_TYPES.indexOf(pr.dmgType) < 0) delete pr.dmgType;
   projs.push(pr); return pr;
 }
 function ring(e, n, spd, off = 0, o) { for (let k = 0; k < n; k++) eShoot(e, off + k / n * Math.PI * 2, spd, o); }
@@ -2981,7 +2983,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
     case 'bat': { const w = Math.sin(e.anim * 6) * .9; moveDir(e, ax - ay * w, ay + ax * w, spd, dt); break; }
     case 'rat': if (e.mode === 'flee') { e.t -= dt; moveDir(e, -ax + ay * .5, -ay - ax * .5, spd * 1.1, dt); if (e.t <= 0) e.mode = ''; } else if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); break;
     case 'kite': keepRange(e, ax, ay, d, 50, 90, spd, dt);
-      if (e.cd <= 0 && d < 150 && see) { e.cd = rand(1.6, 2.6); eShoot(e, angTo(e, p), 90, { label: T.label }); } break;
+      if (e.cd <= 0 && d < 150 && see) { e.cd = rand(1.6, 2.6); eShoot(e, angTo(e, p), 90, { label: T.label, dmgType: 'Shadow' }); } break;
     case 'eel':
       if (e.mode === 'under') { e.hidden = true; e.t -= dt; moveDir(e, ax, ay, spd * 1.3, dt); if (Math.random() < .3) parts.push({ x: e.x + rand(-4, 4), y: e.y + 3, vx: 0, vy: -8, life: .3, col: '#48a8a0' });
         if ((d < 26 || e.t <= 0) && e.cd <= 0) { e.mode = 'rise'; e.t = .55; tele({ x: e.x, y: e.y, r: 14, dur: .55, col: '#48a8a0' }); } }
@@ -2999,7 +3001,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
       moveDir(e, -ay, ax, spd * .6, dt);
       if (e.cd <= 0 && e.mode !== 'blink') { e.cd = rand(2.2, 3); e.mode = 'blink'; const s = freeNear(p.x, p.y, 45, 70);
         tele({ x: s.x, y: s.y, r: 7, dur: .5, col: '#60c0ff', onDone: () => { if (e.hp <= 0) return; burst(e.x, e.y, '#b0f0f0', 8, 40); e.x = s.x; e.y = s.y; e.mode = '';
-          later(.35, () => { if (e.hp > 0 && state === 'play') eShoot(e, angTo(e, player), 100, { kind: 'water', label: T.label }); }); } }); }
+          later(.35, () => { if (e.hp > 0 && state === 'play') eShoot(e, angTo(e, player), 100, { kind: 'water', label: T.label, dmgType: 'Lightning' }); }); } }); }
       break;
     case 'guard': { const ta = Math.atan2(ay, ax); let da = ((ta - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI; e.fa += clamp(da, -2.2 * dt, 2.2 * dt);
       if (d > e.r + p.r + 1) moveDir(e, Math.cos(e.fa), Math.sin(e.fa), spd, dt); break; }
@@ -3042,16 +3044,16 @@ function mobAI(e, dt, d, ax, ay, spd) {
       if (e.cd <= 0 && d < 42) { e.cd = 3.2; e.mode = 'slam'; vocEffort(e); tele({ x: e.x, y: e.y, r: 36, dur: .85, col: '#ff4040', onDone: () => { e.mode = ''; if (e.hp > 0) blast(e.x, e.y, 36, e.dmg * 1.3, T.label, { col: '#e8e0c8', tr: .35, from: e }); } }); }
       break;
     case 'siren': keepRange(e, ax, ay, d, 60, 110, spd, dt);
-      if (e.cd <= 0 && d < 160 && see) { e.cd = rand(3, 3.8); e.glow = .4; later(.4, () => { if (e.hp > 0 && state === 'play') ring(e, 10, 60, Math.random() * 6, { kind: 'water', mul: .7 }); }); } break;
+      if (e.cd <= 0 && d < 160 && see) { e.cd = rand(3, 3.8); e.glow = .4; later(.4, () => { if (e.hp > 0 && state === 'play') ring(e, 10, 60, Math.random() * 6, { kind: 'water', mul: .7, dmgType: 'Cold' }); }); } break;
     case 'exarch': keepRange(e, ax, ay, d, 70, 120, spd, dt);
-      if (e.cd <= 0 && d < 180 && see) { e.cd = rand(2.8, 3.6); eShoot(e, angTo(e, p), 45, { kind: 'orb', r: 4, homing: 1.6, life: 4.5 }); } break;
+      if (e.cd <= 0 && d < 180 && see) { e.cd = rand(2.8, 3.6); eShoot(e, angTo(e, p), 45, { kind: 'orb', r: 4, homing: 1.6, life: 4.5, dmgType: 'Shadow' }); } break;
     case 'crab': e.t -= dt;
       if (e.mode === 'open') { if (e.t <= 0) { e.mode = 'shell'; e.t = 2.6; } }
       else { e.mode = 'shell'; if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); if (e.t <= 0) { e.mode = 'open'; e.t = 1.6; } }
       break;
     case 'seer': keepRange(e, ax, ay, d, 90, 150, spd, dt);
       if (e.cd <= 0 && d < 200 && see && e.mode !== 'aim') { e.cd = rand(3.4, 4.2); e.mode = 'aim';
-        lineTele(e, .9, 2, 220, true, T2 => { e.mode = ''; if (e.hp > 0 && state === 'play') eShoot(e, T2.a, 280, { kind: 'snipe', r: 2, life: 1.2, mul: 1.2 }); }); }
+        lineTele(e, .9, 2, 220, true, T2 => { e.mode = ''; if (e.hp > 0 && state === 'play') eShoot(e, T2.a, 280, { kind: 'snipe', r: 2, life: 1.2, mul: 1.2, dmgType: 'Lightning' }); }); }
       break;
   }
 }
@@ -3325,7 +3327,7 @@ function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null, statuses: statusSaveBag(p), freezeImmune: p.freezeImmune > 0 ? Math.round(p.freezeImmune * 1000) / 1000 : undefined, poise: poiseSaveVal(p) } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null, statuses: statusSaveBag(p), freezeImmune: p.freezeImmune > 0 ? Math.round(p.freezeImmune * 1000) / 1000 : undefined, poise: poiseSaveVal(p), skillSpec: skillSpecSave(p) } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -3416,7 +3418,7 @@ function continueGame() {
   player.xpBuffT = clamp(+s.p.xpBuffT || 0, 0, XPBUFF_TIME); // v0.4.5 (old saves: no blessing)
   player.notes = Array.isArray(s.p.notes) ? s.p.notes.filter(n => n && typeof n.title === 'string').slice(0, 24) : []; // v0.7.5 F5
   player.inv.concat(SLOTS.map(k => player.equip[k])).forEach(markFound);
-  v06Load(s); // v0.6.0: learned skills / wardrobe / first-equip memory (old saves: safe defaults)
+  v06Load(s); skillSpecSanitize(player); // v0.6.0: learned skills / wardrobe. Stage 7: missing skillSpec stays the base row.
   computeStats(); let restored = false; // v0.6.3 B10: resume the saved floor + spot; fall back to a fresh floor for old / damaged saves
   if (s.world) { try { restored = worldRestore(s.world, s.depth); } catch (e) { restored = false; saveErr = 'restore: ' + (e && e.message || e); } }
   if (restored) { const st = player.st; player.hp = clamp(Number.isFinite(+s.p.hp) && +s.p.hp > 0 ? +s.p.hp : st.maxHp, 1, st.maxHp); player.mp = clamp(Number.isFinite(+s.p.mp) ? +s.p.mp : st.maxMp, 0, st.maxMp); save(); }
@@ -4133,7 +4135,9 @@ let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other
 // flat → increased → more → type bonus → conversion. Then resist+pen once, guard, ram, Hellmouth ×1.10,
 // floor 1, boss/Super Elite shield, HP.
 // World packets (envHurt) skip combat mitigation, including resist, crit, and offensive scaling.
-// mods.fire is spell power, not a Fire resist and not a Fire damage type. Hellmouth ×1.10 is not a resist.
+// mods.fire is general spell power. st.spell is the same number. It is not Fire-only damage.
+// Fireball's hit is Fire, Frost Nova's hit is Cold, Whirlwind's weapon roll is Physical and its spell-power rider is Fire.
+// Hellmouth ×1.10 is not a resist. World packets still skip resist.
 // Stage 4: a DoT packet does not crit. Shock, if present, multiplies taken damage after mitigation.
 // A curse penalty, if present, multiplies outgoing damage after scale. Curse resist reduction
 // subtracts inside elementalResistPercent. With no status, each of those is skipped.
@@ -4529,14 +4533,16 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
   meta = meta || {};
   const critPending = !!meta.critPending && meta.critApplied !== true;
   const critApplied = meta.critApplied != null ? !!meta.critApplied : !critPending;
-  return resolveDamage(e, {
+  const packet = {
     amount: dmg, type: meta.type || 'Physical', tags: Array.isArray(meta.tags) ? meta.tags : ['Direct'],
     source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false,
     penetration: meta.penetration, more: Number.isFinite(+meta.more) ? +meta.more : 1,
     critApplied: critApplied, critPending: critPending, skill: meta.skill || '', scale: meta.scale !== false,
     poiseClass: meta.poiseClass || '', poiseFrac: Number.isFinite(+meta.poiseFrac) ? +meta.poiseFrac : null,
     weaponFamily: meta.weaponFamily || ''
-  });
+  };
+  if (Array.isArray(meta.components) && meta.components.length) packet.components = meta.components;
+  return resolveDamage(e, packet);
 }
 
 const BLOOD = { slime: '#50c040', slimelet: '#50c040', ooze: '#8aa060', bomber: '#8aa060', eel: '#48a8a0', drowned: '#48a8a0', siren: '#48a8a0', seer: '#48a8a0', crab: '#e0a040',
@@ -4637,9 +4643,13 @@ function playBossGloat(src) { // boss fight only, when that boss deals damage. D
   cue(id, { vol: 0.7 }); // ~3 dB under the hurt sting; layered, not a replacement vocal
   return id;
 }
+function incomingDamageType(src) {
+  if (src && DMG_TYPES.indexOf(src.dmgType) >= 0) return src.dmgType;
+  return 'Physical';
+}
 function hurtPlayer(dmg, src) {
   return resolveDamage(player, {
-    amount: dmg, type: 'Physical', tags: tagsForIncoming(src), source: src || null,
+    amount: dmg, type: incomingDamageType(src), tags: tagsForIncoming(src), source: src || null,
     attacker: 'enemy', isDot: !!(src && src.dot), crit: false
   });
 }
@@ -4648,7 +4658,8 @@ function hurtPlayer(dmg, src) {
 // One bag per actor, `ent.statuses`. Legacy frost slow, chill aura, webs, poison ground,
 // environmental burn, fear, and self-stun keep their own timers. legacyStatusView reads them.
 // It does not tick them. Damaging statuses below build one DoT packet per tick and resolve once.
-// DoT ticks do not crit. No live attack applies bleed, burning, chill, freeze, shock, poison, or curse.
+// DoT ticks do not crit. Fireball applies Burning. Frost Nova applies Chill and still sets e.slow.
+// Whirlwind does not apply a status. Bleed, shock, poison, and curse are still not applied by live skills.
 // Stagger is the Stage 5 crowd-control state. Poise damage applies it. There is no second timer.
 const STATUS = {
   // Dot types are DMG_TYPES indexes. 0 Physical, 1 Fire, 4 Poison.
@@ -5698,6 +5709,81 @@ function doAttack(fixed) {
 // desktop mouse aiming (logical canvas coords)
 const mouse = { x: 0, y: 0, active: false };
 function mouseAim() { if (touchMode || !mouse.active || !player) return null; const cw = cursorWorld(), dx = cw.x - player.x, dy = cw.y - player.y, l = Math.hypot(dx, dy); return l > 2 ? { x: dx / l, y: dy / l } : null; }
+// Stage 7 skill builds. One row per skill. Base keeps the old hit number at 0 resist.
+// mods.fire stays general spell power: the same pw feeds Fireball, the Whirlwind rider, and Frost Nova.
+const SKILL_BUILD = {
+  fireball: {
+    base: { id: 'base', name: 'Bolt', radius: 18, core: 4, splash: 0.6, burnChance: 1, burnSplash: 0.4, burnBase: 0 },
+    kindling: { id: 'kindling', name: 'Kindling', radius: 4, core: 4, splash: 1, burnChance: 1, burnSplash: 0, burnBase: 'pw' },
+    scatter: { id: 'scatter', name: 'Scatter', radius: 28, core: 4, splash: 0.45, burnChance: 1, burnSplash: 0.25, burnBase: 0 }
+  },
+  whirlwind: {
+    base: { id: 'base', name: 'Spin', radius: 32, weaponMul: 1.4, knock: 1 },
+    wide: { id: 'wide', name: 'Wide', radius: 48, weaponMul: 1.05, knock: 1 },
+    keen: { id: 'keen', name: 'Keen', radius: 22, weaponMul: 1.4, knock: 1.35 }
+  },
+  frost: {
+    base: { id: 'base', name: 'Nova', radius: 70, buildup: 34, slowPct: 0, chillDur: 3.5 },
+    whiteout: { id: 'whiteout', name: 'Whiteout', radius: 52, buildup: 55, slowPct: 15, chillDur: 4.8 },
+    glass: { id: 'glass', name: 'Glass', radius: 88, buildup: 15, slowPct: 0, chillDur: 3.5 }
+  }
+};
+const SKILL_BUILD_OF = [SKILL_BUILD.fireball, SKILL_BUILD.whirlwind, SKILL_BUILD.frost];
+function skillSpecSanitize(ent) {
+  if (!ent) return;
+  const raw = ent.skillSpec;
+  const out = ['base', 'base', 'base'];
+  if (Array.isArray(raw)) {
+    for (let i = 0; i < 3; i++) if (SKILL_BUILD_OF[i][raw[i]]) out[i] = raw[i];
+  }
+  ent.skillSpec = out;
+}
+function skillSpecId(i) {
+  const p = player;
+  const id = p && p.skillSpec ? p.skillSpec[i] : 'base';
+  return SKILL_BUILD_OF[i] && SKILL_BUILD_OF[i][id] ? id : 'base';
+}
+function skillBuild(i) {
+  const table = SKILL_BUILD_OF[i] || SKILL_BUILD.fireball;
+  return table[skillSpecId(i)] || table.base;
+}
+function setSkillSpec(i, id) {
+  if (!player || !(i >= 0 && i <= 2)) return 'base';
+  skillSpecSanitize(player);
+  if (!SKILL_BUILD_OF[i][id]) id = 'base';
+  player.skillSpec[i] = id;
+  return id;
+}
+function skillSpecSave(p) {
+  if (!p) return undefined;
+  skillSpecSanitize(p);
+  const a = p.skillSpec.slice(0, 3);
+  if (a.every(id => id === 'base')) return undefined;
+  return a;
+}
+function spellPower(ent) {
+  const st = (ent || player) && (ent || player).st;
+  return st && Number.isFinite(+st.fire) ? +st.fire : 0;
+}
+function skillStatusRoll() {
+  const r = window.__skillRoll;
+  return typeof r === 'number' ? r : Math.random();
+}
+function igniteFromSkill(e, pw, hitMul, build) {
+  if (!e || !build) return null;
+  const chance = hitMul >= 1 ? +build.burnChance || 0 : +build.burnSplash || 0;
+  if (!(chance > 0) || skillStatusRoll() >= chance) return null;
+  const base = build.burnBase === 'pw' ? Math.max(1, Math.round((+pw || 0) * 0.2)) : 0;
+  return applyStatus(e, 'burning', { base: base, duration: 3, attacker: 'player', source: { name: 'Fireball', kind: 'skill', id: 'fireball' } });
+}
+function chillFromNova(e, build) {
+  return applyStatus(e, 'chill', {
+    slowPct: build && build.slowPct || 0,
+    buildup: build && build.buildup != null ? build.buildup : 34,
+    duration: build && build.chillDur > 0 ? build.chillDur : 3.5,
+    source: { name: 'Frost Nova', kind: 'skill', id: 'frost' }
+  });
+}
 function castSkill(i) {
   const p = player; if (ccImmobilized(p)) return;
   const S = SKILLS[i], hk = 's' + (i + 1);
@@ -5705,28 +5791,50 @@ function castSkill(i) {
   if (p.cds[i] > 0) return;
   const mc = manaCost(S); if (p.mp < mc) { flashMsg(mc > S.mana ? 'Not enough mana (parched / exhausted: spells cost more)' : 'Not enough mana', '#88f'); if (time - smpT.failT > .6) { smpT.failT = time; cue('player_cast_fail_01'); } held[hk] = false; tapQ[hk] = 0; return; }
   p.mp -= mc; p.cds[i] = S.cd; /* v0.7.3 §11: thirst / rest raise the mana cost */
-  const pw = p.st.fire + p.lvl * 2, amp = 1 + skillAmp(i) / 100; // legacySkillPower: mods.fire is spell power, not a Fire damage type
+  const pw = p.st.fire + p.lvl * 2, amp = 1 + skillAmp(i) / 100; // legacySkillPower: mods.fire is general spell power, not Fire-only damage
+  const build = skillBuild(i);
   if (i === 0) {
     let ax = p.fx, ay = p.fy; const t = nearestEnemy(160), ma = mouseAim();
     if (ma) { ax = ma.x; ay = ma.y; p.fx = ax; p.fy = ay; }
     else if (t) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); p.fx = ax; p.fy = ay; }
     const fb = (8 + pw * 1.4) * amp;
     noteLeechSkip('fireball', fb);
-    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: fb, owner: 'p', kind: 'fire', life: 1.4, skill: 0, weaponFamily: weaponFamilyId(p.equip && p.equip.weapon) });
+    projs.push({
+      x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: fb, owner: 'p', kind: 'fire', life: 1.4, skill: 0,
+      weaponFamily: weaponFamilyId(p.equip && p.equip.weapon), pw: pw,
+      splashR: build.radius, splashCore: build.core, splashMore: build.splash,
+      burnChance: build.burnChance, burnSplash: build.burnSplash, burnBase: build.burnBase
+    });
     sfx(S.snd || 'fire'); fxCast074(0, ax, ay);
   } else if (i === 1) {
-    effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
-    const famId = weaponFamilyId(p.equip && p.equip.weapon), wkb = weaponKnock();
-    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg('whirlwind'); const dd = (dm * 1.4 + pw * .5) * amp; leech(scaleAmount(dd, 'Physical', 1), 'whirlwind'); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120 * wkb, (e.y - p.y) / (d || 1) * 120 * wkb, '#fff', crit, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind', weaponFamily: famId }); } }
-    sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, 32, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
+    const rad = build.radius;
+    effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: rad, skill: 1 });
+    const famId = weaponFamilyId(p.equip && p.equip.weapon), wkb = weaponKnock() * (build.knock || 1);
+    for (const e of enemies.slice()) {
+      const d = dist(e, p); if (!(d < rad + e.r)) continue;
+      const rolled = rollDmg('whirlwind');
+      const phys = rolled.d * build.weaponMul * amp;
+      const spell = pw * 0.5 * amp;
+      const dd = phys + spell;
+      leech(scaleAmount(phys, 'Physical', 1) + scaleAmount(spell, 'Fire', 1), 'whirlwind');
+      damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120 * wkb, (e.y - p.y) / (d || 1) * 120 * wkb, '#fff', rolled.crit, null, {
+        type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind', weaponFamily: famId,
+        components: [
+          { amount: phys, type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], crit: !!rolled.crit, critApplied: true },
+          { amount: spell, type: 'Fire', tags: ['Spell', 'AoE'], crit: false, critApplied: true }
+        ]
+      });
+    }
+    sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, rad, true); cutVinesNear(p.x, p.y, rad); snuffTorchesNear(p.x, p.y, rad + 2);
   } else {
-    effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
-    breakSecretsAt(p.x, p.y, 70, true); snuffTorchesNear(p.x, p.y, 70);
+    const rad = build.radius;
+    effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: rad, skill: 2 });
+    breakSecretsAt(p.x, p.y, rad, true); snuffTorchesNear(p.x, p.y, rad);
     sfx(S.snd || 'nova'); fxCast074(2);
     const nova = (6 + pw * 1.1) * amp;
     noteLeechSkip('frost', nova);
     const frostFam = weaponFamilyId(p.equip && p.equip.weapon);
-    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, nova, 0, 0, '#80d0ff', false, null, { type: 'Physical', tags: ['Spell', 'AoE'], critApplied: true, skill: 'frost', weaponFamily: frostFam }); } }
+    for (const e of enemies.slice()) { if (dist(e, p) < rad) { e.slow = 3.5; chillFromNova(e, build); damageEnemy(e, nova, 0, 0, '#80d0ff', false, null, { type: 'Cold', tags: ['Spell', 'AoE'], critApplied: true, skill: 'frost', weaponFamily: frostFam }); } }
   }
 }
 
@@ -5858,7 +5966,7 @@ function update(dt) {
       projs.splice(i, 1);
       if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); if (!struck) { let best = 1e9; for (let n = 0; n < enemies.length; n++) { const e = enemies[n]; if (!e || e.hidden || e.downT || e.dead || e.hp <= 0) continue; const dd = Math.hypot(e.x - pr.x, e.y - pr.y); if (dd <= e.r + pr.r + 3 && dd < best) { best = dd; struck = e; } } } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8', false, null, { type: 'Physical', tags: ['Ranged', 'Projectile', 'Direct'], critApplied: true, skill: 'bow', weaponFamily: pr.weaponFamily || 'bow' }); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
       if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); if (pr.skill === 0) fxImpact074(pr.x, pr.y); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
-        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) { const splash = d < e.r + 4 ? 1 : .6; damageEnemy(e, pr.dmg, (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], more: splash, critApplied: true, skill: 'fireball', weaponFamily: pr.weaponFamily || '' }); } } }
+        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); const splashR = pr.skill === 0 && pr.splashR > 0 ? pr.splashR : 18; const core = pr.skill === 0 && pr.splashCore > 0 ? pr.splashCore : 4; const outer = pr.skill === 0 && pr.splashMore > 0 ? pr.splashMore : .6; if (d < splashR + e.r) { const splash = d < e.r + core ? 1 : outer; const typed = pr.skill === 0; damageEnemy(e, pr.dmg, (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: typed ? 'Fire' : 'Physical', tags: ['Spell', 'Projectile', 'AoE'], more: splash, critApplied: true, skill: 'fireball', weaponFamily: pr.weaponFamily || '' }); if (typed) igniteFromSkill(e, pr.pw || 0, splash, pr); } } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
     }
@@ -6667,7 +6775,15 @@ function renderSkillsPanel() {
       b.addEventListener('click', () => bindHotkey(k, i)); row.appendChild(b); }
     const r = document.createElement('button'); r.className = 'shb skb rc' + (rskill === i ? ' on' : ''); r.textContent = 'RIGHT-CLICK'; r.dataset.sk = i;
     r.addEventListener('click', () => { rskill = i; settings.rskill = i; saveSettings(); renderSkillsPanel(); }); row.appendChild(r);
-    P.appendChild(row); });
+    P.appendChild(row);
+    const specRow = document.createElement('div'); specRow.className = 'skrow';
+    const table = SKILL_BUILD_OF[i];
+    for (const id in table) {
+      const b = document.createElement('button'); b.className = 'shb skb' + (skillSpecId(i) === id ? ' on' : ''); b.textContent = table[id].name; b.dataset.spec = i + ':' + id;
+      b.addEventListener('click', () => { setSkillSpec(i, id); save(); renderSkillsPanel(); });
+      specRow.appendChild(b);
+    }
+    P.appendChild(specRow); });
 }
 function openSkills() { renderSkillsPanel(); $('skills').classList.remove('hidden'); }
 function closeSkills() { $('skills').classList.add('hidden'); }
@@ -14364,6 +14480,7 @@ if (window.game) {
     attackPeriod: attackPeriod, attackState: attackState, beginAttack: beginAttack, queueAttack: queueAttack,
     HITSTOP_CAP: HITSTOP_CAP, ATK_BUF: ATK_BUF,
     setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
+    SKILL_BUILD: SKILL_BUILD, skillBuild: skillBuild, skillSpecId: skillSpecId, setSkillSpec: setSkillSpec, spellPower: spellPower, skillSpecSanitize: skillSpecSanitize,
     flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });

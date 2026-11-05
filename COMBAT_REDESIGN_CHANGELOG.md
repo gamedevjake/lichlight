@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 6 — Weapon identity and attack responsiveness. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), and Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), then GO'd Stage 6. Stages 0–5 stay IMPLEMENTED (not marked VERIFIED here). Stage 6 is IMPLEMENTED and waiting for Jake. Stages 7–13 are NOT STARTED. Do not begin Stage 7 until Jake approves Stage 6.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). Do not move these tags.
+- **Current implementation stage:** Stage 7 — Skill system and build specialization. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), and Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stages 0–6 stay IMPLEMENTED (not marked VERIFIED here). Stage 7 is IMPLEMENTED and waiting for Jake. Stages 8–13 are NOT STARTED. Do not begin Stage 8 until Jake approves Stage 7.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). `combat-redesign-pre-stage7` → `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). Do not move these tags.
 
 ---
 
@@ -32,7 +32,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 4 | Status effects | IMPLEMENTED |
 | 5 | Stagger, poise, and crowd control | IMPLEMENTED |
 | 6 | Weapon identity and attack responsiveness | IMPLEMENTED |
-| 7 | Skill system and build specialization | NOT STARTED |
+| 7 | Skill system and build specialization | IMPLEMENTED |
 | 8 | Enemy resistances and elite affixes | NOT STARTED |
 | 9 | Boss and Super Elite redesign | NOT STARTED |
 | 10 | Equipment, loot, and build-changing affixes | NOT STARTED |
@@ -40,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, 3, 4, 5, and 6 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 7 did; the counts are in those entries.
 
 ---
 
@@ -896,11 +896,144 @@ That tag is `6eecf2439525da17acf9479688de185d4b8a6749`. It is the Stage 5 squash
 
 Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 7 (skill retyping and build specialization). Do not reclassify Fireball, Frost Nova, poison puddles, or lava. Do not change Hellmouth.
 
+### 2026-11-05 — Stage 7: Skill System and Build Specialization
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 7 — Skill system and build specialization.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage7` points at `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). The implementation commit is recorded in [STAGE7_REPORT.md](STAGE7_REPORT.md).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 8 has not been started.
+- **Objective:** Give Fireball, Whirlwind, Frost Nova, and Hellmouth distinct jobs. Type the three damage skills. Keep `mods.fire` as general spell power. Connect Fireball and Frost Nova to the Stage 4 status bag without a permanent lock. Add one build choice per damage skill. Do not raise the zero-resist hit numbers. Do not touch Hellmouth's Super Elite deletion, Stage 8 resist tables, Stage 9 boss patterns, or Stage 10 loot.
+
+#### Existing Behavior
+
+`pw = st.fire + level * 2` scaled all three skills. Every live hit was Physical, so enemy resist did nothing. Fireball stored `(8 + pw * 1.4) * amp`, splashed at 0.6 inside 18px, and did not crit or leech. Whirlwind was one Physical number, `(weaponRoll * 1.4 + pw * 0.5) * amp`, and the crit was already inside the weapon roll. Frost Nova was `(6 + pw * 1.1) * amp`, set `e.slow = 3.5`, and did not apply engine chill. Hellmouth sank anything that was not `T.boss`. Lava and on-fire damage were world packets. Poison ground was a Physical DoT through `hurtPlayer`, so armor reduced it. Cultist, wisp, siren, exarch, and seer shots were Physical, so armor reduced them too.
+
+#### Changes Implemented
+
+- Fireball's hit is Fire. The stored magnitude is still `(8 + pw * 1.4) * amp`. Splash, speed, life, crit refusal, and the life-steal skip are unchanged on the base build.
+- Frost Nova's hit is Cold. The magnitude is still `(6 + pw * 1.1) * amp`. It still writes `e.slow = 3.5` before the hit.
+- Whirlwind is two components. Physical is `weaponRoll * weaponMul * amp` and is the only part that crits. Fire is `pw * 0.5 * amp` and does not crit. At identity scale and 0 Fire resist the sum rounds to the old integer. Life steal still uses that pre-mitigation sum.
+- `mods.fire` and `st.fire` stay the general spell-power total. `st.spell` is the same number. The affix line now says `+N Spell Power`. Old saves and old items keep the key `fire`. The value is not copied into `flatFire` or `bonusFire`, and it still does not touch weapon rolls.
+- Base Fireball applies Burning at 100% on a core hit and 40% on the outer ring, duration 3s, stack cap 3, base damage 0. A zero base does not enter the resolver, so the tick adds nothing. Kindling is the build that gives the burn a real base.
+- Base Frost Nova applies Chill with slow 0% and 34 freeze buildup for 3.5s. The legacy slow still owns movement, so the move multiplier stays 0.45. Buildup expires before the 4.5s cooldown, so one nova cannot freeze. Bosses and Super Elites still take `HEAVY_CHILL` and cannot freeze.
+- Each damage skill has a base row and two builds, chosen in the skill-key panel and saved on the player. An old save with no `skillSpec` loads the three base rows. `spellBar` and `learned` are unchanged.
+- Non-boss, non-Super-Elite shots: cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning. Spider webs, bone arrows, contact, blasts, and poison ground stay Physical. `eShoot` strips a type from a boss or a Super Elite. Boss patterns are untouched.
+- Lava, on-fire, acid, and the other `envHurt` callers stay world packets and still skip resist, armor, Ethereal Shield, and block. Poison ground stays a Physical DoT, so armor still reduces it and poison resist does not. That is a decision, not an accidental leftover. Retyping poison ground would skip armor and increase the damage a defended player takes, and the same hazard function serves boss lobs.
+
+#### Formulas
+
+```
+pw = st.fire + level * 2
+amp = 1 + skillAmp(i) / 100
+fireball = (8 + pw * 1.4) * amp          type Fire, then splash more
+whirl physical = weaponRoll * weaponMul * amp
+whirl rider = pw * 0.5 * amp             type Fire, no crit
+frost = (6 + pw * 1.1) * amp             type Cold
+```
+
+`weaponRoll` already includes the crit. The resolver does not crit again. Scale, conversion, resist, and penetration run once per component inside the existing resolver. A global `flat`, `inc`, or `more` now applies once to each Whirlwind component. No loot rolls those modifiers. At the identity defaults the sum is the old number.
+
+| Build | What changes | What stays |
+| --- | --- | --- |
+| Fireball Bolt | base | radius 18, core 4, outer ×0.6, burn base 0 |
+| Fireball Kindling | no outer ring | the core hit. Burn base is `max(1, round(pw * 0.2))` per tick |
+| Fireball Scatter | radius 28, outer ×0.45 | the core hit |
+| Whirlwind Spin | base | radius 32, weapon ×1.4, knock ×1 |
+| Whirlwind Wide | radius 48, weapon ×1.05 | the rider. Less damage per target |
+| Whirlwind Keen | radius 22, knock ×1.35 | the hit number |
+| Frost Nova | base | radius 70, buildup 34, chill slow 0 |
+| Frost Whiteout | radius 52, buildup 55, chill slow 15%, duration 4.8s | the hit. A second cast freezes once, then the 3s lockout |
+| Frost Glass | radius 88, buildup 15 | the hit |
+
+Kindling's burn is extra damage over time on one target, paid for by losing the splash. It is not part of the base time-to-kill. Whiteout cannot chain freezes: the freeze does not refresh, expiry sets a 3s lockout, and a lockout attempt spends the buildup without freezing. Bosses stay at 40% chill and 0 buildup.
+
+#### Damage at zero resist
+
+Same measurement as Stage 6. Spread 1, crit off unless named, mana assumed available, period is the skill cooldown or `0.45 / spd`. Pools are 80 HP and a 1050 HP boss pool. The before run is tag `combat-redesign-pre-stage7`. The after run is the same integers.
+
+| Attack | Hit before | Hit after | Seconds to 80 | Seconds to 1050 |
+| --- | --- | --- | --- | --- |
+| Fists | 2 | 2 | 18.000 | 236.250 |
+| Sword | 4 | 4 | 9.000 | 118.350 |
+| Axe | 5 | 5 | 8.000 | 105.000 |
+| Staff | 5 | 5 | 7.200 | 94.500 |
+| Maul | 19 | 19 | 3.214 | 36.000 |
+| Bow | 7 | 7 | 5.143 | 64.286 |
+| Fireball, level 1, spell power 0 | 11 | 11 | 3.600 | 43.200 |
+| Fireball, level 10, spell power 0 | 36 | 36 | 1.350 | 13.500 |
+| Fireball, level 10, spell power 20 | 64 | 64 | 0.900 | 7.650 |
+| Whirlwind, pin 10 | 15 | 15 | 9.600 | 112.000 |
+| Whirlwind, pin 10, crit | 29 | 29 | 4.800 | 59.200 |
+| Whirlwind, pin 4 | 7 | 7 | 19.200 | 240.000 |
+| Frost Nova, level 1, spell power 0 | 8 | 8 | 45.000 | 594.000 |
+| Frost Nova, level 10, spell power 0 | 28 | 28 | 13.500 | 171.000 |
+| Frost Nova, level 10, spell power 20 | 50 | 50 | 9.000 | 94.500 |
+
+Against a resist the type matters. Level-10 Fireball at spell power 20 into 90 Fire resist (cap 90) deals 6, not 64. Seconds to 80 become 6.300 and seconds to 1050 become 78.750. Level-1 Frost Nova into 90 Cold resist deals 1, not 8. A Whirlwind at level 10, spell power 20, pin 10, into 50 Fire resist deals 24 (14 Physical + 10 Fire) instead of 34, and the life-steal base stays 34.
+
+A cultist bolt of 20 into DEF 30 was 10 when it was Physical. As Shadow, with 0 Shadow resist, it is 20. With 90 Shadow resist it is 2. Armor no longer reduces that bolt. Contact, arrows, webs, blasts, poison ground, bosses, and Super Elites still use armor.
+
+#### Files Modified
+
+- `index.html` — skill types, builds, status hooks, five non-boss bolt types, spell-power alias and affix line. `version.json` was not edited.
+- `tests/stage7-skills.html` — new harness.
+- `tests/stage1-damage.html`, `tests/stage2-resist.html`, `tests/stage3-crit-scaling.html`, `tests/stage4-status.html`, `tests/stage5-poise.html`, `tests/stage6-weapons.html` — sentinels that locked "skills stay Physical" or "Frost Nova does not chill" now lock the Stage 7 contract. Counts are unchanged.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry and the living sections. Stage 0–6 history entries were not rewritten.
+- `STAGE7_REPORT.md` — implementation report for review.
+
+#### Functions Added or Modified
+
+Added: `incomingDamageType`, `skillSpecSanitize`, `skillSpecId`, `skillBuild`, `setSkillSpec`, `skillSpecSave`, `spellPower`, `skillStatusRoll`, `igniteFromSkill`, `chillFromNova`.
+
+Modified: `castSkill`, the player-projectile impact, `damageEnemy` (optional components), `hurtPlayer` (optional `dmgType`), `eShoot` (drops a type on bosses and Super Elites), cultist / wisp / siren / exarch / seer shot options, `computeStats` (`st.spell`), `renderSkillsPanel`, `save`, `continueGame`, the affix line for key `fire`.
+
+Not modified: `castHellmouth`, `tickHellmouth`, `killEnemy`'s Super Elite path, `envHurt`, poison-ground `hurtPlayer`, `rollDmg`, weapon family numbers, `PWR` multipliers, `version.json`.
+
+#### Gameplay Impact
+
+At 0 resist the three skills and the six weapons kill in the same time as Stage 6. Fire resist now reduces Fireball and only the Whirlwind rider. Cold resist reduces Frost Nova. The weapon half of Whirlwind still ignores elemental resist. Base Burning adds a marker and no damage. Base Chill does not add a second slow and does not freeze. Kindling, Scatter, Wide, Keen, Whiteout, and Glass change reach, splash, shove, chill, or a burn, and only Kindling adds damage, as a DoT on a single target. Five non-boss bolts ignore armor and use their element. A player with defense and no resist takes more from those bolts than before. Hellmouth still deletes Super Elites.
+
+#### Compatibility Notes
+
+Old equipment with `mods.fire` still adds that number to spell power for all three skills. A save without `skillSpec` loads Bolt, Spin, and Nova. Learned skills and spell-bar slots load as they were. Packets are not saved. The burn and chill on an enemy are saved with the existing status bag.
+
+#### Tests Performed
+
+Headless Chrome, SwiftShader, cache disabled. Counts and the per-name diff against tag `combat-redesign-pre-stage7` are in [Stage 7 executed results](#stage-7-executed-results). `tests/stage7-skills.html` was 69/0. Stages 1–6 stayed 71/0, 73/0, 58/0, 75/0, 78/0, and 47/0.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. Crit chance is still uncapped. Life steal still ignores mitigation and the power-attack multiplier, and still skips bows, Fireball, and Frost Nova. Curse life drain is still unwired. The character sheet still does not show spell power; the item line does. A global flat, increased, or more on a Whirlwind applies once per component. No loot rolls those stats. Base Burning deals 0 so it cannot inflate time-to-kill. Kindling's burn is the opt-in damage. Boss and Super Elite attack patterns are still Physical. Enemy resist tables and elite affixes are Stage 8.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage7
+```
+
+That tag is `29c81bb825c98816606e75c80985305becf5a0c8`. It is the Stage 6 squash on main, PR #29. Gameplay version on it is 0.7.18. Do not move the tag. The older tags `combat-redesign-pre-stage1` through `combat-redesign-pre-stage6` were not moved.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 8 (enemy resist tables and elite affixes). Do not redesign boss or Super Elite attacks. Do not change Hellmouth.
+
 ---
 
 ## Combat System Reference
 
-The Stage 6 block is what the game does now. The Stage 5 block is the poise model under it. The Stage 4 block is the status model under that. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat, status, or poise break is in play. Planned work for later stages stays marked as planned.
+The Stage 7 block is what the game does now. The Stage 6 block is the weapon model under it. The Stage 5 block is the poise model under that. The Stage 4 block is the status model. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those numbers still follow when the target has no resist and the skill build is the base row. Planned work for later stages stays marked as planned.
+
+### Stage 7 implemented architecture
+
+Implemented now, on top of Stage 6. A base-row hit with 0 resist is still the Stage 6 integer. The type, the status, and the build are new.
+
+- `pw = st.fire + level * 2` is general spell power. `st.spell` equals `st.fire`. The item line is `+N Spell Power`. The key on the item is still `fire`.
+- Fireball is Fire. Frost Nova is Cold. Whirlwind is Physical weapon damage plus a Fire rider of `pw * 0.5`. Only the weapon roll crits. Life steal uses the pre-mitigation sum.
+- Scale, conversion, resist, and penetration still run once, inside `resolveDamage`. A splash `more` in `(0, 1)` still scales damage and skill poise once.
+- Base Fireball applies Burning with base 0. Kindling sets the base to `max(1, round(pw * 0.2))` and drops the outer ring. Base Frost Nova applies Chill with 0% extra slow and 34 buildup, and still sets `e.slow = 3.5`. Whiteout can freeze a normal enemy on the second cast, then the freeze lockout blocks another freeze. Bosses and Super Elites do not build freeze.
+- Builds are `player.skillSpec`, three ids, default `base`. Missing or unknown ids load as base. The spell bar is a different array.
+- Cultist bolts are Shadow, wisp bolts are Lightning, siren rings are Cold, exarch orbs are Shadow, and seer snipes are Lightning, unless the shooter is a boss or a Super Elite. Those stay Physical.
+- `envHurt` stays a world packet and skips resist. Poison ground stays Physical.
 
 ### Stage 6 implemented architecture
 
@@ -1489,7 +1622,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 
 - **Three damage pipes and two `hurtPlayer` wrappers.** Stage 1 routed `damageEnemy` and `hurtPlayer` through `resolveDamage`, and `envHurt` through the world branch. Hunger, pit climb-out, and blood doors are still direct HP writes on purpose. Stage 2 put elemental resist on the combat resolver only. World packets and those direct writers still skip it, which is deliberate. OPEN as a reminder not to "fix" hunger by sending it through resist.
 - **Defense, block, Ethereal Shield, and barrier are easy to apply twice.** Stage 1 removed the ×0.75 from the tome wrapper and covered the single application with parity tests (100 → 75 with the shield up, not 56; DEF 30 → 50, not 25). Still OPEN as a guardrail: putting the multiply back in the wrapper would double it. Stage 2 must not add a second armor step.
-- **`mods.fire` reads as Fire damage and is spell power.** Stage 7, 10, and 12. OPEN. D6.
+- **`mods.fire` is general spell power.** Stage 7 kept the key and the number, added `st.spell` as the same total, and changed the item line to `+N Spell Power`. It is not Fire-only damage. The character sheet still does not show the stat. Stage 12. OPEN for the sheet, closed for the combat migration.
 - **Character sheet and item card disagree with combat.** Pierce and range are blank fields that still print. Card crit `0` hides the 5% base. Fire power, resists, regen, and Ethereal Shield are absent. Bow crits do not mark the floater. Life steal does not apply to bows, Fireball, or Frost Nova. The sheet's `DMG` is the weapon roll, which Fireball and Frost Nova ignore. Stage 12. OPEN.
 - **Incoming player numbers are hidden** since v0.7.12 for the colors listed above. Players see `BLOCK`, `CRIT`, and `BARRIER`, and not the amount. Stage 11. OPEN. This is current design, and it makes defense bugs hard to see.
 - **Post-depth-12 `mobDmgMul` is trash and champion only.** At depth 100 a champion skeleton's contact (~580) is higher than Oswin's contact (~244) and the Super Elite swing (~152). Boss threat is pattern count and the HP pool. Stage 13. OPEN. Do not "fix" this by inflating boss HP inside Stage 1.
@@ -1498,10 +1631,10 @@ Severity is about how badly it will mislead a later stage or a player, not about
 
 - **Champion crit adds 5% of pre-defense damage after armor**, so it punches through the curve, and it snuffs the torch. Stage 3 left this separate from player crit on purpose. OPEN as a balance quirk, not as missing crit math.
 - **Life steal ignores power-attack bonus and enemy mitigation**, and ignores bows and two of the three spells. Whirlwind leeches the summed skill number. Stage 3 audited this and kept it. Stage 4 did not retune it, and did not cap crit chance. Stage 5 did not either. Curse `lifeDrain` is stored and is not added to the heal. `curseHooks(...).lifeDrainWired` is false. OPEN only as a reminder that a later balance pass must not "fix" the heal without Jake's numbers.
-- **Whirlwind crit doubles only the weapon roll**, then adds fire power, and the floater marks the whole hit. Stage 3 kept the split so spell power is not doubled. The floater still marks the whole hit. Stage 7 if the spell portion becomes Fire. OPEN as presentation and as the future split, not as a double crit.
+- **Whirlwind crit doubles only the weapon roll.** Stage 7 split the hit into a Physical weapon component and a Fire rider. The rider does not crit. The floater still marks the whole hit when the weapon roll crits. Presentation is Stage 11. OPEN only as the floater.
 - **Bow crits do not mark the floater.** The arrow damage includes the crit once. Impact still passes `crit: false`. Stage 11 or 12. OPEN.
 - **Pixel character sheet shows crit chance and not the multiplier.** The text stats line shows `Crit N% xM`. Stage 12. OPEN.
-- **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7. OPEN.
+- **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7 did not change it. OPEN.
 - **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
 - **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 8–9. OPEN.
 - **Crab bites while shelled and does not contact-tick while open.** Stage 8. OPEN.
@@ -1721,6 +1854,36 @@ Time-to-kill, pinned midpoint, spread 1, crit off, measured before the code and 
 
 Boss measurement inside `tests/stage5-poise.html`, spread pinned, scale off, 8 HP a hit, shield 0, intro cleared: 80 light hits dealt 640 HP and 288 poise and did not stagger a 560 poise boss. Full-power hits staggered on hit 54, at 432 HP. Eight boss contacts of 10 on the player dealt 80 HP and staggered on the seventh. Per-hit HP matched the no-poise number.
 
+### Stage 7 executed results
+
+Headless Chrome, Puppeteer, system Google Chrome, SwiftShader, cache disabled, `python3 -m http.server` on 127.0.0.1. The pre-change run is tag `combat-redesign-pre-stage7` / `29c81bb825c98816606e75c80985305becf5a0c8`, before any Stage 7 code. One sequential pass on each side. Counts are pass/fail.
+
+| Run | Legacy 21 | Stage 1 | Stage 2 | Stage 3 | Stage 4 | Stage 5 | Stage 6 | Stage 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Before | 810 passed, 97 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | not present |
+| After, one sequential pass | 805 passed, 102 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | 69/0 |
+
+The legacy count moved by the known flakes below. Stages 1–6 stayed green. Their name changes are the sentinels this stage replaced, and every renamed check passed.
+
+- `stage1-damage`: `fireball still physical tag` is now `fireball keeps spell tags`. `frost nova formula and tags` is now `frost nova formula tags and cold`. The hit is still 8 and the slow is still 3.5. The type is Cold.
+- `stage2-resist`: `live calls stay physical` is now `melee stays physical and fireball is fire`. `fireball stays physical against fire resist` is now `fireball is fire and resist applies` (64 stored, 6 dealt at 90 Fire resist). `frost nova stays physical` is now `frost nova is cold and resist applies` (1 dealt).
+- `stage3-crit-scaling`: `fireball stays physical against fire resist` is now `fireball fire resist does not leech` (6 dealt, no heal). `frost nova stays physical and does not leech` is now `frost nova cold resist does not leech` (1 dealt, slow 3.5, no heal).
+- `stage4-status`: `frost nova stays a legacy slow` is now `frost nova keeps legacy slow and adds chill`. Legacy slow remains. Chill slow is 0. The Cold hit into 90 resist deals 1.
+- `stage5-poise`: `frost nova still sets slow and not chill` is now `frost nova sets slow and chill`. `live skills do not call applyStatus` is now `cast keeps legacy slow and routes chill`. `frost nova still slows and deals skill poise without chill` is now `frost nova slows, chills, and deals skill poise`.
+- `stage6-weapons`: `frost nova still slows and a staff adds skill poise` is now `frost nova slows, chills, and a staff adds skill poise`. Damage stays 8. Staff skill poise stays 22. Chill slow stays 0.
+
+Legacy name movement against the checkpoint, besides those renames:
+
+- `v0711`: 42/6 → 43/5. Cleared `trash in the maw`. The five stable names remain (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). Re-runs were 43/5 and 42/5. The second re-run did not emit the trash line. Emission flake.
+- `v0714`: 40/1 → 33/8 on the sequential pass. The seven footer and tab names returned (`footer sort`, `footer mark seen`, `footer drop all`, `footer equip`, `footer drop`, `footer close`, `tab hitboxes match art`). `version` remains. Two re-runs were 33/8 with those same names. The checkpoint had been the passing layout. This is the layout flake already on record.
+- `v07152`: 34/3 → 36/1. Cleared `tab hits follow scale` and `slot hit follows scale`. `version` remains. Re-runs were 34/3 with those two names back, then 36/1 with only `version`. Layout flake.
+- `v0781`: 27/2 → 26/3 on the sequential pass. Added `f2 damage stays` (`lost 25 at 33`, the position check). `version` and `f1 boss hits` remain. Two re-runs were 27/2 with those two names and `f2 damage stays` passing. Position flake. Spike damage was not retuned.
+- `v076`: the checkpoint failed `b3 damage no snap`. Two re-runs after the change were 48/0. The same name has flipped on earlier stages. It does not use skill types.
+
+No other legacy failure name was added. `v075`, `v079`, `v0710`, `v0713`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18. Stage 8 was not started.
+
+Time-to-kill, pinned, spread 1, is the table in the Stage 7 history. Weapon rows match Stage 6 on both sides. Base skill rows match at 0 resist. The resist rows are the only direct-hit changes.
+
 ---
 
 ## Approval gate
@@ -1737,6 +1900,8 @@ Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #27 (`d4fbc3c6904c0dd
 
 Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. This log does not mark Stage 5 VERIFIED. The Stage 5 history entry above still describes that branch before the merge. It was not rewritten.
 
-Stage 6 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). This log does not mark Stage 6 VERIFIED. The Stage 6 history entry above still describes that branch before the merge. It was not rewritten.
 
-**Wait for Jake's approval before Stage 7.** Stage 7 is skill retyping and build specialization. It must not start from this branch. Stage 6 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.
+Stage 7 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 8.** Stage 8 is enemy resist tables and elite affixes. It must not start from this branch. Stage 7 did not add those tables, did not redesign boss or Super Elite attacks, and did not change Hellmouth's deletion.
