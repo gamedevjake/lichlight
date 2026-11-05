@@ -551,7 +551,7 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 4 (status
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 4 — Status Effects.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage4` points at `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash, PR #26, on main).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Status implementation commit `9ebb6b9b38ec2ccaf54fcc8c45d49a7f80ec532a`. Rollback tag `combat-redesign-pre-stage4` points at `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash, PR #26, on main).
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 5 has not been started.
 - **Objective:** One status bag for application, duration, ticks, refresh, stacking, expiry, removal, immunity, and source. Give Bleed, Burning, Chill, Freeze, Shock, Poison, and Curse distinct rules. Route damaging ticks through the Stage 1–3 pipeline once, without crit. Leave Frost Nova, poison ground, environmental burn, the chill aura, Hellmouth, and `mods.fire` alone.
 
