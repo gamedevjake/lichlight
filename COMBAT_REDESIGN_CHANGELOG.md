@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 1 — Universal Damage Architecture. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23 and GO'd Stage 1. Stage 0 stays IMPLEMENTED (not marked VERIFIED here). Stage 1 is IMPLEMENTED and waiting for Jake. Stages 2–13 are NOT STARTED. Do not begin Stage 2 until Jake approves Stage 1.
-- **Rollback tag:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash, includes this changelog's Stage 0 text plus gameplay `25253a5`).
+- **Current implementation stage:** Stage 2 — Armor and Resistances. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23 and Stage 1 PR #24, then GO'd Stage 2. Stage 0 and Stage 1 stay IMPLEMENTED (not marked VERIFIED here). Stage 2 is IMPLEMENTED and waiting for Jake. Stages 3–13 are NOT STARTED. Do not begin Stage 3 until Jake approves Stage 2.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). Do not move either tag.
 
 ---
 
@@ -27,7 +27,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | --- | --- | --- |
 | 0 | Baseline audit and project preparation | IMPLEMENTED |
 | 1 | Universal damage architecture | IMPLEMENTED |
-| 2 | Armor and resistances | NOT STARTED |
+| 2 | Armor and resistances | IMPLEMENTED |
 | 3 | Critical hits and damage scaling | NOT STARTED |
 | 4 | Status effects | NOT STARTED |
 | 5 | Stagger, poise, and crowd control | NOT STARTED |
@@ -40,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stage 1 did; the counts are in that entry.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stage 1 and Stage 2 did; the counts are in those entries.
 
 ---
 
@@ -260,9 +260,176 @@ Wait for Jake. Do not merge this PR. Do not start Stage 2 (elemental resists, ca
 
 ---
 
+### 2026-11-05 — Stage 2: Armor and Resistances
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 2 — Armor and Resistances.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage2` points at `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash, PR #24).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 3 has not been started.
+- **Objective:** Give Fire, Cold, Lightning, Poison, and Shadow their own percent mitigation, with documented caps, penetration, and vulnerability. Keep `DEF / (DEF + 30)` on Physical only. Do not reclassify live attacks. Do not reinterpret `mods.fire`. Do not change Hellmouth.
+
+#### Existing Behavior
+
+Unchanged from the Stage 1 entry for every live caller. Those callers still send Physical. `elementalResist` returned 0, so a synthetic Fire packet ignored defense and was not reduced. World packets, hunger, the pit climb-out, spike-gap ticks, and the blood door did not use the combat curve. Hellmouth still sinks anything that is not `T.boss`, including Super Elites.
+
+#### Changes Implemented
+
+- `elementalResist` is no longer a stub. It returns a fraction: effective resist percent divided by 100. The percent can be negative. Physical and unknown types return 0.
+- New helpers, same path for the player and for enemies: `rawElementalResist`, `resistCap`, `elementalResistPercent`, `packetPen`. The resolver multiplies with the integer percent (`amount * (100 - pct) / 100`) so 90% of 100 stays 10.
+- Player order is the Stage 1 order. Elemental resist runs once per non-Physical component in the same loop that applies `DEF / (DEF + 30)` to Physical. Ethereal Shield, block, champion crit, thorns, and barrier are not applied again after that.
+- Enemy order is the Stage 1 order. Elemental resist runs once per non-Physical component while the components are summed, before guard, ram armor, and Hellmouth ×1.10. Physical components are added unchanged. Enemies still do not use the DEF curve. Ram armor and guard still multiply the summed total, so a live Physical hit is the same number as Stage 1.
+- World packets (`envHurt`, and a synthetic world packet of any type) do not call `elementalResist`. Hunger, the pit climb-out, spike-gap ticks, and the blood door still write HP directly.
+- Gear plumbing only. `computeStats` sums `resFire`, `resCold`, `resLightning`, `resPoison`, `resShadow`, `resAll`, `maxResist`, `penFire`, `penCold`, `penLightning`, `penPoison`, `penShadow`, and `penAll` when an item already has those keys. `resAll` and `penAll` are folded into the five typed stats once. Defaults are 0. No affix was added to `AFFIX`. Loot, uniques, and shop prices were not retuned. No character-sheet layout change.
+- Penetration is packet data plus, when the attacker is the player, the player's sheet pen for that type. It is subtracted from raw resist before the clamp. It does not apply to Physical, and the player's own pen does not reduce the player's own resist.
+- Vulnerability is negative resist. There is no second vulnerability multiplier. Hellmouth ×1.10 stays the boss mark from Stage 1 and still runs once, after resist, on the enemy path only.
+- Live attack tags were not edited. Fireball, Frost Nova, Whirlwind, poison puddles, lava, acid, and the other callers below stay Physical. The mapping table is a proposal for Jake. It is not applied.
+
+#### Formulas
+
+Physical, one component, is still the v0.7.18 expression. `physicalArmorFraction` is still `DEF / (DEF + 30)`. It is not used on Fire, Cold, Lightning, Poison, or Shadow.
+
+```
+eff = clamp(rawResist - penetration, RESIST_MIN, resistCap)
+multiplier = (100 - eff) / 100
+```
+
+Locked constants:
+
+| Constant | Value | Meaning |
+| --- | --- | --- |
+| `RESIST_MIN` | −100 | Vulnerability floor. −100 resist is ×2. A lower raw resist, or penetration that would push past −100, clamps here. |
+| `RESIST_SOFT` | 75 | Default maximum. Raw resist above 75 does nothing until `maxResist` raises the cap. |
+| `RESIST_HARD` | 90 | Absolute ceiling. `resistCap = clamp(75 + maxResist, 0, 90)`. |
+
+`maxResist` is a bonus on top of 75, not a replacement cap. A bonus of +15 makes the cap 90. A bonus of +50 still caps at 90. A bonus of −25 makes the cap 50. The cap is never negative, so a large negative bonus stops positive resist and still allows vulnerability down to −100.
+
+Overcap is stored on the sheet and is not thrown away before penetration. Raw 100 with the default cap and 20 penetration is `clamp(80, -100, 75) = 75`. Raw 100 with 40 penetration is 60. Penetration spends the overcap first.
+
+Player sheet: `st.resFire` and the other four already include `resAll`. Enemy content can set `resists.Fire` (and `resists.All`) or the flat fields `resFire` / `resAll`. A finite `st` value, including 0, wins, so the player sheet is not also added to a `resists` bag. On an enemy, `resists[type]` wins over the flat field of the same type. `All` is added once.
+
+Pinned examples, spread 1, no Ethereal Shield, one component, 100 damage:
+
+| Case | Result |
+| --- | --- |
+| 0 resist | 100 |
+| 75, or 100 with the default cap | 25 |
+| 100 resist and `maxResist` +15 | 10 |
+| −50 | 150 |
+| −100 or −250 | 200 |
+| 75 resist, 20 penetration | 45 |
+| 0 resist, 40 penetration | 140 |
+| 100 raw, default cap, 20 penetration | 25 |
+| 100 raw, default cap, 40 penetration | 40 |
+
+Ethereal Shield still multiplies the component by 0.75 before this. 100 Fire, Ethereal Shield, 50 resist, spread 1, deals 38. Champion crit still adds `round(pre-resist amount * 0.05)` after mitigation. 100 Fire at 50 resist from a forced champion crit deals 55, and the torch still snuffs. Block, thorns, and barrier still see the pre-resist amount. A blocked 100 Fire hit with 20% thorns returns 20, not 10.
+
+A mixed packet sums the post-mitigation floats and rounds once. 100 Physical at DEF 30 plus 100 Fire at 50 resist deals 100, not 50 and not 150. Guard, ram armor, and Hellmouth ×1.10 then apply once to that enemy-side sum. 100 Fire at 50 resist into a guard's front is 8. The same hit into a ram that is also Hellmouth-marked is 22.
+
+#### Proposed attack and hazard mapping
+
+Not applied. Every row's live type is Physical, except the rows marked "not a packet." Jake decides before any caller changes type.
+
+| Source | Live type today | Proposed type | Why it waits |
+| --- | --- | --- | --- |
+| Fists, melee, power attack | Physical | Physical | Weapon identity is Stage 6. |
+| Bow arrow | Physical | Physical | Same. |
+| Fireball, including the 0.6 splash | Physical | Fire | Spell migration is Stage 7. `mods.fire` is still spell power, not this type. |
+| Whirlwind | Physical | Physical for the weapon roll. Fire for the `pw * 0.5` portion only after `mods.fire` is migrated | Splitting it now would change the crit split Stage 1 preserved. |
+| Frost Nova | Physical | Cold | The 3.5s slow stays a status, Stage 4. The damage number waits with the spell migration. |
+| Thorns | Physical | Physical | Reflected pre-mitigation amount. |
+| Hellmouth | not a packet | not a damage type | Stage 9. The ×1.10 mark stays a boss multiplier, not vulnerability. |
+| Enemy contact, charge ×1.3, ghoul leap, eel erupt, golem slam, bloater blast | Physical | Physical | |
+| Bone Archer arrows, dart trap, boulder trap, pitfall, ceiling, jet | Physical | Physical | Traps use `hurtPlayer`, not `envHurt`. |
+| Cultist bolt | Physical | Shadow | Hex bolt. Proposal only. |
+| Lich Wisp bolt | Physical | Lightning | Energy bolt. Proposal only. |
+| Spider web bolt | Physical | Physical | The 2.2s slow is a status, not a damage type. |
+| Siren ring | Physical | Cold | Water bullets. Proposal only. |
+| Exarch orb | Physical | Shadow | Choir orb. Proposal only. |
+| Seer snipe | Physical | Lightning | Beam. Proposal only. |
+| Bloater poison ground, crawler trail, lobber pot, drowned rush trail, boss lob poison | Physical DoT | Poison | DoT tag already exists. The type stays Physical until Jake accepts the table. |
+| Boss ring, spiral, spread, hop, nova, slam, beam, teleport ring | Physical | Physical until Stage 9 names a boss element | Do not invent boss elements in Stage 2. |
+| Super Elite swing and powerup | Physical | Physical until Stage 9 | Intro immunity and the shield are unchanged. |
+| Hazard water, acid, lava, on-fire, spike-room cycle | Physical world packet | Water stays world. Acid → Poison, lava and on-fire → Fire, spike room → Physical, still on the world path | World packets skip resist even after a type change. Changing the label now would not change HP and would pretend the resist applies. |
+| Spike-gap floor, bottomless pit, hunger / thirst / exhaustion, blood door | direct HP | unchanged direct HP | Not combat. Resist must not start applying here. |
+
+#### Files Modified
+
+- `index.html` — resist formula, sheet fields, one application inside the existing resolver. `version.json` was not edited.
+- `tests/stage2-resist.html` — new harness.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry, the checklist, and the living sections. The Stage 0 and Stage 1 history entries were not rewritten.
+- `STAGE2_REPORT.md` — implementation report for review.
+
+#### Functions Added or Modified
+
+Added: `resistCap`, `rawElementalResist`, `elementalResistPercent`, `packetPen`.
+
+Modified: `elementalResist` (was the Stage 1 stub), `computeStats` (resist and pen fields, default 0), `makeDamagePacket` (keeps `penetration`), `resolvePlayerDamage`, `resolveEnemyDamage`, `damageEnemy` (forwards `meta.penetration`).
+
+Not modified: `hurtPlayer`, `envHurt`, `castHellmouth`, `tickHellmouth`, `killEnemy`, `pw = fire + level * 2`, `AFFIX`, shop prices, the character sheet.
+
+#### Gameplay Impact
+
+None intended for a current save or a current attack. A character with no resist mods still has 0 on every element, and every live hit is still Physical, so time-to-kill matches Stage 1. Synthetic Fire, Cold, Lightning, Poison, and Shadow packets in the new harness are the only numbers that change, and only inside that harness.
+
+#### Compatibility Notes
+
+Old items do not have resist keys. `computeStats` leaves those stats at 0. `mods.fire` is still spell power. A save with `mods.fire = 6` plus explicit test-only resist mods reloaded the same `st.fire` and the same folded resists. Stripping the resist keys and recomputing returns every resist and pen to 0 while `st.fire` stays 6. Packets are not saved.
+
+#### Tests Performed
+
+Headless Chrome (Puppeteer, system Google Chrome, cache disabled) against `python3 -m http.server` on 127.0.0.1. Executed on this branch. Not inferred.
+
+**Before any Stage 2 code**, on tag `combat-redesign-pre-stage2` / `92edf84`. 21 legacy files: **804 passed, 102 failed**. `tests/stage1-damage.html`: **71 passed, 0 failed**.
+
+Per-file baseline: `v075` 59/1, `v076` 48/0, `v077` 60/4, `v078` 60/1, `v078-play` 25/1, `v0781` 27/2, `v079` 49/1, `v0710` 36/1, `v07101` 41/1, `v07102` 54/0, `v07103` 24/3, `v0711` 42/5, `v0712` 37/6, `v0713` 32/5, `v0714` 33/8, `v0715` 19/13, `v07151` 8/45, `v07152` 34/3, `v0716` 49/1, `v0717` 47/1, `v0718` 20/0.
+
+Combat anchors on that run failed only the old version pin, or were clean: `v079` version, `v0710` version, `v0717` version, `v0718` 20/0. `v0712` and `v0716` failed only their previous names (version, and `v0712`'s layout strings).
+
+**After Stage 2**, same 21 files: **814 passed, 93 failed**. `tests/stage1-damage.html`: **71 passed, 0 failed**. `tests/stage2-resist.html`: **73 passed, 0 failed**.
+
+No legacy file gained a failure. Three files reported fewer failures than this VM's first baseline pass. The failure names that remain match the baseline, and the names that disappeared are the ones Stage 1 already traced to layout timing or a conditional spawn:
+
+- `v0714.html` 33/8 → 40/1. The seven names that passed this time are footer sort, footer mark seen, footer drop all, footer equip, footer drop, footer close, and tab hitboxes match art. Stage 1 saw the same pair of results on unmodified `26e917f` (cold pass 40/1, later pass 33/8). The only remaining failure is the version pin.
+- `v07152.html` 34/3 → 36/1. The two names that passed this time are tab hits follow scale and slot hit follows scale. Stage 1's re-run of unmodified code also landed on 36/1. The remaining failure is the version pin.
+- `v0711.html` 42/5 → 43/5. The five failure names match (version, hundred gold, tome icon, stats scroll, stats canvas kept). The extra pass is the conditional `trash in the maw` check, which the harness only emits when that floor spawned a trash target. The boss-devour assertions did not start failing.
+
+`v079`, `v0710`, `v0717`, and `v0718` were unchanged. No combat anchor failed for a formula reason.
+
+`tests/stage2-resist.html` locks the constants, the 33-row integer table (caps, overcap, penetration, vulnerability floor, spread, Ethereal Shield, the floor of 1), Physical versus Fire independence, mixed packets, typed penetration, champion crit on the pre-resist amount, block, thorns, barrier, DoT, roll, Shift, Clone, world lava, hunger, pit and blood-door source locks, guard, ram, Hellmouth ×1.10, crab shell, boss shield, Super Elite intro immunity and shield, loot not rolling resist mods, the `mods.fire` save round-trip, Fireball and Frost Nova staying Physical against a 90 resist target, and Hellmouth still sinking a Super Elite while a marked boss takes 110. Conversion still moves half of a Physical hit to Fire, and that Fire half is resisted once.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. `mods.fire` is still spell power. The proposed type table is not applied, so lava and poison puddles do not yet consult resist. Enemy content resists are still default 0 outside tests. The legacy version pins and UI failures above are pre-existing on v0.7.18.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage2
+```
+
+That tag is `92edf84d106fec7a076d436348ac83da35e174fb`. It is the Stage 1 squash on main. Gameplay version on it is 0.7.18. Do not move the tag.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 3 (crit expansion, crit damage, conversion edges with gameplay). Do not reclassify Fireball, Frost Nova, poison puddles, or lava until Jake accepts or edits the mapping table.
+
+---
+
 ## Combat System Reference
 
-The Stage 1 block below is what the game does now. The rest of this section is the v0.7.18 baseline those numbers still follow. Planned work for later stages stays marked as planned.
+The Stage 2 block is what the game does now. The Stage 1 block is the architecture Stage 2 kept. The rest of this section is the v0.7.18 baseline those Physical numbers still follow. Planned work for later stages stays marked as planned.
+
+### Stage 2 implemented architecture
+
+Implemented now, on top of Stage 1:
+
+- Physical mitigation is still only `DEF / (DEF + 30)`, once, on Physical components. `elementalResist` returns 0 for Physical.
+- Fire, Cold, Lightning, Poison, and Shadow use `eff = clamp(raw - penetration, -100, resistCap)` and `multiplier = (100 - eff) / 100`. `resistCap` is `clamp(75 + maxResist, 0, 90)`.
+- Negative `eff` is the only vulnerability. It is not stacked with a second vuln multiplier. Hellmouth ×1.10 is still the boss mark and still runs once, after resist, on enemies only.
+- The player and an enemy share `elementalResist`. Enemy `resists` default to nothing, which is 0, until Stage 8. Tests can set `resists` or the sheet fields.
+- World packets and the direct HP writers (hunger, pit climb-out, spike-gap, blood door) do not use resist.
+- Every live attack is still typed Physical. The proposed mapping is in the Stage 2 history. It is not applied.
+- `mods.fire` is still `pw = fire + level * 2`.
 
 ### Stage 1 implemented architecture
 
@@ -271,7 +438,7 @@ Implemented now:
 - Types: Physical, Fire, Cold, Lightning, Poison, Shadow. Every current combat caller sends Physical.
 - Tags, separate from types: Melee, Ranged, Spell, Projectile, AoE, DoT, Direct, Channelled. Channelled is unused.
 - One resolver, `resolveDamage`. Player order: Shift/Clone, Ethereal Shield ×0.75, roll and hit-stun, block, `DEF/(DEF+30)` on Physical only, spread, floor 1, champion crit, thorns, barrier, HP. Enemy order: immunities, guard ×0.15, ram armor, Hellmouth ×1.10, floor 1, boss/Super Elite shield, HP. World (`envHurt`): Shift, then `max(1, round(amount))`, no armor and no Ethereal Shield.
-- `elementalResist` exists and returns 0. Resist caps, penetration, and vulnerability-as-a-resist are **planned** (Stage 2). Hellmouth's ×1.10 is the existing boss mark, not a resist.
+- `elementalResist` existed in Stage 1 and returned 0. Stage 2 fills that function. The caps, penetration, and negative-resist vulnerability are in the Stage 2 block above. Hellmouth's ×1.10 is the existing boss mark, not a resist.
 - Conversion graph exists, rejects self-edges and cycles, and has no edges. Chained conversion of an already moved component is rejected by the converted flag. Adding edges is **planned** (Stage 3).
 - Critical ×2 is still inside `rollDmg`, not in the resolver. Crit chance above the 5% base, and crit damage other than ×2, are **planned** (Stage 3).
 - `mods.fire` is still spell power (`pw = fire + level * 2`). It is not a Fire component. Reinterpreting it is **planned** (Stages 7, 10, 12).
@@ -286,7 +453,7 @@ Not implemented: status effects, stagger, poise, weapon identities, elite affixe
 
 Every pre-Stage-1 combat number was a scalar. It still is, for every attack that exists today.
 
-There is no Fire, Cold, Lightning, Poison, or Shadow resist. Poison puddles and the on-fire environment effect are delivery rules, not damage types. Gear `mods.fire` is added only inside Fireball, Whirlwind, and Frost Nova as spell power:
+Stage 2 added Fire, Cold, Lightning, Poison, and Shadow resist. No live caller sends those types, so the numbers under this heading are still what combat does. Poison puddles and the on-fire environment effect are still delivery rules on the Physical or world path, not elemental packets. Gear `mods.fire` is added only inside Fireball, Whirlwind, and Frost Nova as spell power:
 
 ```
 pw = mods.fire + level * 2
@@ -445,7 +612,7 @@ Order, then `max(1, round)`:
 7. If a boss or Super Elite still has `shield`, that pool spends first. Overflow hits HP. A hit that only touches the shield shows a blue number and no crit mark.
 8. Crit floater (`N!`) only when HP actually dropped.
 
-No pierce, no elemental resist, no second roll.
+No pierce and no second roll. A non-Physical component is reduced by `elementalResist` once before the guard, ram, and Hellmouth steps. Every live caller is still Physical, so those hits still skip that reduction.
 
 Crab contact is the other way around from the shell: `updateEnemies` allows contact while the shell is closed and suppresses contact while `mode === 'open'`. The open window is when the player can hurt it, and the crab is not biting on that tick.
 
@@ -716,6 +883,22 @@ D1–D7 below are the Stage 0 recommendations. Stage 1 implemented them. The tex
 - **Expected gameplay impact.** None until Stage 9.
 - **Tradeoffs.** Hellmouth remains a stair-lock bypass on every floor that has a Super Elite in line of sight within 112 px. That is the live game.
 
+### D8 — Elemental resist is a capped percent, and vulnerability is that same number when it is negative
+
+- **Problem.** Stage 1 left `elementalResist` returning 0. Stage 2 has to pick caps, penetration, and a vulnerability rule without a second copy of Ethereal Shield, block, or the DEF curve, and without changing time-to-kill on today's Physical hits.
+- **Alternatives considered.** (a) A Diablo III-style armor curve shared with elements. (b) A hard 75% cap with no overcap and a separate ×1.2 vulnerability debuff. (c) Percent resist, soft cap 75, hard cap 90, penetration subtracted before the clamp, negative resist as the only vulnerability.
+- **Selected approach.** (c).
+
+  ```
+  eff = clamp(rawResist - penetration, -100, clamp(75 + maxResist, 0, 90))
+  multiplier = (100 - eff) / 100
+  ```
+
+  The DEF curve stays Physical-only. Resist runs once per non-Physical component beside that curve on the player, and once per non-Physical component before guard / ram / Hellmouth on an enemy. Ethereal Shield still happens first, once, on the component amount. Block, thorns, barrier, and champion crit still see the pre-resist amount. World packets and direct HP writers skip the new curve. Live callers stay Physical. The attack and hazard table in the Stage 2 history is a proposal, not a retune. `mods.fire` stays spell power. Sheet fields exist so a test can set a resist; loot does not roll them.
+- **Reason.** Percent resist is the rule the rest of the pipeline can share, the soft cap matches the familiar 75, the hard cap stops a raised maximum from becoming immunity, and one signed number cannot be applied twice as both "resist" and "vulnerable."
+- **Expected gameplay impact.** None on current characters and current attacks. A future Fireball retargeted to Fire would then use this curve.
+- **Tradeoffs.** Overcap above 75 absorbs penetration before the cap binds, which is easy to misread as "100 resist is 100%." The sheet stores the raw sum. The resolver clamps. Enemy content resists stay 0 until Stage 8, so the curve is real and the content is not.
+
 ### Stage 1 implementation notes
 
 D1–D7 are in the code. Refinements forced by the existing formulas:
@@ -737,7 +920,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 
 ### HIGH
 
-- **Three damage pipes and two `hurtPlayer` wrappers.** Stage 1 routed `damageEnemy` and `hurtPlayer` through `resolveDamage`, and `envHurt` through the world branch. Hunger, pit climb-out, and blood doors are still direct HP writes on purpose. A resist added only inside one leftover writer would still desync lava from hunger. Stage 2. OPEN for those direct writers. The combat path is no longer three copies of the armor curve.
+- **Three damage pipes and two `hurtPlayer` wrappers.** Stage 1 routed `damageEnemy` and `hurtPlayer` through `resolveDamage`, and `envHurt` through the world branch. Hunger, pit climb-out, and blood doors are still direct HP writes on purpose. Stage 2 put elemental resist on the combat resolver only. World packets and those direct writers still skip it, which is deliberate. OPEN as a reminder not to "fix" hunger by sending it through resist.
 - **Defense, block, Ethereal Shield, and barrier are easy to apply twice.** Stage 1 removed the ×0.75 from the tome wrapper and covered the single application with parity tests (100 → 75 with the shield up, not 56; DEF 30 → 50, not 25). Still OPEN as a guardrail: putting the multiply back in the wrapper would double it. Stage 2 must not add a second armor step.
 - **`mods.fire` reads as Fire damage and is spell power.** Stage 7, 10, and 12. OPEN. D6.
 - **Character sheet and item card disagree with combat.** Pierce and range are blank fields that still print. Card crit `0` hides the 5% base. Fire power, resists, regen, and Ethereal Shield are absent. Bow crits do not mark the floater. Life steal does not apply to bows, Fireball, or Frost Nova. The sheet's `DMG` is the weapon roll, which Fireball and Frost Nova ignore. Stage 12. OPEN.
@@ -840,12 +1023,25 @@ Stage 1 ran the harness. Headline counts, with the per-file failures listed in t
 
 No resist, crit-damage, or status balance pass was run. Those systems are not in the game yet.
 
+### Stage 2 executed results
+
+Stage 2 ran the same harness, headless Chrome, before and after the resist change. Counts are pass/fail.
+
+- Checkpoint `92edf84` / tag `combat-redesign-pre-stage2`, before resist math: 21 legacy files, 804 passed, 102 failed. `tests/stage1-damage.html` 71/0. Combat anchors `v079`, `v0710`, and `v0717` failed only their old version pin. `v0718` was 20/0.
+- After Stage 2: the same 21 files, 814 passed, 93 failed. No file gained a failure. `v0714` 33/8 → 40/1 and `v07152` 34/3 → 36/1 match the layout flake Stage 1 already reproduced on unmodified code. `v0711` 42/5 → 43/5 is the conditional Hellmouth trash check, and its five failure names did not change. Combat anchors did not move.
+- `tests/stage1-damage.html`: 71 passed, 0 failed, unchanged.
+- `tests/stage2-resist.html`: 73 passed, 0 failed. Caps, penetration, negative resist, mixed components, Ethereal Shield, block, barrier, thorns, i-frames, Shift, Clone, world damage, hunger, save compatibility, and the Hellmouth Super Elite delete are pinned there.
+
+No loot retune and no time-to-kill pass was run. Live callers are still Physical.
+
 ---
 
 ## Approval gate
 
 Stage 0 is IMPLEMENTED. Jake merged it as PR #23 and GO'd Stage 1. This log does not mark Stage 0 VERIFIED.
 
-Stage 1 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged. `version.json` is still 0.7.18.
+Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #24 (`92edf84`) and GO'd Stage 2. This log does not mark Stage 1 VERIFIED.
 
-**Wait for Jake's approval before Stage 2.** Stage 2 is armor and elemental resistances. It depends on this resolver, must not run `DEF/(DEF+30)` on non-physical types, and must not change Hellmouth.
+Stage 2 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 3.** Stage 3 is critical hits and damage scaling. It must not start from this branch. Stage 2 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.

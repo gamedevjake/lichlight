@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!-- Stage 2: elemental resists. Live callers stay Physical. Synthetic packets prove the formula. -->
+<html>
+<head><meta charset="utf-8"><title>stage2</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage2" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 240) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function specDealt(amount, res, maxBonus, pen, spread, eth) {
+  if (eth) amount *= 0.75;
+  const cap = Math.max(0, Math.min(90, 75 + maxBonus));
+  const eff = Math.max(-100, Math.min(cap, res - pen));
+  return Math.max(1, Math.round(amount * (100 - eff) / 100 * spread));
+}
+function calm(g, w) {
+  const p = g.player;
+  p.hp = 400; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0;
+  p.inv0 = 0; p.roll = 0; p.barrier = 0; p.barrierMax = 0; p.torchT = 0;
+  p.isArmorActive = false; p.isInvincible = false; p.isPlayerUndetected = false; p.decoyObject = null;
+  if (p.equip) p.equip.shield = null;
+  p.st.block = 0;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.maxResist = 0;
+  p.st.penFire = p.st.penCold = p.st.penLightning = p.st.penPoison = p.st.penShadow = 0;
+  p.st.powers = [];
+  p.resists = null; p.resAll = 0; p.maxResist = 0;
+  w.__hurtSpread = 1; w.__champCrit = 1;
+  return p;
+}
+function hitPlayer(g, w, spec) {
+  const p = g.player, hp0 = p.hp;
+  const res = g.resolveDamage(p, Object.assign({ tags: ['Spell'], attacker: 'enemy', source: { x: p.x + 12, y: p.y, label: 'bolt', T: { label: 'bolt' } } }, spec));
+  return { loss: hp0 - p.hp, res: res, hp: p.hp };
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage2src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('resist constants', g.RESIST_MIN === -100 && g.RESIST_SOFT === 75 && g.RESIST_HARD === 90);
+  check('physical armor unchanged', g.physicalArmorFraction(0) === 0 && g.physicalArmorFraction(30) === 0.5 && Math.abs(g.physicalArmorFraction(60) - 60 / 90) < 1e-12);
+  check('null resist is zero', g.DMG_TYPES.every(t => g.elementalResist(null, t) === 0 && g.elementalResistPercent(null, t) === 0));
+  check('physical resist helper is zero', g.elementalResistPercent({ st: { resFire: 90 } }, 'Physical', 40) === 0 && g.elementalResist({ st: { resFire: 90 } }, 'Physical', 40) === 0);
+
+  g.newGame();
+  let p = calm(g, w);
+  const plain = { x: p.x + 14, y: p.y, label: 'rat', T: { label: 'rat' } };
+
+  const rows = [
+    ['Fire', 100, 0, 0, 0, 1, false, 100],
+    ['Fire', 100, 75, 0, 0, 1, false, 25],
+    ['Fire', 100, 90, 0, 0, 1, false, 25],
+    ['Fire', 100, 100, 0, 0, 1, false, 25],
+    ['Fire', 100, 80, 10, 0, 1, false, 20],
+    ['Fire', 100, 100, 15, 0, 1, false, 10],
+    ['Fire', 100, 100, 50, 0, 1, false, 10],
+    ['Fire', 100, 50, -25, 0, 1, false, 50],
+    ['Fire', 100, 80, -25, 0, 1, false, 50],
+    ['Fire', 100, 40, -100, 0, 1, false, 100],
+    ['Cold', 100, -30, -100, 0, 1, false, 130],
+    ['Fire', 100, -50, 0, 0, 1, false, 150],
+    ['Fire', 100, -100, 0, 0, 1, false, 200],
+    ['Fire', 100, -250, 0, 0, 1, false, 200],
+    ['Lightning', 100, 75, 0, 20, 1, false, 45],
+    ['Fire', 100, 0, 0, 40, 1, false, 140],
+    ['Poison', 100, 10, 0, 200, 1, false, 200],
+    ['Fire', 100, 100, 0, 20, 1, false, 25],
+    ['Fire', 100, 100, 0, 40, 1, false, 40],
+    ['Fire', 100, 100, 15, 20, 1, false, 20],
+    ['Shadow', 40, -100, 0, 0, 1, false, 80],
+    ['Cold', 40, 0, 0, 0, 1, false, 40],
+    ['Lightning', 40, 100, 0, 0, 1, false, 10],
+    ['Poison', 40, 60, 0, 60, 1, false, 40],
+    ['Fire', 100, 20, 0, 0, 0.85, false, 68],
+    ['Fire', 100, 75, 0, 0, 1.15, false, 29],
+    ['Fire', 100, 33, 0, 0, 1, false, 67],
+    ['Fire', 100, 50, 0, 0, 1, true, 38],
+    ['Fire', 100, 0, 0, 0, 1, true, 75],
+    ['Fire', 100, 75, 0, 0, 1, true, 19],
+    ['Fire', 0, 0, 0, 0, 1, false, 1],
+    ['Fire', 1, 75, 0, 0, 1, false, 1],
+    ['Fire', 3, 100, 15, 0, 1, false, 1]
+  ];
+  let mismatch = '';
+  rows.forEach((row, i) => {
+    const type = row[0], amount = row[1], res = row[2], maxBonus = row[3], pen = row[4], spread = row[5], eth = row[6], expect = row[7];
+    const again = specDealt(amount, res, maxBonus, pen, spread, eth);
+    calm(g, w);
+    p.st['res' + type] = res; p.st.maxResist = maxBonus; p.isArmorActive = eth; w.__hurtSpread = spread;
+    const hit = hitPlayer(g, w, { amount: amount, type: type, penetration: pen });
+    const pct = g.elementalResistPercent(p, type, pen);
+    if (hit.loss !== expect || again !== expect || pct !== Math.max(-100, Math.min(Math.max(0, Math.min(90, 75 + maxBonus)), res - pen))) {
+      mismatch += '#' + i + ' ' + type + ' exp ' + expect + ' spec ' + again + ' got ' + hit.loss + ' pct ' + pct + '; ';
+    }
+  });
+  check('resist integer table', !mismatch, mismatch);
+  check('soft cap pins 25', specDealt(100, 100, 0, 0, 1, false) === 25);
+  check('hard cap pins 10', specDealt(100, 100, 15, 0, 1, false) === 10);
+  check('vulnerability floor pins 200', specDealt(100, -250, 0, 0, 1, false) === 200);
+  check('overcap buffers pen', specDealt(100, 100, 0, 20, 1, false) === 25 && specDealt(100, 100, 0, 40, 1, false) === 40);
+
+  calm(g, w); p.st.def = 90; p.st.resFire = 90; p.st.maxResist = 15;
+  let hit = hitPlayer(g, w, { amount: 100, type: 'Fire' });
+  check('fire ignores defense curve', hit.loss === 10, hit.loss);
+  calm(g, w); p.st.def = 30; p.st.resFire = 90; p.st.maxResist = 15;
+  hit = hitPlayer(g, w, { amount: 100, type: 'Physical' });
+  check('physical ignores fire resist', hit.loss === 50 && g.elementalResistPercent(p, 'Fire') === 90, hit.loss + ' pct ' + g.elementalResistPercent(p, 'Fire'));
+  calm(g, w); p.st.def = 30; p.st.resFire = 50;
+  hit = hitPlayer(g, w, { components: [{ amount: 100, type: 'Physical' }, { amount: 100, type: 'Fire' }], penetration: 0 });
+  check('mixed mitigates each part once', hit.loss === 100, hit.loss);
+  calm(g, w); p.st.def = 0; p.st.resFire = 75; p.st.resCold = -100;
+  hit = hitPlayer(g, w, { components: [{ amount: 100, type: 'Fire' }, { amount: 100, type: 'Cold' }] });
+  check('types do not share a resist', hit.loss === 225, hit.loss);
+  calm(g, w); p.st.def = 0; p.st.resFire = 50;
+  hit = hitPlayer(g, w, { components: [{ amount: 100, type: 'Physical' }, { amount: 100, type: 'Fire' }], penetration: 25 });
+  check('pen hits only the elemental part', hit.loss === 175, hit.loss);
+  calm(g, w); p.st.resFire = 50; p.st.resCold = 50;
+  hit = hitPlayer(g, w, { components: [{ amount: 100, type: 'Fire' }, { amount: 100, type: 'Cold' }], penetration: { Fire: 50 } });
+  check('typed pen does not leak', hit.loss === 150, hit.loss);
+  calm(g, w); p.st.def = 0; p.st.resFire = 0;
+  hit = hitPlayer(g, w, { components: [{ amount: 100, type: 'Physical' }, { amount: 100, type: 'Fire' }], penetration: 80 });
+  check('pen can open vulnerability on fire only', hit.loss === 280, hit.loss);
+  calm(g, w); p.st.resFire = 0; p.st.penFire = 40;
+  hit = hitPlayer(g, w, { amount: 100, type: 'Fire', attacker: 'enemy' });
+  check('own pen does not weaken own resist', hit.loss === 100, hit.loss);
+  calm(g, w); p.st.resFire = 0; p.resists = { Fire: 90 };
+  check('player sheet zero wins over resists bag', g.elementalResistPercent(p, 'Fire') === 0);
+
+  const champ = g.spawnEnemy('skel', 8, 8, true);
+  champ.dead = false; champ.hp = 20; champ.x = 8; champ.y = 8;
+  calm(g, w); p.st.resFire = 50; p.torchT = 40; w.__champCrit = 0;
+  w.hurtPlayer(100, champ);
+  check('champ physical still 105 and snuffs', p.hp === 295 && p.torchT === 0, 'hp ' + p.hp + ' torch ' + p.torchT);
+  calm(g, w); p.st.resFire = 50; p.torchT = 40; w.__champCrit = 0;
+  hit = g.resolveDamage(p, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'enemy', source: champ });
+  check('champ crit uses pre-resist amount', p.hp === 345 && hit.champCrit === true && p.torchT === 0, 'hp ' + p.hp);
+  calm(g, w); p.st.resFire = 50; p.isArmorActive = true; p.torchT = 40; w.__champCrit = 0;
+  g.resolveDamage(p, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'enemy', source: champ });
+  check('ethereal then resist then champ once', p.hp === 358 && p.torchT === 0, 'hp ' + p.hp);
+  calm(g, w); p.st.resFire = 0; p.barrier = 1000; p.torchT = 40; w.__champCrit = 0;
+  const soaked = g.resolveDamage(p, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'enemy', source: champ });
+  check('barrier can eat the champ bonus', p.hp === 400 && soaked.prevented === 'barrier' && p.torchT === 40 && p.barrier === 895, 'bar ' + p.barrier);
+
+  calm(g, w);
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  p.st.block = 100; p.st.resFire = 50; p.barrier = 30; p.st.powers = [{ t: 'thorns', pct: 20, id: 'th' }];
+  const thorn = g.spawnEnemy('rat', p.x + 20, p.y, false);
+  thorn.dead = false; thorn.hp = 400; thorn.hidden = false; thorn.downT = 0; thorn.mawVuln = 0;
+  const blocked = g.resolveDamage(p, { amount: 100, type: 'Fire', tags: ['Direct'], attacker: 'enemy', source: thorn });
+  check('block stops fire before resist', p.hp === 400 && blocked.prevented === 'block' && thorn.hp === 380 && p.barrier === 30, 'hp ' + p.hp + ' foe ' + thorn.hp);
+
+  calm(g, w); p.st.resFire = 50; p.st.powers = [{ t: 'thorns', pct: 20, id: 'th' }];
+  thorn.hp = 400;
+  g.resolveDamage(p, { amount: 100, type: 'Fire', tags: ['Direct'], attacker: 'enemy', source: thorn });
+  check('thorns use pre-resist raw', p.hp === 350 && thorn.hp === 380, 'hp ' + p.hp + ' foe ' + thorn.hp);
+
+  calm(g, w); p.st.resFire = 50; p.barrier = 10;
+  hit = hitPlayer(g, w, { amount: 40, type: 'Fire' });
+  check('barrier after resist', hit.loss === 10 && p.barrier === 0, 'hp ' + p.hp + ' bar ' + p.barrier);
+  calm(g, w); p.st.resFire = 50; p.barrier = 100;
+  const fullBar = hitPlayer(g, w, { amount: 40, type: 'Fire' });
+  check('barrier full on resisted fire', fullBar.loss === 0 && fullBar.res.prevented === 'barrier' && p.barrier === 80, 'bar ' + p.barrier);
+
+  calm(g, w); p.st.resFire = 50; p.isArmorActive = true; p.barrier = 10;
+  hit = hitPlayer(g, w, { amount: 100, type: 'Fire' });
+  check('ethereal resist barrier once each', hit.loss === 28 && p.barrier === 0, 'hp ' + p.hp);
+
+  calm(g, w);
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  p.st.block = 100; p.st.resFire = 50; p.barrier = 30; p.isArmorActive = true;
+  const dot = w.hurtPlayer(100, { dot: true, x: p.x, y: p.y, label: 'poison' });
+  check('physical dot still skips block', dot.dot === true && p.hp === 325 && p.barrier === 30 && p.inv0 === 0, 'hp ' + p.hp);
+  calm(g, w); p.st.resPoison = -100; p.st.block = 100; p.barrier = 40;
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  const poison = g.resolveDamage(p, { amount: 40, type: 'Poison', tags: ['DoT'], isDot: true, attacker: 'enemy', source: { dot: true, x: p.x, y: p.y, label: 'poison' } });
+  check('poison dot uses resist not block', poison.dot === true && p.hp === 320 && p.barrier === 40 && p.inv0 === 0, 'hp ' + p.hp);
+
+  calm(g, w); p.inv0 = 0.2; p.st.resFire = -100;
+  hitPlayer(g, w, { amount: 50, type: 'Fire' });
+  check('iframe eats elemental', p.hp === 400);
+  calm(g, w); p.roll = 0.1; p.st.resFire = -100;
+  w.hurtPlayer(50, { dot: true, x: p.x, y: p.y, label: 'poison' });
+  check('roll eats dot', p.hp === 400 && p.inv0 === 0);
+  calm(g, w); p.isInvincible = true; p.st.resFire = 0;
+  w.hurtPlayer(80, plain);
+  const worldShift = g.resolveDamage(p, { world: true, amount: 40, type: 'Fire', tags: ['Direct'], label: 'lava', lethal: true });
+  check('shift stops combat and world', p.hp === 400 && worldShift.prevented === 'shift');
+  calm(g, w); p.isPlayerUndetected = true; p.st.resFire = 90; p.st.maxResist = 15;
+  hitPlayer(g, w, { amount: 40, type: 'Fire' });
+  w.envHurt(12, 'lava', true);
+  check('clone stops combat and lava ignores resist', p.hp === 388, 'hp ' + p.hp);
+
+  calm(g, w); p.st.resFire = 90; p.st.maxResist = 15; p.st.def = 500; p.isArmorActive = true; p.st.block = 100;
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  const world = g.resolveDamage(p, { world: true, amount: 40, type: 'Fire', tags: ['Direct'], label: 'lava', lethal: false, attacker: 'world' });
+  check('world fire skips resist armor ethereal block', world.dealt === 40 && p.hp === 360, 'hp ' + p.hp + ' dealt ' + world.dealt);
+  calm(g, w); p.st.def = 500; p.st.resFire = 90; p.st.maxHp = 1000; p.hp = 1000; p.hunger = 0; p.thirst = 100; p.fatigue = 100;
+  g.updateSurvival(1);
+  check('hunger ignores resist and defense', Math.abs(p.hp - 994) < 1e-6, p.hp);
+
+  check('pit still direct', src.indexOf('function endFall() { const p = player, dmg = Math.ceil(p.st.maxHp * PIT_DMG), before = p.hp; p.hp = Math.max(1, p.hp - dmg);') >= 0);
+  check('blood door still direct', src.indexOf('p.hp -= cost; addText(p.x, p.y - 12, \'-\' + cost, \'#ff3030\');') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('legacy spell power untouched', src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('legacySkillPower') >= 0);
+  check('live calls stay physical', src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf("tags: ['Spell', 'AoE']") >= 0 && src.indexOf("type: 'Fire'") < 0);
+  check('envHurt stays world physical', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0);
+  check('no resist affix in the loot table', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
+
+  function foe(type, x) {
+    const e = g.spawnEnemy(type, x, p.y, false);
+    e.dead = false; e.hp = 400; e.maxHp = 400; e.shield = 0; e.hidden = false; e.downT = 0; e.mawVuln = 0; e.mode = e.mode || '';
+    e.resists = null; e.resFire = 0; e.resAll = 0; e.maxResist = 0;
+    return e;
+  }
+  g.newGame(); p = calm(g, w); p.x = 200; p.y = 200;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
+  let guard = foe('guard', p.x + 40);
+  guard.fa = Math.PI; guard.resists = { Fire: 50 };
+  w.damageEnemy(guard, 100, 1, 0, '#fff', false, null, { type: 'Fire' });
+  check('guard after fire resist', guard.hp === 392, guard.hp);
+  guard.hp = 400; guard.resists = { Fire: 90 }; guard.fa = Math.PI; guard.immT = 0;
+  w.damageEnemy(guard, 100, 1, 0, '#fff', false);
+  check('guard physical ignores fire resist', guard.hp === 385, guard.hp);
+  let ram = foe('ram', p.x + 70);
+  ram.resists = { Fire: 50 }; ram.mode = '';
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false, null, { type: 'Fire' });
+  check('ram after resist', ram.hp === 380, ram.hp);
+  ram.hp = 400; ram.mode = 'stun';
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false, null, { type: 'Fire' });
+  check('ram stun keeps resist drops armor', ram.hp === 350, ram.hp);
+  ram.hp = 400; ram.mode = ''; ram.mawVuln = 3; ram.resists = { Fire: 50 };
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false, null, { type: 'Fire' });
+  check('resist then ram then hellmouth once', ram.hp === 378, ram.hp);
+  ram.hp = 400; ram.resists = { Fire: 90 }; ram.mawVuln = 3; ram.mode = '';
+  w.damageEnemy(ram, 100, 0, 0, '#fff', false);
+  check('physical maw ignores fire resist', ram.hp === 400 - 44, ram.hp);
+
+  let cold = foe('rat', p.x + 100);
+  cold.resists = { Fire: 10, All: 15 };
+  g.resolveDamage(cold, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'player' });
+  check('enemy all-resist adds once', cold.hp === 325, cold.hp);
+  cold.hp = 400; cold.resists = { Fire: 10 }; cold.resFire = 80;
+  g.resolveDamage(cold, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'player' });
+  check('resists map wins over flat field', cold.hp === 310, cold.hp);
+  cold.hp = 400; cold.resists = { Fire: 100 }; cold.maxResist = 10; cold.resFire = 0;
+  const cap = g.resistCap(cold);
+  g.resolveDamage(cold, { amount: 100, type: 'Fire', tags: ['Spell'], attacker: 'player' });
+  check('enemy cap raise stops at the number', cap === 85 && cold.hp === 385, 'cap ' + cap + ' hp ' + cold.hp);
+  cold.hp = 400; cold.resists = { Fire: 75 }; cold.maxResist = 0;
+  p.st.penFire = 25;
+  w.damageEnemy(cold, 100, 0, 0, '#fff', false, null, { type: 'Fire', penetration: 10 });
+  check('sheet pen and packet pen add', cold.hp === 340, cold.hp);
+  p.st.penFire = 0;
+
+  cold.hp = 400; cold.resists = { Fire: 50 };
+  g.resolveDamage(cold, {
+    components: [{ amount: 100, type: 'Physical' }, { amount: 100, type: 'Fire' }],
+    attacker: 'player', tags: ['Direct']
+  });
+  check('enemy mixed once', cold.hp === 250, cold.hp);
+  cold.hp = 400;
+  guard = foe('guard', p.x + 120);
+  guard.fa = Math.PI; guard.resists = { Fire: 50 };
+  g.resolveDamage(guard, {
+    components: [{ amount: 100, type: 'Physical' }, { amount: 100, type: 'Fire' }],
+    attacker: 'player', source: p, tags: ['Direct']
+  });
+  check('guard does not resist twice', guard.hp === 377, guard.hp);
+
+  const crab = foe('crab', p.x + 140);
+  crab.mode = 'shell'; crab.resists = { Fire: -100 };
+  const crabHp = crab.hp;
+  w.damageEnemy(crab, 100, 0, 0, '#fff', false, null, { type: 'Fire' });
+  check('crab shell before resist', crab.hp === crabHp && w.__lastDamage.prevented === 'crab');
+
+  const fakeBoss = foe('skel', p.x + 160);
+  fakeBoss.T = Object.assign({}, fakeBoss.T, { boss: true, label: 'TEST BOSS' });
+  fakeBoss.B = { pal: ['#fff'], p1: [] };
+  fakeBoss.shield = 25; fakeBoss.hp = 100; fakeBoss.resists = { Fire: 50 };
+  w.damageEnemy(fakeBoss, 100, 0, 0, '#fff', false, null, { type: 'Fire' });
+  check('boss shield after resist', fakeBoss.shield === 0 && fakeBoss.hp === 75, 'sh ' + fakeBoss.shield + ' hp ' + fakeBoss.hp);
+
+  g.newGame(); p = calm(g, w);
+  if (g.SE717) g.SE717.dead = false;
+  const seDrop = g.seSpawn717('se_nyx', 'drop');
+  seDrop.sePhase = 'drop'; seDrop.resists = { Fire: -100 };
+  const seHp = seDrop.hp, seSh = seDrop.shield;
+  w.damageEnemy(seDrop, 500, 0, 0, '#fff', false, null, { type: 'Fire' });
+  check('se intro immune to fire', seDrop.hp === seHp && seDrop.shield === seSh && w.__lastDamage.prevented === 'super-elite');
+  seDrop.sePhase = 'fight'; seDrop.shield = 10; seDrop.hp = 50; seDrop.resists = { Cold: 50 };
+  w.damageEnemy(seDrop, 40, 0, 0, '#fff', false, null, { type: 'Cold' });
+  check('se shield after cold resist', seDrop.shield === 0 && seDrop.hp === 40, 'sh ' + seDrop.shield + ' hp ' + seDrop.hp);
+
+  g.newGame(); p = calm(g, w);
+  let lootResist = false;
+  for (let i = 0; i < 40; i++) {
+    const it = g.makeItem(20, 2);
+    const mods = it.mods || {};
+    if (mods.resFire || mods.resCold || mods.resLightning || mods.resPoison || mods.resShadow || mods.resAll || mods.maxResist || mods.penFire || mods.penAll) lootResist = true;
+  }
+  check('loot rolls no resist mods', !lootResist);
+
+  const am = { id: 'stage2-charm', slot: 'amulet', name: 'Test Charm', mods: { fire: 6, crit: 2, def: 3, resFire: 20, resAll: 5, maxResist: 3, penFire: 4, penAll: 1 }, powers: [] };
+  p.equip.amulet = am;
+  w.computeStats();
+  check('sheet folds all-resist and keeps fire as power', p.st.fire === 6 && p.st.crit === 7 && p.st.resFire === 25 && p.st.resCold === 5 && p.st.resShadow === 5 && p.st.maxResist === 3 && p.st.penFire === 5 && p.st.penCold === 1, JSON.stringify({ fire: p.st.fire, resFire: p.st.resFire, penFire: p.st.penFire, max: p.st.maxResist }));
+  check('folded resist is not applied twice', g.elementalResistPercent(p, 'Fire') === 25 && g.elementalResistPercent(p, 'Cold') === 5);
+  w.save();
+  g.continueGame();
+  w.computeStats();
+  const q = g.player;
+  check('save round trip keeps fire and resists', q && q.st.fire === 6 && q.st.resFire === 25 && q.st.resPoison === 5 && q.st.maxResist === 3 && q.st.penFire === 5 && q.equip.amulet && q.equip.amulet.mods.fire === 6 && q.equip.amulet.mods.resFire === 20 && q.equip.amulet.mods.resAll === 5, q && JSON.stringify({ fire: q.st.fire, resFire: q.st.resFire, penFire: q.st.penFire }));
+  q.equip.amulet = { id: 'old-charm', slot: 'amulet', name: 'Old Charm', mods: { fire: 6 }, powers: [] };
+  w.computeStats();
+  check('old gear has zero resists', q.st.fire === 6 && q.st.resFire === 0 && q.st.resCold === 0 && q.st.penFire === 0 && q.st.maxResist === 0, JSON.stringify({ fire: q.st.fire, resFire: q.st.resFire }));
+
+  g.newGame(); p = calm(g, w);
+  p.lichTome.isAcquired = true;
+  g.unlockSpell('fireball'); g.unlockSpell('spin'); g.unlockSpell('frostNova');
+  p.lvl = 10; p.st.fire = 20; p.mp = 100; p.cds[0] = 0; p.fx = 1; p.fy = 0;
+  g.projs.length = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
+  w.castSkill(0);
+  const fb = g.projs.find(pr => pr.kind === 'fire');
+  const burn = g.spawnEnemy('rat', fb.x + fb.vx * 0.05, fb.y + fb.vy * 0.05, false);
+  burn.dead = false; burn.hp = 500; burn.hidden = false; burn.downT = 0; burn.spd = 0; burn.hmFreeze = true;
+  burn.resists = { Fire: 90 }; burn.maxResist = 15;
+  g.step(0.05, { x: 0, y: 0 });
+  check('fireball stays physical against fire resist', fb && Math.abs(fb.dmg - 64) < 1e-6 && burn.hp === 436, 'dmg ' + (fb && fb.dmg) + ' hp ' + burn.hp + ' type ' + (w.__lastDamage && w.__lastDamage.type));
+
+  calm(g, w);
+  p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
+  p.lvl = 1; p.st.fire = 0; p.mp = 80; p.cds[2] = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
+  const novaE = g.spawnEnemy('rat', p.x + 10, p.y, false);
+  novaE.dead = false; novaE.hp = 100; novaE.hidden = false; novaE.downT = 0; novaE.resists = { Cold: 90 }; novaE.maxResist = 15;
+  w.castSkill(2);
+  check('frost nova stays physical', novaE.hp === 92 && w.__lastDamage && w.__lastDamage.type === 'Physical', 'hp ' + novaE.hp + ' ' + (w.__lastDamage && w.__lastDamage.type));
+
+  calm(g, w);
+  p.lvl = 1; p.st.min = 4; p.st.max = 4; p.st.crit = 0; p.st.fire = 40; p.st.aspd = 1;
+  check('melee roll ignores fire and resist stats', w.rollDmg().d === 4);
+
+  g.newGame();
+  g.startFloor(5, true);
+  p = calm(g, w);
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = -2; y <= 2; y++) for (let x = -1; x <= 8; x++) g.setTile(tx + x, ty + y, 1);
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  se.sePhase = 'fight'; se.x = p.x + 24; se.y = p.y; se.hp = 90; se.shield = 9; se.mawVuln = 0; se.dead = false; se.hidden = false; se.downT = 0;
+  se.resists = { Fire: 90 };
+  let boss = g.enemies.find(e => e.T && e.T.boss && e !== se);
+  if (!boss) boss = g.spawnBoss(p.x + 48, p.y);
+  boss.x = p.x + 48; boss.y = p.y; boss.dead = false; boss.hp = 400; boss.maxHp = 400; boss.shield = 200; boss.mawVuln = 0; boss.hidden = false;
+  p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth sinks se not boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss), 'n ' + sinks.length);
+  check('hellmouth vuln is boss only', (boss.mawVuln || 0) >= 3 && !(se.mawVuln > 0));
+  const sh0 = boss.shield;
+  w.damageEnemy(boss, 100, 0, 0, '#fff', false);
+  check('marked boss still takes 110', boss.shield === sh0 - 110 && boss.hp === 400, 'sh ' + boss.shield);
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('hellmouth still deletes se', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp + ' dead ' + se.dead);
+
+  g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.5 }]);
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
+  const conv = g.spawnEnemy('rat', p.x + 30, p.y, false);
+  conv.dead = false; conv.hp = 500; conv.shield = 0; conv.hidden = false; conv.downT = 0; conv.mawVuln = 0;
+  conv.resists = { Fire: 50 };
+  w.damageEnemy(conv, 100, 0, 0, '#fff', false);
+  check('converted fire is resisted once', conv.hp === 425, conv.hp);
+  g.setConversionEdges([]);
+  check('edges cleared', g.getConversionEdges().length === 0);
+}
+</script>
+</body>
+</html>
