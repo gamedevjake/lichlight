@@ -4098,37 +4098,234 @@ function moveEnt(e, dx, dy) {
   if (!hit(e.x, e.y + dy)) e.y += dy;
 }
 let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other hits get a throttled enemy flinch
-function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src) {
-  if (e.hp <= 0 || e.dead || e.hidden || e.downT) return;
-  if (e.superElite && e.sePhase !== 'fight') { // v0.7.17 SE1: invulnerable until the taunt-done cue
+// ===== Stage 1: universal damage architecture =====
+// One resolver owns mitigation. Callers still enter through damageEnemy / hurtPlayer / envHurt.
+// Order for the player: Shift/Clone → Ethereal ×0.75 → roll/i-frames → block → DEF/(DEF+30) on Physical only
+// → champion crit → thorns → barrier → HP. Enemy: immunities → guard → ram armor → Hellmouth vuln → floor 1
+// → boss/Super Elite shield → HP. World packets (envHurt) skip combat mitigation. mods.fire is not a type.
+const DMG_TYPES = ['Physical', 'Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
+const DMG_TAGS = ['Melee', 'Ranged', 'Spell', 'Projectile', 'AoE', 'DoT', 'Direct', 'Channelled'];
+let conversionEdges = []; // {from, to, fraction}. Empty in Stage 1. No gameplay caller adds edges.
+
+function physicalArmorFraction(def) { return def / (def + 30); }
+function elementalResist(defender, type) { return 0; } // Stage 2. Non-physical mitigation is a no-op until then.
+
+function normalizeTags(tags) {
+  const out = [];
+  if (!Array.isArray(tags)) return out;
+  for (let i = 0; i < tags.length; i++) if (DMG_TAGS.indexOf(tags[i]) >= 0 && out.indexOf(tags[i]) < 0) out.push(tags[i]);
+  return out;
+}
+function normalizeComponent(c, fallbackTags) {
+  const type = c && DMG_TYPES.indexOf(c.type) >= 0 ? c.type : 'Physical';
+  const amount = c && Number.isFinite(+c.amount) ? +c.amount : 0;
+  return { amount: amount, type: type, tags: normalizeTags((c && c.tags) || fallbackTags || []), crit: !!(c && c.crit), converted: !!(c && c.converted) };
+}
+function makeDamagePacket(spec) {
+  spec = spec || {};
+  const tags = normalizeTags(spec.tags);
+  const type = DMG_TYPES.indexOf(spec.type) >= 0 ? spec.type : 'Physical';
+  let components;
+  if (Array.isArray(spec.components) && spec.components.length) components = spec.components.map(c => normalizeComponent(c, tags));
+  else components = [normalizeComponent({ amount: spec.amount, type: type, tags: tags, crit: spec.crit }, tags)];
+  const isDot = !!(spec.isDot || tags.indexOf('DoT') >= 0 || components.some(c => c.tags.indexOf('DoT') >= 0));
+  let sum = 0;
+  for (let i = 0; i < components.length; i++) sum += components[i].amount;
+  return {
+    amount: sum, type: type, tags: tags, components: components, source: spec.source || null, crit: !!spec.crit,
+    attacker: spec.attacker || 'player', isDot: isDot, world: !!spec.world, kx: spec.kx, ky: spec.ky, col: spec.col,
+    label: spec.label, lethal: spec.lethal, cause: spec.cause
+  };
+}
+function conversionCycle(edges) {
+  const adj = {};
+  for (let i = 0; i < DMG_TYPES.length; i++) adj[DMG_TYPES[i]] = [];
+  for (let i = 0; i < edges.length; i++) adj[edges[i].from].push(edges[i].to);
+  const color = {};
+  function dfs(n) {
+    color[n] = 1;
+    const next = adj[n] || [];
+    for (let i = 0; i < next.length; i++) {
+      const m = next[i];
+      if (color[m] === 1) return true;
+      if (!color[m] && dfs(m)) return true;
+    }
+    color[n] = 2;
+    return false;
+  }
+  for (let i = 0; i < DMG_TYPES.length; i++) if (!color[DMG_TYPES[i]] && dfs(DMG_TYPES[i])) return true;
+  return false;
+}
+function setConversionEdges(edges) {
+  if (!Array.isArray(edges)) throw new Error('conversion edges must be a list');
+  const list = [];
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i] || {};
+    if (DMG_TYPES.indexOf(e.from) < 0 || DMG_TYPES.indexOf(e.to) < 0) throw new Error('bad conversion type');
+    if (e.from === e.to) throw new Error('conversion self-edge');
+    const fraction = +e.fraction;
+    if (!(fraction > 0) || fraction > 1) throw new Error('bad conversion fraction');
+    list.push({ from: e.from, to: e.to, fraction: fraction });
+  }
+  if (conversionCycle(list)) throw new Error('conversion cycle');
+  conversionEdges = list;
+  return getConversionEdges();
+}
+function getConversionEdges() { return conversionEdges.map(e => ({ from: e.from, to: e.to, fraction: e.fraction })); }
+function applyConversion(components) {
+  let comps = components.map(c => ({ amount: c.amount, type: c.type, tags: c.tags.slice(), crit: !!c.crit, converted: !!c.converted }));
+  if (!conversionEdges.length) return comps;
+  for (let i = 0; i < conversionEdges.length; i++) {
+    const edge = conversionEdges[i], next = [];
+    for (let k = 0; k < comps.length; k++) {
+      const c = comps[k];
+      if (c.converted || c.type !== edge.from || !(c.amount > 0)) { next.push(c); continue; }
+      const moved = c.amount * edge.fraction;
+      next.push({ amount: c.amount - moved, type: c.type, tags: c.tags.slice(), crit: c.crit, converted: false });
+      if (moved > 0) next.push({ amount: moved, type: edge.to, tags: c.tags.slice(), crit: c.crit, converted: true });
+    }
+    comps = next;
+  }
+  return comps;
+}
+function tagsForIncoming(src) {
+  if (src && src.dot) return ['DoT'];
+  if (src && src.T) return ['Melee', 'Direct'];
+  if (src && (src.owner === 'e' || src.kind)) return ['Projectile', 'Direct'];
+  return ['Direct'];
+}
+function preventedHit(why, packet, comps, raw) {
+  return {
+    phase: 'prevented', prevented: why, dealt: 0, killed: false, target: 'player', raw: raw || 0,
+    components: comps || packet.components, tags: (packet.tags || []).slice(), type: packet.type, dot: !!packet.isDot, world: false
+  };
+}
+function resolveWorldDamage(packet) {
+  const p = player;
+  if (!p || state !== 'play' || deathAct) return { phase: 'world', world: true, prevented: 'inactive', dealt: 0, killed: false, tags: packet.tags, type: packet.type };
+  if (p.isInvincible) return { phase: 'world', world: true, prevented: 'shift', dealt: 0, killed: false, tags: packet.tags, type: packet.type };
+  const d = Math.max(1, Math.round(packet.amount));
+  const hp0 = p.hp;
+  p.hp -= d; music.combatUntil = time + 3; addText(p.x, p.y - 12, d, packet.col || '#ff7040');
+  let killed = false;
+  if (p.hp <= 0) {
+    if (!packet.lethal) p.hp = 1;
+    else { p.hp = 0; die(packet.label, packet.cause || (/flame|lava|fire|burn/i.test(String(packet.label)) ? 'fire' : 'battle')); killed = true; }
+  } else powersLowHp();
+  return { phase: 'world', world: true, prevented: null, dealt: hp0 - p.hp, amount: d, killed: killed, tags: packet.tags, type: packet.type, armorFraction: 0 };
+}
+function resolvePlayerDamage(packet) {
+  const p = player, src = packet.source || null;
+  if (p && p.isInvincible) return preventedHit('shift', packet);
+  if (p && p.isPlayerUndetected) return preventedHit('clone', packet);
+  let comps = applyConversion(packet.components);
+  if (p && p.isArmorActive) comps = comps.map(c => ({ amount: c.amount * 0.75, type: c.type, tags: c.tags.slice(), crit: !!c.crit, converted: !!c.converted }));
+  if (p.inv0 > 0 || p.roll > 0 || state !== 'play' || state === 'dying' || deathAct) return preventedHit('iframe', packet, comps);
+  const dot = !!(packet.isDot || (src && src.dot));
+  let raw = 0;
+  for (let i = 0; i < comps.length; i++) raw += comps[i].amount;
+  if (!dot && tryBlock(raw, src)) return preventedHit('block', packet, comps, raw);
+  const red = physicalArmorFraction(p.st.def);
+  const spread = typeof window.__hurtSpread === 'number' ? window.__hurtSpread : rand(.85, 1.15);
+  let kept = 0;
+  for (let i = 0; i < comps.length; i++) {
+    const c = comps[i];
+    if (c.type === 'Physical') kept += c.amount * (1 - red);
+    else kept += c.amount * (1 - elementalResist(p, c.type));
+  }
+  // Single Physical component uses the v0.7.18 expression unchanged, including the one round.
+  let d = (comps.length === 1 && comps[0].type === 'Physical')
+    ? Math.max(1, Math.round(comps[0].amount * (1 - red) * spread))
+    : Math.max(1, Math.round(kept * spread));
+  let champCrit = false;
+  if (!dot && isChampion(hurtAttacker(src))) {
+    const roll = typeof window.__champCrit === 'number' ? window.__champCrit : Math.random();
+    if (roll < CHAMP_CRIT_P) { champCrit = true; d += Math.max(0, Math.round(raw * CHAMP_CRIT_BONUS)); }
+  }
+  if (!dot) {
+    powersOnHurt(raw, src); d = absorbBarrier(d);
+    if (d <= 0) { p.inv0 = .3; music.combatUntil = time + 4; return preventedHit('barrier', packet, comps, raw); }
+  }
+  const hp0 = p.hp; p.hp -= d; music.combatUntil = time + 4; if (p.hp > 0) powersLowHp();
+  if (champCrit && p.hp < hp0) { p.lastChampCrit = { base: raw, bonus: Math.max(0, Math.round(raw * CHAMP_CRIT_BONUS)), at: time }; if (p.torchT > 0) snuffHeldTorch(); addText(p.x, p.y - 20, 'CRIT', '#ffe060'); }
+  if (!dot && p.hp < hp0) playBossGloat(src);
+  const res = { phase: 'hit', target: 'player', prevented: null, raw: raw, mitigated: d, components: comps, tags: packet.tags.slice(), type: packet.type, dot: dot, champCrit: champCrit, spread: spread, armorFraction: red, world: false };
+  if (dot) {
+    addText(p.x, p.y - 12, d, '#a0e040');
+    if (p.hp <= 0) { p.hp = 0; die(src ? src.label : (packet.label || null), src ? src.cause : packet.cause); }
+    res.dealt = hp0 - p.hp; res.killed = p.hp <= 0; return res;
+  }
+  p.inv0 = .45; addTrauma(.25 + .6 * Math.min(1, d / p.st.maxHp)); sfx('hurt'); buzz(30);
+  addText(p.x, p.y - 12, d, champCrit ? '#ffe060' : '#ff5050');
+  if (src) { const a = Math.atan2(p.y - src.y, p.x - src.x); moveEnt(p, Math.cos(a) * 4, Math.sin(a) * 4); }
+  wearArmor();
+  if (p.hp <= 0) { p.hp = 0; die(src ? (src.T ? src.T.label : src.label) : null, src && src.cause); }
+  res.dealt = hp0 - p.hp; res.killed = p.hp <= 0; return res;
+}
+function resolveEnemyDamage(e, packet) {
+  if (e.hp <= 0 || e.dead || e.hidden || e.downT) return { phase: 'skip', target: 'enemy', prevented: 'invalid', dealt: 0, killed: false };
+  if (e.superElite && e.sePhase !== 'fight') {
     if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 10, 'IMMUNE', '#9ecbff'); e.immT = time + .4; }
-    return;
+    return { phase: 'immune', target: 'enemy', prevented: 'super-elite', dealt: 0, killed: false };
   }
   if (e.disg) wakeMimic(e);
   const T = e.T;
-  if (T.ai === 'crab' && e.mode !== 'open') { if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 10, 'IMMUNE', '#aaa'); e.immT = time + .4; } burst(e.x, e.y, '#e0a040', 3, 30); aggro(e); return; }
-  if (T.ai === 'guard') { const s = src || player, a = Math.atan2(s.y - e.y, s.x - e.x), da = Math.abs(((a - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-    if (da < 1.0) { dmg *= .15; if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 14, 'BLOCK', '#c8c8d8'); e.immT = time + .4; } kx *= .2; ky *= .2; } }
+  if (T.ai === 'crab' && e.mode !== 'open') {
+    if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 10, 'IMMUNE', '#aaa'); e.immT = time + .4; }
+    burst(e.x, e.y, '#e0a040', 3, 30); aggro(e);
+    return { phase: 'immune', target: 'enemy', prevented: 'crab', dealt: 0, killed: false };
+  }
+  let kx = packet.kx, ky = packet.ky;
+  const src = packet.source, crit = !!packet.crit, col = packet.col || '#fff';
+  const comps = applyConversion(packet.components);
+  let dmg = 0;
+  for (let i = 0; i < comps.length; i++) dmg += comps[i].amount;
+  let guardFront = false;
+  if (T.ai === 'guard') {
+    const s = src || player, a = Math.atan2(s.y - e.y, s.x - e.x), da = Math.abs(((a - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    if (da < 1.0) { dmg *= .15; guardFront = true; if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 14, 'BLOCK', '#c8c8d8'); e.immT = time + .4; } kx *= .2; ky *= .2; }
+  }
   if (T.armor && e.mode !== 'stun') dmg *= T.armor;
-  if (e.mawVuln > 0) dmg *= 1.1; // v0.7.11 B3: Hellmouth marks bosses, it does not swallow them
+  if (e.mawVuln > 0) dmg *= 1.1;
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
-  let hpDmg = dmg;
-  if ((T.boss || e.superElite) && (e.shield || 0) > 0) { // v0.7.17 B1 / SE1: shield absorbs first, overflow hits HP
+  let hpDmg = dmg, shieldAbs = 0;
+  if ((T.boss || e.superElite) && (e.shield || 0) > 0) {
     const abs = Math.min(e.shield, hpDmg);
-    e.shield -= abs; hpDmg -= abs;
+    e.shield -= abs; hpDmg -= abs; shieldAbs = abs;
     if (e.shield < 0) e.shield = 0;
     if (abs > 0 && hpDmg <= 0) addFoeText(e.x, e.y - 10, abs, '#6eb0ff');
   }
   if (hpDmg > 0) e.hp -= hpDmg;
-  e.flash = .12; e.kx += kx * kb; e.ky += ky * kb; vocHurt(e); // v0.7.2 §8
+  e.flash = .12; e.kx += kx * kb; e.ky += ky * kb; vocHurt(e);
   if (e.T.boss) bossVoice(e, 'hurt'); else if (!e.superElite && !meleeSfx && time - ehitT > .07) { ehitT = time; sfxEnt = e; sfxAt('ehit', e.x, e.y, 320); sfxEnt = null; }
   aggro(e); if (crit && hpDmg > 0) addTrauma(.12);
   if (typeof noteTarget717 === 'function') noteTarget717(e);
   if (hpDmg > 0) addFoeText(e.x, e.y - 10, hpDmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
   if (e.hp <= 0) killEnemy(e);
+  return {
+    phase: 'hit', target: 'enemy', prevented: null, dealt: hpDmg, amount: dmg, hpDmg: hpDmg, shieldAbs: shieldAbs,
+    guardFront: guardFront, crit: crit, killed: e.hp <= 0, components: comps, tags: packet.tags.slice(), type: packet.type, world: false
+  };
 }
+function resolveDamage(target, packet) {
+  packet = makeDamagePacket(packet);
+  let res;
+  if (packet.world) res = resolveWorldDamage(packet);
+  else if (target === player) res = resolvePlayerDamage(packet);
+  else res = resolveEnemyDamage(target, packet);
+  window.__lastDamage = res;
+  return res;
+}
+function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
+  meta = meta || {};
+  return resolveDamage(e, {
+    amount: dmg, type: meta.type || 'Physical', tags: Array.isArray(meta.tags) ? meta.tags : ['Direct'],
+    source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false
+  });
+}
+
 const BLOOD = { slime: '#50c040', slimelet: '#50c040', ooze: '#8aa060', bomber: '#8aa060', eel: '#48a8a0', drowned: '#48a8a0', siren: '#48a8a0', seer: '#48a8a0', crab: '#e0a040',
   bat: '#8040b0', spider: '#8040b0', rat: '#a06040', mage: '#8040b0', leech: '#c02020', ghoul: '#8aa060', crawler: '#a0e040', flies: '#404048', wisp: '#b0f0f0', ghost: '#d8e8f8', shade: '#3a3a4a', cantor: '#d8e8f8', exarch: '#e8c840' };
 // Regular enemies (incl. champions & mimics) drop only gold, potions and the odd NORMAL (white) item.
@@ -4228,27 +4425,12 @@ function playBossGloat(src) { // boss fight only, when that boss deals damage. D
   return id;
 }
 function hurtPlayer(dmg, src) {
-  const p = player; if (p.inv0 > 0 || p.roll > 0 || state !== 'play' || state === 'dying' || deathAct) return;
-  if (!(src && src.dot) && tryBlock(dmg, src)) return; // v0.5.0 shields
-  const red = p.st.def / (p.st.def + 30);
-  const spread = typeof window.__hurtSpread === 'number' ? window.__hurtSpread : rand(.85, 1.15);
-  let d = Math.max(1, Math.round(dmg * (1 - red) * spread));
-  let champCrit = false;
-  if (!(src && src.dot) && isChampion(hurtAttacker(src))) {
-    const roll = typeof window.__champCrit === 'number' ? window.__champCrit : Math.random();
-    if (roll < CHAMP_CRIT_P) { champCrit = true; d += Math.max(0, Math.round(dmg * CHAMP_CRIT_BONUS)); }
-  }
-  if (!(src && src.dot)) { powersOnHurt(dmg, src); d = absorbBarrier(d); if (d <= 0) { p.inv0 = .3; music.combatUntil = time + 4; return; } }
-  const hp0 = p.hp; p.hp -= d; music.combatUntil = time + 4; if (p.hp > 0) powersLowHp();
-  if (champCrit && p.hp < hp0) { p.lastChampCrit = { base: dmg, bonus: Math.max(0, Math.round(dmg * CHAMP_CRIT_BONUS)), at: time }; if (p.torchT > 0) snuffHeldTorch(); addText(p.x, p.y - 20, 'CRIT', '#ffe060'); }
-  if (!(src && src.dot) && p.hp < hp0) playBossGloat(src);
-  if (src && src.dot) { addText(p.x, p.y - 12, d, '#a0e040'); if (p.hp <= 0) { p.hp = 0; die(src.label, src.cause); } return; }
-  p.inv0 = .45; addTrauma(.25 + .6 * Math.min(1, d / p.st.maxHp)); sfx('hurt'); buzz(30);
-  addText(p.x, p.y - 12, d, champCrit ? '#ffe060' : '#ff5050');
-  if (src) { const a = Math.atan2(p.y - src.y, p.x - src.x); moveEnt(p, Math.cos(a) * 4, Math.sin(a) * 4); }
-  wearArmor();
-  if (p.hp <= 0) { p.hp = 0; die(src ? (src.T ? src.T.label : src.label) : null, src && src.cause); }
+  return resolveDamage(player, {
+    amount: dmg, type: 'Physical', tags: tagsForIncoming(src), source: src || null,
+    attacker: 'enemy', isDot: !!(src && src.dot), crit: false
+  });
 }
+
 let deathAct = null;
 function classifyDeath(killer, cause) {
   if (cause === 'starve' || cause === 'battle' || cause === 'fire') return cause;
@@ -4341,7 +4523,7 @@ function doAttack(fixed) {
     const da = Math.abs(((Math.atan2(dy, dx) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (da > 1.1 && d > 8 + e.r) continue;
     const { d: dmg, crit } = rollDmg(); leech(dmg);
-    damageEnemy(e, dmg * PWR_MUL, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', crit); landed = true; if (crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
+    damageEnemy(e, dmg * PWR_MUL, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', crit, null, { type: 'Physical', tags: ['Melee', 'Direct'] }); landed = true; if (crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
   }
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
@@ -4361,7 +4543,7 @@ function castSkill(i) {
   if (p.cds[i] > 0) return;
   const mc = manaCost(S); if (p.mp < mc) { flashMsg(mc > S.mana ? 'Not enough mana (parched / exhausted: spells cost more)' : 'Not enough mana', '#88f'); if (time - smpT.failT > .6) { smpT.failT = time; cue('player_cast_fail_01'); } held[hk] = false; tapQ[hk] = 0; return; }
   p.mp -= mc; p.cds[i] = S.cd; /* v0.7.3 §11: thirst / rest raise the mana cost */
-  const pw = p.st.fire + p.lvl * 2, amp = 1 + skillAmp(i) / 100;
+  const pw = p.st.fire + p.lvl * 2, amp = 1 + skillAmp(i) / 100; // legacySkillPower: mods.fire is spell power, not a Fire damage type
   if (i === 0) {
     let ax = p.fx, ay = p.fy; const t = nearestEnemy(160), ma = mouseAim();
     if (ma) { ax = ma.x; ay = ma.y; p.fx = ax; p.fy = ay; }
@@ -4370,13 +4552,13 @@ function castSkill(i) {
     sfx(S.snd || 'fire'); fxCast074(0, ax, ay);
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
-    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = (dm * 1.4 + pw * .5) * amp; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit); } }
+    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = (dm * 1.4 + pw * .5) * amp; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'] }); } }
     sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, 32, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
     breakSecretsAt(p.x, p.y, 70, true); snuffTorchesNear(p.x, p.y, 70);
     sfx(S.snd || 'nova'); fxCast074(2);
-    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, (6 + pw * 1.1) * amp, 0, 0, '#80d0ff'); } }
+    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, (6 + pw * 1.1) * amp, 0, 0, '#80d0ff', false, null, { type: 'Physical', tags: ['Spell', 'AoE'] }); } }
   }
 }
 
@@ -4487,9 +4669,9 @@ function update(dt) {
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
-      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8'); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
+      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8', false, null, { type: 'Physical', tags: ['Ranged', 'Projectile', 'Direct'] }); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
       if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); if (pr.skill === 0) fxImpact074(pr.x, pr.y); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
-        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040'); } }
+        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'] }); } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
     }
@@ -5541,7 +5723,7 @@ function firePulse(q) { const p = player; if (!pcdReady(q)) return false; pcdSet
 function powersOnHurt(raw, src) { const p = player;
   for (const q of pws('barrier')) if (q.trig === 'onHurt') raiseBarrier(q);
   for (const q of pws('fearPulse')) if (q.trig === 'onHurt') firePulse(q);
-  const th = pwSum('thorns', 'pct'); if (th > 0 && src && src.T && enemies.includes(src) && !src.dead) damageEnemy(src, raw * th / 100, 0, 0, '#c890ff'); }
+  const th = pwSum('thorns', 'pct'); if (th > 0 && src && src.T && enemies.includes(src) && !src.dead) damageEnemy(src, raw * th / 100, 0, 0, '#c890ff', false, null, { type: 'Physical', tags: ['Direct'] }); }
 function powersLowHp() { const p = player, f = p.hp / p.st.maxHp * 100;
   for (const q of pws('barrier')) if (q.trig === 'lowHp' && f < (+q.at || 30)) raiseBarrier(q);
   for (const q of pws('fearPulse')) if (q.trig === 'lowHp' && f < (+q.at || 30)) firePulse(q); }
@@ -5549,7 +5731,7 @@ function absorbBarrier(d) { const p = player; if (!(p.barrier > 0)) return d; co
 function tryBlock(dmg, src) { const p = player, sh = p.equip.shield; if (!sh || !(p.st.block > 0) || Math.random() * 100 >= p.st.block) return false;
   p.inv0 = .25; music.combatUntil = time + 4; sfx('block'); addText(p.x, p.y - 14, 'BLOCK', '#d8d8e8'); burst(p.x + p.fx * 5, p.y - 3 + p.fy * 4, '#e8e8f0', 6, 40); addTrauma(.08); p.blocks = (p.blocks || 0) + 1;
   wearItem(sh); for (const q of pws('barrier')) if (q.trig === 'onBlock') raiseBarrier(q);
-  const th = pwSum('thorns', 'pct'); if (th > 0 && src && src.T && enemies.includes(src) && !src.dead) damageEnemy(src, dmg * th / 100, 0, 0, '#c890ff');
+  const th = pwSum('thorns', 'pct'); if (th > 0 && src && src.T && enemies.includes(src) && !src.dead) damageEnemy(src, dmg * th / 100, 0, 0, '#c890ff', false, null, { type: 'Physical', tags: ['Direct'] });
   return true; }
 function powersOnKill(e) { const p = player, mp = pwSum('onKillMana', 'amt'), hp = pwSum('onKillLife', 'amt');
   if (mp) { p.mp = Math.min(p.st.maxMp, p.mp + mp); addText(p.x + 6, p.y - 22, '+' + mp + ' MP', '#8098ff'); }
@@ -6759,8 +6941,14 @@ function placeFirepits(d) { if (d < FIREPIT_MIN) return; let n = 1 + (d >= 9 && 
 function firepitAt(x, y) { for (const f of V71.firepits) if (x > f.tx * TS + 2 && x < (f.tx + f.n) * TS - 2 && y + 2 > f.ty * TS + 2 && y + 2 < (f.ty + f.n) * TS - 1) return f; return null; }
 function hazUnder() { const p = player; if (!p || p.roll > 0 || !V71.haz.length) return 0; const [tx, ty] = footTile(), id = hazAt(tx, ty); if (!id) return 0; const s = stoneAt(tx, ty); if (s && s.st !== 2) return 0; return id; }
 function hazSlow() { return hazUnder() === 1 ? WATER_SLOW : 1; }
-function envHurt(d, label, lethal, col, cause) { const p = player; if (!p || state !== 'play' || deathAct) return false; d = Math.max(1, Math.round(d)); p.hp -= d; music.combatUntil = time + 3; addText(p.x, p.y - 12, d, col || '#ff7040');
-  if (p.hp <= 0) { if (!lethal) p.hp = 1; else { p.hp = 0; die(label, cause || (/flame|lava|fire|burn/i.test(String(label)) ? 'fire' : 'battle')); return true; } } else powersLowHp(); return false; }
+function envHurt(d, label, lethal, col, cause) {
+  const res = resolveDamage(player, {
+    world: true, amount: d, type: 'Physical', tags: ['Direct'], attacker: 'world',
+    label: label, lethal: lethal, col: col, cause: cause
+  });
+  return !!(res && res.killed);
+}
+
 function igniteBurn() { const p = player; if (!p.burn) { v071Stats.burns++; flashMsg('You catch fire! Dodge roll to beat out the flames.', '#ff9040'); cue('wld_trap_flame_01', { vol: .8 }); cue('cbt_status_burn_apply_01', { vol: .9 }); } // v0.7.2 §7a apply cue
   p.burn = { vfx: BURN_VFX, dot: BURN_DOT, acc: (p.burn && p.burn.acc) || 0, tick: (p.burn && p.burn.tick) || 0 }; }
 function burnOnRoll() { const p = player, b = p && p.burn; if (!b) return; b.vfx = Math.max(0, b.vfx - 1); b.dot = Math.max(0, b.dot - 1); v071Stats.rollCuts = (v071Stats.rollCuts || 0) + 1;
@@ -8480,9 +8668,7 @@ readBook = function (b) {
 };
 const _hurt710 = hurtPlayer;
 hurtPlayer = function (dmg, src) {
-  const p = player;
-  if (p && (p.isInvincible || p.isPlayerUndetected)) return;
-  if (p && p.isArmorActive) dmg *= 0.75;
+  // Stage 1: Shift, Clone, and Ethereal Shield ×0.75 run once inside resolveDamage.
   return _hurt710(dmg, src);
 };
 const _envHurt710 = envHurt;
@@ -11585,10 +11771,10 @@ addText = function (x, y, t, col, big) {
   return o;
 };
 const _damageEnemy716 = damageEnemy;
-damageEnemy = function (e, dmg, kx, ky, col, crit, src) {
+damageEnemy = function () {
   const prev = __hitDir716;
-  __hitDir716 = { x: kx || 0, y: ky || 0 };
-  try { return _damageEnemy716(e, dmg, kx, ky, col, crit, src); }
+  __hitDir716 = { x: arguments[2] || 0, y: arguments[3] || 0 };
+  try { return _damageEnemy716.apply(this, arguments); }
   finally { __hitDir716 = prev; }
 };
 
@@ -12924,6 +13110,8 @@ if (window.game) {
     seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, seRecover717: seRecover717, seMarkDead717: seMarkDead717,
     loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,
     crispCtx: crispCtx, uiEff718: uiEff718, textPix718: textPix718, syncTextLayer718: syncTextLayer718,
+    resolveDamage: resolveDamage, makeDamagePacket: makeDamagePacket, setConversionEdges: setConversionEdges, getConversionEdges: getConversionEdges,
+    DMG_TYPES: DMG_TYPES, DMG_TAGS: DMG_TAGS, physicalArmorFraction: physicalArmorFraction, elementalResist: elementalResist,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });
   Object.defineProperty(window.game, 'textLayer', { configurable: true, get() { return textCan718; } });
@@ -12933,6 +13121,7 @@ if (window.game) {
   Object.defineProperty(window.game, 'SE_VFX', { configurable: true, get() { return SE_VFX; } });
   Object.defineProperty(window.game, 'SE_SHIELD', { configurable: true, get() { return SE_SHIELD; } });
   Object.defineProperty(window.game, 'SE_ERR', { configurable: true, get() { return SE_ERR; } });
+  Object.defineProperty(window.game, 'lastDamage', { configurable: true, get() { return window.__lastDamage || null; } });
   Object.defineProperty(window.game, 'climb', { configurable: true, get() { return climb; } });
 }
 
