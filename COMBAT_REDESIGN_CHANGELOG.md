@@ -900,7 +900,7 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 7 (skill 
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 7 — Skill system and build specialization.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage7` points at `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). The implementation commit is recorded in [STAGE7_REPORT.md](STAGE7_REPORT.md).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Implementation commit `0ec7ad620d390eb5dfc98679c3f535920a15ab15`. Rollback tag `combat-redesign-pre-stage7` points at `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29).
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 8 has not been started.
 - **Objective:** Give Fireball, Whirlwind, Frost Nova, and Hellmouth distinct jobs. Type the three damage skills. Keep `mods.fire` as general spell power. Connect Fireball and Frost Nova to the Stage 4 status bag without a permanent lock. Add one build choice per damage skill. Do not raise the zero-resist hit numbers. Do not touch Hellmouth's Super Elite deletion, Stage 8 resist tables, Stage 9 boss patterns, or Stage 10 loot.
 

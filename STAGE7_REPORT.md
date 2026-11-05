@@ -2,7 +2,7 @@
 
 **Status: IMPLEMENTED, not VERIFIED.** This branch is for Jake's review. It is not merged, not deployed, and not live. `version.json` is still **0.7.18**. Stage 8 has not been started.
 
-Implementation commit: see the commit that introduces `tests/stage7-skills.html`. The follow-up line in this file names that SHA once it exists.
+Implementation commit `0ec7ad620d390eb5dfc98679c3f535920a15ab15`.
 
 Rollback tag `combat-redesign-pre-stage7` points at `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash, PR #29, on main).
 
