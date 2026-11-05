@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<!-- Stage 6: weapon identity, attack timing, hitstop, bow impact. Damage per hit stays the Stage 5 number. -->
+<html>
+<head><meta charset="utf-8"><title>stage6</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage6" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 320) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.armor = null; p.equip.helm = null; p.equip.boots = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 400; p.st.maxHp = 800; p.st.def = 0; p.st.regen = 0; p.st.fire = 0;
+  p.st.crit = 0; p.st.critDmg = 0; p.st.critMul = 2;
+  p.st.min = 8; p.st.max = 8; p.st.ls = 0; p.st.block = 0; p.st.ms = 1; p.st.aspd = 1;
+  p.st.flat = 0; p.st.inc = 0; p.st.more = 1;
+  p.inv0 = 0; p.roll = 0; p.rollCd = 0; p.rollQ = 0; p.barrier = 0; p.slowT = 0;
+  p.swing = 0; p.atkCd = 0; p.chg = -1; p.mchg = -1; p.bowDown = 0;
+  p.atkPhase = ''; p.atkWind = 0; p.atkKind = ''; p.atkKeepCd = false;
+  if (p.atkBuf) p.atkBuf.on = false;
+  p.x = 220; p.y = 180; p.fx = 1; p.fy = 0;
+  p.statusImmune = null; p.freezeImmune = 0; p.staggerImmune = 0;
+  g.clearStatuses(p); g.resetPoise(p); g.ensurePoise(p);
+  w.__hurtSpread = 1; w.__champCrit = 1; w.__critRoll = 1;
+  if (g.clearSkillCrit) g.clearSkillCrit();
+  if (g.setConversionEdges) g.setConversionEdges([]);
+  return p;
+}
+function foe(g, p, x, y) {
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const e = g.spawnEnemy('skel', x, y == null ? p.y : y, false);
+  e.dead = false; e.hp = 500; e.maxHp = 500; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.hmFreeze = true; e.spd = 0; e.mode = ''; e.resists = null; e.r = 4;
+  g.clearStatuses(e); g.resetPoise(e); g.ensurePoise(e);
+  return e;
+}
+function loss(e) { return 500 - e.hp; }
+function wear(g, p, name, aspd) {
+  if (!name) { p.equip.weapon = null; p.st.aspd = aspd || 1; return null; }
+  if (name === 'BOW') {
+    const it = g.equipBow('default');
+    p.st.aspd = aspd || it.spd || 1.05;
+    p.atkCd = 0; p.swing = 0; p.atkPhase = ''; p.atkWind = 0;
+    return it;
+  }
+  const it = g.makeItem(1, 0, name);
+  p.equip.weapon = it;
+  p.st.aspd = aspd || it.spd || 1;
+  p.atkCd = 0; p.swing = 0; p.atkPhase = ''; p.atkWind = 0;
+  return it;
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage6src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('callers stay physical', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Ranged', 'Projectile', 'Direct']") >= 0 && src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0);
+  check('slow floor stays 0.2', g.MIN_MOVE_MUL === 0.2, g.MIN_MOVE_MUL);
+  check('hitstop is capped', g.HITSTOP_CAP === 0.06 && g.ATK_BUF === 0.16, g.HITSTOP_CAP + ' buf ' + g.ATK_BUF);
+
+  const F = g.WEAPON_FAMILIES;
+  check('families are not one row', F.sword.arc === 1.1 && F.axe.arc > F.sword.arc && F.maul.arc < F.sword.arc && F.staff.arc < F.maul.arc && F.axe.windup > F.sword.windup && F.maul.windup > F.axe.windup, JSON.stringify({ sword: F.sword.arc, axe: F.axe.arc, maul: F.maul.arc, staff: F.staff.arc }));
+  check('heavy poise is higher and bows are lighter', F.fist.poise.light === 18 && F.sword.poise.light === 18 && F.axe.poise.light === 28 && F.maul.poise.light === 40 && F.staff.poise.light === 12 && F.bow.poise.light === 11 && F.maul.poise.power === 96 && F.sword.poise.power === 52 && F.staff.poise.skill === 22 && F.sword.poise.skill === 14, JSON.stringify({ maul: F.maul.poise, bow: F.bow.poise.light, staff: F.staff.poise.skill }));
+  check('class table remains the untagged fallback', g.POISE_CLASS_DMG.light === 18 && g.POISE_CLASS_DMG.heavy === 34 && g.POISE_CLASS_DMG.power === 52 && g.POISE_CLASS_DMG.skill === 14);
+
+  g.newGame();
+  let p = calm(g, w);
+  check('fists are a family', g.weaponFamilyOf(p).id === 'fist' && g.weaponReach713() === 18, g.weaponFamilyOf(p).id + ' r ' + g.weaponReach713());
+  const sword = wear(g, p, 'Short Sword');
+  check('sword reach and period', g.weaponFamilyId(sword) === 'sword' && g.weaponReach713() === 24 && Math.abs(g.attackPeriod() - 0.45) < 1e-9, g.attackPeriod());
+  wear(g, p, 'Hand Axe');
+  check('axe reach', g.weaponFamilyOf(p).id === 'axe' && g.weaponReach713() === 28 && Math.abs(g.attackPeriod() - 0.45 / 0.9) < 1e-9, g.weaponReach713() + ' p ' + g.attackPeriod());
+  wear(g, p, 'Great Maul');
+  check('maul reach and slower period', g.weaponFamilyOf(p).id === 'maul' && g.weaponReach713() === 34 && Math.abs(g.attackPeriod() - 0.45 / 0.7) < 1e-6, g.attackPeriod());
+  wear(g, p, 'Gnarled Staff');
+  check('staff reach', g.weaponFamilyOf(p).id === 'staff' && g.weaponReach713() === 40, g.weaponReach713());
+  wear(g, p, 'BOW');
+  check('bow reach stays ranged', g.weaponFamilyOf(p).id === 'bow' && g.weaponReach713() > 100, g.weaponReach713());
+
+  calm(g, w); p = g.player;
+  p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.st.fire = 40; p.st.aspd = 1;
+  const tapE = foe(g, p, p.x + 12);
+  w.doAttack(true);
+  check('direct tap still hits immediately and ignores fire', loss(tapE) === 10 && w.__lastPoise && Math.abs(w.__lastPoise.dealt - 18) < 1e-6, loss(tapE) + ' poise ' + (w.__lastPoise && w.__lastPoise.dealt));
+  const cd0 = p.atkCd;
+  check('direct tap period is still 0.45', Math.abs(cd0 - 0.45) < 1e-9, cd0);
+
+  calm(g, w); p = g.player;
+  p.st.min = 10; p.st.max = 10; p.st.aspd = 1;
+  wear(g, p, 'Short Sword', 1);
+  const side = 1.25, dist = 18;
+  const swordE = foe(g, p, p.x + Math.cos(side) * dist, p.y + Math.sin(side) * dist);
+  w.doAttack(true);
+  const swordSide = loss(swordE);
+  calm(g, w); p = g.player; p.st.min = 10; p.st.max = 10;
+  wear(g, p, 'Hand Axe', 1);
+  const axeE = foe(g, p, p.x + Math.cos(side) * dist, p.y + Math.sin(side) * dist);
+  w.doAttack(true);
+  const axeSide = loss(axeE);
+  calm(g, w); p = g.player; p.st.min = 10; p.st.max = 10;
+  wear(g, p, 'Gnarled Staff', 1);
+  const staffE = foe(g, p, p.x + Math.cos(side) * dist, p.y + Math.sin(side) * dist);
+  w.doAttack(true);
+  const staffSide = loss(staffE);
+  calm(g, w); p = g.player; p.st.min = 10; p.st.max = 10;
+  wear(g, p, 'Great Maul', 1);
+  const maulE = foe(g, p, p.x + Math.cos(side) * dist, p.y + Math.sin(side) * dist);
+  w.doAttack(true);
+  const maulSide = loss(maulE);
+  check('arc is behavior, not only a stat', swordSide === 0 && axeSide === 10 && staffSide === 0 && maulSide === 0, [swordSide, axeSide, staffSide, maulSide].join(','));
+
+  function poiseOf(name, aspd) {
+    calm(g, w); p = g.player; p.st.min = 8; p.st.max = 8; p.st.aspd = aspd || 1;
+    if (name) wear(g, p, name, aspd || 1);
+    const e = foe(g, p, p.x + 12);
+    w.doAttack(true);
+    return { dealt: w.__lastPoise && w.__lastPoise.dealt, cls: w.__lastPoise && w.__lastPoise.cls, hp: loss(e), id: g.weaponFamilyOf(p).id };
+  }
+  const fistP = poiseOf(null, 1);
+  const swordP = poiseOf('Short Sword', 1);
+  const axeP = poiseOf('Hand Axe', 1);
+  const maulP = poiseOf('Great Maul', 1);
+  const staffP = poiseOf('Gnarled Staff', 1);
+  check('live taps use the family poise and the same hit points', fistP.dealt === 18 && swordP.dealt === 18 && axeP.dealt === 28 && maulP.dealt === 40 && staffP.dealt === 12 && fistP.hp === 8 && swordP.hp === 8 && axeP.hp === 8 && maulP.hp === 8 && staffP.hp === 8, [fistP.dealt, swordP.dealt, axeP.dealt, maulP.dealt, staffP.dealt, maulP.hp].join(','));
+
+  calm(g, w); p = g.player; p.st.min = 8; p.st.max = 8;
+  wear(g, p, 'Great Maul', 1);
+  const bossy = foe(g, p, p.x + 12);
+  bossy.poiseTaken = 0.2;
+  w.doAttack(true);
+  check('weapon poise still takes the tier multiplier', w.__lastPoise && Math.abs(w.__lastPoise.dealt - 8) < 1e-6, w.__lastPoise && w.__lastPoise.dealt);
+
+  calm(g, w); p = g.player; p.st.min = 10; p.st.max = 10; p.st.aspd = 1;
+  wear(g, p, 'Short Sword', 1);
+  const pow = foe(g, p, p.x + 12);
+  w.powerAttack074(0.9, true);
+  check('sword full power damage and poise stay 2.25 and 52', loss(pow) === 23 && w.__lastPoise && Math.abs(w.__lastPoise.dealt - 52) < 1e-6 && w.__lastPoise.cls === 'power', loss(pow) + ' ' + (w.__lastPoise && w.__lastPoise.dealt));
+  calm(g, w); p = g.player; p.st.min = 10; p.st.max = 10;
+  wear(g, p, 'Great Maul', 1);
+  const mpow = foe(g, p, p.x + 12);
+  const beforeStop = g.attackState().hitStop;
+  w.powerAttack074(0.9, true);
+  const stop = g.attackState().hitStop;
+  check('maul power staggers harder and hitstop stays capped', loss(mpow) === 23 && w.__lastPoise && Math.abs(w.__lastPoise.dealt - 96) < 1e-6 && stop > beforeStop && stop <= 0.06 && stop > 0.05, loss(mpow) + ' poise ' + (w.__lastPoise && w.__lastPoise.dealt) + ' stop ' + stop);
+
+  calm(g, w); p = g.player; p.st.min = 8; p.st.max = 8; p.st.aspd = 1;
+  wear(g, p, 'Short Sword', 1);
+  const hs = foe(g, p, p.x + 12);
+  w.doAttack(true);
+  const cdBefore = p.atkCd, stopBefore = g.attackState().hitStop;
+  g.step(0.05, { x: 0, y: 0 });
+  check('hitstop does not stall the cooldown', stopBefore > 0 && stopBefore <= 0.06 && Math.abs((cdBefore - p.atkCd) - 0.05) < 0.008, 'stop ' + stopBefore + ' cd ' + cdBefore + ' -> ' + p.atkCd + ' hp ' + loss(hs));
+
+  calm(g, w); p = g.player;
+  p.lichTome.isAcquired = true; g.unlockSpell('spin'); g.unlockSpell('frostNova'); g.unlockSpell('fireball');
+  p.lvl = 1; p.st.fire = 0; p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.mp = 80; p.cds[1] = 0;
+  wear(g, p, 'Short Sword', 1);
+  const spinS = foe(g, p, p.x);
+  w.castSkill(1);
+  const swordWw = { hp: loss(spinS), poise: w.__lastPoise && w.__lastPoise.dealt, cls: w.__lastPoise && w.__lastPoise.cls };
+  calm(g, w); p = g.player;
+  p.lichTome.isAcquired = true; g.unlockSpell('spin');
+  p.st.fire = 0; p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.mp = 80; p.cds[1] = 0;
+  wear(g, p, 'Great Maul', 1);
+  const spinM = foe(g, p, p.x);
+  w.castSkill(1);
+  check('whirlwind damage stays, maul poise does not', swordWw.hp === 15 && loss(spinM) === 15 && swordWw.cls === 'heavy' && Math.abs(swordWw.poise - 34) < 1e-6 && w.__lastPoise.cls === 'heavy' && Math.abs(w.__lastPoise.dealt - 60) < 1e-6, swordWw.hp + '/' + loss(spinM) + ' poise ' + swordWw.poise + '/' + (w.__lastPoise && w.__lastPoise.dealt));
+
+  calm(g, w); p = g.player;
+  p.lichTome.isAcquired = true; g.unlockSpell('frostNova');
+  p.lvl = 1; p.st.fire = 0; p.mp = 80; p.cds[2] = 0;
+  wear(g, p, 'Gnarled Staff', 1);
+  const nova = foe(g, p, p.x + 10);
+  w.castSkill(2);
+  check('frost nova still slows and a staff adds skill poise', loss(nova) === 8 && nova.slow === 3.5 && !g.getStatus(nova, 'chill') && w.__lastPoise.cls === 'skill' && Math.abs(w.__lastPoise.dealt - 22) < 1e-6, loss(nova) + ' slow ' + nova.slow + ' poise ' + (w.__lastPoise && w.__lastPoise.dealt));
+
+  calm(g, w); p = g.player;
+  p.lichTome.isAcquired = true; g.unlockSpell('fireball');
+  p.lvl = 10; p.st.fire = 20; p.mp = 100; p.cds[0] = 0; p.fx = 1; p.fy = 0;
+  wear(g, p, 'Archon Staff', 1);
+  g.projs.length = 0;
+  w.castSkill(0);
+  const fb = g.projs.find(q => q.kind === 'fire');
+  check('fireball power stays 64 and keeps its family', fb && Math.abs(fb.dmg - 64) < 1e-6 && fb.weaponFamily === 'staff', fb && fb.dmg + ' ' + (fb && fb.weaponFamily));
+  const splashE = foe(g, p, p.x + 30);
+  w.damageEnemy(splashE, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], skill: 'fireball', more: 0.6, critApplied: true, scale: false, weaponFamily: 'staff' });
+  check('staff splash poise scales once', w.__lastPoise && Math.abs(w.__lastPoise.dealt - 13.2) < 1e-6, w.__lastPoise && w.__lastPoise.dealt);
+
+  calm(g, w); p = g.player;
+  w.__critRoll = 0;
+  wear(g, p, 'BOW', 1.05);
+  p.st.min = 8; p.st.max = 8; p.st.crit = 100; p.st.critMul = 2; p.st.ls = 50; p.st.aspd = 1.05; p.st.regen = 0; p.hp = 40;
+  const beforeBow = p.hp;
+  let bowMiss = 0, bowHit = 0, bowBadCrit = 0, bowBadDmg = 0;
+  for (let i = 0; i < 12; i++) {
+    p.atkCd = 0; p.swing = 0; p.fx = 1; p.fy = 0; p.hp = beforeBow;
+    g.projs.length = 0;
+    w.fireBow(p.equip.weapon, true);
+    const arrow = g.projs.filter(q => q.kind === 'arrow' && q.owner === 'p').pop();
+    const be = foe(g, p, p.x + 16);
+    be.r = 8;
+    if (!arrow || arrow.dmg !== 16 || arrow.critRolled !== true) bowBadDmg++;
+    if (arrow) { arrow.x = be.x; arrow.y = be.y; arrow.life = 0.2; }
+    g.step(0.05, { x: 0, y: 0 });
+    if (loss(be) === 16) bowHit++; else bowMiss++;
+    if (!(w.__lastDamage && w.__lastDamage.crit === false)) bowBadCrit++;
+    if (p.hp !== beforeBow) bowBadCrit++;
+  }
+  check('bow crit flag stays off the floater across repeats', bowHit === 12 && bowMiss === 0 && bowBadCrit === 0 && bowBadDmg === 0, 'hit ' + bowHit + ' miss ' + bowMiss + ' crit ' + bowBadCrit + ' dmg ' + bowBadDmg);
+  calm(g, w); p = g.player;
+  wear(g, p, 'BOW', 1.05);
+  p.st.min = 8; p.st.max = 8; p.st.crit = 0; p.st.critMul = 2; p.st.aspd = 1.05; p.st.fire = 0;
+  w.powerAttack074(0.9, true);
+  const poweredArrow = g.projs.filter(q => q.kind === 'arrow' && q.owner === 'p').pop();
+  check('bow charge does not apply the melee power multiplier', poweredArrow && poweredArrow.dmg === 8 && p.chg < 0, (poweredArrow && poweredArrow.dmg) + ' chg ' + p.chg);
+  const bowE = foe(g, p, p.x + 16); bowE.r = 8;
+  if (poweredArrow) { poweredArrow.x = bowE.x; poweredArrow.y = bowE.y; poweredArrow.life = 0.2; }
+  g.step(0.05, { x: 0, y: 0 });
+  check('bow impact poise is the bow family', loss(bowE) === 8 && w.__lastPoise && w.__lastPoise.cls === 'light' && Math.abs(w.__lastPoise.dealt - 11) < 1e-6, loss(bowE) + ' ' + (w.__lastPoise && w.__lastPoise.dealt));
+
+  calm(g, w); p = g.player;
+  p.st.min = 10; p.st.max = 10; p.st.aspd = 1; p.st.crit = 0;
+  wear(g, p, 'Short Sword', 1);
+  const wind = foe(g, p, p.x + 12);
+  const armed = g.beginAttack('tap', true, 0);
+  check('scheduled tap does not hit during windup', armed === true && loss(wind) === 0 && g.attackState().phase === 'windup' && g.attackState().wind > 0.05, JSON.stringify(g.attackState()));
+  g.step(0.05, { x: 0, y: 0 });
+  check('windup survives a short step', loss(wind) === 0 && g.attackState().phase === 'windup', loss(wind) + ' ' + g.attackState().phase);
+  g.step(0.05, { x: 0, y: 0 });
+  check('hit lands at the end of windup inside the same period', loss(wind) === 10 && p.atkCd > 0.3 && p.atkCd < 0.42, loss(wind) + ' cd ' + p.atkCd);
+  const queued = g.beginAttack('tap', true, 0);
+  g.step(0.05, { x: 0, y: 0 });
+  check('a press during recovery buffers and does not add a hit', queued === true && g.attackState().buffered === true && loss(wind) === 10, 'queued ' + queued + ' buf ' + g.attackState().buffered + ' hp ' + loss(wind));
+  for (let i = 0; i < 12; i++) g.step(0.05, { x: 0, y: 0 });
+  check('the buffer becomes one swing and not two', loss(wind) === 20, loss(wind));
+
+  calm(g, w); p = g.player;
+  p.st.min = 10; p.st.max = 10; p.st.aspd = 1;
+  wear(g, p, 'Short Sword', 1);
+  const cancel = foe(g, p, p.x + 12);
+  g.beginAttack('tap', true, 0);
+  w.doAttack(true);
+  g.step(0.2, { x: 0, y: 0 });
+  check('a direct swing replaces the windup instead of doubling it', loss(cancel) === 10 && g.attackState().phase !== 'windup', loss(cancel) + ' ' + g.attackState().phase);
+
+  calm(g, w); p = g.player;
+  p.st.min = 10; p.st.max = 10; p.st.aspd = 1; p.rollCd = 0; p.roll = 0;
+  wear(g, p, 'Great Maul', 1);
+  const rolled = foe(g, p, p.x + 12);
+  g.beginAttack('tap', true, 0);
+  p.rollQ = 0.25;
+  g.step(0.05, { x: 0, y: 0 });
+  const cdRoll = p.atkCd;
+  g.step(0.25, { x: 0, y: 0 });
+  check('a roll cancels an uncommitted hit and keeps recovery', loss(rolled) === 0 && cdRoll > 0.3 && g.attackState().phase !== 'windup', loss(rolled) + ' cd ' + cdRoll + ' ' + g.attackState().phase);
+
+  const rows = [
+    { name: null, spd: 1, pin: 2, label: 'fists' },
+    { name: 'Short Sword', spd: 1, pin: 4, label: 'sword' },
+    { name: 'Hand Axe', spd: 0.9, pin: 5, label: 'axe' },
+    { name: 'Gnarled Staff', spd: 1, pin: 5, label: 'staff' },
+    { name: 'Great Maul', spd: 0.7, pin: 19, label: 'maul' },
+    { name: 'BOW', spd: 1.05, pin: 7, label: 'bow' }
+  ];
+  const ttk = [];
+  rows.forEach(row => {
+    calm(g, w); p = g.player;
+    p.st.crit = 0; p.st.fire = 0; p.st.aspd = row.spd;
+    if (row.name) wear(g, p, row.name, row.spd);
+    p.st.min = row.pin; p.st.max = row.pin; p.st.crit = 0; p.st.aspd = row.spd; p.st.fire = 0;
+    const period = g.attackPeriod();
+    let dealt = 0;
+    if (row.label === 'bow') {
+      p.atkCd = 0;
+      w.fireBow(p.equip.weapon, true);
+      const arrow = g.projs.filter(q => q.kind === 'arrow' && q.owner === 'p').pop();
+      dealt = arrow ? arrow.dmg : 0;
+      const be = foe(g, p, p.x + 16); be.r = 8;
+      if (arrow) { arrow.x = be.x; arrow.y = be.y; arrow.life = 0.2; }
+      g.step(0.05, { x: 0, y: 0 });
+      if (loss(be) !== dealt) dealt = -dealt;
+    } else {
+      const e = foe(g, p, p.x + 12);
+      w.doAttack(true);
+      dealt = loss(e);
+    }
+    const hits80 = dealt > 0 ? Math.ceil(80 / dealt) : 0;
+    const hitsBoss = dealt > 0 ? Math.ceil(1050 / dealt) : 0;
+    ttk.push({ label: row.label, dealt: dealt, period: Math.round(period * 1000) / 1000, ttk80: Math.round(hits80 * period * 1000) / 1000, ttkBoss: Math.round(hitsBoss * period * 1000) / 1000 });
+    check(row.label + ' time to kill matches the pinned hit', dealt === row.pin && Math.abs(period - 0.45 / row.spd) < 1e-6, dealt + ' period ' + period);
+  });
+  check('ttk table has six families', ttk.length === 6 && ttk.every(r => r.ttk80 > 0 && r.ttkBoss > r.ttk80), JSON.stringify(ttk));
+
+  calm(g, w); p = g.player;
+  const kept = g.makeItem(1, 0, 'Short Sword');
+  kept.mods.fire = 4; kept.spd = 1;
+  p.equip.weapon = kept;
+  p.hp = 40;
+  w.save();
+  const raw = JSON.parse(w.localStorage.getItem('cryptdelve'));
+  check('save keeps the weapon and does not require attack state', raw && raw.p && raw.p.equip.weapon && raw.p.equip.weapon.icon === 'sword' && raw.p.equip.weapon.spd === 1 && raw.p.equip.weapon.mods.fire === 4 && raw.p.atkPhase == null && raw.p.equip.weapon.min > 0, raw && raw.p && raw.p.equip.weapon && raw.p.equip.weapon.base);
+  delete raw.p.poise;
+  raw.p.hp = 33;
+  w.localStorage.setItem('cryptdelve', JSON.stringify(raw));
+  w.continueGame();
+  p = g.player;
+  check('old save reloads the sword and a full poise bar', p && p.equip.weapon && p.equip.weapon.mods.fire === 4 && p.equip.weapon.icon === 'sword' && p.hp === 33 && p.poise === p.poiseMax && p.poiseMax === 140, (p && p.equip.weapon && p.equip.weapon.icon) + ' hp ' + (p && p.hp) + ' poise ' + (p && p.poise));
+
+  const n0 = g.enemies.length;
+  for (let i = 0; i < 20; i++) g.step(0.05, { x: 0, y: 0 });
+  check('stepping stays bounded', g.enemies.length <= n0 + 2 && g.attackState() && g.attackState().family === 'sword', 'enemies ' + n0 + ' -> ' + g.enemies.length + ' ' + (g.attackState() && g.attackState().family));
+  try { w.localStorage.removeItem('cryptdelve'); } catch (e) {}
+}
+</script>
+</body>
+</html>

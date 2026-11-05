@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 5 — Stagger, poise, and crowd control. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), and Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), then GO'd Stage 5. Stages 0–4 stay IMPLEMENTED (not marked VERIFIED here). Stage 5 is IMPLEMENTED and waiting for Jake. Stages 6–13 are NOT STARTED. Do not begin Stage 6 until Jake approves Stage 5.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). Do not move these tags.
+- **Current implementation stage:** Stage 6 — Weapon identity and attack responsiveness. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), and Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), then GO'd Stage 6. Stages 0–5 stay IMPLEMENTED (not marked VERIFIED here). Stage 6 is IMPLEMENTED and waiting for Jake. Stages 7–13 are NOT STARTED. Do not begin Stage 7 until Jake approves Stage 6.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). Do not move these tags.
 
 ---
 
@@ -31,7 +31,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 3 | Critical hits and damage scaling | IMPLEMENTED |
 | 4 | Status effects | IMPLEMENTED |
 | 5 | Stagger, poise, and crowd control | IMPLEMENTED |
-| 6 | Weapon identity and attack responsiveness | NOT STARTED |
+| 6 | Weapon identity and attack responsiveness | IMPLEMENTED |
 | 7 | Skill system and build specialization | NOT STARTED |
 | 8 | Enemy resistances and elite affixes | NOT STARTED |
 | 9 | Boss and Super Elite redesign | NOT STARTED |
@@ -40,7 +40,7 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, 3, 4, and 5 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1, 2, 3, 4, 5, and 6 did; the counts are in those entries.
 
 ---
 
@@ -783,9 +783,137 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 6 (weapon
 
 ---
 
+### 2026-11-05 — Stage 6: Weapon Identity and Attack Responsiveness
+
+- **Date:** 2026-11-05.
+- **Stage:** Stage 6 — Weapon identity and attack responsiveness.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage6` points at `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28).
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 7 has not been started.
+- **Objective:** Give each weapon family its own swing, reach behavior, and poise, and make attacks answer the button without an animation-cancel. Keep hit points and the attack period where they were. Do not retype elements, do not retune `mods.fire`, and do not change Hellmouth.
+
+#### Existing Behavior
+
+Every melee tap used the same cone (`1.1` rad), the same instant hit, and the same poise class. `p.atkCd = 0.45 / aspd` and `p.swing = 0.22` were set in the same call that dealt damage, so the blade trailed the number. A held bow used the melee charge ring and then fired a normal arrow. Player arrows moved, then tested a strict `< radius`. One step of `0.05s` at `BOW_SPEED` 220 travels exactly 11px. A hurtbox of `8 + 3` fails that test on open floor, so the arrow dealt 0 unless a wall, torch, or prop killed it and the looser `+3` search connected. That is the Stage 3 flake `bow crit flag stays off the floater`. The crit flag on that floater was already false on purpose. The miss was the failure.
+
+Reach was already per icon: fists 18, sword 24, axe 28, maul 34, staff 40, bow `220 * 0.95`. Item `min`, `max`, and `spd` were already per base. Those damage numbers were not the problem. The swing, the cone, the shove, and the poise were the same shape with different labels.
+
+#### Changes Implemented
+
+- Families are `fist`, `sword`, `axe`, `maul`, `staff` (spear uses the staff row), and `bow`, read from `slot` and `icon`. Nothing new is written into the save. A weapon card gains one identity line.
+- The tap period stays `0.45 / aspd`. Windup is a fraction of that period. The hit is committed at the end of the windup. Recovery is the remainder. Time between committed hits stays the old period.
+- `armAttack` / `beginAttack` / `queueAttack` schedule that windup. One buffer slot lives through the rest of the current swing plus `0.16s`. It does not stack and it does not skip the next windup. A roll, stagger, or freeze during windup drops the uncommitted hit and the buffer, and leaves `atkCd` running.
+- `doAttack`, `fireBow`, and `powerAttack074` still resolve inside the call. A direct call during windup clears the pending swing and applies that one hit. It does not add a second.
+- A bow never enters the melee charge. `powerAttack074` on a bow is a normal arrow. The power multiplier stays on melee only.
+- Hitstop holds the swing pose, at most `0.06s` (`HITSTOP_CAP`). A power hit multiplies the family hitstop by `1.15` and then the cap. Cooldown, input, and projectiles keep the full `dt`. The pose hold does not add recovery.
+- Outgoing poise still ignores armor, resist, barrier, and boss or Super Elite shields. Block still zeroes it. A guard glance is still `×0.2`. The Stage 5 class table remains the amount when the packet does not name a family, and it is also the fist and sword row. A live swing stamps `weaponFamily`. Power charge still scales by `0.70 + 0.30 * frac`. A splash `more` in `(0, 1)` still scales the amount once.
+- Player arrows use the segment from the previous position through the new one, with `radius + 0.51` and an inclusive test, and they ignore dead bodies. Impact still passes `crit: false`. `rollDmg` is the only crit multiply. `critApplied` stays set so the resolver does not multiply again.
+
+#### Formulas and constants
+
+```
+period = 0.45 / aspd
+windup = period * family.windup
+recovery = period - windup
+buffer = one slot, remaining cooldown + remaining windup + 0.16s
+hitstop = min(0.06, family.hitstop * (power ? 1.15 : 1))
+power poise = family.power * (0.70 + 0.30 * frac)
+splash poise = family.skill * more, only when 0 < more < 1
+```
+
+`frac` is 0 at the 1.50× charge and 1 at 2.25×. Full-charge poise is the family power number. Fist and sword power stay 52, so a full sword charge is still 52 and a minimum sword charge is still 36.4.
+
+| Family | Who | Windup | Arc | Knockback | Hitstop | Light | Heavy | Power | Skill | Reach |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| fist | no weapon | 0.12 | 1.10 | 1.00 | 0.022 | 18 | 34 | 52 | 14 | 18 |
+| sword | sword | 0.18 | 1.10 | 1.00 | 0.030 | 18 | 34 | 52 | 14 | 24 |
+| axe | axe | 0.28 | 1.55 | 1.20 | 0.040 | 28 | 46 | 72 | 14 | 28 |
+| maul | maul | 0.38 | 0.78 | 1.45 | 0.055 | 40 | 60 | 96 | 12 | 34 |
+| staff | staff, spear | 0.22 | 0.48 | 0.75 | 0.022 | 12 | 24 | 36 | 22 | 40 |
+| bow | bow | 0.20 | no melee cone | arrow unchanged | 0.018 | 11 | 22 | 11 | 16 | 209 |
+
+Reach was not retuned. Heavy is Whirlwind. Skill is Fireball and Frost Nova. A 0.6 Fireball splash on a staff is `22 * 0.6 = 13.2`. On a sword it is still `14 * 0.6 = 8.4`.
+
+Light enemy (poise 50): a sword tap breaks on hit 3, an axe or a maul on hit 2, a staff or a bow on hit 5. A full sword or maul power breaks on hit 1.
+
+Boss (560, taken 0.20): sword tap is still `3.6` and still breaks on hit 156. Maul tap is `8` and breaks on hit 70. Sword full power is still `10.4` and hit 54. Maul full power is `19.2` and hit 30. The break is still `0.28s` and the immunity is still `5.5s`.
+
+Axe versus staff at about `1.25` rad and 18px: the axe connects, the sword, maul, and staff do not. That is the cone, not a damage buff. Point-blank inside `8 + radius` is still a hit from every family, which is the old rule.
+
+#### Files Modified
+
+- `index.html` — families, scheduler, bow draw, arrow segment, pose hitstop, poise stamp. `version.json` was not edited.
+- `tests/stage6-weapons.html` — new harness.
+- `tests/stage5-poise.html` — the sentinel `no stage 6 weapon pass` is now `stage 6 weapon pass is explicit`. Count stays 78.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry and the living sections. The Stage 0–5 history entries were not rewritten.
+- `STAGE6_REPORT.md` — implementation report for review.
+
+#### Functions Added or Modified
+
+Added: `weaponFamilyId`, `weaponFamilyOf`, `weaponArc`, `weaponKnock`, `attackPeriod`, `attackBuf`, `clearAttackArm`, `queueAttack`, `impactFeedback`, `armAttack`, `beginAttack`, `commitArmed`, `tickAttackSched`, `attackState`, `projEnemyAlong`.
+
+Modified: `doAttack`, `fireBow`, `castSkill`, `powerAttack074`, `updateAttack074`, `clickAttack074`, `update`, `startRoll`, `interruptControl`, `poiseHitAmount`, `makeDamagePacket`, `damageEnemy`, `breakPropsAt`, `drawPlayer`, `drawBow716`, `itemLines`, the projectile step.
+
+Not modified: `rollDmg`, `resolveDamage`'s mitigation order, `PWR` damage multipliers, `weaponReach713` numbers, `castHellmouth`, `killEnemy`'s Super Elite path, `mods.fire` / `pw`, elemental types on live attacks, `version.json`.
+
+#### Gameplay Impact
+
+A sword tap still deals the same hit points on the same period, and it still spends 18 poise. The number arrives after a short windup instead of on the press. An axe reaches a wider cone and staggers sooner, and it swings later inside the same period. A maul is narrower, slower because its `spd` was already 0.7, and it spends the most poise. A staff is a thrust, spends less melee poise, and spends more when the spell is the attack. A bow stays ranged, spends 11 poise on a hit, and a held draw is not a power attack. Hitstop is a short pose hold. It does not freeze the cooldown.
+
+Time-to-kill on a pinned midpoint hit, spread 1, crit off, is the same before and after. The pools are 80 HP and a 1050 HP boss pool (floor-5 Mother Murk's 840 plus the 210 shield). Period is `0.45 / spd`.
+
+| Family | Pinned hit | Period | Hits to 80 | Seconds to 80 | Hits to 1050 | Seconds to 1050 |
+| --- | --- | --- | --- | --- | --- | --- |
+| fists | 2 | 0.450 | 40 | 18.000 | 525 | 236.250 |
+| sword | 4 | 0.450 | 20 | 9.000 | 263 | 118.350 |
+| axe | 5 | 0.500 | 16 | 8.000 | 210 | 105.000 |
+| staff | 5 | 0.450 | 16 | 7.200 | 210 | 94.500 |
+| maul | 19 | 0.643 | 5 | 3.214 | 56 | 36.000 |
+| bow | 7 | 0.429 | 12 | 5.143 | 150 | 64.286 |
+
+The pinned hit is `round((sheetMin + sheetMax) / 2)` on the level-1 base, then `st.min = st.max = that`. The before run produced the same six rows. Power-attack time-to-kill was not retuned: `round(pin * 2.25)` is still the melee power hit (fists 5, sword 9, axe 11, staff 11, maul 43). A bow power press deals the pin, not `pin * 2.25`.
+
+#### Compatibility Notes
+
+Old saves have the same weapon fields (`min`, `max`, `spd`, `icon`, `mods.fire`, `bow`). Load does not require attack phase, windup, or hitstop. Those timers start empty. A full poise bar is still omitted from the save. An old save with no `poise` key still loads full. `fixItem` still keeps a sword's mods. Hellmouth still deletes Super Elites. Frost Nova still writes `e.slow = 3.5` and still does not apply engine chill. Live attacks stay Physical.
+
+#### Tests Performed
+
+Headless Chrome, SwiftShader, cache disabled. Counts and the per-name diff against tag `combat-redesign-pre-stage6` are in [Stage 6 executed results](#stage-6-executed-results). `tests/stage6-weapons.html` was 47/0.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. `mods.fire` is still spell power. Curse life drain, life steal, and the uncapped crit chance are still untouched. Elemental retyping is Stage 7. A direct `doAttack` is still instant, so a scripted call does not show the windup; the input path does. Environment clicks that zero `atkCd` and call `doAttack` still resolve in that call. That path was already instant. Hitstop does not freeze enemy projectile motion, so a fast arrow is not stalled by the pose hold.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage6
+```
+
+That tag is `6eecf2439525da17acf9479688de185d4b8a6749`. It is the Stage 5 squash on main, PR #28. Gameplay version on it is 0.7.18. Do not move the tag. The older tags `combat-redesign-pre-stage1` through `combat-redesign-pre-stage5` were not moved.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 7 (skill retyping and build specialization). Do not reclassify Fireball, Frost Nova, poison puddles, or lava. Do not change Hellmouth.
+
+---
+
 ## Combat System Reference
 
-The Stage 5 block is what the game does now. The Stage 4 block is the status model under it. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat, status, or poise break is in play. Planned work for later stages stays marked as planned.
+The Stage 6 block is what the game does now. The Stage 5 block is the poise model under it. The Stage 4 block is the status model under that. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those Physical numbers still follow when no new stat, status, or poise break is in play. Planned work for later stages stays marked as planned.
+
+### Stage 6 implemented architecture
+
+Implemented now, on top of Stage 5. A hit's HP number is still the Stage 5 number. Weapon identity changes when the hit lands, how wide it is, how hard it shoves, and how much poise it spends.
+
+- Families come from the equipped weapon's slot and icon. Fists, sword, axe, maul, staff (and spear), bow. No new save field. `mods.fire` is still spell power.
+- The attack period is still `0.45 / aspd`. Windup is a fraction of that period. Recovery is the rest. A tap does not add time on top of the old cooldown.
+- Input scheduling (`armAttack`, `beginAttack`, `queueAttack`) owns windup, one buffered press, and recovery. `doAttack`, `fireBow`, and `powerAttack074` still resolve in the call, so older harnesses keep an immediate hit. A direct call during windup replaces the pending swing. It does not add a second hit.
+- A roll, stagger, or freeze during windup cancels the uncommitted hit and leaves the cooldown. Recovery is not skipped.
+- A bow draw does not enter the melee charge and does not multiply by the power-attack factor. Release or the tap fires `rollDmg('bow')`.
+- Hitstop holds the swing pose for at most `0.06s`. Cooldowns, the attack period, and projectile motion keep using the full frame.
+- Player arrows test the segment from the previous point to the new point, including a start that is already inside the hurtbox, and they skip dead bodies. The floater crit flag is still false. The crit multiplier is still only inside `rollDmg`.
+- Untagged packets still use `POISE_CLASS_DMG` (light 18, heavy 34, power 52, skill 14). A live swing stamps `weaponFamily`. Fist and sword match that table. Axe, maul, staff, and bow do not.
 
 ### Stage 5 implemented architecture
 
@@ -795,7 +923,7 @@ Implemented now, on top of Stage 4. With poise unbroken and no status, hit math 
 - Stagger is `ent.statuses.stagger`. The Stage 4 bag is the only timer. Duration comes from the tier, then diminishing returns, and is capped by `STATUS.stagger.dur` (0.55s). Expiry sets `staggerImmune` from the tier. Bosses and Super Elites are not freeze-immune to stagger. They are hard to break and short to lock.
 - Precedence is freeze, stagger, legacy stun, knockback, slow. Freeze and stagger are speed 0 and they interrupt. Knockback still slides. Slows floor at 0.2.
 - Boss intro blocks poise for that boss while `bossIntro > 0`. HP and the shield are unchanged. Super Elite intro and the crab shell still return before the hit, so they block both.
-- Live classes are light (tap and bow, 18), heavy (Whirlwind, 34), power (charged melee, 36.4 to 52), and skill (Fireball and Frost Nova, 14). No weapon-family pass. That is Stage 6.
+- The class table at the end of Stage 5 was light 18 (tap and bow), heavy 34 (Whirlwind), power 52 (charged melee, 36.4 at the minimum charge), and skill 14. Stage 6 kept that table as the untagged fallback and the fist/sword row. Live bows, axes, mauls, and staves stamp a family.
 
 ### Stage 4 implemented architecture
 
@@ -1329,6 +1457,15 @@ D1–D7 below are the Stage 0 recommendations. Stage 1 implemented them. The tex
 - **Expected gameplay impact.** Trash can be staggered. Bosses and Super Elites need many hits and then get a short lock plus a long immunity. A player who eats seven boss contacts is staggered for 0.35s. Stacked slows cannot go under 20% speed unless frozen or staggered.
 - **Tradeoffs.** Bows share the light number until Stage 6. Curse life drain, life steal, and the uncapped crit chance are still untouched. A single hitch can drop DoT intervals past the debt cap, and that drop is reported rather than paid twice.
 
+### D12 — Weapon identity is timing, shape, and poise, not a second damage roll
+
+- **Problem.** Stage 5 spent one poise number per attack class. A bow and a fist both spent 18. A maul and a sword spent 18 on a tap. The hit also landed in the same call that started the swing, and a held bow played the melee charge and then fired an ordinary arrow. Adding a flat damage bonus per family would have changed time-to-kill. Letting recovery be cancelled by a roll would have raised it.
+- **Alternatives considered.** (a) Scale `min`/`max` per family again and call that identity. (b) Add windup on top of `0.45 / aspd`, which slows every weapon. (c) Keep the damage roll and the period, and vary the cone, the windup fraction, the knockback, the hitstop, and the poise. Leave `doAttack` immediate for callers that already depend on it.
+- **Selected approach.** (c). Families are derived from the item. Fist and sword keep the Stage 5 poise row so an untagged packet and a sword tap stay on 18 / 34 / 52 / 14. Axe, maul, staff, and bow replace that row when the swing stamps `weaponFamily`. Power charge and splash still scale that amount the Stage 5 way. The bow's crit floater stays off. The arrow segment test is what stops the open-floor miss. `mods.fire` stays spell power. Hellmouth stays.
+- **Reason.** The pinned midpoint time-to-kill does not move, and a heavy weapon still buys stagger by giving up speed, cone, and spell poise.
+- **Expected gameplay impact.** Swords feel like the current tap, a fraction later. Axes cleave and stagger sooner. Mauls are narrow and heavy. Staves poke and make spells spend more poise. Bows stay ranged and stop pretending to power-attack. A roll during windup whiffs.
+- **Tradeoffs.** A direct `doAttack` is still instant, so the windup is an input-path behavior. Environment clicks that clear `atkCd` still swing immediately. Hitstop does not freeze the simulation. Curse life drain, life steal, and the uncapped crit chance are still untouched.
+
 ### Stage 1 implementation notes
 
 D1–D7 are in the code. Refinements forced by the existing formulas:
@@ -1373,8 +1510,8 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. Stage 9. OPEN.
 - **Super Elite body is a fixed synthetic champion**, not 1.4× the strongest monster on the floor. A depth-10 champion golem is about 532 HP against the Super Elite's 249. The Super Elite's job is the stair lock and the immune intro. Stage 9. OPEN.
 - **Durability comment and `isBroken` are stale.** Items shatter at 0. Load clamps 0 up to 1. Stage 10–12 if tooltips ever repeat the comment. OPEN.
-- **Bow charge plays a power-attack telegraph and fires a normal arrow.** Stage 6. OPEN.
-- **Melee damage is instant; the animation trails it.** Super Elite and projectiles hit on a later frame. Stage 6. OPEN.
+- **Bow charge used to play a power-attack telegraph and fire a normal arrow.** Stage 6 stopped the input path from entering the melee charge. A draw does not apply the power multiplier. The arrow is still `rollDmg('bow')`.
+- **Melee damage from the attack input used to land before the swing.** Stage 6 puts the hit at the end of a windup that is a fraction of the existing cooldown. A direct `doAttack` call still resolves immediately. Super Elite and enemy projectiles still hit on their own later frame.
 - **Two contact paths** (`updateEnemies` and grid AI, `GRID_AI.on` is true) both call `hurtPlayer`. Stage 1 must route both or one of them will skip the adapter. OPEN.
 - **No gear status resist** for slow, fear, or stun. Gear cannot roll pierce. The card still prints `PIERCE`. Stage 4 added `statusImmune`, boss and Super Elite freeze immunity, and a 3s freeze lockout. It did not add a gear stat. Stage 5 and 12. OPEN.
 
@@ -1534,6 +1671,54 @@ After Stage 5, one sequential pass: legacy plus Stages 1–4 is 1082 passed, 101
 
 No other failure name was added. `v079`, `v0710`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18. Stage 6 was not started.
 
+### Stage 6 executed results
+
+Stage 6 ran the same harness in headless Chrome (Puppeteer, system Google Chrome, SwiftShader WebGL, cache disabled) against `python3 -m http.server` on 127.0.0.1. The pre-change run is tag `combat-redesign-pre-stage6` / `6eecf2439525da17acf9479688de185d4b8a6749`, before any Stage 6 code. Counts are pass/fail. New and cleared names are listed. A count change with the same failure names is the emission or layout flake already on record.
+
+Checkpoint, before Stage 6 code. Legacy files match the Stage 5 after-run except `v0711`, which emitted one extra fail on that pass:
+
+| File | Pass/fail | Failure names |
+| --- | --- | --- |
+| `v075` | 59/1 | `f3 multi select` |
+| `v076` | 48/0 | |
+| `v077` | 60/4 | `version`, `version source`, `f4 pool`, `f5 shop boss` |
+| `v078` | 60/1 | `version 0.7.11` |
+| `v078-play` | 25/1 | `f11 champions only` |
+| `v0781` | 27/2 | `version`, `f1 boss hits` |
+| `v079` | 49/1 | `version` |
+| `v0710` | 36/1 | `version` |
+| `v07101` | 41/1 | `version` |
+| `v07102` | 54/0 | |
+| `v07103` | 24/3 | `version`, `stats canvas`, `name in panel` |
+| `v0711` | 42/6 | `version`, `trash in the maw`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept` |
+| `v0712` | 37/6 | `version`, `whale title wraps`, `short title one line`, `sell grid cells`, `short detail fits frame`, `detail wraps whale name` |
+| `v0713` | 32/5 | `version`, `whale still wraps`, `pedlar panel`, `sell grid 32`, `leave is red` |
+| `v0714` | 33/8 | `version`, `footer sort`, `footer mark seen`, `footer drop all`, `footer equip`, `footer drop`, `footer close`, `tab hitboxes match art` |
+| `v0715` | 19/13 | `version` plus the twelve scale, wrap, glyph, and phone names already in that file |
+| `v07151` | 8/45 | `version` plus the scale and DOM names already in that file |
+| `v07152` | 36/1 | `version` |
+| `v0716` | 49/1 | `version` |
+| `v0717` | 47/1 | `version` |
+| `v0718` | 20/0 | |
+| `stage1-damage` | 71/0 | |
+| `stage2-resist` | 73/0 | |
+| `stage3-crit-scaling` | 58/0 | |
+| `stage4-status` | 75/0 | |
+| `stage5-poise` | 78/0 | |
+
+That checkpoint total is 1161 passed, 101 failed. Legacy files are 806 passed, 101 failed. Immediate re-runs before any Stage 6 code: `v0711` 43/5 then 42/5, both without `trash in the maw` (the five stable names). `v0714` stayed 33/8 with the footer and tab names. `stage3-crit-scaling` was 58/0, then 57/1 with `bow crit flag stays off the floater`.
+
+After Stage 6, one sequential pass: 1216 passed, 93 failed, including `tests/stage6-weapons.html` at 47/0. Stages 1–5 were 71/0, 73/0, 58/0, 75/0, and 78/0. The only name movement:
+
+- `v0711` 42/6 → 43/5. Cleared `trash in the maw`. The five stable names remain. A re-run was 42/5 with those five names. This is the emission flake. Stage 6 did not touch that check.
+- `v0714` 33/8 → 40/1 on the sequential pass. Cleared the seven footer and tab names. `version` remains. A re-run was 40/1 (`version` only), then 33/8 with the same seven footer and tab names as the checkpoint. This is the layout flake.
+- `stage3-crit-scaling` stayed 58/0 on the sequential pass and on two immediate re-runs. The checkpoint re-run had failed `bow crit flag stays off the floater` because the arrow dealt 0. That miss did not return.
+- `stage5-poise` stayed 78/0. The check formerly named `no stage 6 weapon pass` is now `stage 6 weapon pass is explicit`. That rename is this stage. It is not a failed combat check.
+
+No other failure name was added or cleared. `v075`, `v079`, `v0710`, `v0713`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18. Stage 7 was not started.
+
+Time-to-kill, pinned midpoint, spread 1, crit off, measured before the code and again inside `tests/stage6-weapons.html`: the six family rows in the Stage 6 history match on both sides. A bow power press deals the pinned hit, not the melee `×2.25`. Twelve placed bow crits in that harness all dealt 16, left the floater flag false, and did not leech.
+
 Boss measurement inside `tests/stage5-poise.html`, spread pinned, scale off, 8 HP a hit, shield 0, intro cleared: 80 light hits dealt 640 HP and 288 poise and did not stagger a 560 poise boss. Full-power hits staggered on hit 54, at 432 HP. Eight boss contacts of 10 on the player dealt 80 HP and staggered on the seventh. Per-hit HP matched the no-poise number.
 
 ---
@@ -1550,6 +1735,8 @@ Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #26 (`57f085c76907a83
 
 Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. This log does not mark Stage 4 VERIFIED. The Stage 4 history entry above still describes that branch before the merge. It was not rewritten.
 
-Stage 5 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. This log does not mark Stage 5 VERIFIED. The Stage 5 history entry above still describes that branch before the merge. It was not rewritten.
 
-**Wait for Jake's approval before Stage 6.** Stage 6 is weapon identity and attack timing. It must not start from this branch. Stage 5 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.
+Stage 6 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 7.** Stage 7 is skill retyping and build specialization. It must not start from this branch. Stage 6 did not reclassify attacks, did not change `mods.fire`, and did not change Hellmouth.

@@ -409,7 +409,7 @@ function run(w) {
   p.st.crit = 250;
   check('crit chance stays uncapped', g.critChance('melee') === 250, g.critChance('melee'));
 
-  check('no stage 6 weapon pass', src.indexOf('function weaponIdentity') < 0 && src.indexOf('HAMMER_POISE') < 0);
+  check('stage 6 weapon pass is explicit', src.indexOf('WEAPON_FAMILIES') >= 0 && src.indexOf('function weaponFamilyOf') >= 0 && src.indexOf('function armAttack') >= 0);
 }
 </script>
 </body>
