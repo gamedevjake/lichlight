@@ -1644,6 +1644,7 @@ function itemLines(it) {
     if (f < DUR_RED) L.push({ t: 'About to break! Use a Repair Potion', c: 'cbad', cls: 'brk' }); }
   if (it.min) L.push({ t: `Damage: ${it.min}-${it.max}`, c: 'c0' });
   if (it.spd) L.push({ t: `Speed: ${it.spd >= 1.05 ? 'Fast' : it.spd <= .8 ? 'Slow' : 'Normal'}`, c: 'c0' });
+  if (it.slot === 'weapon') { const fam = WEAPON_FAMILIES[weaponFamilyId(it)]; if (fam && fam.line) L.push({ t: fam.line, c: 'cg' }); }
   if (it.def) L.push({ t: `Defense: ${it.def}`, c: 'c0' });
   if (it.block) L.push({ t: `Chance to Block: ${it.block}%`, c: 'c0', cls: 'blk' });
   for (const k in it.mods) { const a = AFFIX.find(a => a.k === k); if (a) L.push({ t: a.txt(it.mods[k]), c: 'c1' }); }
@@ -4225,7 +4226,8 @@ function makeDamagePacket(spec) {
     more: Number.isFinite(+spec.more) ? +spec.more : 1, scale: spec.scale !== false,
     attacker: spec.attacker || 'player', isDot: isDot, world: !!spec.world, kx: spec.kx, ky: spec.ky, col: spec.col,
     label: spec.label, lethal: spec.lethal, cause: spec.cause, penetration: spec.penetration,
-    poiseClass: spec.poiseClass || '', poiseFrac: Number.isFinite(+spec.poiseFrac) ? +spec.poiseFrac : null
+    poiseClass: spec.poiseClass || '', poiseFrac: Number.isFinite(+spec.poiseFrac) ? +spec.poiseFrac : null,
+    weaponFamily: spec.weaponFamily || ''
   };
 }
 function conversionCycle(edges) {
@@ -4532,7 +4534,8 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
     source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false,
     penetration: meta.penetration, more: Number.isFinite(+meta.more) ? +meta.more : 1,
     critApplied: critApplied, critPending: critPending, skill: meta.skill || '', scale: meta.scale !== false,
-    poiseClass: meta.poiseClass || '', poiseFrac: Number.isFinite(+meta.poiseFrac) ? +meta.poiseFrac : null
+    poiseClass: meta.poiseClass || '', poiseFrac: Number.isFinite(+meta.poiseFrac) ? +meta.poiseFrac : null,
+    weaponFamily: meta.weaponFamily || ''
   });
 }
 
@@ -5293,8 +5296,9 @@ function gridSlowMul(e) {
 }
 function interruptControl(ent) {
   if (!ent) return;
-  if (ent === player) {
+    if (ent === player) {
     ent.swing = 0; ent.chg = -1; ent.mchg = -1; ent.pwrQ = null; ent.rollQ = 0; ent.roll = 0; ent.walk = null;
+    ent.bowDown = 0; clearAttackArm(ent);
     return;
   }
   if (ent.hmFreeze) return;
@@ -5324,6 +5328,8 @@ function poiseClassOf(meta) {
 function poiseHitAmount(meta) {
   const cls = poiseClassOf(meta);
   let amt = POISE_CLASS_DMG[cls] || 0;
+  const fam = meta && meta.weaponFamily && WEAPON_FAMILIES[meta.weaponFamily];
+  if (fam && fam.poise && fam.poise[cls] > 0) amt = fam.poise[cls];
   if (cls === 'power') {
     let frac = meta.poiseFrac;
     if (frac == null || !Number.isFinite(+frac)) {
@@ -5515,28 +5521,173 @@ function noteLeechSkip(source, base) {
   window.__lastLeech = { source: source, base: Number.isFinite(+base) ? +base : 0, pct: pct, healed: 0, skipped: true };
   return window.__lastLeech;
 }
+// Stage 6: weapon identity. The Stage 5 class table stays the untagged fallback (and the fist/sword numbers).
+// A live swing stamps weaponFamily. Axes cleave, mauls stagger, staves poke and help spells, bows stay light.
+// Tap cycle length is still 0.45/aspd. Windup is a fraction of that cycle, not an extra delay.
+const HITSTOP_CAP = 0.06;
+const ATK_BUF = 0.16;
+let hitStopLeft = 0;
+const WEAPON_FAMILIES = {
+  fist:  { id: 'fist',  windup: 0.12, arc: 1.10, kb: 1.00, hitstop: 0.022, line: 'Fists. Short, quick, light stagger.', poise: { light: 18, heavy: 34, power: 52, skill: 14 } },
+  sword: { id: 'sword', windup: 0.18, arc: 1.10, kb: 1.00, hitstop: 0.030, line: 'Sword. A measured arc.', poise: { light: 18, heavy: 34, power: 52, skill: 14 } },
+  axe:   { id: 'axe',   windup: 0.28, arc: 1.55, kb: 1.20, hitstop: 0.040, line: 'Axe. Wide cleave, slower, harder stagger.', poise: { light: 28, heavy: 46, power: 72, skill: 14 } },
+  maul:  { id: 'maul',  windup: 0.38, arc: 0.78, kb: 1.45, hitstop: 0.055, line: 'Maul. Narrow, heavy, strongest stagger.', poise: { light: 40, heavy: 60, power: 96, skill: 12 } },
+  staff: { id: 'staff', windup: 0.22, arc: 0.48, kb: 0.75, hitstop: 0.022, line: 'Staff. Long thrust. Spells stagger more.', poise: { light: 12, heavy: 24, power: 36, skill: 22 } },
+  bow:   { id: 'bow',   windup: 0.20, arc: 1.10, kb: 1.00, hitstop: 0.018, line: 'Bow. Ranged. Light stagger. A draw is not a power attack.', poise: { light: 11, heavy: 22, power: 11, skill: 16 } }
+};
+function weaponFamilyId(it) {
+  if (!it || it.slot !== 'weapon') return 'fist';
+  if (it.bow || it.icon === 'bow') return 'bow';
+  if (it.icon === 'axe') return 'axe';
+  if (it.icon === 'maul') return 'maul';
+  if (it.icon === 'staff' || it.icon === 'spear') return 'staff';
+  return 'sword';
+}
+function weaponFamilyOf(ent) {
+  const p = ent || player;
+  const it = p && p.equip && p.equip.weapon;
+  return WEAPON_FAMILIES[weaponFamilyId(it)] || WEAPON_FAMILIES.fist;
+}
+function weaponArc() { const a = weaponFamilyOf(player).arc; return a > 0 ? a : 1.1; }
+function weaponKnock() { const k = weaponFamilyOf(player).kb; return k > 0 ? k : 1; }
+function attackPeriod() {
+  const aspd = player && player.st && player.st.aspd > 0 ? player.st.aspd : 1;
+  return 0.45 / aspd;
+}
+function attackBuf(p) {
+  if (!p.atkBuf) p.atkBuf = { on: false, kind: '', t: 0, charge: 0, fixed: false };
+  return p.atkBuf;
+}
+function clearAttackArm(p) {
+  if (!p) return;
+  p.atkPhase = ''; p.atkWind = 0; p.atkKind = '';
+  if (p.atkBuf) p.atkBuf.on = false;
+}
+function queueAttack(kind, opt) {
+  const p = player; if (!p || ccImmobilized(p)) return false;
+  const b = attackBuf(p);
+  b.on = true; b.kind = kind || 'tap'; b.charge = opt && opt.charge > 0 ? opt.charge : 0; b.fixed = !!(opt && opt.fixed);
+  const remain = p.atkCd > 0 ? p.atkCd : 0;
+  const wind = p.atkPhase === 'windup' && p.atkWind > 0 ? p.atkWind : 0;
+  b.t = remain + wind + ATK_BUF;
+  return true;
+}
+function impactFeedback(kind) {
+  const fam = weaponFamilyOf(player);
+  let t = fam.hitstop * (kind === 'power' ? 1.15 : 1);
+  if (t > HITSTOP_CAP) t = HITSTOP_CAP;
+  if (t > hitStopLeft) hitStopLeft = t;
+  if (trauma < 0.06) addTrauma(0.035);
+}
+function armAttack(kind, fixed, charge) {
+  const p = player; if (!p || ccImmobilized(p)) return false;
+  const fam = weaponFamilyOf(p);
+  const use = kind || (fam.id === 'bow' ? 'bow' : 'tap');
+  p.atkUsedTap = tapQ.attack;
+  if (use === 'power') {
+    p.atkPhase = ''; p.atkWind = 0; p.atkKind = '';
+    powerAttack074(charge > 0 ? charge : PWR.min, !!fixed);
+    return true;
+  }
+  const period = attackPeriod();
+  p.atkCd = period;
+  p.atkPhase = 'windup';
+  p.atkKind = use === 'bow' || fam.id === 'bow' ? 'bow' : 'tap';
+  p.atkWind = period * fam.windup;
+  p.atkFixed = !!fixed;
+  p.atkCharge = 0;
+  p.swingDur = period;
+  p.swingHit = p.atkWind;
+  p.swingArc = fam.arc > 0 ? fam.arc : 1.1;
+  p.swing = period;
+  if (!(p.atkWind > 0)) commitArmed();
+  return true;
+}
+function beginAttack(kind, fixed, charge) {
+  const p = player; if (!p || ccImmobilized(p)) return false;
+  if (p.atkPhase === 'windup' || p.atkCd > 0) return queueAttack(kind || 'tap', { fixed: !!fixed, charge: charge || 0 });
+  return armAttack(kind, !!fixed, charge || 0);
+}
+function commitArmed() {
+  const p = player; if (!p) return;
+  p.atkPhase = 'recover';
+  p.atkWind = 0;
+  if (ccImmobilized(p) || p.roll > 0) { p.atkKeepCd = false; return; }
+  p.atkKeepCd = true;
+  try { doAttack(!!p.atkFixed); }
+  finally { p.atkKeepCd = false; }
+}
+function tickAttackSched(dt) {
+  const p = player; if (!p || !(dt > 0)) return;
+  const b = p.atkBuf;
+  if (b && b.on) { b.t -= dt; if (b.t <= 0) b.on = false; }
+  if (ccImmobilized(p) || p.roll > 0) {
+    if (p.atkPhase === 'windup') { p.atkPhase = ''; p.atkWind = 0; }
+    return;
+  }
+  if (p.atkPhase === 'windup') {
+    p.atkWind -= dt;
+    if (p.atkWind <= 0) commitArmed();
+    return;
+  }
+  if (p.atkCd > 0) return;
+  if (b && b.on) {
+    const kind = b.kind, fixed = b.fixed, charge = b.charge;
+    b.on = false;
+    armAttack(kind, fixed, charge);
+  }
+}
+function attackState() {
+  const p = player; if (!p) return null;
+  const b = p.atkBuf;
+  return {
+    phase: p.atkPhase || '', wind: p.atkWind || 0, cd: p.atkCd || 0,
+    buffered: !!(b && b.on), bufKind: b && b.on ? b.kind : '',
+    hitStop: hitStopLeft, family: weaponFamilyOf(p).id, period: attackPeriod(),
+    swing: p.swing || 0, swingDur: p.swingDur || 0
+  };
+}
+function projEnemyAlong(pr, e, x0, y0, x1, y1) {
+  if (!e || e.hidden || e.downT || e.dead || e.hp <= 0) return 1e9;
+  const rad = (e.r || 0) + (pr.r || 0) + 0.51;
+  const dx = x1 - x0, dy = y1 - y0, len2 = dx * dx + dy * dy;
+  let t = 0;
+  if (len2 > 1e-8) {
+    t = ((e.x - x0) * dx + (e.y - y0) * dy) / len2;
+    if (t < 0) t = 0; else if (t > 1) t = 1;
+  }
+  const ex = e.x - (x0 + dx * t), ey = e.y - (y0 + dy * t);
+  return ex * ex + ey * ey <= rad * rad ? t : 1e9;
+}
 function doAttack(fixed) {
   const p = player; if (ccImmobilized(p)) return;
+  if (!p.atkKeepCd && p.atkPhase === 'windup') { p.atkPhase = ''; p.atkWind = 0; }
   const t = nearestEnemy(44), mv = moveInput();
   // auto-aim: always on touch; on keyboard only when standing still; 'fixed' = facing already set (click-to-attack)
   const ma = fixed ? null : mouseAim();
   if (fixed) { /* keep facing */ }
   else if (ma) { p.fx = ma.x; p.fy = ma.y; }
   else if (t && (touchMode || !(mv.x || mv.y))) { const a = Math.atan2(t.y - p.y, t.x - p.x); p.fx = Math.cos(a); p.fy = Math.sin(a); }
-  p.swing = .22; p.atkCd = .45 / p.st.aspd; meleeSfx = true; smpCrit = false; smpHitEnt = null;
-  const ang = Math.atan2(p.fy, p.fx); let landed = false;
+  const fam = weaponFamilyOf(p);
+  if (!p.atkKeepCd) {
+    p.swing = .22; p.swingDur = .22; p.swingHit = .08; p.swingArc = fam.arc > 0 ? fam.arc : 1.1;
+    p.atkCd = .45 / (p.st.aspd || 1);
+  }
+  meleeSfx = true; smpCrit = false; smpHitEnt = null;
+  const ang = Math.atan2(p.fy, p.fx), arc = fam.arc > 0 ? fam.arc : 1.1; let landed = false;
+  const kb = weaponKnock();
   for (const e of enemies.slice()) {
     const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
     if (d > weaponReach713() + e.r) continue;
     const da = Math.abs(((Math.atan2(dy, dx) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-    if (da > 1.1 && d > 8 + e.r) continue;
+    if (da > arc && d > 8 + e.r) continue;
     const rolled = rollDmg('melee');
     const leechBase = scaleAmount(rolled.d, 'Physical', 1);
     leech(leechBase, PWR_MUL > 1 ? 'power' : 'melee');
-    damageEnemy(e, rolled.d, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', rolled.crit, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: PWR_MUL, critApplied: true, skill: 'melee', poiseFrac: PWR_MUL > 1 ? PWR_FRAC : null }); landed = true; if (rolled.crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
+    damageEnemy(e, rolled.d, dx / (d || 1) * 60 * PWR_KB * kb, dy / (d || 1) * 60 * PWR_KB * kb, PWR_MUL > 1 ? '#ffe070' : '#fff', rolled.crit, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: PWR_MUL, critApplied: true, skill: 'melee', poiseFrac: PWR_MUL > 1 ? PWR_FRAC : null, weaponFamily: fam.id }); landed = true; if (rolled.crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
   }
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
-  if (landed) wearWeapon();
+  if (landed) { wearWeapon(); impactFeedback(PWR_MUL > 1 ? 'power' : 'tap'); }
   { const reach = weaponReach713(), fwd = Math.min(reach * 0.55, Math.max(8, reach - 8));
     breakMode713 = 'melee';
     breakSecretsAt(p.x + p.fx * fwd, p.y + p.fy * fwd, Math.max(8, reach - fwd), true);
@@ -5561,11 +5712,12 @@ function castSkill(i) {
     else if (t) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); p.fx = ax; p.fy = ay; }
     const fb = (8 + pw * 1.4) * amp;
     noteLeechSkip('fireball', fb);
-    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: fb, owner: 'p', kind: 'fire', life: 1.4, skill: 0 });
+    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: fb, owner: 'p', kind: 'fire', life: 1.4, skill: 0, weaponFamily: weaponFamilyId(p.equip && p.equip.weapon) });
     sfx(S.snd || 'fire'); fxCast074(0, ax, ay);
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
-    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg('whirlwind'); const dd = (dm * 1.4 + pw * .5) * amp; leech(scaleAmount(dd, 'Physical', 1), 'whirlwind'); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind' }); } }
+    const famId = weaponFamilyId(p.equip && p.equip.weapon), wkb = weaponKnock();
+    for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg('whirlwind'); const dd = (dm * 1.4 + pw * .5) * amp; leech(scaleAmount(dd, 'Physical', 1), 'whirlwind'); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120 * wkb, (e.y - p.y) / (d || 1) * 120 * wkb, '#fff', crit, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind', weaponFamily: famId }); } }
     sfx(S.snd || 'swing'); fxCast074(1); addTrauma(.12); breakSecretsAt(p.x, p.y, 32, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
@@ -5573,7 +5725,8 @@ function castSkill(i) {
     sfx(S.snd || 'nova'); fxCast074(2);
     const nova = (6 + pw * 1.1) * amp;
     noteLeechSkip('frost', nova);
-    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, nova, 0, 0, '#80d0ff', false, null, { type: 'Physical', tags: ['Spell', 'AoE'], critApplied: true, skill: 'frost' }); } }
+    const frostFam = weaponFamilyId(p.equip && p.equip.weapon);
+    for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, nova, 0, 0, '#80d0ff', false, null, { type: 'Physical', tags: ['Spell', 'AoE'], critApplied: true, skill: 'frost', weaponFamily: frostFam }); } }
   }
 }
 
@@ -5585,7 +5738,7 @@ function startRoll(mv) {
   if (!dx && !dy) { const ma = mouseAim(); if (ma) { dx = ma.x; dy = ma.y; } else { dx = p.fx; dy = p.fy; } }
   const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
   p.rx = dx; p.ry = dy; p.fx = dx; p.fy = dy;
-  p.roll = ROLL_TIME; p.rollCd = ROLL_CD; p.rollQ = 0; p.swing = 0; burnOnRoll(); // v0.7.1 §5: each roll cuts 1s of burn
+  p.roll = ROLL_TIME; p.rollCd = ROLL_CD; p.rollQ = 0; p.swing = 0; clearAttackArm(p); burnOnRoll(); // v0.7.1 §5: each roll cuts 1s of burn. A roll cancels an uncommitted swing.
   sfx('roll'); burst(p.x, p.y + 4, '#6a5a6a', 6, 30);
 }
 // ---------- update ----------
@@ -5639,7 +5792,10 @@ function update(dt) {
   if (climb) { updateClimb(dt); return; } // v0.7.0: input frozen while climbing down
   if (pitAct && pitAct.kind !== 'spikefall') { updatePitAct(dt); return; } // v0.7.7 B1: spike DoT does not root; other pit acts still play out alone
   const p = player;
-  p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1); p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
+  p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1);
+  let vis = dt;
+  if (hitStopLeft > 0) { const cut = vis < hitStopLeft ? vis : hitStopLeft; hitStopLeft -= cut; vis -= cut; }
+  p.swing = Math.max(0, p.swing - vis); p.inv0 -= dt;
   for (let i = 0; i < p.cds.length; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.regen * dt); p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * .1) * dt);
   if (tickStatuses(p, dt).died) return;
@@ -5681,19 +5837,28 @@ function update(dt) {
   for (let i = projs.length - 1; i >= 0; i--) {
     const pr = projs[i]; pr.life -= dt;
     if (pr.homing) { const tgt = tomeSeek(), sp0 = Math.hypot(pr.vx, pr.vy), a0 = Math.atan2(pr.vy, pr.vx), da = ((Math.atan2(tgt.y - pr.y, tgt.x - pr.x) - a0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI, a1 = a0 + clamp(da, -pr.homing * dt, pr.homing * dt); pr.vx = Math.cos(a1) * sp0; pr.vy = Math.sin(a1) * sp0; }
+    const x0 = pr.x, y0 = pr.y;
     pr.x += pr.vx * dt; pr.y += pr.vy * dt;
     if (!pr.visualStyle && Math.random() < (pr.owner === 'p' ? .6 : .25)) parts.push({ x: pr.x, y: pr.y, vx: rand(-10, 10), vy: rand(-10, 10), life: .25, col: pick(PCOL[pr.kind] || PCOL.bolt) });
-    let dead = pr.life <= 0 || solidAt(pr.x, pr.y), hitP = false;
+    let struck = null;
+    if (pr.owner === 'p' && pr.kind === 'arrow') {
+      let best = 1e9;
+      for (let n = 0; n < enemies.length; n++) {
+        const tHit = projEnemyAlong(pr, enemies[n], x0, y0, pr.x, pr.y);
+        if (tHit < best) { best = tHit; struck = enemies[n]; }
+      }
+    }
+    let dead = pr.life <= 0 || solidAt(pr.x, pr.y) || !!struck, hitP = false;
     if (pr.life > 0 && projHitsTorch(pr.x, pr.y, dead ? 4 : 0)) dead = true;
-    if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r) { dead = true; break; }
+    if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && !e.dead && e.hp > 0 && Math.hypot(e.x - pr.x, e.y - pr.y) <= e.r + pr.r + 0.51) { dead = true; break; }
       if (!dead && pr.kind === 'arrow') { for (const o of props) if (o && !o.broken && Math.hypot(o.x - pr.x, (o.y - 4) - pr.y) < (pr.r || 3) + 8) { dead = true; break; } } }
     if (!dead && pr.owner === 'e' && p.roll <= 0 && Math.hypot(p.x - pr.x, p.y - pr.y) < p.r + pr.r) { dead = true; hitP = true; if (!(p.isInvincible || p.isPlayerUndetected)) { hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } } }
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
-      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8', false, null, { type: 'Physical', tags: ['Ranged', 'Projectile', 'Direct'] }); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
+      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); if (!struck) { let best = 1e9; for (let n = 0; n < enemies.length; n++) { const e = enemies[n]; if (!e || e.hidden || e.downT || e.dead || e.hp <= 0) continue; const dd = Math.hypot(e.x - pr.x, e.y - pr.y); if (dd <= e.r + pr.r + 3 && dd < best) { best = dd; struck = e; } } } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8', false, null, { type: 'Physical', tags: ['Ranged', 'Projectile', 'Direct'], critApplied: true, skill: 'bow', weaponFamily: pr.weaponFamily || 'bow' }); breakSecretsAt(pr.x, pr.y, (pr.r || 3) + 4, true); if (state !== 'play') return; continue; }
       if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); if (pr.skill === 0) fxImpact074(pr.x, pr.y); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
-        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) { const splash = d < e.r + 4 ? 1 : .6; damageEnemy(e, pr.dmg, (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], more: splash, critApplied: true, skill: 'fireball' }); } } }
+        for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) { const splash = d < e.r + 4 ? 1 : .6; damageEnemy(e, pr.dmg, (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], more: splash, critApplied: true, skill: 'fireball', weaponFamily: pr.weaponFamily || '' }); } } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
     }
@@ -6193,7 +6358,7 @@ function breakPropsAt(x, y, r) {
       if (d > 8) {
         const ang = Math.atan2(player.fy || 0, player.fx || 1);
         const da = Math.abs(((Math.atan2(pt.y - player.y, pt.x - player.x) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-        if (da > 1.1) continue;
+        if (da > weaponArc()) continue;
       }
     }
     o.broken = true; const col = o.kind === 'barrel' ? '#7a5030' : o.kind === 'urn' ? '#8a6a50' : '#d8d0b8';
@@ -7670,9 +7835,12 @@ function drawPlayer() {
   const hop = p.roll > 0 && spikeAt(Math.floor(p.x / TS), Math.floor(p.y / TS)) ? 5 : 0, X = Math.round(p.x - 6), Y = Math.round(p.y - 9 - (step ? 1 : 0) - hop);
   const ang = Math.atan2(p.fy, p.fx), side = p.fx >= 0 ? 1 : -1;
   if (p.swing > 0) {
-    const k = 1 - p.swing / .22, a0 = ang - 1.1 + k * 2.2;
+    const dur = p.swingDur > 0.05 ? p.swingDur : .22, arc = p.swingArc > 0.2 ? p.swingArc : 1.1;
+    const hit = p.swingHit > 0 ? p.swingHit : dur * 0.35, elapsed = dur - p.swing;
+    const k = elapsed <= hit ? (elapsed / Math.max(hit, 0.001)) * 0.62 : 0.62 + ((elapsed - hit) / Math.max(dur - hit, 0.001)) * 0.38;
+    const a0 = ang - arc + k * arc * 2;
     ctx.fillStyle = 'rgba(255,255,255,.4)';
-    for (let a = ang - 1.1; a < a0; a += .12) ctx.fillRect(Math.round(p.x + Math.cos(a) * 17) - 1, Math.round(p.y - 2 + Math.sin(a) * 17) - 1, 2, 2);
+    for (let a = ang - arc; a < a0; a += .12) ctx.fillRect(Math.round(p.x + Math.cos(a) * 17) - 1, Math.round(p.y - 2 + Math.sin(a) * 17) - 1, 2, 2);
     drawBlade(p.x, p.y - 2, a0, 17);
   } else if (p.fy < 0) drawBlade(p.x + 4 * side, p.y - 2, ang, 9);
   if (p.roll > 0) { // tumble: spin the sprite a full turn, slightly squashed, with a fading after-image
@@ -8929,18 +9097,55 @@ function spinBegin074() { const p = player, f = effects.find(q => q.kind === 'sp
 // ---------- F9 hold attack -> power attack ----------
 function pwrFrac(c) { return clamp((c - PWR.min) / (PWR.full - PWR.min), 0, 1); }
 let PWR_MUL = 1, PWR_REACH = 0, PWR_KB = 1, PWR_FRAC = 1;
-function powerAttack074(c, fixed) { const p = player, f = pwrFrac(c); PWR_MUL = PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f; PWR_REACH = PWR.reach; PWR_KB = PWR.kb; PWR_FRAC = f;
+function powerAttack074(c, fixed) {
+  if (equippedBow()) return doAttack(fixed);
+  const p = player, f = pwrFrac(c); PWR_MUL = PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f; PWR_REACH = PWR.reach; PWR_KB = PWR.kb; PWR_FRAC = f;
   try { doAttack(fixed); } finally { PWR_MUL = 1; PWR_REACH = 0; PWR_KB = 1; PWR_FRAC = 1; }
-  p.swing = .3; addTrauma(.12 + .1 * f); burst(p.x + p.fx * 14, p.y - 2 + p.fy * 14, f >= 1 ? '#ffe070' : '#e0e0f0', 10 + Math.round(8 * f), 70); v074Stats.power++; v074Stats.lastPower = +(PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f).toFixed(2); }
+  p.swing = .3; p.swingDur = .3; p.swingHit = .08; addTrauma(.12 + .1 * f); burst(p.x + p.fx * 14, p.y - 2 + p.fy * 14, f >= 1 ? '#ffe070' : '#e0e0f0', 10 + Math.round(8 * f), 70); v074Stats.power++; v074Stats.lastPower = +(PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f).toFixed(2); }
 function updateAttack074(dt) { const p = player, now = performance.now(); if (p.chg === undefined) p.chg = -1;
+  tickAttackSched(dt);
+  if (p.atkPhase === 'windup') {
+    if ((p.tapA || 0) > now) { p.tapA = 0; queueAttack(weaponFamilyOf(p).id === 'bow' ? 'bow' : 'tap', { fixed: false }); }
+    else if (tapQ.attack > now && tapQ.attack !== p.atkUsedTap) { p.atkUsedTap = tapQ.attack; queueAttack(weaponFamilyOf(p).id === 'bow' ? 'bow' : 'tap', { fixed: false }); }
+    return;
+  }
+  if (equippedBow()) {
+    p.chg = -1;
+    const want = held.attack || tapQ.attack > now || (p.tapA || 0) > now;
+    if (want && !p.bowDown) {
+      p.bowDown = 1;
+      if (tapQ.attack > now) p.atkUsedTap = tapQ.attack;
+      tapQ.attack = 0; p.tapA = 0;
+      if (p.atkCd > 0) queueAttack('bow', { fixed: false });
+      else { v074Stats.taps++; armAttack('bow', false, 0); }
+    }
+    if (!held.attack) p.bowDown = 0;
+    return;
+  }
   if (held.attack) { if (p.chg < 0) p.chg = 0; else { const was = p.chg < PWR.full; p.chg += dt; if (was && p.chg >= PWR.full) { try { sfxTone('square', 880, 1320, .09, .025, .01); } catch (_) {} } } tapQ.attack = 0; return; }
-  if (p.chg >= 0) { const c = p.chg; p.chg = -1; if (c >= PWR.min) p.pwrQ = { c, until: now + 300 }; else p.tapA = now + 250; }
-  if (p.atkCd > 0) return;
-  if (p.pwrQ && p.pwrQ.until > now) { const c = p.pwrQ.c; p.pwrQ = null; powerAttack074(c); return; } p.pwrQ = null;
-  if ((p.tapA || 0) > now || tapQ.attack > now) { p.tapA = 0; tapQ.attack = 0; v074Stats.taps++; doAttack(); } }
+  if (p.chg >= 0) { const c = p.chg; p.chg = -1; if (c >= PWR.min) { if (p.atkCd > 0) queueAttack('power', { charge: c, fixed: false }); else armAttack('power', false, c); } else p.tapA = now + 250; return; }
+  if (p.atkCd > 0) {
+    if (p.pwrQ && p.pwrQ.until > now) { queueAttack('power', { charge: p.pwrQ.c, fixed: false }); p.pwrQ = null; }
+    else if ((p.tapA || 0) > now || tapQ.attack > now) queueAttack('tap', { fixed: false });
+    p.tapA = 0; tapQ.attack = 0; return;
+  }
+  if (p.pwrQ && p.pwrQ.until > now) { const c = p.pwrQ.c; p.pwrQ = null; armAttack('power', false, c); return; }
+  p.pwrQ = null;
+  if ((p.tapA || 0) > now || tapQ.attack > now) { p.tapA = 0; tapQ.attack = 0; v074Stats.taps++; armAttack('tap', false, 0); } }
 function clickAttack074(dt) { const p = player; if (p.mchg === undefined) p.mchg = -1; // click-walk reached its target: hold = charge, release = swing
-  if (dm.left) { if (p.mchg < 0) p.mchg = 0; else { const was = p.mchg < PWR.full; p.mchg += dt; if (was && p.mchg >= PWR.full) { try { sfxTone('square', 880, 1320, .09, .025, .01); } catch (_) {} } } return false; }
-  if (p.atkCd > 0) return false; const c = p.mchg; p.mchg = -1; if (c >= PWR.min) powerAttack074(c, true); else { v074Stats.taps++; doAttack(true); } return true; }
+  if (dm.left) {
+    if (equippedBow()) { p.mchg = -1; return false; }
+    if (p.mchg < 0) p.mchg = 0; else { const was = p.mchg < PWR.full; p.mchg += dt; if (was && p.mchg >= PWR.full) { try { sfxTone('square', 880, 1320, .09, .025, .01); } catch (_) {} } }
+    return false;
+  }
+  const c = p.mchg; p.mchg = -1;
+  if (p.atkPhase === 'windup' || p.atkCd > 0) {
+    if (!equippedBow() && c >= PWR.min) queueAttack('power', { charge: c, fixed: true });
+    else queueAttack(equippedBow() ? 'bow' : 'tap', { fixed: true });
+    return false;
+  }
+  if (!equippedBow() && c >= PWR.min) { armAttack('power', true, c); return true; }
+  v074Stats.taps++; armAttack(equippedBow() ? 'bow' : 'tap', true, 0); return true; }
 function drawCharge074() { const p = player; if (!p) return; const ch = Math.max(p.chg === undefined ? -1 : p.chg, p.mchg === undefined ? -1 : p.mchg); if (!(ch >= .12)) return; const f = pwrFrac(ch), full = ch >= PWR.full, X = Math.round(p.x), Y = Math.round(p.y - 3), r = 13;
   const n = 24, lit = Math.round(n * Math.min(1, (ch - .12) / (PWR.full - .12)));
   for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + i / n * 6.283; ctx.fillStyle = i < lit ? (full ? (Math.floor(time * 12) % 2 ? '#fff4b0' : '#ffd040') : ch >= PWR.min ? '#e8c840' : '#a0a0b0') : 'rgba(0,0,0,.45)';
@@ -9553,7 +9758,9 @@ function equippedBow() {
 function arrowStyleOf(bow) { return (bow && bow.uniqueId) || 'default'; }
 function fireBow(bow, fixed) {
   const p = player;
-  if (!p || p.atkCd > 0 || ccImmobilized(p)) return false;
+  if (!p || ccImmobilized(p)) return false;
+  if (p.atkCd > 0 && !p.atkKeepCd) return false;
+  if (!p.atkKeepCd && p.atkPhase === 'windup') { p.atkPhase = ''; p.atkWind = 0; }
   let ax = p.fx, ay = p.fy;
   const ma = mouseAim();
   const mv = moveInput();
@@ -9562,12 +9769,13 @@ function fireBow(bow, fixed) {
   else if (!fixed && t && (touchMode || !(mv.x || mv.y))) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); }
   const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l;
   p.fx = ax; p.fy = ay;
-  p.swing = 0.16;
-  p.atkCd = 0.45 / (p.st.aspd || 1);
+  if (!p.atkKeepCd) { p.swing = 0.16; p.swingDur = 0.16; p.atkCd = 0.45 / (p.st.aspd || 1); }
+  else if (p.swingDur > 0) p.swing = Math.min(p.swing, p.swingDur * 0.35);
   const rolled = rollDmg('bow');
   const style = arrowStyleOf(bow);
   noteLeechSkip('bow', rolled.d);
-  projs.push({ x: p.x + ax * 8, y: p.y - 2 + ay * 8, vx: ax * BOW_SPEED, vy: ay * BOW_SPEED, r: 3, dmg: rolled.d, owner: 'p', kind: 'arrow', life: 0.95, visualStyle: style, critRolled: !!rolled.crit, critApplied: true });
+  projs.push({ x: p.x + ax * 8, y: p.y - 2 + ay * 8, vx: ax * BOW_SPEED, vy: ay * BOW_SPEED, r: 3, dmg: rolled.d, owner: 'p', kind: 'arrow', life: 0.95, visualStyle: style, critRolled: !!rolled.crit, critApplied: true, weaponFamily: 'bow' });
+  impactFeedback('bow');
   const cueId = style === 'Scream of the Banshee' ? 'player_bow_banshee_01' : style === 'Spine of the First Lich' ? 'player_bow_spine_01' : style === 'Hellmouth Strider' ? 'player_bow_hellmouth_01' : '';
   if (cueId) cue(cueId);
   else { if (!cue('player_bow_release')) cue('player_swing_light_01'); }
@@ -12824,7 +13032,8 @@ drawShiftFx = function () {
 };
 
 function drawBow716(p, ang, swing) {
-  const pull = swing > 0 ? (1 - (1 - swing / 0.16)) * 5 : 1.5;
+  const dur = p.swingDur > 0.05 ? p.swingDur : 0.16;
+  const pull = swing > 0 ? Math.min(5, (swing / dur) * 5) : 1.5;
   const px = p.x + Math.cos(ang) * 7, py = p.y - 3 + Math.sin(ang) * 7;
   const nx = -Math.sin(ang), ny = Math.cos(ang);
   ctx.fillStyle = '#6a3a18';
@@ -14151,6 +14360,9 @@ if (window.game) {
     applyPoiseDamage: applyPoiseDamage, poiseClassOf: poiseClassOf, poiseHitAmount: poiseHitAmount, poiseFromPacket: poiseFromPacket,
     ccMoveMul: ccMoveMul, seMoveMul: seMoveMul, gridSlowMul: gridSlowMul, ccImmobilized: ccImmobilized, ccState: ccState, staggerDuration: staggerDuration,
     powerAttack074: powerAttack074, castSkill: castSkill, poiseSaveVal: poiseSaveVal,
+    WEAPON_FAMILIES: WEAPON_FAMILIES, weaponFamilyId: weaponFamilyId, weaponFamilyOf: weaponFamilyOf,
+    attackPeriod: attackPeriod, attackState: attackState, beginAttack: beginAttack, queueAttack: queueAttack,
+    HITSTOP_CAP: HITSTOP_CAP, ATK_BUF: ATK_BUF,
     setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
     flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
