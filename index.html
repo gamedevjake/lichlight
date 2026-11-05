@@ -2839,7 +2839,7 @@ function spawnEnemy(type, x, y, elite, opt) {
   if (T.ai === 'eel') { e.hidden = true; e.mode = 'under'; e.t = 2; }
   if (T.disguise) e.disg = true;
   if (T.ai === 'crab') { e.mode = 'shell'; e.t = 2.6; }
-  enemies.push(e); v073SpawnGuard(e); return e; /* v0.7.3 §9: never into a sinking-floor room */
+  enemies.push(e); v073SpawnGuard(e); ensurePoise(e); return e; /* v0.7.3 §9: never into a sinking-floor room */
 }
 const BOSS_HP_MUL = 1.75; // v0.7.17 B2: every boss max HP
 const BOSS_SHIELD_FRAC = 0.25; // v0.7.17 B1: shield sized from the post-B2 max HP
@@ -2853,7 +2853,7 @@ function spawnBoss(x, y) {
   const e = { id: ++entId, type: 'boss', T, B, x, y, r: B.r, hp, maxHp: hp, shield: maxShield, maxShield, dmg: (8 + 2.2 * (d - 1)) * Math.pow(1.25, cycle) * dmgBump(d, true), spd: B.spd, elite: false, state: 'idle',
     wx: 0, wy: 0, wt: 0, atkCd: 1, flash: 0, slow: 0, kx: 0, ky: 0, face: 1, cd: 0, anim: 0, t: 0, mode: '', busy: 0, patCd: 1.2, phase: 1, enr: 1, z: 0,
     pool: B.p1.slice(), last: '', spiralT: 0, xp: Math.round((150 + 40 * d) * cm), name, cycle };
-  enemies.push(e); return e;
+  enemies.push(e); ensurePoise(e); return e;
 }
 let entId = 0;
 function shuffled(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
@@ -3062,7 +3062,8 @@ function lob(e, x, y, r, dur, dmg, haz) {
 // ---------- boss AI ----------
 function bossPick(e) { const pool = e.pool.filter(q => q !== e.last); return pick(pool.length ? pool : e.pool); }
 function bossAI(e, dt, d, ax, ay) {
-  const p = tomeSeek(), B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * (e.slow > 0 ? .5 : 1) * auraMul(e) * statusMoveMul(e);
+  const p = tomeSeek(), B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * ccMoveMul(e);
+  if (ccImmobilized(e)) return;
   // phase changes
   if (e.phase === 1 && e.hp < e.maxHp * .5) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('enrage'); }
   if (e.phase === 2 && B.p3 && e.hp < e.maxHp * .25) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
@@ -3121,8 +3122,9 @@ function updateEnemies(dt) {
     const sk = tomeSeek(), dSk = dist(e, sk), d = dist(e, p);
     if (d > 340 && dSk > 340 && !e.T.boss) continue; // far away: frozen (cheap)
     if (e.downT) { e.downT -= dt; if (e.downT <= 0) { e.downT = 0; e.hp = Math.round(e.maxHp * .5); flashMsg('The Revenant rises again!', '#c0c0ff'); burst(e.x, e.y, '#c0c0ff', 16, 60); e.state = 'chase'; } continue; }
-    const spd = e.spd * (e.slow > 0 ? .45 : 1) * auraMul(e) * statusMoveMul(e);
+    const spd = e.spd * ccMoveMul(e);
     if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt); const f = Math.pow(.001, dt); e.kx *= f; e.ky *= f; if (Math.abs(e.kx) + Math.abs(e.ky) < 2) e.kx = e.ky = 0; }
+    if (ccImmobilized(e)) continue;
     if (e.disg) { if (d < 26) wakeMimic(e); continue; }
     if (gridAIOn(e)) { gridEnemyUpdate(e, dt, d, spd); if (state !== 'play') return; continue; } // v0.7.4 F11 axis-aligned state machine (replaces LOS chase)
     if (e.state === 'idle') {
@@ -3300,7 +3302,7 @@ function startFloor(d, fresh) {
   deathAct = null; depth = d; V73 = v073Empty(); DPLANE = null; genDungeon(depth); populate(); setFloorEntrance(d); genV071(d); genV072(d); genV073(d); genV075(d); populateCritters(); v074Floor(d); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
-  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; clearStatuses(player); player.freezeImmune = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
+  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; clearStatuses(player); player.freezeImmune = 0; resetPoise(player); ensurePoise(player); player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
   v077BuildRooms(); splitGoldPiles(); purgeBadSpawns(); save();
 }
 function badSpawnAt(x, y) {
@@ -3322,7 +3324,7 @@ function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null, statuses: statusSaveBag(p), freezeImmune: p.freezeImmune > 0 ? Math.round(p.freezeImmune * 1000) / 1000 : undefined } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null, statuses: statusSaveBag(p), freezeImmune: p.freezeImmune > 0 ? Math.round(p.freezeImmune * 1000) / 1000 : undefined, poise: poiseSaveVal(p) } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -4222,7 +4224,8 @@ function makeDamagePacket(spec) {
     critApplied: critApplied, critPending: critPending && !critApplied, skill: spec.skill || '',
     more: Number.isFinite(+spec.more) ? +spec.more : 1, scale: spec.scale !== false,
     attacker: spec.attacker || 'player', isDot: isDot, world: !!spec.world, kx: spec.kx, ky: spec.ky, col: spec.col,
-    label: spec.label, lethal: spec.lethal, cause: spec.cause, penetration: spec.penetration
+    label: spec.label, lethal: spec.lethal, cause: spec.cause, penetration: spec.penetration,
+    poiseClass: spec.poiseClass || '', poiseFrac: Number.isFinite(+spec.poiseFrac) ? +spec.poiseFrac : null
   };
 }
 function conversionCycle(edges) {
@@ -4413,7 +4416,7 @@ function resolvePlayerDamage(packet) {
   const dot = !!(packet.isDot || (src && src.dot));
   let raw = 0;
   for (let i = 0; i < comps.length; i++) raw += comps[i].amount;
-  if (!dot && tryBlock(raw, src)) return preventedHit('block', packet, comps, raw);
+  if (!dot && tryBlock(raw, src)) { notePoise(p, packet, { blocked: true }); return preventedHit('block', packet, comps, raw); }
   const red = physicalArmorFraction(p.st.def);
   const spread = typeof window.__hurtSpread === 'number' ? window.__hurtSpread : rand(.85, 1.15);
   let kept = 0;
@@ -4451,6 +4454,7 @@ function resolvePlayerDamage(packet) {
   if (src) { const a = Math.atan2(p.y - src.y, p.x - src.x); moveEnt(p, Math.cos(a) * 4, Math.sin(a) * 4); }
   wearArmor();
   if (p.hp <= 0) { p.hp = 0; die(src ? (src.T ? src.T.label : src.label) : null, src && src.cause); }
+  else if (!dot) notePoise(p, packet, {});
   res.dealt = hp0 - p.hp; res.killed = p.hp <= 0; return res;
 }
 function resolveEnemyDamage(e, packet) {
@@ -4503,6 +4507,7 @@ function resolveEnemyDamage(e, packet) {
   if (typeof noteTarget717 === 'function') noteTarget717(e);
   if (hpDmg > 0) addFoeText(e.x, e.y - 10, hpDmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
+  if (!packet.isDot) notePoise(e, packet, { guard: guardFront });
   if (e.hp <= 0) killEnemy(e);
   return {
     phase: 'hit', target: 'enemy', prevented: null, dealt: hpDmg, amount: dmg, hpDmg: hpDmg, shieldAbs: shieldAbs,
@@ -4526,7 +4531,8 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
     amount: dmg, type: meta.type || 'Physical', tags: Array.isArray(meta.tags) ? meta.tags : ['Direct'],
     source: src || null, attacker: 'player', crit: !!crit, kx: kx, ky: ky, col: col, isDot: false,
     penetration: meta.penetration, more: Number.isFinite(+meta.more) ? +meta.more : 1,
-    critApplied: critApplied, critPending: critPending, skill: meta.skill || '', scale: meta.scale !== false
+    critApplied: critApplied, critPending: critPending, skill: meta.skill || '', scale: meta.scale !== false,
+    poiseClass: meta.poiseClass || '', poiseFrac: Number.isFinite(+meta.poiseFrac) ? +meta.poiseFrac : null
   });
 }
 
@@ -4635,11 +4641,12 @@ function hurtPlayer(dmg, src) {
   });
 }
 
-// ===== Stage 4: status effects =====
+// ===== Stage 4: status effects. Stage 5 stagger lives in the same bag. =====
 // One bag per actor, `ent.statuses`. Legacy frost slow, chill aura, webs, poison ground,
 // environmental burn, fear, and self-stun keep their own timers. legacyStatusView reads them.
 // It does not tick them. Damaging statuses below build one DoT packet per tick and resolve once.
-// DoT ticks do not crit. No live attack applies these. No loot rolls them.
+// DoT ticks do not crit. No live attack applies bleed, burning, chill, freeze, shock, poison, or curse.
+// Stagger is the Stage 5 crowd-control state. Poise damage applies it. There is no second timer.
 const STATUS = {
   // Dot types are DMG_TYPES indexes. 0 Physical, 1 Fire, 4 Poison.
   bleed:   { kind: 'dot', type: DMG_TYPES[0], max: 5, dur: 4, interval: 1, col: '#c02020', label: 'BLEED' },
@@ -4648,7 +4655,8 @@ const STATUS = {
   chill:   { kind: 'chill',  max: 1, dur: 4, slowCap: 60, build: 40, freezeAt: 100, col: '#80d0ff', label: 'CHILL' },
   freeze:  { kind: 'freeze', max: 1, dur: 1.5, lockout: 3, col: '#e8f8ff', label: 'FREEZE' },
   shock:   { kind: 'shock',  max: 1, dur: 4, cap: 25, col: '#ffe040', label: 'SHOCK' },
-  curse:   { kind: 'curse',  max: 3, dur: 6, penaltyCap: 30, resistCap: 40, drainCap: 10, col: '#c080e0', label: 'CURSE' }
+  curse:   { kind: 'curse',  max: 3, dur: 6, penaltyCap: 30, resistCap: 40, drainCap: 10, col: '#c080e0', label: 'CURSE' },
+  stagger: { kind: 'stagger', max: 1, dur: 0.55, col: '#ffe0a0', label: 'STAGGER' }
 };
 const HEAVY_CHILL = 0.4; // bosses and Super Elites: chill slow and only chill. Freeze does not land.
 const STATUS_MAX_TICKS = 8; // one tickStatuses call cannot burst more than this many ticks
@@ -4673,6 +4681,13 @@ function statusBlock(ent, id) {
   if (imm && (imm.all || imm[id])) return 'immune';
   if (id === 'freeze' && statusHeavy(ent)) return 'immune';
   if (id === 'freeze' && ent.freezeImmune > 0) return 'freeze-lockout';
+  if (id === 'stagger') {
+    if (ent.staggerImmune > 0) return 'stagger-lockout';
+    const bag = ent.statuses;
+    if (bag && bag.freeze && bag.freeze.dur > 0) return 'frozen';
+    if (bag && bag.stagger && bag.stagger.dur > 0) return 'refresh-blocked';
+    if (ent.mode === 'stun') return 'stunned';
+  }
   return '';
 }
 function statusSnap(rec) {
@@ -4683,7 +4698,7 @@ function statusSnap(rec) {
     interval: rec.interval || 0, attacker: rec.attacker || '', scale: !!rec.scale, dmgType: rec.dmgType || '',
     slowPct: rec.slowPct || 0, buildup: rec.buildup || 0, takenPct: rec.takenPct || 0,
     outPenalty: rec.outPenalty || 0, resistReduction: rec.resistReduction || 0,
-    resistByType: rec.resistByType || null, lifeDrain: rec.lifeDrain || 0,
+    resistByType: rec.resistByType || null, lifeDrain: rec.lifeDrain || 0, debt: rec.debt || 0,
     stacks: stacks, n: stacks.length, source: rec.source || (stacks[0] && stacks[0].source) || null
   };
 }
@@ -4740,7 +4755,7 @@ function statusSaveBag(ent) {
       slowPct: rec.slowPct || 0, buildup: rec.buildup || 0, takenPct: rec.takenPct || 0,
       outPenalty: rec.outPenalty || 0, resistReduction: rec.resistReduction || 0,
       resistByType: rec.resistByType ? Object.assign({}, rec.resistByType) : null,
-      lifeDrain: rec.lifeDrain || 0, source: rec.source || null,
+      lifeDrain: rec.lifeDrain || 0, debt: rec.debt || 0, source: rec.source || null,
       stacks: (rec.stacks || []).map(s => ({ base: s.base, left: s.left, source: s.source || null }))
     };
   }
@@ -4748,7 +4763,7 @@ function statusSaveBag(ent) {
 }
 function statusSanitize(ent) {
   if (!ent) return;
-  if (!ent.statuses || typeof ent.statuses !== 'object' || Array.isArray(ent.statuses)) { delete ent.statuses; return; }
+  if (!ent.statuses || typeof ent.statuses !== 'object' || Array.isArray(ent.statuses)) { delete ent.statuses; poiseSanitize(ent); return; }
   const bag = ent.statuses;
   const keys = Object.keys(bag);
   let curses = 0;
@@ -4781,6 +4796,10 @@ function statusSanitize(ent) {
       rec.buildup = Math.max(0, Math.min(def.freezeAt, +rec.buildup || 0));
     }
     if (def.kind === 'shock') rec.takenPct = Math.max(0, Math.min(def.cap, +rec.takenPct || 0));
+    if (def.kind === 'dot') {
+      const capDebt = (def.interval || 1) * STATUS_MAX_TICKS * 8;
+      rec.debt = Math.max(0, Math.min(capDebt, +rec.debt || 0));
+    } else if (rec.debt) rec.debt = 0;
     if (def.kind === 'curse') {
       rec.outPenalty = Math.max(0, Math.min(def.penaltyCap, +rec.outPenalty || 0));
       rec.resistReduction = Math.max(0, Math.min(def.resistCap, +rec.resistReduction || 0));
@@ -4790,6 +4809,7 @@ function statusSanitize(ent) {
   }
   if (ent.freezeImmune) ent.freezeImmune = Math.max(0, +ent.freezeImmune || 0);
   if (!Object.keys(bag).length) delete ent.statuses;
+  poiseSanitize(ent);
 }
 function curseOutMul(ent) {
   const bag = ent && ent.statuses;
@@ -4846,6 +4866,8 @@ function statusMoveMul(ent) {
   if (!bag) return 1;
   const fr = bag.freeze;
   if (fr && fr.dur > 0) return 0;
+  const st = bag.stagger;
+  if (st && st.dur > 0) return 0;
   const ch = bag.chill;
   if (!ch || !(ch.dur > 0) || !(ch.slowPct > 0)) return 1;
   return 1 - Math.min(STATUS.chill.slowCap, ch.slowPct) / 100;
@@ -4981,6 +5003,15 @@ function applyStatus(ent, id, spec) {
       for (const t in spec.resistByType) if (RESIST_KEYS[t] && Number.isFinite(+spec.resistByType[t])) rec.resistByType[t] = Math.max(0, Math.min(def.resistCap, +spec.resistByType[t]));
     }
     rec.source = src;
+  } else if (def.kind === 'stagger') {
+    const want = Math.min(def.dur, Math.max(POISE_DR_FLOOR, Number.isFinite(+spec.duration) ? +spec.duration : def.dur));
+    bag.stagger = { id: 'stagger', key: 'stagger', kind: 'stagger', dur: want, source: src };
+    ent.poiseBreaks = Math.min(POISE_BREAKS_CAP, (ent.poiseBreaks | 0) + 1);
+    const max = ent.poiseMax > 0 ? ent.poiseMax : (poiseTierOf(ent).max || 1);
+    ent.poise = Math.max(1, max * POISE_RECOVER);
+    ent.poiseDelay = ent.poiseDelayMax > 0 ? ent.poiseDelayMax : poiseTierOf(ent).delay;
+    interruptControl(ent);
+    reason = 'applied';
   }
   const rec = bag[key];
   if (!spec.quiet && (reason === 'applied' || reason === 'stacked')) statusFloater(ent, def.label, def.col);
@@ -4993,9 +5024,10 @@ function applyStatus(ent, id, spec) {
   };
 }
 function tickStatuses(ent, dt) {
-  const out = { ticks: [], expired: [], died: false };
+  const out = { ticks: [], expired: [], died: false, deferred: 0, dropped: 0 };
   if (!ent || !(dt > 0)) return out;
   if (ent.freezeImmune > 0) ent.freezeImmune = Math.max(0, ent.freezeImmune - dt);
+  tickPoise(ent, dt);
   const bag = ent.statuses;
   if (!bag) return out;
   const ids = Object.keys(bag);
@@ -5004,11 +5036,27 @@ function tickStatuses(ent, dt) {
     const id = ids[i];
     const rec = bag[id];
     if (!rec) continue;
+    let step = dt;
     if (rec.kind === 'dot' && rec.interval > 0 && rec.stacks && rec.stacks.length) {
-      rec.acc = (rec.acc || 0) + dt;
+      const interval = rec.interval;
+      const dur0 = rec.dur > 0 ? rec.dur : 0;
+      let budget = dt + (rec.debt || 0);
+      rec.debt = 0;
+      if (budget > dur0) budget = dur0;
+      let applied = 0;
       let n = 0;
-      while (rec.acc >= rec.interval - 1e-9 && n < STATUS_MAX_TICKS && rec.stacks.length) {
-        rec.acc -= rec.interval;
+      while (budget > 1e-9 && applied + 1e-9 < dur0 && n < STATUS_MAX_TICKS && rec.stacks.length) {
+        const need = interval - (rec.acc || 0);
+        if (budget + 1e-9 < need) {
+          rec.acc = (rec.acc || 0) + budget;
+          applied += budget;
+          budget = 0;
+          break;
+        }
+        if (applied + need > dur0 + 1e-9) break;
+        rec.acc = 0;
+        applied += need;
+        budget -= need;
         n++;
         const hit = dealDotTick(ent, rec);
         out.ticks.push(hit);
@@ -5018,12 +5066,27 @@ function tickStatuses(ent, dt) {
           return out;
         }
       }
+      if (budget > 1e-9 && n >= STATUS_MAX_TICKS) {
+        const room = Math.max(0, dur0 - applied);
+        let keep = budget < room ? budget : room;
+        const debtCap = interval * STATUS_MAX_TICKS * 8;
+        if (keep > debtCap) {
+          const lost = keep - debtCap;
+          const dropped = Math.floor((lost + 1e-9) / interval);
+          if (dropped > 0) out.dropped += dropped;
+          applied += lost;
+          keep = debtCap;
+        }
+        rec.debt = keep;
+        out.deferred += Math.floor((keep + 1e-9) / interval);
+      }
+      step = applied;
     }
     if (!ent.statuses || !ent.statuses[id]) continue;
-    rec.dur -= dt;
+    rec.dur -= step;
     if (rec.stacks) {
       for (let s = rec.stacks.length - 1; s >= 0; s--) {
-        rec.stacks[s].left -= dt;
+        rec.stacks[s].left -= step;
         if (rec.stacks[s].left <= 1e-9) rec.stacks.splice(s, 1);
       }
       let maxLeft = 0;
@@ -5035,12 +5098,322 @@ function tickStatuses(ent, dt) {
       }
     } else if (rec.dur <= 0) {
       if (id === 'freeze') ent.freezeImmune = STATUS.freeze.lockout;
+      if (id === 'stagger') beginStaggerImmune(ent);
       delete ent.statuses[id];
       out.expired.push(id);
     }
   }
   if (ent.statuses && !Object.keys(ent.statuses).length) delete ent.statuses;
   return out;
+}
+
+// ===== Stage 5: poise, stagger, crowd control =====
+// Poise is not HP. Armor, elemental resist, barriers, and boss/Super Elite shields do not reduce it.
+// A successful block negates it. A guard's front glance uses GUARD_POISE, the same 0.2 as its knockback.
+// DoTs, world packets, Hellmouth's sink, crab shell, and Super Elite intro deal none.
+// Boss intro (the awaken banner) blocks poise and stagger. It does not block HP. That banner was never an HP immunity.
+const MIN_MOVE_MUL = 0.2;
+const POISE_DR = 0.65;
+const POISE_DR_FLOOR = 0.12;
+const POISE_CHAIN = 6;
+const POISE_RECOVER = 0.45;
+const GUARD_POISE = 0.2;
+const POISE_BREAKS_CAP = 8;
+const POISE_MAX_CAP = 5000;
+const POISE_CLASS_DMG = { light: 18, heavy: 34, power: 52, skill: 14, none: 0 };
+const POISE_IN = { light: 10, heavy: 22, power: 34, skill: 8, none: 0 };
+const POISE_TIER = {
+  light:     { name: 'light', max: 50, dur: 0.55, immune: 1.6, taken: 1, regen: 0.45, delay: 2.2 },
+  medium:    { name: 'medium', max: 80, dur: 0.5, immune: 2.0, taken: 1, regen: 0.4, delay: 2.4 },
+  heavy:     { name: 'heavy', max: 140, dur: 0.45, immune: 2.5, taken: 0.75, regen: 0.34, delay: 2.6 },
+  champion:  { name: 'champion', max: 120, dur: 0.4, immune: 2.8, taken: 0.7, regen: 0.34, delay: 2.6 },
+  super:     { name: 'super', max: 360, dur: 0.32, immune: 4.8, taken: 0.3, regen: 0.24, delay: 3.2 },
+  boss:      { name: 'boss', max: 560, dur: 0.28, immune: 5.5, taken: 0.2, regen: 0.2, delay: 3.4 },
+  player:    { name: 'player', max: 140, dur: 0.35, immune: 3.2, taken: 1, regen: 0.5, delay: 2.4 }
+};
+const POISE_LIGHT = { bat: 1, rat: 1, flies: 1, slimelet: 1, wisp: 1, spider: 1, slime: 1 };
+const POISE_HEAVY = { golem: 1, guard: 1, knight: 1, ram: 1, crab: 1, drowned: 1 };
+const POISE = {
+  classDmg: POISE_CLASS_DMG, incoming: POISE_IN, tier: POISE_TIER, recover: POISE_RECOVER,
+  dr: POISE_DR, drFloor: POISE_DR_FLOOR, chain: POISE_CHAIN, guard: GUARD_POISE,
+  minMove: MIN_MOVE_MUL, breaksCap: POISE_BREAKS_CAP, maxCap: POISE_MAX_CAP
+};
+function poiseTierOf(ent) {
+  if (!ent || ent === player) return POISE_TIER.player;
+  if (ent.superElite || (ent.T && ent.T.superElite)) return POISE_TIER.super;
+  if (ent.T && ent.T.boss) return POISE_TIER.boss;
+  if (ent.elite) return POISE_TIER.champion;
+  const id = ent.type || '';
+  if (POISE_LIGHT[id]) return POISE_TIER.light;
+  if (POISE_HEAVY[id]) return POISE_TIER.heavy;
+  return POISE_TIER.medium;
+}
+function poiseTierName(ent) { return poiseTierOf(ent).name; }
+function ensurePoise(ent) {
+  if (!ent) return null;
+  const row = poiseTierOf(ent);
+  if (!(ent.poiseMax > 0)) {
+    ent.poiseMax = row.max;
+    ent.poiseRegen = row.regen;
+    ent.poiseDelayMax = row.delay;
+    if (!(ent.poise >= 0)) ent.poise = row.max;
+  }
+  if (!(ent.poise >= 0)) ent.poise = ent.poiseMax;
+  if (!(ent.poiseDelay >= 0)) ent.poiseDelay = 0;
+  if (!(ent.staggerImmune >= 0)) ent.staggerImmune = 0;
+  if (!(ent.poiseBreaks >= 0)) ent.poiseBreaks = 0;
+  if (!(ent.poiseChain >= 0)) ent.poiseChain = 0;
+  if (!(ent.poiseRegen > 0)) ent.poiseRegen = row.regen;
+  if (!(ent.poiseDelayMax > 0)) ent.poiseDelayMax = row.delay;
+  return row;
+}
+function resetPoise(ent) {
+  if (!ent) return;
+  delete ent.poise; delete ent.poiseMax; delete ent.poiseDelay; delete ent.poiseDelayMax; delete ent.poiseRegen;
+  delete ent.staggerImmune; delete ent.poiseBreaks; delete ent.poiseChain;
+  delete ent.poiseTaken; delete ent.poiseDur; delete ent.poiseImmune;
+}
+function poiseSanitize(ent) {
+  if (!ent) return;
+  const saved = ent.poise;
+  if (saved && typeof saved === 'object') {
+    const v = +saved.v, d = +saved.d, i = +saved.i, b = +saved.b, c = +saved.c;
+    delete ent.poise;
+    ensurePoise(ent);
+    if (Number.isFinite(v)) ent.poise = v;
+    ent.poiseDelay = Number.isFinite(d) ? Math.max(0, d) : 0;
+    ent.staggerImmune = Number.isFinite(i) ? Math.max(0, i) : 0;
+    ent.poiseBreaks = Number.isFinite(b) ? b : 0;
+    ent.poiseChain = Number.isFinite(c) ? Math.max(0, c) : 0;
+  } else ensurePoise(ent);
+  if (!(ent.poiseMax > 0)) ent.poiseMax = poiseTierOf(ent).max;
+  if (ent.poiseMax > POISE_MAX_CAP) ent.poiseMax = POISE_MAX_CAP;
+  if (ent.poise > ent.poiseMax) ent.poise = ent.poiseMax;
+  if (ent.poise < 0) ent.poise = 0;
+  ent.poiseDelay = Math.max(0, +ent.poiseDelay || 0);
+  ent.staggerImmune = Math.max(0, +ent.staggerImmune || 0);
+  ent.poiseBreaks = Math.max(0, Math.min(POISE_BREAKS_CAP, ent.poiseBreaks | 0));
+  ent.poiseChain = Math.max(0, +ent.poiseChain || 0);
+  if (ent.poiseTaken != null) ent.poiseTaken = Math.max(0, Math.min(1, +ent.poiseTaken || 0));
+  if (ent.poiseDur != null) ent.poiseDur = Math.max(POISE_DR_FLOOR, Math.min(STATUS.stagger.dur, +ent.poiseDur || 0));
+  if (ent.poiseImmune != null) ent.poiseImmune = Math.max(0, Math.min(30, +ent.poiseImmune || 0));
+}
+function poiseSaveVal(p) {
+  if (!p || !(p.poiseMax > 0)) return undefined;
+  const full = p.poise >= p.poiseMax - 0.05 && !(p.poiseDelay > 0) && !(p.staggerImmune > 0) && !(p.poiseBreaks > 0) && !(p.poiseChain > 0);
+  if (full) return undefined;
+  return {
+    v: Math.round(p.poise * 100) / 100,
+    d: p.poiseDelay > 0 ? Math.round(p.poiseDelay * 1000) / 1000 : 0,
+    i: p.staggerImmune > 0 ? Math.round(p.staggerImmune * 1000) / 1000 : 0,
+    b: p.poiseBreaks | 0,
+    c: p.poiseChain > 0 ? Math.round(p.poiseChain * 1000) / 1000 : 0
+  };
+}
+function staggerDuration(ent) {
+  const row = poiseTierOf(ent);
+  const base = ent.poiseDur > 0 ? ent.poiseDur : row.dur;
+  const n = ent.poiseBreaks | 0;
+  let d = base * Math.pow(POISE_DR, n);
+  if (d < POISE_DR_FLOOR) d = POISE_DR_FLOOR;
+  if (d > STATUS.stagger.dur) d = STATUS.stagger.dur;
+  return d;
+}
+function immuneFor(ent) {
+  if (ent && ent.poiseImmune > 0) return ent.poiseImmune;
+  return poiseTierOf(ent).immune;
+}
+function beginStaggerImmune(ent) {
+  if (!ent) return;
+  ent.staggerImmune = immuneFor(ent);
+  ent.poiseChain = POISE_CHAIN;
+}
+function tickPoise(ent, dt) {
+  if (!ent || !(dt > 0)) return;
+  ensurePoise(ent);
+  if (ent.staggerImmune > 0) ent.staggerImmune = Math.max(0, ent.staggerImmune - dt);
+  if (ent.poiseChain > 0) {
+    ent.poiseChain -= dt;
+    if (ent.poiseChain <= 0) { ent.poiseChain = 0; ent.poiseBreaks = 0; }
+  }
+  const bag = ent.statuses;
+  if (bag && ((bag.stagger && bag.stagger.dur > 0) || (bag.freeze && bag.freeze.dur > 0))) return;
+  if (ent.poise >= ent.poiseMax) { ent.poise = ent.poiseMax; ent.poiseDelay = 0; return; }
+  let left = dt;
+  if (ent.poiseDelay > 0) {
+    if (left < ent.poiseDelay) { ent.poiseDelay -= left; return; }
+    left -= ent.poiseDelay;
+    ent.poiseDelay = 0;
+  }
+  if (left > 0) ent.poise = Math.min(ent.poiseMax, ent.poise + ent.poiseMax * ent.poiseRegen * left);
+}
+function ccImmobilized(ent) {
+  const bag = ent && ent.statuses;
+  if (!bag) return '';
+  if (bag.freeze && bag.freeze.dur > 0) return 'freeze';
+  if (bag.stagger && bag.stagger.dur > 0) return 'stagger';
+  return '';
+}
+function ccState(ent) {
+  if (!ent) return 'none';
+  const hard = ccImmobilized(ent);
+  if (hard) return hard;
+  if (ent.mode === 'stun' || (ent.ai && ent.ai.state === 'STUNNED')) return 'stun';
+  if ((ent.kx || ent.ky) && Math.abs(ent.kx) + Math.abs(ent.ky) > 2) return 'knockback';
+  const bag = ent.statuses;
+  if ((bag && bag.chill && bag.chill.dur > 0) || ent.slow > 0 || ent.slowT > 0 || (ent.auraT > time)) return 'slow';
+  return 'free';
+}
+function ccMoveMul(ent, extra) {
+  if (!ent) return 1;
+  const st = statusMoveMul(ent);
+  if (st === 0) return 0;
+  let m = st;
+  if (ent.slow > 0 && ent.T) m *= (ent.T.boss || ent.superElite) ? 0.5 : 0.45;
+  if (ent.T && ent.auraT > time) m *= 1 - (ent.auraPct || 0) / 100;
+  if (ent.slowT > 0) m *= 0.6;
+  if (extra > 0 && extra < 1) m *= extra;
+  if (m < MIN_MOVE_MUL) return MIN_MOVE_MUL;
+  return m;
+}
+function seMoveMul(ent) {
+  const st = statusMoveMul(ent);
+  if (st === 0) return 0;
+  let m = (ent && ent.slow > 0 ? 0.5 : 1) * st;
+  if (m < MIN_MOVE_MUL) return MIN_MOVE_MUL;
+  return m;
+}
+function gridSlowMul(e) {
+  const sm = statusMoveMul(e);
+  if (sm === 0) return 0;
+  let slow = (e && e.slow > 0 ? 1.8 : 1) * (sm < 1 ? 1 / sm : 1);
+  const cap = 1 / MIN_MOVE_MUL;
+  if (slow > cap) slow = cap;
+  return slow;
+}
+function interruptControl(ent) {
+  if (!ent) return;
+  if (ent === player) {
+    ent.swing = 0; ent.chg = -1; ent.mchg = -1; ent.pwrQ = null; ent.rollQ = 0; ent.roll = 0; ent.walk = null;
+    return;
+  }
+  if (ent.hmFreeze) return;
+  if (ent.T && ent.T.boss && bossIntro > 0 && introBoss === ent) return;
+  if (ent.superElite && ent.sePhase && ent.sePhase !== 'fight') return;
+  if (!(ent.T && ent.T.ai === 'crab')) ent.mode = '';
+  if (ent.busy > 0) ent.busy = 0;
+  if (ent.seAct) ent.seAct = '';
+  if (ent.ai && ent.ai.state === 'CHARGING') ent.ai.state = 'CHASE';
+  if (ent.patCd != null && ent.patCd < 0.35) ent.patCd = 0.35;
+  if (typeof teles !== 'undefined' && teles && teles.length) {
+    for (let i = teles.length - 1; i >= 0; i--) if (teles[i] && teles[i].src === ent) teles.splice(i, 1);
+  }
+}
+function poiseClassOf(meta) {
+  if (!meta || meta.isDot) return 'none';
+  if (meta.poiseClass) return meta.poiseClass;
+  const skill = meta.skill || '';
+  const more = +meta.more || 1;
+  if (skill === 'whirlwind') return 'heavy';
+  if (skill === 'fireball' || skill === 'frost') return 'skill';
+  if (skill === 'melee' && more > 1.001) return 'power';
+  const tags = meta.tags || [];
+  for (let i = 0; i < tags.length; i++) if (tags[i] === 'Melee' || tags[i] === 'Ranged') return 'light';
+  return 'none';
+}
+function poiseHitAmount(meta) {
+  const cls = poiseClassOf(meta);
+  let amt = POISE_CLASS_DMG[cls] || 0;
+  if (cls === 'power') {
+    let frac = meta.poiseFrac;
+    if (frac == null || !Number.isFinite(+frac)) {
+      const more = +meta.more || PWR.mulMin;
+      frac = (more - PWR.mulMin) / (PWR.mulMax - PWR.mulMin);
+    }
+    frac = +frac;
+    if (frac < 0) frac = 0;
+    if (frac > 1) frac = 1;
+    amt *= 0.7 + 0.3 * frac;
+  } else if (cls !== 'none') {
+    const more = +meta.more;
+    if (more > 0 && more < 1) amt *= more;
+  }
+  return { cls: cls, amount: amt };
+}
+function poiseFromPacket(packet) {
+  if (!packet || packet.world || packet.isDot) return { cls: 'none', amount: 0 };
+  if (packet.attacker === 'enemy') {
+    const src = packet.source;
+    const atk = src && src.T ? src : hurtAttacker(src);
+    if (atk && atk.superElite) {
+      const pow = atk.seAct === 'powerup';
+      return { cls: pow ? 'power' : 'skill', amount: pow ? POISE_IN.power : POISE_IN.skill };
+    }
+    if (atk && ((atk.T && atk.T.boss) || atk.mode === 'charge')) return { cls: 'heavy', amount: POISE_IN.heavy };
+    if (src && src.owner === 'e') return { cls: 'skill', amount: POISE_IN.skill };
+    if (atk && atk.T) return { cls: 'light', amount: POISE_IN.light };
+    return { cls: 'none', amount: 0 };
+  }
+  return poiseHitAmount(packet);
+}
+function poiseBlockedReason(ent) {
+  if (!ent || ent.dead || (ent !== player && ent.hp != null && ent.hp <= 0)) return 'invalid';
+  if (ent.superElite && ent.sePhase && ent.sePhase !== 'fight') return 'intro';
+  if (ent.T && ent.T.ai === 'crab' && ent.mode !== 'open') return 'crab';
+  if (ent.T && ent.T.boss && bossIntro > 0 && introBoss === ent) return 'intro';
+  return '';
+}
+function applyPoiseDamage(ent, amount, opt) {
+  opt = opt || {};
+  const info = (amount && typeof amount === 'object') ? amount : { cls: opt.cls || 'direct', amount: +amount || 0 };
+  const result = { ok: false, cls: info.cls || 'direct', amount: 0, dealt: 0, reason: 'skip', poise: 0, broke: false, dur: 0 };
+  if (!ent) { window.__lastPoise = result; return result; }
+  const row = ensurePoise(ent);
+  result.poise = ent.poise;
+  if (opt.blocked) { result.reason = 'block'; window.__lastPoise = result; return result; }
+  if (!(info.amount > 0)) {
+    result.reason = opt.dot ? 'dot' : 'none';
+    window.__lastPoise = result;
+    return result;
+  }
+  const why = poiseBlockedReason(ent);
+  if (why) { result.reason = why; window.__lastPoise = result; return result; }
+  const taken = ent.poiseTaken != null ? ent.poiseTaken : row.taken;
+  let dmg = (info.amount > 0 ? info.amount : 0) * (taken > 0 ? taken : 0);
+  if (opt.guard) dmg *= GUARD_POISE;
+  result.amount = dmg;
+  if (!(dmg > 0)) { result.reason = 'none'; window.__lastPoise = result; return result; }
+  ent.poise -= dmg;
+  ent.poiseDelay = ent.poiseDelayMax > 0 ? ent.poiseDelayMax : row.delay;
+  ent.poiseChain = POISE_CHAIN;
+  result.dealt = dmg;
+  if (ent.poise > 0) {
+    result.ok = true; result.reason = 'hit'; result.poise = ent.poise;
+    window.__lastPoise = result; return result;
+  }
+  ent.poise = 0;
+  const dur = staggerDuration(ent);
+  const res = applyStatus(ent, 'stagger', { duration: dur, source: { kind: 'poise', name: 'Poise', id: info.cls || '' } });
+  if (!res.ok) {
+    if (res.reason === 'refresh-blocked') { if (ent.poise < 1) ent.poise = 1; }
+    else {
+      ent.poise = Math.max(1, ent.poiseMax * POISE_RECOVER);
+      if (!(ent.staggerImmune > 0)) ent.staggerImmune = immuneFor(ent);
+    }
+    result.ok = false; result.reason = res.reason; result.poise = ent.poise; result.dur = res.dur || 0;
+    window.__lastPoise = result; return result;
+  }
+  result.ok = true; result.reason = 'stagger'; result.broke = true; result.dur = res.dur; result.poise = ent.poise;
+  window.__lastPoise = result; return result;
+}
+function notePoise(ent, packet, opt) {
+  opt = opt || {};
+  if (!ent || !packet || packet.world || packet.isDot) {
+    window.__lastPoise = { ok: false, cls: 'none', amount: 0, dealt: 0, reason: packet && packet.isDot ? 'dot' : 'skip', poise: ent && ent.poise || 0, broke: false, dur: 0 };
+    return window.__lastPoise;
+  }
+  if (opt.blocked) return applyPoiseDamage(ent, { cls: 'none', amount: 0 }, { blocked: true });
+  return applyPoiseDamage(ent, poiseFromPacket(packet), opt);
 }
 
 let deathAct = null;
@@ -5053,7 +5426,7 @@ function classifyDeath(killer, cause) {
 }
 function die(killer, cause) {
   const p = player; if (!p || deathAct || state === 'dead' || state === 'dying') return;
-  p.hp = 0; p.walk = null; p.roll = 0; p.swing = 0; clearStatuses(p); p.freezeImmune = 0;
+  p.hp = 0; p.walk = null; p.roll = 0; p.swing = 0; clearStatuses(p); p.freezeImmune = 0; resetPoise(p);
   const why = classifyDeath(killer, cause);
   deathAct = { cause: why, t: 0, dur: 3.5, killer: killer || '', x: p.x, y: p.y, bits: null, overlay: false };
   if (why === 'battle') deathAct.bits = deathBits(p);
@@ -5143,7 +5516,8 @@ function noteLeechSkip(source, base) {
   return window.__lastLeech;
 }
 function doAttack(fixed) {
-  const p = player, t = nearestEnemy(44), mv = moveInput();
+  const p = player; if (ccImmobilized(p)) return;
+  const t = nearestEnemy(44), mv = moveInput();
   // auto-aim: always on touch; on keyboard only when standing still; 'fixed' = facing already set (click-to-attack)
   const ma = fixed ? null : mouseAim();
   if (fixed) { /* keep facing */ }
@@ -5159,7 +5533,7 @@ function doAttack(fixed) {
     const rolled = rollDmg('melee');
     const leechBase = scaleAmount(rolled.d, 'Physical', 1);
     leech(leechBase, PWR_MUL > 1 ? 'power' : 'melee');
-    damageEnemy(e, rolled.d, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', rolled.crit, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: PWR_MUL, critApplied: true, skill: 'melee' }); landed = true; if (rolled.crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
+    damageEnemy(e, rolled.d, dx / (d || 1) * 60 * PWR_KB, dy / (d || 1) * 60 * PWR_KB, PWR_MUL > 1 ? '#ffe070' : '#fff', rolled.crit, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: PWR_MUL, critApplied: true, skill: 'melee', poiseFrac: PWR_MUL > 1 ? PWR_FRAC : null }); landed = true; if (rolled.crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
   }
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
@@ -5174,7 +5548,8 @@ function doAttack(fixed) {
 const mouse = { x: 0, y: 0, active: false };
 function mouseAim() { if (touchMode || !mouse.active || !player) return null; const cw = cursorWorld(), dx = cw.x - player.x, dy = cw.y - player.y, l = Math.hypot(dx, dy); return l > 2 ? { x: dx / l, y: dy / l } : null; }
 function castSkill(i) {
-  const p = player, S = SKILLS[i], hk = 's' + (i + 1);
+  const p = player; if (ccImmobilized(p)) return;
+  const S = SKILLS[i], hk = 's' + (i + 1);
   if (skillLocked(i)) { lockedSkillMsg(i); held[hk] = false; tapQ[hk] = 0; return; }
   if (p.cds[i] > 0) return;
   const mc = manaCost(S); if (p.mp < mc) { flashMsg(mc > S.mana ? 'Not enough mana (parched / exhausted: spells cost more)' : 'Not enough mana', '#88f'); if (time - smpT.failT > .6) { smpT.failT = time; cue('player_cast_fail_01'); } held[hk] = false; tapQ[hk] = 0; return; }
@@ -5269,9 +5644,11 @@ function update(dt) {
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.regen * dt); p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * .1) * dt);
   if (tickStatuses(p, dt).died) return;
   const stand = !touchMode && !!keys.Control; if (stand && p.walk) p.walk = null; // Ctrl held = stand in place (attack / cast without moving)
+  const imm = ccImmobilized(p);
   const moveMul = statusMoveMul(p);
   let mv = stand ? { x: 0, y: 0 } : moveInput(); if (moveMul === 0) mv = { x: 0, y: 0 };
-  const sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * ((held.attack && p.chg >= PWR.min) || (dm.left && p.mchg >= PWR.min) ? .6 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed() * webSlow() * hazSlow() * (moveMul === 0 ? 0 : moveMul);
+  const cc = ccMoveMul(p, webSlow() * hazSlow());
+  const sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * ((held.attack && p.chg >= PWR.min) || (dm.left && p.mchg >= PWR.min) ? .6 : 1) * survSpeed() * cc;
   p.rollCd = Math.max(0, p.rollCd - dt); p.rollQ -= dt;
   if (p.rollQ > 0 && p.roll <= 0 && p.rollCd <= 0 && moveMul !== 0) startRoll(mv);
   if (p.roll > 0) {
@@ -5283,9 +5660,11 @@ function update(dt) {
     if (updatePickWalk(dt, mv, sp)) { /* walking to a clicked item */ }
     else if (updateClickWalk(dt, mv, sp)) { /* D2-style click-walk / click-attack */ }
     else if (mv.x || mv.y) { moveEnt(p, mv.x * sp * dt, mv.y * sp * dt); const l = Math.hypot(mv.x, mv.y); p.fx = mv.x / l; p.fy = mv.y / l; p.walkT += dt; } else { p.walkT = 0; const ma = mouseAim(); if (ma && p.swing <= 0) { p.fx = ma.x; p.fy = ma.y; } }
-    const now = performance.now(), q = k => held[k] || tapQ[k] > now;
-    updateAttack074(dt); /* v0.7.4 F9: tap = swing, hold = charge, release = power attack (was: hold = auto-repeat) */
-    for (let i = 0; i < p.cds.length; i++) { const k = 's' + (i + 1); if (q(k)) { const before = p.cds[i] || 0; castSkill(i); if ((p.cds[i] || 0) > before) tapQ[k] = 0; } }
+    if (!imm) {
+      const now = performance.now(), q = k => held[k] || tapQ[k] > now;
+      updateAttack074(dt); /* v0.7.4 F9: tap = swing, hold = charge, release = power attack (was: hold = auto-repeat) */
+      for (let i = 0; i < p.cds.length; i++) { const k = 's' + (i + 1); if (q(k)) { const before = p.cds[i] || 0; castSkill(i); if ((p.cds[i] || 0) > before) tapQ[k] = 0; } }
+    }
   }
   if (pitAct && pitAct.kind === 'spikefall') pitAct = null; // v0.7.8.1 F2: spikes no longer root or snap you back
   tickSpikeWalk(dt);
@@ -8549,9 +8928,9 @@ function spinBegin074() { const p = player, f = effects.find(q => q.kind === 'sp
   ctx.save(); ctx.translate(Math.round(p.x), 0); ctx.scale(Math.abs(c) < .2 ? (c < 0 ? -.2 : .2) : c, 1); ctx.translate(-Math.round(p.x), 0); return true; }
 // ---------- F9 hold attack -> power attack ----------
 function pwrFrac(c) { return clamp((c - PWR.min) / (PWR.full - PWR.min), 0, 1); }
-let PWR_MUL = 1, PWR_REACH = 0, PWR_KB = 1;
-function powerAttack074(c, fixed) { const p = player, f = pwrFrac(c); PWR_MUL = PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f; PWR_REACH = PWR.reach; PWR_KB = PWR.kb;
-  try { doAttack(fixed); } finally { PWR_MUL = 1; PWR_REACH = 0; PWR_KB = 1; }
+let PWR_MUL = 1, PWR_REACH = 0, PWR_KB = 1, PWR_FRAC = 1;
+function powerAttack074(c, fixed) { const p = player, f = pwrFrac(c); PWR_MUL = PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f; PWR_REACH = PWR.reach; PWR_KB = PWR.kb; PWR_FRAC = f;
+  try { doAttack(fixed); } finally { PWR_MUL = 1; PWR_REACH = 0; PWR_KB = 1; PWR_FRAC = 1; }
   p.swing = .3; addTrauma(.12 + .1 * f); burst(p.x + p.fx * 14, p.y - 2 + p.fy * 14, f >= 1 ? '#ffe070' : '#e0e0f0', 10 + Math.round(8 * f), 70); v074Stats.power++; v074Stats.lastPower = +(PWR.mulMin + (PWR.mulMax - PWR.mulMin) * f).toFixed(2); }
 function updateAttack074(dt) { const p = player, now = performance.now(); if (p.chg === undefined) p.chg = -1;
   if (held.attack) { if (p.chg < 0) p.chg = 0; else { const was = p.chg < PWR.full; p.chg += dt; if (was && p.chg >= PWR.full) { try { sfxTone('square', 880, 1320, .09, .025, .01); } catch (_) {} } } tapQ.attack = 0; return; }
@@ -8639,7 +9018,7 @@ function aiInit074(e) { const M = aiMap074(); let tx = Math.floor(e.x / TS), ty 
   e.ai = createEnemyAI(tx, ty, aiClock, e.elite ? { patrolMs: 340 } : null); e.state = 'idle'; return e.ai; }
 function aiProvoke074(e) { const A = e.ai || aiInit074(e); if (A.state === 'CHASE' || A.state === 'ALERT') { A.engagedUntil = aiClock + A.cfg.engagedMs; return; } A.state = 'ALERT'; A.spotted = false; A.showAlertIcon = true; A.nextTick = aiClock + A.cfg.alertMs; A.lastTick = aiClock; A.fromX = A.tx; A.fromY = A.ty; A.engagedUntil = aiClock + A.cfg.alertMs + A.cfg.engagedMs; aiAlertFx(e); }
 function aiAlertFx(e) { v074Stats.alerts++; try { onAggroV04(e); smpAggro(e); vocAlert(e); } catch (_) {} }
-function gridEnemyUpdate(e, dt, d, spd) { const sm = statusMoveMul(e); if (sm === 0) return; const p = player, T = e.T; let A = e.ai; if (!A || !A.cfg) A = aiInit074(e);
+function gridEnemyUpdate(e, dt, d, spd) { const slowM = gridSlowMul(e); if (slowM === 0) return; const p = player, T = e.T; let A = e.ai; if (!A || !A.cfg) A = aiInit074(e);
   if (A.nextTick > aiClock + 5000 || A.lastTick > aiClock) { A.nextTick = aiClock; A.lastTick = aiClock; } // restored save: the ms clock restarted
   const M = aiMap074(); e.cd -= dt * (e.elite ? 1.35 : 1);
   // something else moved the body (teleport, leap, shove): adopt its tile
@@ -8651,7 +9030,7 @@ function gridEnemyUpdate(e, dt, d, spd) { const sm = statusMoveMul(e); if (sm ==
   const sk = tomeSeek(), pt = { tx: Math.floor(sk.x / TS), ty: Math.floor(sk.y / TS) };
   if (A.state === 'PATROL' && !(e.fearT > 0) && (aiAxisDir(A, pt, M) || aiNearDir075(A, pt, M))) A.nextTick = Math.min(A.nextTick, aiClock); // v0.7.5 B1: close LOS spots immediately
   const occ = new Set(); for (const q of enemies) if (q !== e && q.ai && !q.dead) occ.add(q.ai.ty * MW + q.ai.tx);
-  const ev = updateEnemyAI(A, pt, M, aiClock, { blocked: e.spd === 0 ? () => true : (x, y) => occ.has(y * MW + x), /* spd 0 = rooted (tests, statues) */ slow: (e.slow > 0 ? 1.8 : 1) * (sm < 1 ? 1 / sm : 1), flee: e.fearT > 0 });
+  const ev = updateEnemyAI(A, pt, M, aiClock, { blocked: e.spd === 0 ? () => true : (x, y) => occ.has(y * MW + x), /* spd 0 = rooted (tests, statues) */ slow: slowM, flee: e.fearT > 0 });
   if (e.fearT > 0) e.fearT -= dt;
   if (ev) { v074Stats.aiTicks++;
     if (ev === 'alert') aiAlertFx(e);
@@ -9174,7 +9553,7 @@ function equippedBow() {
 function arrowStyleOf(bow) { return (bow && bow.uniqueId) || 'default'; }
 function fireBow(bow, fixed) {
   const p = player;
-  if (!p || p.atkCd > 0) return false;
+  if (!p || p.atkCd > 0 || ccImmobilized(p)) return false;
   let ax = p.fx, ay = p.fy;
   const ma = mouseAim();
   const mv = moveInput();
@@ -12980,6 +13359,7 @@ drawEnemy = function (e) {
   if (e.elite && typeof drawChampOutline === 'function') drawChampOutline(img, X, Y);
   ctx.drawImage(img, X, Y);
   ctx.globalAlpha = 1;
+  if (e.statuses && e.statuses.stagger) { ctx.fillStyle = '#ffe0a0'; ctx.fillRect(X, Y - 2, 1, 1); }
   if (e.mode === 'stun') { for (let i = 0; i < 3; i++) { const an = time * 6 + i * 2.1; ctx.fillStyle = '#ffe040'; ctx.fillRect(Math.round(e.x + Math.cos(an) * 6), Math.round(Y - 2 + Math.sin(an) * 2), 1, 1); } }
 };
 function spawnCorpse716(e) {
@@ -13429,7 +13809,7 @@ function seSpawn717(id, phase) {
     cd: 1, anim: 0, t: 0, mode: '', xp: Math.round((48 + 14 * depth)),
     sePhase: phase || 'drop', seT: 0, seAct: '', seActT: 0, seHit: false, seCd: 0.8, seUnlocked: phase === 'fight', z: phase === 'drop' ? 78 : 0
   };
-  enemies.push(e);
+  enemies.push(e); ensurePoise(e);
   if (!SE717) SE717 = { id: row.id, alive: true, dead: false, shieldFx: sh, depth: depth };
   SE717.id = row.id; SE717.alive = true; SE717.dead = false; SE717.spawned = true; SE717.introduced = true; SE717.shieldFx = sh;
   if (e.sePhase === 'drop') { seMuteAmb717(true); if (typeof cue === 'function') cue('enm_se_drop_01'); }
@@ -13504,10 +13884,11 @@ function seTick717(dt) {
       continue;
     }
     if (e.sePhase !== 'fight' || !player) continue;
+    if (ccImmobilized(e)) { e.seAct = ''; e._seMoved = false; continue; }
     const dx = player.x - e.x, dy = player.y - e.y, dd = Math.hypot(dx, dy) || 1;
     const reach = e.r + player.r + 8;
     if (!e.seAct && dd > reach) {
-      const sp = e.spd * (e.slow > 0 ? 0.5 : 1);
+      const sp = e.spd * seMoveMul(e);
       const ox = e.x, oy = e.y;
       moveEnt(e, dx / dd * sp * dt, dy / dd * sp * dt);
       e._seMoved = Math.hypot(e.x - ox, e.y - oy) > 0.2;
@@ -13764,6 +14145,12 @@ if (window.game) {
     applyStatus: applyStatus, removeStatus: removeStatus, clearStatuses: clearStatuses, getStatus: getStatus, listStatuses: listStatuses,
     tickStatuses: tickStatuses, statusMoveMul: statusMoveMul, shockTakenMul: shockTakenMul, curseHooks: curseHooks, curseResistCut: curseResistCut,
     legacyStatusView: legacyStatusView, statusSanitize: statusSanitize, statusSaveBag: statusSaveBag,
+    POISE: POISE, POISE_TIER: POISE_TIER, POISE_CLASS_DMG: POISE_CLASS_DMG, POISE_IN: POISE_IN,
+    MIN_MOVE_MUL: MIN_MOVE_MUL, GUARD_POISE: GUARD_POISE, POISE_DR: POISE_DR, POISE_DR_FLOOR: POISE_DR_FLOOR, POISE_RECOVER: POISE_RECOVER,
+    ensurePoise: ensurePoise, resetPoise: resetPoise, poiseSanitize: poiseSanitize, poiseTierOf: poiseTierOf, poiseTierName: poiseTierName,
+    applyPoiseDamage: applyPoiseDamage, poiseClassOf: poiseClassOf, poiseHitAmount: poiseHitAmount, poiseFromPacket: poiseFromPacket,
+    ccMoveMul: ccMoveMul, seMoveMul: seMoveMul, gridSlowMul: gridSlowMul, ccImmobilized: ccImmobilized, ccState: ccState, staggerDuration: staggerDuration,
+    powerAttack074: powerAttack074, castSkill: castSkill, poiseSaveVal: poiseSaveVal,
     setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
     flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
@@ -13776,6 +14163,8 @@ if (window.game) {
   Object.defineProperty(window.game, 'SE_SHIELD', { configurable: true, get() { return SE_SHIELD; } });
   Object.defineProperty(window.game, 'SE_ERR', { configurable: true, get() { return SE_ERR; } });
   Object.defineProperty(window.game, 'lastDamage', { configurable: true, get() { return window.__lastDamage || null; } });
+  Object.defineProperty(window.game, 'bossIntro', { configurable: true, get() { return bossIntro; }, set(v) { bossIntro = v; } });
+  Object.defineProperty(window.game, 'introBoss', { configurable: true, get() { return introBoss; }, set(v) { introBoss = v; } });
   Object.defineProperty(window.game, 'climb', { configurable: true, get() { return climb; } });
 }
 

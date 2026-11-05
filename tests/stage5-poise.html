@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<!-- Stage 5: poise, stagger, crowd control. HP damage stays on the Stage 1-3 pipe. -->
+<html>
+<head><meta charset="utf-8"><title>stage5</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage5" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 320) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 400; p.st.maxHp = 800; p.st.def = 0; p.st.regen = 0; p.st.fire = 0;
+  p.st.crit = 0; p.st.critDmg = 0; p.st.critMul = 2;
+  p.st.min = 8; p.st.max = 8; p.st.ls = 0; p.st.block = 0; p.st.ms = 1;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.penFire = 0; p.st.maxResist = 0;
+  p.inv0 = 0; p.roll = 0; p.barrier = 0; p.barrierMax = 0; p.slowT = 0; p.burn = null;
+  p.swing = 0; p.atkCd = 0; p.chg = -1; p.mchg = -1;
+  p.statusImmune = null; p.freezeImmune = 0; p.staggerImmune = 0;
+  g.clearStatuses(p);
+  g.resetPoise(p); g.ensurePoise(p);
+  w.__hurtSpread = 1; w.__champCrit = 1; w.__critRoll = 1;
+  if (g.clearSkillCrit) g.clearSkillCrit();
+  if (g.setConversionEdges) g.setConversionEdges([]);
+  return p;
+}
+function foe(g, p, type, x, elite) {
+  const e = g.spawnEnemy(type || 'rat', x, p.y, !!elite);
+  e.dead = false; e.hp = 800; e.maxHp = 800; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.mawVuln = 0; e.mode = ''; e.resists = null; e.spd = 0; e.hmFreeze = true; e.slow = 0; e.fearT = 0; e.auraT = 0;
+  e.statusImmune = null; e.freezeImmune = 0; e.staggerImmune = 0; e.busy = 0; e.kx = 0; e.ky = 0;
+  g.clearStatuses(e);
+  g.resetPoise(e); g.ensurePoise(e);
+  return e;
+}
+function melee(g, w, e, extra) {
+  const meta = Object.assign({ type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false }, extra || {});
+  return w.damageEnemy(e, 8, 0, 0, '#fff', false, null, meta);
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage5src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('frost nova still sets slow and not chill', src.indexOf('e.slow = 3.5') >= 0 && src.indexOf("applyStatus(e, 'chill'") < 0 && src.indexOf('applyStatus(e, "chill"') < 0);
+  const castBody = src.split('function castSkill(i)')[1].split('const PCOL')[0];
+  check('live skills do not call applyStatus', castBody.indexOf('applyStatus') < 0 && castBody.indexOf('e.slow = 3.5') >= 0);
+  check('curse life drain still unwired', g.STATUS.curse.drainCap === 10);
+  check('poise constants', g.MIN_MOVE_MUL === 0.2 && g.POISE_CLASS_DMG.light === 18 && g.POISE_CLASS_DMG.heavy === 34 && g.POISE_CLASS_DMG.power === 52 && g.POISE_CLASS_DMG.skill === 14 && g.POISE_TIER.boss.immune === 5.5 && g.GUARD_POISE === 0.2 && g.POISE_RECOVER === 0.45, JSON.stringify(g.POISE_TIER.boss));
+
+  g.newGame();
+  let p = calm(g, w);
+  check('fresh player poise is full', p.poise === g.POISE_TIER.player.max && p.poiseMax === 140 && g.ccState(p) === 'free' && g.ccMoveMul(p) === 1, p.poise);
+
+  const rat = foe(g, p, 'rat', p.x + 30);
+  const skel = foe(g, p, 'skel', p.x + 48);
+  const golem = foe(g, p, 'golem', p.x + 70);
+  const champ = foe(g, p, 'rat', p.x + 90, true);
+  check('tier table', g.poiseTierName(rat) === 'light' && rat.poiseMax === 50 && g.poiseTierName(skel) === 'medium' && skel.poiseMax === 80 && g.poiseTierName(golem) === 'heavy' && golem.poiseMax === 140 && golem.poiseTaken == null && g.poiseTierOf(golem).taken === 0.75 && g.poiseTierName(champ) === 'champion' && champ.poiseMax === 120, [g.poiseTierName(rat), g.poiseTierName(skel), g.poiseTierName(golem), g.poiseTierName(champ)].join(','));
+
+  const hp0 = rat.hp;
+  melee(g, w, rat);
+  check('light hit poise is independent of the 8 HP', w.__lastPoise.cls === 'light' && Math.abs(w.__lastPoise.dealt - 18) < 1e-6 && rat.hp === hp0 - 8 && Math.abs(rat.poise - 32) < 1e-6, 'hp ' + rat.hp + ' poise ' + rat.poise + ' ' + w.__lastPoise.cls);
+  melee(g, w, rat);
+  check('second light does not stagger', !g.getStatus(rat, 'stagger') && Math.abs(rat.poise - 14) < 1e-6 && g.ccImmobilized(rat) === '', rat.poise);
+  melee(g, w, rat);
+  check('third light staggers for the light duration', g.ccState(rat) === 'stagger' && g.getStatus(rat, 'stagger') && Math.abs(g.getStatus(rat, 'stagger').dur - 0.55) < 1e-6 && g.statusMoveMul(rat) === 0 && Math.abs(rat.poise - 50 * 0.45) < 1e-6, 'dur ' + (g.getStatus(rat, 'stagger') && g.getStatus(rat, 'stagger').dur) + ' poise ' + rat.poise);
+  const dur0 = g.getStatus(rat, 'stagger').dur;
+  const again = g.applyPoiseDamage(rat, 500);
+  check('stagger does not refresh or extend', again.reason === 'refresh-blocked' && Math.abs(g.getStatus(rat, 'stagger').dur - dur0) < 1e-6, again.reason + ' dur ' + (g.getStatus(rat, 'stagger') && g.getStatus(rat, 'stagger').dur));
+
+  g.tickStatuses(rat, 0.55);
+  check('stagger expiry starts immunity and clears the lock', !g.getStatus(rat, 'stagger') && rat.staggerImmune > 1.5 && g.ccImmobilized(rat) === '' && g.ccState(rat) !== 'stagger', 'imm ' + rat.staggerImmune);
+  const imm0 = rat.staggerImmune;
+  rat.poise = 1;
+  melee(g, w, rat);
+  check('immunity refuses a new stagger', w.__lastPoise.reason === 'stagger-lockout' && !g.getStatus(rat, 'stagger') && g.ccImmobilized(rat) === '', w.__lastPoise.reason + ' poise ' + rat.poise);
+  g.tickStatuses(rat, imm0);
+  check('immunity is finite', !(rat.staggerImmune > 0), rat.staggerImmune);
+
+  const sk = foe(g, p, 'skel', p.x + 110);
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], skill: 'whirlwind', critApplied: true, scale: false });
+  check('whirlwind is heavy poise', w.__lastPoise.cls === 'heavy' && Math.abs(w.__lastPoise.dealt - 34) < 1e-6 && sk.hp === 792, w.__lastPoise.cls + ' ' + w.__lastPoise.dealt);
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], skill: 'fireball', more: 1, critApplied: true, scale: false });
+  check('fireball is skill poise', w.__lastPoise.cls === 'skill' && Math.abs(w.__lastPoise.dealt - 14) < 1e-6, w.__lastPoise.dealt);
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Spell', 'Projectile', 'AoE'], skill: 'fireball', more: 0.6, critApplied: true, scale: false });
+  check('splash scales skill poise and not by repeating it', Math.abs(w.__lastPoise.dealt - 8.4) < 1e-6 && sk.hp === 792 - 16, w.__lastPoise.dealt + ' hp ' + sk.hp);
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', more: 2.25, poiseFrac: 1, critApplied: true, scale: false });
+  check('full power poise is 52', w.__lastPoise.cls === 'power' && Math.abs(w.__lastPoise.dealt - 52) < 1e-6, w.__lastPoise.dealt);
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', more: 1.5, poiseFrac: 0, critApplied: true, scale: false });
+  check('minimum charge power poise is 70 percent', Math.abs(w.__lastPoise.dealt - 52 * 0.7) < 1e-6, w.__lastPoise.dealt);
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Ranged', 'Projectile', 'Direct'], critApplied: true, scale: false });
+  check('bow shares the light class', w.__lastPoise.cls === 'light' && Math.abs(w.__lastPoise.dealt - 18) < 1e-6, w.__lastPoise.cls);
+  const beforeThorn = sk.poise;
+  w.damageEnemy(sk, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Direct'], critApplied: true, scale: false });
+  check('thorns and plain direct deal no poise', sk.poise === beforeThorn && w.__lastPoise.reason === 'none', w.__lastPoise.reason);
+
+  g.applyStatus(sk, 'bleed', { base: 10, attacker: 'player' });
+  const poiseBeforeDot = sk.poise;
+  g.tickStatuses(sk, 1);
+  check('bleed tick does not spend poise', sk.poise === poiseBeforeDot && sk.hp < 792, 'poise ' + sk.poise + ' hp ' + sk.hp);
+  g.clearStatuses(sk);
+
+  const arm = foe(g, p, 'rat', p.x + 130);
+  p.st.def = 30;
+  w.hurtPlayer(100, arm);
+  const hpArmor = 400 - p.hp;
+  const poiseArmor = 140 - p.poise;
+  calm(g, w); p = g.player;
+  const arm2 = foe(g, p, 'rat', p.x + 130);
+  p.st.def = 0;
+  w.hurtPlayer(100, arm2);
+  check('armor changes HP and not poise', hpArmor === 50 && (400 - p.hp) === 100 && Math.abs(poiseArmor - (140 - p.poise)) < 1e-6 && Math.abs(poiseArmor - g.POISE_IN.light) < 1e-6, 'armHp ' + hpArmor + ' openHp ' + (400 - p.hp) + ' poise ' + poiseArmor);
+
+  calm(g, w); p = g.player;
+  const resE = foe(g, p, 'rat', p.x + 36);
+  resE.resists = { Fire: 90 };
+  w.damageEnemy(resE, 100, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell', 'AoE'], skill: 'fireball', poiseClass: 'skill', critApplied: true, scale: false });
+  const firePoise = w.__lastPoise.dealt;
+  const fireHp = 800 - resE.hp;
+  resE.hp = 800; resE.resists = { Fire: 0 }; g.resetPoise(resE); g.ensurePoise(resE);
+  w.damageEnemy(resE, 100, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell', 'AoE'], skill: 'fireball', poiseClass: 'skill', critApplied: true, scale: false });
+  check('fire resist changes HP and not poise', fireHp < (800 - resE.hp) && Math.abs(firePoise - w.__lastPoise.dealt) < 1e-6 && Math.abs(firePoise - 14) < 1e-6, 'hi ' + fireHp + ' lo ' + (800 - resE.hp) + ' poise ' + firePoise);
+
+  calm(g, w); p = g.player;
+  p.barrier = 80; p.barrierMax = 80;
+  const biter = foe(g, p, 'rat', p.x + 20);
+  w.hurtPlayer(100, biter);
+  check('barrier absorbs HP and not poise', p.hp === 380 && p.barrier === 0 && Math.abs(140 - p.poise - 10) < 1e-6, 'hp ' + p.hp + ' bar ' + p.barrier + ' poise ' + p.poise);
+
+  calm(g, w); p = g.player;
+  p.st.block = 100;
+  p.equip.shield = { slot: 'shield', name: 'Test Shield', block: 100, dur: 30, maxDur: 30, mods: {}, powers: [] };
+  w.hurtPlayer(100, biter);
+  check('block negates HP and poise', p.hp === 400 && p.poise === 140 && w.__lastPoise.reason === 'block' && w.__lastDamage.prevented === 'block', w.__lastPoise.reason);
+
+  calm(g, w); p = g.player;
+  const guard = foe(g, p, 'guard', p.x + 40);
+  guard.fa = Math.PI; guard.hmFreeze = true;
+  w.damageEnemy(guard, 100, 10, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false });
+  check('guard glance cuts poise by 0.2 and is not the armor curve', w.__lastPoise && Math.abs(w.__lastPoise.dealt - 18 * 0.75 * 0.2) < 1e-6 && guard.hp > 800 - 100, 'dealt ' + (w.__lastPoise && w.__lastPoise.dealt) + ' hp ' + guard.hp);
+
+  const reg = foe(g, p, 'rat', p.x + 150);
+  reg.poise = 20; reg.poiseDelay = 2;
+  g.tickStatuses(reg, 1);
+  check('regen waits out the delay', Math.abs(reg.poise - 20) < 1e-6 && reg.poiseDelay > 0, reg.poise + ' delay ' + reg.poiseDelay);
+  g.applyPoiseDamage(reg, 5);
+  const delayed = reg.poise;
+  g.tickStatuses(reg, reg.poiseDelayMax - 0.05);
+  check('damage refreshes the regen delay', Math.abs(reg.poise - delayed) < 1e-6 && reg.poiseDelay > 0, 'poise ' + reg.poise + ' delay ' + reg.poiseDelay);
+  g.tickStatuses(reg, reg.poiseDelay + 1);
+  check('regen is a fraction of max per second', reg.poise > delayed + reg.poiseMax * reg.poiseRegen * 0.9 && reg.poise <= reg.poiseMax, reg.poise);
+
+  const act = foe(g, p, 'skel', p.x + 16);
+  act.hmFreeze = false; act.mode = 'charge'; act.busy = 2; act.spd = 0;
+  g.applyPoiseDamage(act, 500);
+  check('stagger clears an enemy action', g.ccImmobilized(act) === 'stagger' && act.mode === '' && act.busy === 0, act.mode + ' busy ' + act.busy);
+  g.tickStatuses(act, 2);
+  p.fx = 1; p.fy = 0; p.atkCd = 0; p.swing = 0.2; p.mp = 80; p.learned = [true, true, true]; p.cds = [0, 0, 0]; p.inv0 = 0;
+  if (g.unlockSpell) g.unlockSpell('frostNova');
+  if (p.lichTome) p.lichTome.isAcquired = true;
+  act.x = p.x + 16; act.y = p.y; act.hp = 800; act.slow = 0;
+  g.applyPoiseDamage(p, 500);
+  const hpHeld = act.hp;
+  g.doAttack(true);
+  g.castSkill(2);
+  check('stagger blocks a swing and a cast', g.ccImmobilized(p) === 'stagger' && act.hp === hpHeld && act.slow !== 3.5 && !(p.cds[2] > 0), 'hp ' + act.hp + ' slow ' + act.slow + ' cd ' + p.cds[2]);
+  g.tickStatuses(p, 2);
+  g.clearStatuses(p); p.staggerImmune = 0; p.freezeImmune = 0; p.atkCd = 0; p.cds[2] = 0; p.mp = 80; p.inv0 = 0;
+  if (g.unlockSpell) g.unlockSpell('frostNova'); if (p.lichTome) p.lichTome.isAcquired = true;
+  act.hp = 800; act.slow = 0; act.staggerImmune = 0; g.clearStatuses(act); g.tickStatuses(act, 0.01);
+  g.castSkill(2);
+  check('frost nova still slows and deals skill poise without chill', act.slow === 3.5 && !g.getStatus(act, 'chill') && w.__lastPoise.cls === 'skill' && act.hp < 800, 'slow ' + act.slow + ' cls ' + (w.__lastPoise && w.__lastPoise.cls) + ' hp ' + act.hp + ' cd ' + p.cds[2] + ' mp ' + p.mp);
+
+  const fr = foe(g, p, 'rat', p.x + 180);
+  g.applyStatus(fr, 'freeze', { duration: 1.5 });
+  const frPoise = fr.poise;
+  const refused = g.applyPoiseDamage(fr, 500);
+  check('freeze outranks stagger', refused.reason === 'frozen' && g.ccState(fr) === 'freeze' && !g.getStatus(fr, 'stagger') && fr.poise >= frPoise * 0.4, refused.reason + ' poise ' + fr.poise);
+  g.tickStatuses(fr, 1.5);
+  check('freeze end is not a permanent lock', g.ccImmobilized(fr) === '' && fr.freezeImmune > 0, 'imm ' + fr.freezeImmune + ' state ' + g.ccState(fr));
+
+  const stunE = foe(g, p, 'ram', p.x + 200);
+  stunE.mode = 'stun'; stunE.t = 1.4;
+  const stunTry = g.applyPoiseDamage(stunE, 500);
+  check('legacy stun blocks a new stagger', stunTry.reason === 'stunned' && stunE.mode === 'stun' && !g.getStatus(stunE, 'stagger') && g.ccState(stunE) === 'stun', stunTry.reason);
+
+  const both = foe(g, p, 'rat', p.x + 220);
+  g.applyStatus(both, 'chill', { slowPct: 60, buildup: 0 });
+  g.applyPoiseDamage(both, 500);
+  check('stagger overrides chill until it ends', g.ccState(both) === 'stagger' && g.ccMoveMul(both) === 0 && g.getStatus(both, 'chill'));
+  g.tickStatuses(both, 0.55);
+  check('chill remains after stagger', g.ccState(both) === 'slow' && Math.abs(g.ccMoveMul(both) - 0.4) < 1e-6, g.ccMoveMul(both) + ' ' + g.ccState(both));
+
+  g.startFloor(5, true);
+  p = calm(g, w);
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  let boss = g.enemies.find(e => e.T && e.T.boss);
+  if (!boss) boss = g.spawnBoss(p.x + 64, p.y);
+  boss.x = p.x + 64; boss.y = p.y; boss.hp = 5000; boss.maxHp = 5000; boss.shield = 0; boss.dead = false; boss.hmFreeze = false; boss.mawVuln = 0;
+  boss.state = 'chase'; g.bossIntro = 0; g.introBoss = null;
+  g.resetPoise(boss); g.ensurePoise(boss);
+  check('boss tier', g.poiseTierName(boss) === 'boss' && boss.poiseMax === 560 && g.poiseTierOf(boss).taken === 0.2, boss.poiseMax);
+  let lightBreaks = 0;
+  for (let i = 0; i < 80; i++) {
+    melee(g, w, boss);
+    if (w.__lastPoise.broke) lightBreaks++;
+    g.tickStatuses(boss, 0.05);
+  }
+  check('eighty light hits do not stagger a boss and HP is 8 each', lightBreaks === 0 && boss.hp === 5000 - 640 && Math.abs(boss.poise - (560 - 80 * 18 * 0.2)) < 1e-4, 'breaks ' + lightBreaks + ' hp ' + boss.hp + ' poise ' + boss.poise);
+  g.resetPoise(boss); g.ensurePoise(boss); boss.hp = 5000; g.clearStatuses(boss); boss.staggerImmune = 0; boss.poiseBreaks = 0;
+  let powerHits = 0, firstBreak = 0;
+  for (let i = 0; i < 60 && !firstBreak; i++) {
+    powerHits++;
+    w.damageEnemy(boss, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', more: 2.25, poiseFrac: 1, poiseClass: 'power', critApplied: true, scale: false });
+    if (w.__lastPoise.broke) firstBreak = powerHits;
+  }
+  check('boss power threshold is 54 hits and HP stays 8', firstBreak === 54 && boss.hp === 5000 - 54 * 8, 'hit ' + firstBreak + ' hp ' + boss.hp + ' dealt ' + (w.__lastPoise && w.__lastPoise.dealt));
+  let locked = 0, gap = 0, minGap = 999, samples = 0, lockedRun = 0, maxRun = 0;
+  for (let i = 0; i < 200; i++) {
+    w.damageEnemy(boss, 8, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', poiseClass: 'power', poiseFrac: 1, critApplied: true, scale: false });
+    g.tickStatuses(boss, 0.05);
+    samples++;
+    if (g.ccImmobilized(boss)) { locked++; lockedRun++; if (lockedRun > maxRun) maxRun = lockedRun; if (gap) { if (gap < minGap) minGap = gap; gap = 0; } }
+    else { gap++; lockedRun = 0; }
+  }
+  check('boss stagger cannot chain without a gap', maxRun <= 8 && minGap >= 20 && locked < samples * 0.5, 'maxRun ' + maxRun + ' minGap ' + minGap + ' locked ' + locked + '/' + samples + ' hp ' + boss.hp);
+
+  const introHp = boss.hp;
+  g.resetPoise(boss); g.ensurePoise(boss); g.clearStatuses(boss); boss.staggerImmune = 0;
+  g.bossIntro = 2; g.introBoss = boss;
+  melee(g, w, boss);
+  check('boss intro blocks poise and still takes HP', w.__lastPoise.reason === 'intro' && boss.poise === 560 && !g.getStatus(boss, 'stagger') && boss.hp === introHp - 8, w.__lastPoise.reason + ' hp ' + boss.hp);
+  g.bossIntro = 0; g.introBoss = null;
+  boss.shield = 40; boss.maxShield = 40;
+  const shBefore = boss.hp;
+  melee(g, w, boss);
+  check('boss shield absorbs HP and not poise', boss.hp === shBefore && boss.shield === 32 && Math.abs(w.__lastPoise.dealt - 18 * 0.2) < 1e-6, 'sh ' + boss.shield + ' poise ' + w.__lastPoise.dealt);
+
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_arachnex', 'drop');
+  se.x = p.x + 40; se.y = p.y; se.hp = 400; se.maxHp = 400; se.shield = 40; se.dead = false; se.hmFreeze = true;
+  g.ensurePoise(se);
+  const sePoise = se.poise;
+  w.damageEnemy(se, 30, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false });
+  check('super elite intro blocks HP and poise', se.hp === 400 && se.shield === 40 && se.poise === sePoise && w.__lastDamage.prevented === 'super-elite', 'hp ' + se.hp + ' poise ' + se.poise);
+  se.sePhase = 'fight'; se.seUnlocked = true;
+  w.damageEnemy(se, 30, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false });
+  check('super elite fight shield does not stop poise', se.hp === 400 && se.shield === 10 && Math.abs(w.__lastPoise.dealt - 18 * 0.3) < 1e-6 && g.poiseTierName(se) === 'super', 'sh ' + se.shield + ' dealt ' + (w.__lastPoise && w.__lastPoise.dealt));
+  const seFr = g.applyStatus(se, 'freeze');
+  check('super elite stays freeze immune', seFr.reason === 'immune' && !g.getStatus(se, 'freeze'), seFr.reason);
+  se.poise = 1; se.staggerImmune = 0; se.poiseBreaks = 0;
+  g.applyPoiseDamage(se, 50);
+  check('super elite can still stagger once poise breaks', g.ccImmobilized(se) === 'stagger' && g.getStatus(se, 'stagger').dur <= 0.32 + 1e-6, g.getStatus(se, 'stagger') && g.getStatus(se, 'stagger').dur);
+
+  const crab = foe(g, p, 'crab', p.x + 240);
+  crab.mode = 'shell'; crab.hmFreeze = false;
+  const crabPoise = crab.poise;
+  w.damageEnemy(crab, 20, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false });
+  check('crab shell blocks HP and poise', crab.hp === 800 && crab.poise === crabPoise && w.__lastDamage.prevented === 'crab', crab.poise);
+
+  const slowE = foe(g, p, 'rat', p.x + 260);
+  slowE.slow = 2;
+  check('frost nova slow alone stays 0.45', Math.abs(g.ccMoveMul(slowE) - 0.45) < 1e-6, g.ccMoveMul(slowE));
+  slowE.slow = 0; slowE.auraT = 1e9; slowE.auraPct = 40;
+  check('chill aura alone stays 0.6', Math.abs(g.ccMoveMul(slowE) - 0.6) < 1e-6, g.ccMoveMul(slowE));
+  g.applyStatus(slowE, 'chill', { slowPct: 60, buildup: 0 });
+  slowE.slow = 2;
+  check('stacked legacy slows floor at 0.2', Math.abs(g.ccMoveMul(slowE) - 0.2) < 1e-6 && g.ccMoveMul(slowE) > 0, g.ccMoveMul(slowE));
+  g.applyStatus(slowE, 'freeze', {});
+  check('freeze is a real stop below the floor', g.ccMoveMul(slowE) === 0, g.ccMoveMul(slowE));
+  boss.slow = 3;
+  g.clearStatuses(boss);
+  check('boss frost slow stays 0.5', Math.abs(g.ccMoveMul(boss) - 0.5) < 1e-6, g.ccMoveMul(boss));
+  se.slow = 3; g.clearStatuses(se); se.staggerImmune = 0;
+  check('super elite frost slow stays 0.5 and still ignores the aura', Math.abs(g.seMoveMul(se) - 0.5) < 1e-6, g.seMoveMul(se));
+  p.slowT = 3; g.clearStatuses(p); g.resetPoise(p); g.ensurePoise(p);
+  check('player brine slow stays 0.6', Math.abs(g.ccMoveMul(p) - 0.6) < 1e-6, g.ccMoveMul(p));
+  g.applyStatus(p, 'chill', { slowPct: 60, buildup: 0 });
+  const stacked = g.ccMoveMul(p, 0.45 * 0.55);
+  check('player web brine chill and water floor at 0.2', Math.abs(stacked - 0.2) < 1e-6, stacked);
+  check('move floor is wired into the player step', src.indexOf('ccMoveMul(p, webSlow() * hazSlow())') >= 0);
+  g.clearStatuses(slowE); slowE.slow = 2; slowE.auraT = 0;
+  check('grid frost alone stays 1.8', Math.abs(g.gridSlowMul(slowE) - 1.8) < 1e-6, g.gridSlowMul(slowE));
+  g.applyStatus(slowE, 'chill', { slowPct: 60, buildup: 0 });
+  check('grid frost plus chill stays under the cap', Math.abs(g.gridSlowMul(slowE) - 4.5) < 1e-6, g.gridSlowMul(slowE));
+  g.clearStatuses(p); p.slowT = 0; p.swing = 0; p.roll = 0;
+  const stepX = p.x;
+  g.step(0.1, { x: 1, y: 0 });
+  const plainStep = p.x - stepX;
+  p.x = stepX;
+  g.applyStatus(p, 'chill', { slowPct: 50, buildup: 0 });
+  g.step(0.1, { x: 1, y: 0 });
+  const chillStep = p.x - stepX;
+  check('chill alone still halves a step', plainStep > 2 && Math.abs(chillStep / plainStep - 0.5) < 0.08, plainStep + ' -> ' + chillStep);
+  p.x = stepX;
+  g.applyStatus(p, 'freeze', {});
+  g.step(0.1, { x: 1, y: 0 });
+  check('freeze holds the player', Math.abs(p.x - stepX) < 0.01, p.x - stepX);
+  g.clearStatuses(p); p.freezeImmune = 0; g.tickStatuses(p, 0.01);
+
+  const loop = foe(g, p, 'rat', p.x + 280);
+  loop.poiseImmune = 0.4; loop.poiseDur = 0.2;
+  let loopLock = 0, loopGap = 0, loopMin = 999, loopMax = 0, loopRun = 0, loopN = 0;
+  for (let i = 0; i < 400; i++) {
+    g.applyPoiseDamage(loop, 200);
+    g.tickStatuses(loop, 0.05);
+    loopN++;
+    if (g.ccImmobilized(loop)) { loopLock++; loopRun++; if (loopRun > loopMax) loopMax = loopRun; if (loopGap) { if (loopGap < loopMin) loopMin = loopGap; loopGap = 0; } }
+    else { loopGap++; loopRun = 0; }
+  }
+  check('spam cannot permanently disable an enemy', loopMax <= 6 && loopMin >= 7 && loopLock < loopN * 0.45 && loop.poiseBreaks <= 8, 'max ' + loopMax + ' minGap ' + loopMin + ' lock ' + loopLock + '/' + loopN + ' breaks ' + loop.poiseBreaks);
+
+  calm(g, w); p = g.player;
+  const bossSrc = foe(g, p, 'skel', p.x + 24);
+  bossSrc.T = Object.assign({}, bossSrc.T, { boss: true });
+  let pBreak = 0;
+  for (let i = 0; i < 8; i++) {
+    p.inv0 = 0; p.roll = 0;
+    w.hurtPlayer(10, bossSrc);
+    if (w.__lastPoise.broke) pBreak = i + 1;
+  }
+  check('eight boss contacts deal 80 and break on the seventh', p.hp === 320 && pBreak === 7 && Math.abs(22 - g.POISE_IN.heavy) < 1e-6, 'hp ' + p.hp + ' breakAt ' + pBreak);
+
+  g.newGame(); p = calm(g, w);
+  const saver = foe(g, p, 'rat', p.x + 18);
+  saver.maxHp = 4321; saver.hp = 4321; saver.hmFreeze = true;
+  g.applyPoiseDamage(saver, 12);
+  const savedPoise = saver.poise;
+  g.applyPoiseDamage(p, 30);
+  const playerPoise = p.poise;
+  w.save();
+  g.continueGame();
+  p = g.player;
+  const back = g.enemies.find(e => e.maxHp === 4321);
+  check('save keeps partial poise on the player and the enemy', back && Math.abs(back.poise - savedPoise) < 0.02 && p.poise && Math.abs(p.poise - playerPoise) < 0.02, 'e ' + (back && back.poise) + ' p ' + p.poise);
+  const raw = JSON.parse(w.localStorage.getItem('cryptdelve'));
+  delete raw.p.poise; delete raw.p.statuses; delete raw.p.freezeImmune;
+  w.localStorage.setItem('cryptdelve', JSON.stringify(raw));
+  g.continueGame();
+  p = g.player;
+  g.poiseSanitize(p);
+  check('old save without poise loads a full bar', !raw.p.poise && p.poise === p.poiseMax && p.poiseMax === 140 && p.st && p.hp > 0, 'poise ' + p.poise + ' max ' + p.poiseMax);
+  p.poiseMax = 999999; p.poise = 999999; p.poiseBreaks = 40;
+  g.poiseSanitize(p);
+  check('forged poise is clamped', p.poiseMax === 5000 && p.poise === 5000 && p.poiseBreaks <= 8, p.poiseMax + ' breaks ' + p.poiseBreaks);
+
+  const tickE = foe(g, p, 'rat', p.x + 300);
+  g.applyStatus(tickE, 'bleed', { base: 10, attacker: 'player' });
+  let small = 0;
+  for (let i = 0; i < 40; i++) small += g.tickStatuses(tickE, 0.1).ticks.length;
+  check('forty small steps tick a 4s bleed four times', small === 4 && !g.getStatus(tickE, 'bleed'), 'ticks ' + small);
+  const one = foe(g, p, 'rat', p.x + 320);
+  g.applyStatus(one, 'bleed', { base: 10, attacker: 'player' });
+  const big = g.tickStatuses(one, 4);
+  check('one 4s step matches the small steps', big.ticks.length === 4 && big.expired.indexOf('bleed') >= 0 && big.dropped === 0, 'n ' + big.ticks.length + ' drop ' + big.dropped);
+  const huge = foe(g, p, 'rat', p.x + 340);
+  g.applyStatus(huge, 'bleed', { base: 10, attacker: 'player' });
+  const over = g.tickStatuses(huge, 20);
+  const after = g.tickStatuses(huge, 0.05);
+  check('a 20s hitch does not duplicate a 4s bleed', over.ticks.length === 4 && over.dropped === 0 && after.ticks.length === 0 && !g.getStatus(huge, 'bleed'), 'n ' + over.ticks.length + ' again ' + after.ticks.length + ' drop ' + over.dropped);
+  const fast = foe(g, p, 'rat', p.x + 360);
+  fast.statuses = { bleed: { id: 'bleed', key: 'bleed', kind: 'dot', dmgType: 'Physical', interval: 0.25, acc: 0, debt: 0, dur: 40, stacks: [{ base: 1, left: 40, source: { name: 't', kind: 't', id: 't' } }], attacker: 'player', scale: false } };
+  const first = g.tickStatuses(fast, 40);
+  let caught = first.ticks.length;
+  for (let i = 0; i < 20 && (fast.statuses && fast.statuses.bleed); i++) caught += g.tickStatuses(fast, 0.016).ticks.length;
+  check('cap keeps a debt and reports the drop', first.ticks.length === 8 && first.dropped === 88 && first.deferred === 64 && caught === 72, 'first ' + first.ticks.length + ' drop ' + first.dropped + ' def ' + first.deferred + ' total ' + caught);
+
+  const crowd = [];
+  for (let i = 0; i < 40; i++) crowd.push(foe(g, p, 'rat', p.x + 400 + i));
+  const t0 = performance.now();
+  for (let n = 0; n < 90; n++) for (let i = 0; i < crowd.length; i++) g.tickStatuses(crowd[i], 0.016);
+  const ms = performance.now() - t0;
+  let grew = false;
+  for (let i = 0; i < crowd.length; i++) {
+    const keys = crowd[i].statuses ? Object.keys(crowd[i].statuses).length : 0;
+    if (keys > 8 || crowd[i].poiseBreaks > 8) grew = true;
+  }
+  check('poise ticks stay bounded', !grew && ms < 1500, 'ms ' + Math.round(ms) + ' grew ' + grew);
+
+  g.applyStatus(p, 'curse', { curseId: 'hex', lifeDrain: 10, outPenalty: 0 });
+  check('curse life drain is stored and not healed', g.curseHooks(p).lifeDrain === 10 && g.curseHooks(p).lifeDrainWired === false, JSON.stringify(g.curseHooks(p)));
+  p.st.ls = 50; p.st.maxHp = 800; p.hp = 100;
+  const leech = w.leech(10, 'melee');
+  check('life steal is unchanged', leech.healed === 5 && leech.base === 10, JSON.stringify(leech));
+  p.st.crit = 250;
+  check('crit chance stays uncapped', g.critChance('melee') === 250, g.critChance('melee'));
+
+  check('no stage 6 weapon pass', src.indexOf('function weaponIdentity') < 0 && src.indexOf('HAMMER_POISE') < 0);
+}
+</script>
+</body>
+</html>
