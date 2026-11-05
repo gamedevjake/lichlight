@@ -675,7 +675,7 @@ Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 5 (stagge
 
 - **Date:** 2026-11-05.
 - **Stage:** Stage 5 — Stagger, poise, and crowd control.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Rollback tag `combat-redesign-pre-stage5` points at `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27).
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). No deploy. Implementation commit `1aa5657176f80627e7dcd9f92d6349d670aa85d8`. Rollback tag `combat-redesign-pre-stage5` points at `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27).
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 6 has not been started.
 - **Objective:** Add a poise resource separate from HP, a short stagger when it breaks, and one crowd-control order for stagger, stun, knockback, chill, and freeze. Differentiate light, heavy, power, and skill hits. Keep bosses and Super Elites from being stun-locked. Do not retune HP damage, attack timing, `mods.fire`, or Hellmouth.
 
