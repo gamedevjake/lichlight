@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<!-- Stage 8: enemy resist identities and elite affixes. Caster shots stay Physical. Bosses and Super Elites are unchanged. -->
+<html>
+<head><meta charset="utf-8"><title>stage8</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage8" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  g.newGame();
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.armor = null; p.equip.helm = null; p.equip.boots = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 400; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0; p.st.fire = 0; p.st.spell = 0;
+  p.st.crit = 0; p.st.critDmg = 0; p.st.critMul = 2; p.st.block = 0; p.st.ls = 0;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.penFire = p.st.penCold = p.st.penLightning = p.st.penPoison = p.st.penShadow = 0;
+  p.st.maxResist = 0;
+  p.mp = 200; p.inv0 = 0; p.roll = 0; p.barrier = 0; p.isArmorActive = false; p.isInvincible = false;
+  p.x = 220; p.y = 180; p.slowT = 0; p.freezeImmune = 0;
+  g.clearStatuses(p);
+  w.__hurtSpread = 1; w.__critRoll = 1; w.__champCrit = 1;
+  delete w.__eliteDepth; w.__affixRolls = [];
+  g.setConversionEdges([]);
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  return p;
+}
+function park(g, p) {
+  const r = g.rooms && g.rooms[0];
+  if (!r) return;
+  p.x = (r.cx + 0.5) * 16;
+  p.y = (r.cy + 0.5) * 16;
+}
+function stick(e, p, dx) {
+  e.x = p.x + (dx || 0); e.y = p.y;
+  e.hmFreeze = false; e.spd = 0; e.hidden = false; e.dead = false; e.downT = 0;
+  const tx = Math.floor(e.x / 16), ty = Math.floor(e.y / 16);
+  if (e.ai) { e.ai.tx = e.ai.fromX = tx; e.ai.ty = e.ai.fromY = ty; e.ai.engagedUntil = 1e15; e.ai.state = 'CHASE'; }
+}
+function foe(g, type, x, y, elite) {
+  const e = g.spawnEnemy(type, x, y, !!elite, { noAffix: true });
+  e.dead = false; e.hp = 500; e.maxHp = 500; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.hmFreeze = true; e.spd = 0; e.mode = ''; e.superElite = false;
+  if (e.T) e.T = Object.assign({}, e.T, { boss: false });
+  g.clearStatuses(e); g.resetPoise(e); g.ensurePoise(e);
+  return e;
+}
+function hit(g, e, amount, type, extra) {
+  const meta = Object.assign({ type: type, tags: ['Spell'], critApplied: true, scale: false }, extra || {});
+  return g.damageEnemy(e, amount, 0, 0, '#fff', false, null, meta);
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage8src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire is still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
+  check('loot still has no resist affix', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
+  check('resist caps stay 75 and 90', g.RESIST_SOFT === 75 && g.RESIST_HARD === 90 && g.RESIST_MIN === -100);
+
+  const elems = ['Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
+  let profileOk = true, profileWhy = '', covered = 0;
+  const famWorst = {};
+  Object.keys(g.MOBS).forEach(id => {
+    const row = g.ENEMY_RESIST[id];
+    if (!row) { profileOk = false; profileWhy = id + ' missing'; return; }
+    covered++;
+    let sum = 0, hi = -999, lo = 999, all = false;
+    elems.forEach(k => {
+      const v = row[k];
+      if (v !== (v | 0) || v > 40 || v < -40) { profileOk = false; profileWhy = id + ' ' + k + ' ' + v; }
+      sum += v;
+      if (v > hi) hi = v;
+      if (v < lo) lo = v;
+      const dealt = Math.max(1, Math.round(100 * (100 - v) / 100));
+      const mult = 100 / dealt;
+      const fam = row.fam;
+      if (!famWorst[fam]) famWorst[fam] = { physical: 1 };
+      const key = k.toLowerCase();
+      if (famWorst[fam][key] == null || mult > famWorst[fam][key]) famWorst[fam][key] = Math.round(mult * 1000) / 1000;
+    });
+    if (row.All != null) all = true;
+    if (sum !== 0 || hi < 15 || lo > -10 || all || !row.fam) { profileOk = false; profileWhy = id + ' sum ' + sum + ' hi ' + hi + ' lo ' + lo; }
+  });
+  check('every family has a bounded resist identity', profileOk && covered === Object.keys(g.MOBS).length, profileWhy || covered);
+  let worst = 1, worstName = 'physical';
+  Object.keys(famWorst).forEach(fam => {
+    elems.forEach(k => {
+      const m = famWorst[fam][k.toLowerCase()];
+      if (m > worst) { worst = m; worstName = fam + ' ' + k; }
+    });
+  });
+  check('no family is impossible for one damage type', worst < 1.7 && worst > 1, worstName + ' x' + worst);
+  check('physical stays a multiplier of 1', Object.keys(famWorst).every(f => famWorst[f].physical === 1));
+
+  let p = calm(g, w);
+  const a = g.spawnEnemy('skel', 40, 40, false);
+  const b = g.spawnEnemy('skel', 50, 40, false);
+  a.resists.Fire = 99;
+  check('resist profiles are not shared', b.resists.Fire === -30 && a.resists.Fire === 99 && !a.resists.All && a.resistTag.indexOf('POISON') >= 0 && a.resistTag.indexOf('FIRE') >= 0, a.resistTag + ' / ' + b.resists.Fire);
+  b.hp = 400; b.maxHp = 400; b.hidden = false; b.dead = false; b.hmFreeze = true;
+  hit(g, b, 100, 'Fire');
+  check('skeleton is weak to fire', b.hp === 270, b.hp);
+  b.hp = 400;
+  hit(g, b, 100, 'Physical');
+  check('physical ignores elemental resist', b.hp === 300, b.hp);
+  b.hp = 400; p.st.penFire = 20;
+  const pen = hit(g, b, 100, 'Fire');
+  const penC = (pen.components || []).filter(c => c.type === 'Fire')[0];
+  check('penetration applies once under the cap', b.hp === 250 && penC && penC.penHits === 1 && penC.pen === 20 && penC.resistPct === -50, b.hp + ' pct ' + (penC && penC.resistPct));
+  p.st.penFire = 0;
+  b.hp = 400; b.resists = { Fire: 100 }; b.maxResist = 0;
+  hit(g, b, 100, 'Fire');
+  check('soft cap still holds at 75', b.hp === 375, b.hp);
+  b.hp = 400; b.maxResist = 15;
+  hit(g, b, 100, 'Fire');
+  check('hard cap still holds at 90', b.hp === 390, b.hp);
+  b.hp = 400; b.resists = { Fire: 100 }; b.maxResist = 15; p.st.penFire = 20;
+  const over = hit(g, b, 100, 'Fire');
+  check('overcap still absorbs penetration', b.hp === 380 && over.components[0].resistPct === 80 && over.components[0].penHits === 1, b.hp + ' pct ' + over.components[0].resistPct);
+  p.st.penFire = 0;
+
+  const drowned = foe(g, 'drowned', p.x + 30, p.y, false);
+  const mix = g.damageEnemy(drowned, 0, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Spell'], critApplied: true, scale: false, components: [{ amount: 14, type: 'Physical' }, { amount: 20, type: 'Fire' }] });
+  check('mixed whirlwind keeps physical and resists only the fire', drowned.hp === 473 && mix.amount === 27, drowned.hp + ' amt ' + (mix && mix.amount));
+  const flies = foe(g, 'flies', p.x + 40, p.y, false);
+  hit(g, flies, 64, 'Fire');
+  check('a fireball into a fire-weak swarm is faster', flies.hp === 410, flies.hp);
+  const bomb = foe(g, 'bomber', p.x + 50, p.y, false);
+  hit(g, bomb, 100, 'Poison');
+  check('poison into a bloater is slower but finite', bomb.hp === 440, bomb.hp);
+
+  g.startFloor(5, true); p = g.player; p.hp = 400; p.st.maxHp = 400; p.st.def = 0; w.__hurtSpread = 1;
+  const boss = g.spawnBoss(p.x + 40, p.y);
+  check('bosses are not given a resist profile', boss && !boss.resists && !boss.affix, boss && boss.resists);
+  if (boss) { boss.hp = 400; boss.maxHp = 400; boss.shield = 0; boss.mawVuln = 0; hit(g, boss, 100, 'Fire'); check('an unprofiled boss still takes the full hit', boss.hp === 300, boss.hp); }
+  else check('an unprofiled boss still takes the full hit', false, 'no boss');
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  check('super elites are not given a resist profile', se && se.superElite && !se.resists && !se.affix, se && se.resists);
+
+  p = calm(g, w);
+  const plain = g.spawnEnemy('skel', p.x + 20, p.y, true);
+  check('depth 1 champions stay unaffixed', plain.elite && !plain.affix && plain.name === 'CHAMPION' && plain.maxHp === 44, plain.name + ' hp ' + plain.maxHp);
+  w.__eliteDepth = 3;
+  const early = g.spawnEnemy('skel', p.x + 30, p.y, true);
+  check('affixes wait until depth 4', !early.affix, early.affix && early.affix.ids);
+  w.__affixRolls = [0];
+  w.__eliteDepth = 4;
+  const one = g.spawnEnemy('skel', p.x + 40, p.y, true);
+  check('depth 4 rolls one affix', one.affix && one.affix.ids.length === 1 && one.affix.ids[0] === 'bulwark' && one.name === 'BULWARK CHAMPION' && one.maxHp === 44, one.name + ' ' + (one.affix && one.affix.ids));
+  w.__affixRolls = [0, 0];
+  w.__eliteDepth = 12;
+  const two = g.spawnEnemy('skel', p.x + 50, p.y, true);
+  check('depth 12 rolls two open affixes', two.affix && two.affix.ids.join(',') === 'bulwark,siphon' && two.name === 'BULWARK SIPHON CHAMPION', two.name);
+  const bad = g.spawnEnemy('skel', p.x + 60, p.y, true, { ids: ['rime', 'brand'], depth: 12 });
+  check('control affixes do not stack', bad.affix && bad.affix.ids.join(',') === 'rime', bad.affix && bad.affix.ids.join(','));
+  const webbed = g.spawnEnemy('spider', p.x + 70, p.y, true, { ids: ['snare'], depth: 12 });
+  check('a spider does not gain a second web', !webbed.affix, webbed.affix && webbed.affix.ids);
+  const wardGuard = g.spawnEnemy('guard', p.x + 80, p.y, true, { ids: ['bulwark', 'siphon'], depth: 12 });
+  check('a guard does not gain a second front', wardGuard.affix && wardGuard.affix.ids.join(',') === 'siphon', wardGuard.affix && wardGuard.affix.ids.join(','));
+  w.__affixRolls = [0, 0];
+  const gaff = g.spawnEnemy('guard', p.x + 90, p.y, true);
+  check('a guard roll skips the banned ward', gaff.affix && gaff.affix.ids.join(',') === 'siphon,shroud', gaff.affix && gaff.affix.ids.join(','));
+  const kid = g.spawnEnemy('skel', p.x + 100, p.y, true, { minion: true, depth: 20 });
+  check('minions are not elite affixes', !kid.affix && kid.minion, kid.affix && kid.affix.ids);
+  const trash = g.spawnEnemy('skel', p.x + 16, p.y, false);
+  check('trash does not roll affixes', !trash.affix && trash.resists.Cold === 25, trash.affix);
+  const boom = g.spawnEnemy('bomber', p.x + 24, p.y, true, { ids: ['volatile'], depth: 12 });
+  check('a bloater does not gain a second bomb', !boom.affix, boom.affix && boom.affix.ids);
+  const binder = g.spawnEnemy('binder', p.x + 36, p.y, true, { ids: ['harbinger'], depth: 12 });
+  check('a binder does not gain a second summon', !binder.affix, binder.affix && binder.affix.ids);
+  check('affix windows stay shorter than their gaps', g.affixGuardDur(100) === 1.35 && g.affixGuardDur(100) < g.AFFIX_GUARD_GAP && g.affixPhaseDur(100) === 0.8 && g.affixPhaseDur(100) < g.AFFIX_PHASE_GAP && g.affixMarkGap(100) === 5.2 && g.affixCallGap(100) === 6.5 && g.affixSiphonFrac(4) === 0.06 && g.affixSiphonFrac(100) === 0.1, [g.affixGuardDur(100), g.affixPhaseDur(100), g.affixMarkGap(100)].join(','));
+  const escape = (g.AFFIX_BRAND_R + 5) / (62 * 0.2);
+  check('a slowed player can still leave a brand', escape < g.AFFIX_MARK_TELL && g.AFFIX_RIME_SLOW === 0.45, escape + ' vs ' + g.AFFIX_MARK_TELL);
+
+  p = calm(g, w);
+  const ward = foe(g, 'skel', p.x + 40, p.y, true);
+  g.applyEliteAffixes(ward, { ids: ['bulwark'], depth: 12 });
+  ward.affix.guard = 1; ward.affix.aim = Math.PI;
+  ward.x = p.x + 40; ward.y = p.y;
+  const poise0 = ward.poise;
+  hit(g, ward, 100, 'Physical');
+  const frontHp = 500 - ward.hp, frontPoise = poise0 - ward.poise;
+  ward.hp = 500; g.resetPoise(ward); g.ensurePoise(ward); ward.affix.aim = 0; ward.affix.guard = 1;
+  const poise1 = ward.poise;
+  hit(g, ward, 100, 'Physical');
+  check('bulwark faces one way and does not eat poise', frontHp === 35 && (500 - ward.hp) === 100 && Math.abs(frontPoise - (poise1 - ward.poise)) < 1e-6 && w.__lastDamage.affixFront === false, 'front ' + frontHp + ' flank ' + (500 - ward.hp) + ' poise ' + frontPoise);
+
+  const phase = foe(g, 'skel', p.x + 24, p.y, false);
+  g.applyEliteAffixes(phase, { ids: ['shroud'], depth: 8 });
+  phase.affix.phase = 0.4;
+  const phasePoise = phase.poise;
+  hit(g, phase, 80, 'Fire');
+  check('shroud stops the hit and the poise', phase.hp === 500 && phase.poise === phasePoise && w.__lastDamage.prevented === 'shroud', phase.hp + ' ' + w.__lastDamage.prevented);
+  phase.affix.phase = 0;
+  hit(g, phase, 80, 'Physical');
+  check('shroud ends', phase.hp === 420, phase.hp);
+
+  const vol = foe(g, 'skel', p.x + 12, p.y, true);
+  g.applyEliteAffixes(vol, { ids: ['volatile'], depth: 10 });
+  vol.hp = 180; vol.maxHp = 400; vol.dmg = 20; vol.atkCd = 50;
+  park(g, p); stick(vol, p, 10);
+  g.enemies.forEach(o => { if (o !== vol) { o.dead = true; o.hp = 0; } });
+  const beforeFuse = p.hp;
+  hit(g, vol, 50, 'Physical');
+  check('the fuse is a tell and not a hit', vol.hp === 130 && vol.affix.fuse === g.AFFIX_VOL_TELL && p.hp === beforeFuse, 'hp ' + vol.hp + ' fuse ' + vol.affix.fuse + ' player ' + p.hp);
+  p.x = vol.x + 80; p.y = vol.y;
+  g.step(g.AFFIX_VOL_TELL + 0.05, { x: 0, y: 0 });
+  check('stepping out of the fuse deals nothing', p.hp === beforeFuse && vol.affix.fuse === -1, p.hp + ' fuse ' + vol.affix.fuse);
+  const vol2 = foe(g, 'ghoul', p.x, p.y, true);
+  g.applyEliteAffixes(vol2, { ids: ['volatile'], depth: 10 });
+  vol2.hp = 160; vol2.maxHp = 400; vol2.dmg = 20; vol2.atkCd = 50;
+  park(g, p); stick(vol2, p, 8);
+  g.enemies.forEach(o => { if (o !== vol2) { o.dead = true; o.hp = 0; } });
+  hit(g, vol2, 40, 'Physical');
+  p.hp = 400; p.st.maxHp = 400; p.inv0 = 0; p.x = vol2.x + 8; p.y = vol2.y;
+  g.step(g.AFFIX_VOL_TELL + 0.05, { x: 0, y: 0 });
+  const volDmg = 400 - p.hp;
+  const cap = Math.min(Math.max(1, Math.round(20 * 0.45)), Math.max(1, Math.round(400 * 0.30)));
+  check('standing in the fuse is capped and not a delete', volDmg === cap && volDmg <= 120 && volDmg > 0, volDmg + ' cap ' + cap);
+  const killed = foe(g, 'skel', 30, 30, true);
+  g.applyEliteAffixes(killed, { ids: ['volatile'], depth: 8 });
+  killed.hp = 30; killed.maxHp = 100;
+  hit(g, killed, 100, 'Physical');
+  check('a killing blow does not leave a fuse', killed.hp <= 0 && (!killed.affix || killed.affix.fuse === 0), 'hp ' + killed.hp + ' fuse ' + (killed.affix && killed.affix.fuse));
+
+  p = calm(g, w);
+  const brand = foe(g, 'mage', p.x + 70, p.y, true);
+  g.applyEliteAffixes(brand, { ids: ['brand'], depth: 16 });
+  brand.dmg = 40; brand.hmFreeze = false; brand.spd = 0; brand.atkCd = 80; brand.affix.markCd = 0.01;
+  brand.x = p.x + 70; brand.y = p.y;
+  g.enemies.forEach(o => { if (o !== brand) { o.dead = true; o.hp = 0; } });
+  const stand = p.hp;
+  g.step(0.05, { x: 0, y: 0 });
+  const marked = brand.affix.mark > 0;
+  const mx = brand.affix.mx, my = brand.affix.my;
+  p.x = mx + 40; p.y = my;
+  g.step(g.AFFIX_MARK_TELL + 0.05, { x: 0, y: 0 });
+  check('leaving the brand deals nothing and does not root', marked && p.hp === stand && (p.slowT || 0) <= 0 && !g.getStatus(p, 'freeze'), 'hp ' + p.hp + ' slow ' + p.slowT + ' mark ' + marked);
+  brand.affix.mark = 0; brand.affix.markCd = 0.01; brand.dmg = 40; p.hp = 400; p.st.maxHp = 400; p.inv0 = 0; p.slowT = 0;
+  g.step(0.05, { x: 0, y: 0 });
+  p.x = brand.affix.mx; p.y = brand.affix.my; p.inv0 = 0;
+  g.step(g.AFFIX_MARK_TELL + 0.05, { x: 0, y: 0 });
+  const branded = 400 - p.hp;
+  const bcap = Math.min(Math.max(1, Math.round(40 * 0.35)), Math.max(1, Math.round(400 * 0.22)));
+  check('standing on the brand is capped', branded === bcap && branded > 0 && branded <= 88, branded + ' cap ' + bcap);
+
+  p = calm(g, w);
+  const rime = foe(g, 'skel', p.x + 10, p.y, true);
+  g.applyEliteAffixes(rime, { ids: ['rime'], depth: 8 });
+  rime.atkCd = 80; rime.affix.rimeWarm = 0;
+  park(g, p); stick(rime, p, 10);
+  g.enemies.forEach(o => { if (o !== rime) { o.dead = true; o.hp = 0; } });
+  g.step(0.08, { x: 0, y: 0 });
+  const mul = g.ccMoveMul(p);
+  check('rime slows and does not freeze', (p.slowT || 0) > 0 && mul >= 0.2 && mul < 1 && !g.getStatus(p, 'freeze') && !g.getStatus(p, 'chill'), 'slow ' + p.slowT + ' mul ' + mul);
+  p.x = rime.x + 80; p.slowT = 0.05;
+  g.step(0.2, { x: 0, y: 0 });
+  check('rime ends after you leave', (p.slowT || 0) === 0 && g.ccMoveMul(p) === 1, 'slow ' + p.slowT);
+
+  p = calm(g, w);
+  const snare = foe(g, 'ghoul', p.x + 40, p.y, true);
+  g.applyEliteAffixes(snare, { ids: ['snare'], depth: 9 });
+  snare.affix.webCd = 0.01; snare.atkCd = 80;
+  park(g, p);
+  const stx = Math.floor(p.x / 16), sty = Math.floor(p.y / 16);
+  for (let i = -1; i <= 3; i++) g.setTile(stx + i, sty, 1);
+  stick(snare, p, 28);
+  g.enemies.forEach(o => { if (o !== snare) { o.dead = true; o.hp = 0; } });
+  g.projs.length = 0;
+  g.step(0.05, { x: 0, y: 0 });
+  const webs = g.projs.filter(q => q.kind === 'web' && q.owner === 'e');
+  check('snare fires one physical web', webs.length === 1 && !webs[0].dmgType && webs[0].dmg < snare.dmg, webs.length + ' type ' + (webs[0] && webs[0].dmgType) + ' dmg ' + (webs[0] && webs[0].dmg));
+
+  p = calm(g, w);
+  const sip = foe(g, 'rat', p.x + 6, p.y, true);
+  g.applyEliteAffixes(sip, { ids: ['siphon'], depth: 12 });
+  sip.hp = 50; sip.maxHp = 100; sip.dmg = 10; sip.atkCd = 0;
+  park(g, p); stick(sip, p, 4);
+  const healed = g.affixSiphon(sip, { dealt: 10 });
+  check('siphon drinks a bite and stays capped', healed === 2 && sip.hp === 52, healed + ' hp ' + sip.hp);
+  sip.hp = 50;
+  hit(g, sip, 30, 'Physical');
+  check('spells do not feed siphon', sip.hp === 20, sip.hp);
+  g.enemies.forEach(o => { if (o !== sip) { o.dead = true; o.hp = 0; } });
+  p.hp = 400; p.st.def = 0; p.inv0 = 0; sip.hp = 40; sip.atkCd = 0;
+  g.step(0.2, { x: 0, y: 0 });
+  check('a real bite feeds siphon', sip.hp > 40, sip.hp);
+
+  p = calm(g, w);
+  const harb = foe(g, 'cantor', p.x + 20, p.y, true);
+  g.applyEliteAffixes(harb, { ids: ['harbinger'], depth: 12 });
+  harb.hmFreeze = false; harb.spd = 0; harb.affix.callCd = 0.01;
+  g.enemies.forEach(o => { if (o !== harb) { o.dead = true; o.hp = 0; } });
+  const n0 = g.enemies.filter(o => o.hp > 0 && !o.dead).length;
+  g.step(0.05, { x: 0, y: 0 });
+  check('harbinger telegraphs before the rat', harb.affix.call > 0 && g.enemies.filter(o => o.hp > 0 && !o.dead).length === n0, 'call ' + harb.affix.call);
+  g.step(g.AFFIX_CALL_TELL + 0.05, { x: 0, y: 0 });
+  const rats = g.enemies.filter(o => o.type === 'rat' && o.minion && o.owner === harb.id && o.hp > 0);
+  check('harbinger summons one unaffixed rat', rats.length === 1 && !rats[0].affix && !rats[0].elite, rats.length + ' affix ' + (rats[0] && rats[0].affix));
+  harb.affix.call = 0; harb.affix.callCd = 0.01;
+  g.step(0.05, { x: 0, y: 0 });
+  g.step(g.AFFIX_CALL_TELL + 0.05, { x: 0, y: 0 });
+  harb.affix.call = 0; harb.affix.callCd = 0.01;
+  g.step(0.05, { x: 0, y: 0 });
+  g.step(g.AFFIX_CALL_TELL + 0.05, { x: 0, y: 0 });
+  const rats2 = g.enemies.filter(o => o.type === 'rat' && o.minion && o.owner === harb.id && o.hp > 0);
+  check('harbinger stops at two rats', rats2.length === 2, rats2.length);
+
+  p = calm(g, w);
+  const burnE = foe(g, 'ooze', p.x + 16, p.y, false);
+  g.applyStatus(burnE, 'burning', { base: 10, attacker: 'player', source: { name: 'Kindling', kind: 'skill', id: 'k' } });
+  const bt = g.tickStatuses(burnE, 1);
+  const burnDealt = (bt.ticks || []).reduce((n, t) => n + (t.dealt || 0), 0);
+  check('burn is resisted once', burnDealt === 8 && burnE.hp === 492, burnDealt + ' hp ' + burnE.hp);
+  const poiseE = foe(g, 'skel', p.x + 20, p.y, false);
+  const pz = poiseE.poise;
+  g.damageEnemy(poiseE, 100, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell', 'AoE'], skill: 'fireball', poiseClass: 'skill', critApplied: true, scale: false });
+  check('resist does not change poise', poiseE.hp === 370 && Math.abs(pz - poiseE.poise - 14) < 1e-6, 'hp ' + poiseE.hp + ' poise ' + (pz - poiseE.poise));
+
+  p = calm(g, w);
+  park(g, p);
+  const crab = g.spawnEnemy('crab', p.x + 4, p.y, false, { noAffix: true });
+  crab.dead = false; crab.hidden = false; crab.atkCd = 0; crab.mode = 'shell';
+  stick(crab, p, 4); crab.mode = 'shell';
+  g.enemies.forEach(o => { if (o !== crab) { o.dead = true; o.hp = 0; } });
+  p.hp = 400; p.st.def = 0; p.inv0 = 0;
+  g.step(0.25, { x: 0, y: 0 });
+  const shelled = p.hp;
+  check('shelled crab still bites', crab.mode === 'shell' && shelled < 400, p.hp + ' mode ' + crab.mode);
+  const shellHp = crab.hp;
+  g.damageEnemy(crab, 40, 0, 0, '#fff', false);
+  check('shelled crab still blocks incoming damage', crab.hp === shellHp && w.__lastDamage && w.__lastDamage.prevented === 'crab', crab.hp + ' ' + (w.__lastDamage && w.__lastDamage.prevented));
+  crab.mode = 'open'; crab.atkCd = 0; stick(crab, p, 4); crab.mode = 'open'; p.inv0 = 0;
+  if (crab.ai) crab.ai.engagedUntil = 1e15;
+  g.step(0.25, { x: 0, y: 0 });
+  check('open crab still does not bite', crab.mode === 'open' && p.hp === shelled, p.hp + ' mode ' + crab.mode);
+
+  p = calm(g, w);
+  w.__eliteDepth = 12; w.__affixRolls = [0, 0];
+  const saved = g.spawnEnemy('skel', p.x, p.y, true);
+  saved._mark = 's8'; saved.hp = 17;
+  const savedIds = saved.affix.ids.join(','), savedFire = saved.resists.Fire;
+  w.save();
+  g.continueGame();
+  let back = g.enemies.find(e => e._mark === 's8');
+  check('save keeps the affix and the resist profile', back && back.affix && back.affix.ids.join(',') === savedIds && back.resists.Fire === savedFire && back.hp === 17, back && (back.affix && back.affix.ids.join(',') + ' hp ' + back.hp));
+  if (back) { back.affix = null; back.resists = null; back.resistTag = ''; }
+  w.save();
+  g.continueGame();
+  back = g.player && g.enemies.find(e => e._mark === 's8');
+  check('an old snapshot regains resists and does not grow an affix', back && back.resists && back.resists.Fire === -30 && !back.affix, back && (back.resists && back.resists.Fire) + ' affix ' + (back && back.affix));
+
+  p = calm(g, w);
+  p.st.def = 30; p.hp = 300; p.inv0 = 0;
+  const mage = g.spawnEnemy('mage', p.x + 80, p.y, false);
+  const cultist = w.eShoot(mage, 0, 90, { label: mage.T.label });
+  w.hurtPlayer(20, cultist);
+  check('cultist bolt stays physical', cultist && !cultist.dmgType && w.__lastDamage.type === 'Physical' && w.__lastDamage.dealt === 10, w.__lastDamage && w.__lastDamage.dealt);
+
+  g.startFloor(5, true);
+  p = g.player;
+  p.hp = 400; p.st.maxHp = 400; p.st.def = 0; p.mp = 80; p.inv0 = 0; p.lichTome.isAcquired = true;
+  g.unlockSpell('hellmouth');
+  w.__hurtSpread = 1;
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
+  const se2 = g.seSpawn717('se_bonewarden', 'fight');
+  se2.x = p.x + 20; se2.y = p.y; se2.hp = 80; se2.dead = false; se2.hidden = false;
+  let boss2 = g.enemies.find(e => e.T && e.T.boss && e !== se2);
+  if (!boss2) boss2 = g.spawnBoss(p.x + 48, p.y);
+  boss2.x = p.x + 48; boss2.y = p.y; boss2.dead = false; boss2.hp = 300; boss2.maxHp = 300; boss2.shield = 80; boss2.mawVuln = 0;
+  p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth still sinks the super elite and not the boss', sinks.some(s => s.enemyRef === se2) && !sinks.some(s => s.enemyRef === boss2));
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('hellmouth still deletes the super elite', se2.dead === true || se2.hp <= 0 || g.enemies.indexOf(se2) < 0, 'hp ' + se2.hp);
+}
+</script>
+</body>
+</html>

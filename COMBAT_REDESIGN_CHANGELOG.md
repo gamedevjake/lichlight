@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 7 — Skill system and build specialization. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), and Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stages 0–6 stay IMPLEMENTED (not marked VERIFIED here). Stage 7 is IMPLEMENTED and waiting for Jake. Stages 8–13 are NOT STARTED. Do not begin Stage 8 until Jake approves Stage 7.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). `combat-redesign-pre-stage7` → `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). Do not move these tags.
+- **Current implementation stage:** Stage 8 — Enemy resistances and elite affixes. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`), and Stage 7 PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`). Stages 0–7 stay IMPLEMENTED (not marked VERIFIED here). Stage 8 is IMPLEMENTED and waiting for Jake. Stages 9–13 are NOT STARTED. Do not begin Stage 9 until Jake approves Stage 8.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). `combat-redesign-pre-stage7` → `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). `combat-redesign-pre-stage8` → `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). Do not move these tags.
 
 ---
 
@@ -33,14 +33,14 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 5 | Stagger, poise, and crowd control | IMPLEMENTED |
 | 6 | Weapon identity and attack responsiveness | IMPLEMENTED |
 | 7 | Skill system and build specialization | IMPLEMENTED |
-| 8 | Enemy resistances and elite affixes | NOT STARTED |
+| 8 | Enemy resistances and elite affixes | IMPLEMENTED |
 | 9 | Boss and Super Elite redesign | NOT STARTED |
 | 10 | Equipment, loot, and build-changing affixes | NOT STARTED |
 | 11 | Combat feedback and presentation | NOT STARTED |
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 7 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`) and this log does not mark it VERIFIED. Stage 8 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 8 did; the counts are in those entries.
 
 ---
 
@@ -1027,6 +1027,201 @@ The intended mapping stays the Stage 2 proposal: cultist Shadow, wisp Lightning,
 
 ---
 
+### 2026-11-06 — Stage 8: Enemy Resistances and Elite Affixes
+
+- **Date:** 2026-11-06.
+- **Stage:** Stage 8 — Enemy resistances and elite affixes.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Implementation commit `6dcc0a27bdfefc44bd0205465cbe0556e9f75126`. Rollback tag `combat-redesign-pre-stage8` points at `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). Do not move it. Older rollback tags were not moved.
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 9 has not been started.
+- **Objective:** Give each enemy family a lore resist profile on the Stage 2 curve, and give champions affixes that change the fight. Do not inflate every resist. Do not make a single damage type unable to kill a family. Do not convert the five caster shots. Do not retune bosses, Super Elites, Hellmouth, `mods.fire`, or loot.
+
+#### Existing Behavior
+
+Every live enemy had no `resists` bag, so Fire, Cold, Lightning, Poison, and Shadow all dealt their full post-scale amount. Physical already ignored elemental resist. Champions were a larger, faster copy: HP ×2.2, contact ×1.4, speed ×1.15, ability cooldown ×1.35, and the name `CHAMPION` (or `PALE CHOIR ZEALOT`). A shelled crab still bit, and an open crab did not. Boss shields, Super Elite intro immunity, poise, and the status bag were already on the resolver.
+
+#### Changes Implemented
+
+- `ENEMY_RESIST` is one profile per monster id. Each profile sums to 0 across the five elements. No profile uses `All`. No value is outside −40..+40, under the soft cap of 75, so penetration and the cap still have room. `spawnEnemy` copies the five numbers onto that enemy. Bosses and Super Elites are not copied a profile.
+- The same Stage 2 formula still runs once inside `resolveEnemyDamage`: `eff = clamp(raw - penetration, -100, resistCap)`, then `amount * (100 - eff) / 100`. Physical is still added raw. Guard, ram armor, Hellmouth ×1.10, shock, the floor of 1, and boss or Super Elite shields still run after that, once.
+- Hovering an enemy shows the cached line for its strongest resist and its sharpest weakness. The string is built at spawn, not per frame.
+- `ELITE_AFFIX` is eight champion modifiers. They do not multiply HP or contact damage. Below depth 4 a champion is the old champion. Depth 4–11 rolls one. Depth 12+ rolls two. The second cannot be a second control affix. Minions, trash, bosses, and Super Elites do not roll. A saved champion with no affix field does not grow one on load. A saved enemy with no resist bag receives the family profile on load.
+- A shelled crab no longer connects. An open crab does. The shell still returns `prevented: 'crab'` before resist.
+
+#### Combat Formulas
+
+Resist is unchanged from Stage 2:
+
+```
+eff = clamp(rawResist - penetration, -100, resistCap)
+resistCap = clamp(75 + maxResist, 0, 90)
+dealt = amount * (100 - eff) / 100
+```
+
+Content raw resist is the profile. It is not added again as `All`. A 100 Fire hit into a skeleton (Fire −30) deals 130. The same hit with 20 Fire penetration deals 150, and `penHits` stays 1. A raw 100 still caps at 75 with no `maxResist` (dealt 25) and at 90 with `maxResist` +15 (dealt 10). Physical 100 into that skeleton still deals 100.
+
+Affix numbers, all on the champion that rolled them:
+
+| Affix | Group | First depth | Banned on | What it does |
+| --- | --- | --- | --- | --- |
+| Bulwark | open | 4 | guard | After a 1.8s first wait, a 0.85–1.35s ward locks the facing it had. Front hits ×0.35. Flank is full. Poise is not reduced. Gap stays 4.2s. |
+| Siphon | open | 4 | leech | A connecting bite heals 20% of the damage dealt, capped at 6% of max HP at depth 4 and 10% from depth 44 up. Spells do not feed it. |
+| Shroud | open | 4 | eel, wisp, shade | A 0.5s flicker, then 0.55–0.8s of `prevented: 'shroud'` (HP and poise). Gap 4.2s. It does not refresh while up. |
+| Harbinger | open | 8 | binder | A 0.7s rune, then one non-elite rat with no affix. Cap 2. Interval 8.5s down to a floor of 6.5s. |
+| Rime | control | 4 | drowned, siren, spider, brood spider | After 1.2s, enemies inside 36px set `slowT` to at least 0.45s. That is the existing ×0.6 slow. No chill, no freeze. |
+| Snare | control | 5 | spider, brood spider | One physical web every 5.5s, at ×0.35 of contact. The web slow is the existing web. |
+| Volatile | control | 4 | bloater | Crossing 35% HP lights a 1.15s fuse on the body. The blast is 0.45× contact, capped at 30% of the player's max HP, radius 18. Dying cancels it. |
+| Brand | control | 6 | none | Every 6.4s down to a floor of 5.2s, a rune is drawn where you stand. Tell 1.25s, radius 8. The blast is 0.35× contact, capped at 22% of max HP. It does not chase and it does not root. |
+
+Control affixes are mutually exclusive on one champion, so a web and a rune and a frost aura are never the same monster. Guard duration never passes 1.35s against a 4.2s gap. Shroud never passes 0.8s. At the 0.2 move floor a player still clears a brand (13px needed, 15.5px of travel in the tell).
+
+#### Enemy resistance table
+
+Sum of the five elements is 0 on every row. Physical is not a column because the resolver does not resist it.
+
+| Id | Family | Fire | Cold | Lightning | Poison | Shadow |
+| --- | --- | --- | --- | --- | --- | --- |
+| slime | drowned | 30 | −20 | −25 | 25 | −10 |
+| ooze | drowned | 25 | −15 | −30 | 35 | −15 |
+| eel | drowned | 20 | 15 | −40 | 10 | −5 |
+| drowned | drowned | 35 | 10 | −30 | 5 | −20 |
+| siren | drowned | 30 | 20 | −40 | 0 | −10 |
+| leech | drowned | −10 | −15 | −20 | 35 | 10 |
+| crab | drowned | 25 | 15 | −35 | 5 | −10 |
+| seer | drowned | 20 | 15 | −25 | 0 | −10 |
+| slimelet | drowned | 20 | −15 | −20 | 20 | −5 |
+| zombie | drowned | 25 | 0 | −20 | 15 | −20 |
+| bat | vermin | −30 | −10 | 10 | 20 | 10 |
+| rat | vermin | −25 | −15 | 0 | 30 | 10 |
+| bomber | vermin | −20 | 0 | −10 | 40 | −10 |
+| spider | vermin | −35 | −5 | 0 | 40 | 0 |
+| lobber | vermin | −15 | −10 | −5 | 40 | −10 |
+| crawler | vermin | −20 | −10 | 0 | 40 | −10 |
+| flies | vermin | −40 | −10 | 5 | 35 | 10 |
+| spiderw | vermin | −30 | 0 | −5 | 40 | −5 |
+| skel | bone | −30 | 25 | −15 | 35 | −15 |
+| archer | bone | −25 | 20 | −10 | 30 | −15 |
+| guard | bone | −20 | 20 | −10 | 30 | −20 |
+| ghoul | bone | −25 | 10 | −10 | 20 | 5 |
+| binder | bone | −20 | 15 | −15 | 30 | −10 |
+| ram | bone | −15 | 25 | −20 | 25 | −15 |
+| golem | bone | 10 | 20 | −35 | 25 | −20 |
+| knight | bone | −15 | 20 | −10 | 25 | −20 |
+| skelw | bone | −25 | 20 | −15 | 30 | −10 |
+| goblin | bone | −20 | 5 | −10 | 15 | 10 |
+| mage | choir | 10 | −20 | −25 | 15 | 20 |
+| wisp | choir | −10 | −15 | 40 | 15 | −30 |
+| ghost | choir | −15 | 10 | −25 | 40 | −10 |
+| cantor | choir | −10 | 15 | −30 | 10 | 15 |
+| shade | choir | −20 | 0 | −15 | 25 | 10 |
+| exarch | choir | −10 | −10 | −20 | 10 | 30 |
+| mimic | mimic | 15 | 5 | −25 | 20 | −15 |
+
+Bone is dry: poison and cold sit high, fire and lightning crack it. Drowned is wet: fire is shrugged, lightning bites. Vermin burn and carry plague. Choir is spirit: poison does little, and each singer has its own shadow or lightning lean. Nothing resists all five.
+
+#### Time to kill and survival
+
+Checkpoint is tag `combat-redesign-pre-stage8` / `20906ad`, before this code. After is this branch. Spread 1, crit off, scale off. Sword is a 4-point Physical hit. Fireball is 64 Fire. Nova is 8 Cold. The low Whirlwind is 14 Physical + 1 Fire. Contact survival is hits of that enemy's own `dmg` to remove 60 player HP, DEF 0 and DEF 30.
+
+Physical dealt and both survival columns matched on all 70 measured rows (35 monsters × depth 1 and 12), except one guard whose random floor placed the player in the pre-existing front arc (×0.15). That is the guard, not a resist. Re-measured contact survival was 0 mismatches. A depth-1 champion skeleton is still 44 HP and 8.75 contact, and its name is still `CHAMPION`.
+
+| Enemy, depth 12 | HP | Sword hits before → after | Fireball | Nova | Low Whirlwind | Survival DEF 0 / 30 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Skeleton | 86 | 22 → 22 | 2 → 2 | 11 → 15 | 6 → 6 | 3 / 5 both |
+| Drowned | 133 | 34 → 34 | 3 → 4 | 17 → 19 | 9 → 9 | 3 / 5 both |
+| Wisp | 51 | 13 → 13 | 1 → 1 | 7 → 6 | 4 → 4 | 3 / 6 both |
+| Spider | 60 | 15 → 15 | 1 → 1 | 8 → 8 | 4 → 4 | 4 / 8 both |
+| Golem | 278 | 70 → 70 | 5 → 5 | 35 → 47 | 19 → 19 | 2 / 3 both |
+| Crab, open | 150 | 38 → 38 | 3 → 4 | 19 → 22 | 10 → 10 | 2 / 4 both |
+| Ram | 167 | 84 → 84 | 7 → 6 | 56 → 84 | 28 → 28 | 2 / 4 both |
+
+A 100-point packet is the clean multiplier, `100 / round(100 * (100 - resist) / 100)`. The worst value in the table is 1.667 (40 resist: wisp Lightning, bloater / spider / crawler / brood Poison, ghost Poison). The best is 0.714 (40 vulnerability: eel and siren Lightning, flies Fire). A live Fireball into the drowned (Fire 35) deals 42 instead of 64, multiplier 1.524. A live Nova into the ram deals 2 instead of 3 after the ram's existing armor, multiplier 1.5. A high Whirlwind (14 Physical + 20 Fire) into that drowned deals 27 instead of 34, multiplier 1.259.
+
+Worst-case time-to-kill multiplier versus Stage 7, by family and build. Physical is the sword. Element columns are the 100-point packet. Mixed is the high Whirlwind.
+
+| Family | Physical | Fire | Cold | Lightning | Poison | Shadow | Mixed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| drowned | 1.000 | 1.538 | 1.250 | 0.833 | 1.538 | 1.111 | 1.259 |
+| vermin | 1.000 | 0.870 | 1.000 | 1.111 | 1.667 | 1.111 | 0.919 |
+| bone | 1.000 | 1.111 | 1.333 | 0.909 | 1.538 | 1.111 | 1.063 |
+| choir | 1.000 | 1.111 | 1.176 | 1.667 | 1.667 | 1.429 | 1.063 |
+| mimic | 1.000 | 1.176 | 1.053 | 0.800 | 1.250 | 0.870 | 1.097 |
+
+No family reaches 2× for a single element. A pure Fire character is slowest on the drowned and fastest on the flies. A pure Poison character is slowest on plague vermin and choir spirits, and still kills them.
+
+#### Files Modified
+
+- `index.html` — resist profiles, elite affixes, crab contact, hover tag. `version.json` was not edited.
+- `tests/stage8-enemies.html` — new harness.
+- `tests/stage1-damage.html` — the Frost Nova rat and the conversion rat set `resists` back to empty before the formula lock. The check names did not change.
+- `tests/stage7-skills.html` — one renamed check, listed below.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry. `STAGE8_REPORT.md` — the review note.
+
+#### Functions Added or Modified
+
+Added: `resistProfile`, `resistTag`, `resistSanitize`, `applyEliteAffixes`, `affixSanitize`, `tickEnemyAffix`, `armVolatile`, `affixSiphon`, `affixCall`, `crabShut`, `affixBurstDmg`, and the depth scalers `affixGuardDur`, `affixPhaseDur`, `affixSiphonFrac`, `affixMarkGap`, `affixCallGap`.
+
+Modified: `spawnEnemy` (copy the profile, roll affixes), `resolveEnemyDamage` (shroud, bulwark, volatile arm), `updateEnemies` and `gridEnemyUpdate` (crab contact, siphon, affix tick), `drawEnemy` and the v0.7.16 drawer (phase alpha, pip), `drawHoverBar`, `worldRestore` (sanitize). `castHellmouth`, `eShoot`'s type strip, `spawnBoss`, and `seSpawn717` were not given new behavior.
+
+#### Gameplay Impact
+
+Trash and champions take a different amount of elemental damage. A sword swing does not. A drowned shrugs a Fireball and folds to lightning. A skeleton burns and shrugs poison. Champions from depth 4 gain one readable name (`BULWARK CHAMPION`, `RIME ZEALOT`) and one extra behavior with a tell. From depth 12 they can have two, and never two controls. Standing in a brand or a fuse hurts and does not kill a healthy player. Walking out hurts nothing.
+
+#### Compatibility Notes
+
+Old saves load. Gear is untouched. `mods.fire` is still spell power. A floor snapshot keeps `resists` and `affix` when they are present. Stripping both and loading restores the profile from the monster id and does not invent an affix, so a champion who was saved before this stage does not grow a fuse under the player. Boss shields, Super Elite intro immunity, Hellmouth's Super Elite deletion, poise amounts, and the status rules are the same functions. The five caster shots still have no `dmgType`. Loot still does not roll `resFire` or `resAll`.
+
+#### Tests Performed
+
+Headless Chrome, Puppeteer, system Google Chrome, SwiftShader, cache disabled, `python3 -m http.server` on 127.0.0.1. The checkpoint is `20906ad` before this code. Counts are pass/fail. The per-name diff is in the testing section.
+
+| Run | Legacy 21 | Stage 1 | Stage 2 | Stage 3 | Stage 4 | Stage 5 | Stage 6 | Stage 7 | Stage 8 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Before | 809 passed, 96 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | 70/0 | not present |
+| After, one sequential pass | 807 passed, 96 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | 70/0 | 63/0 |
+
+`tests/stage8-enemies.html` is 63/0. It covers every profile (sum 0, bounds, no `All`), independent copies, vulnerability, penetration once, both caps, boss and Super Elite staying unprofiled, depth and ban and stack rules, bulwark versus poise, shroud, the fuse tell and the step-out, the brand cap, rime without freeze, one physical web, siphon only on a bite, the two-rat cap, burn resisted once, poise unchanged by resist, the crab bite, the save round-trip, the cultist bolt, and Hellmouth still deleting a Super Elite.
+
+Stages 1–6 did not rename a check. Stage 1 still locks the Frost Nova at 8 Cold and the conversion total at 100 because those two rats have their resist bag cleared first. The names are `frost nova formula tags and cold`, `conversion does not chain or change total`, and `original fire still converts`.
+
+Renamed earlier-stage check:
+
+- `tests/stage7-skills.html`: `no resist affix and no stage 8 table` is now `loot has no resist affix`. Stage 8 now owns `ENEMY_RESIST` and `ELITE_AFFIX`. The loot assertion is the same: no `k: 'resFire'` and no `k: 'resAll'`.
+
+Legacy name movement on the sequential pass:
+
+- `v0711`: 43/5 → 41/5. The five stable names stayed (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). `vault rare 0` and `vault rare 3` were not emitted because those generated floors had no vault door. Re-runs were 42/5 and 43/5 and did emit vault rares. Generation variance, not a new failure. `trash in the maw` was not a failure on the sequential pass or the re-runs.
+- `v0714`: stayed 40/1, only `version`. Two re-runs were 33/8 with the seven footer and tab names. Layout flake.
+- `v076`: stayed 48/0, including `b3 damage no snap`. Two re-runs stayed 48/0.
+- `v07152`: stayed 34/3 (`version`, `tab hits follow scale`, `slot hit follows scale`). Two re-runs were 36/1 with only `version`. Layout flake.
+
+No other legacy failure name was added or cleared on the sequential pass. `version.json` is still 0.7.18.
+
+#### Known Issues
+
+Hellmouth still deletes Super Elites. The chill aura still does not slow a Super Elite. Crit chance is still uncapped. `mods.fire` is still spell power. The character sheet still does not list enemy resists; the hover line does. Loot still does not roll resist or penetration. Caster shots are still Physical until Stage 10. Boss and Super Elite attacks were not redesigned.
+
+#### Rollback Notes
+
+```
+git checkout combat-redesign-pre-stage8
+```
+
+That tag is `20906ade92233c9a7831c0a0c90a4ab90f898851`. Do not move it.
+
+#### Next Steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 9 (boss and Super Elite attacks, and the Hellmouth deletion). Do not turn on caster elements. Do not add resist loot.
+
+#### Pre-merge adjustment — crab bite restored
+
+Jake approved the resist profiles and the elite affixes, and asked for one revert before merge. The contact test is back to the Stage 7 expression `!(ai === 'crab' && mode === 'open')` on both the legacy loop and the grid loop. A shelled crab bites. An open crab does not. Incoming damage while shelled is still `prevented: 'crab'`. The crab row in `ENEMY_RESIST` is unchanged (Fire 25, Cold 15, Lightning −35, Poison 5, Shadow −10). `crabShut` was removed. A shroud affix still skips contact while `affix.phase > 0`; that clause is the affix, and it is the only addition on those two lines versus `20906ad`.
+
+The shell/bite mismatch stays OPEN technical debt. It is not a Stage 8 fix.
+
+`tests/stage8-enemies.html` now locks that baseline: `shelled crab still bites`, `shelled crab still blocks incoming damage`, and `open crab still does not bite`. The harness is 64/0. Stages 1–7 stayed green. The per-name diff against `20906ad` is in the testing section below.
+
+---
+
 ## Combat System Reference
 
 The Stage 7 block is what the game does now. The Stage 6 block is the weapon model under it. The Stage 5 block is the poise model under that. The Stage 4 block is the status model. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those numbers still follow when the target has no resist and the skill build is the base row. Planned work for later stages stays marked as planned.
@@ -1644,8 +1839,8 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Pixel character sheet shows crit chance and not the multiplier.** The text stats line shows `Crit N% xM`. Stage 12. OPEN.
 - **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7 did not change it. OPEN.
 - **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
-- **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 8–9. OPEN.
-- **Crab bites while shelled and does not contact-tick while open.** Stage 8. OPEN.
+- **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 9. OPEN. Stage 8 did not touch Super Elite movement.
+- **Crab bites while shelled and does not contact-tick while open.** OPEN. The shell still returns `prevented: 'crab'` before any damage, and the contact test is still `!(ai === 'crab' && mode === 'open')`, so a shelled crab bites and an open crab does not. Jake rejected an unrequested flip of that bite before Stage 8 merged. The crab resist profile stays. A later stage may retune the bite only with an explicit ask.
 - **Floor of 1** after defense makes guard-front (×0.15) and ram armor (×0.40) chip instead of stopping a small hit, and makes thorns at least 1. Stage 2. OPEN.
 - **Enrage does not add boss damage.** Phase 2/3 move faster and cast faster. Stage 9. OPEN.
 - **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. Stage 9. OPEN.
@@ -1913,6 +2108,48 @@ Legacy name movement against the checkpoint:
 
 ---
 
+### Stage 8 executed results
+
+Headless Chrome, Puppeteer, system Google Chrome, SwiftShader, cache disabled, `python3 -m http.server` on 127.0.0.1. Checkpoint tag `combat-redesign-pre-stage8` / `20906ad`, before any Stage 8 code. The formulas, the resist table, the affix table, and the time-to-kill rows are in the Stage 8 history entry. Counts are pass/fail.
+
+| Run | Legacy 21 | Stage 1 | Stage 2 | Stage 3 | Stage 4 | Stage 5 | Stage 6 | Stage 7 | Stage 8 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Before | 809 passed, 96 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | 70/0 | not present |
+| After, one sequential pass | 807 passed, 96 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | 70/0 | 63/0 |
+
+`tests/stage8-enemies.html` is 63/0. Stages 1–6 did not rename a check. Two Stage 1 rats (`frost nova formula tags and cold`, and the conversion pair) set `resists` back to empty so those formula locks stay independent of the rat profile. The names did not change.
+
+Renamed earlier-stage check:
+
+- `tests/stage7-skills.html`: `no resist affix and no stage 8 table` → `loot has no resist affix`. The loot assertion is unchanged.
+
+Legacy name movement on the sequential pass is only `v0711` not emitting `vault rare 0` and `vault rare 3` (43/5 → 41/5). The five stable names stayed. Re-runs were 42/5 and 43/5 and did emit vault rares. `v0714` stayed 40/1, then two re-runs were 33/8 (layout flake). `v076` stayed 48/0 on the pass and both re-runs. `v07152` stayed 34/3, then two re-runs were 36/1 (layout flake). No new failure name. `version.json` is still 0.7.18. Stage 9 was not started.
+
+Contact survival matched the checkpoint on all 70 monster/depth rows. The worst single-element time-to-kill multiplier is 1.667. Physical is 1.000.
+
+### Stage 8 crab-bite revert
+
+Re-run after the contact test was put back to the Stage 7 expression. Same harness, same checkpoint tag `combat-redesign-pre-stage8` / `20906ad`. Resist profiles and elite affixes were not changed. `tests/stage8-enemies.html` is 64/0. The crab checks are `shelled crab still bites`, `shelled crab still blocks incoming damage`, and `open crab still does not bite`.
+
+| Run | Legacy 21 | Stages 1–7 | Stage 8 |
+| --- | --- | --- | --- |
+| Checkpoint `20906ad` | 809 passed, 96 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0 | not present |
+| After the bite revert | 802 passed, 102 failed | same, all green | 64/0 |
+
+Stages 1–6 names did not move. The Stage 7 rename is unchanged: `no resist affix and no stage 8 table` → `loot has no resist affix`.
+
+Legacy name movement against `20906ad` on this sequential pass:
+
+- `v075`: 59/1 → 58/2. Added `f4 skins rotate`. Two re-runs were 59/1 with only `f3 multi select`, and `f4 skins rotate` passed (`{"7":"A","14":"B","21":"C","28":"D"}`). Prism-skin flake. Spawn code was not touched.
+- `v0711`: 43/5 → 42/5. `vault rare 3` was not emitted. The five stable names stayed. Two re-runs were 43/5 (48 checks) with those five names. `trash in the maw` was not a failure. Generation variance.
+- `v0714`: 40/1 → 33/8. The seven footer and tab names failed. One re-run stayed 33/8. The next was 40/1 with only `version`. Layout flake.
+- `v076`: stayed 48/0, including `b3 damage no snap`. Two re-runs stayed 48/0.
+- `v07152`: 34/3 → 36/1. Cleared `tab hits follow scale` and `slot hit follows scale`. One re-run stayed 36/1. The next was 34/3 with those two names back. Layout flake.
+
+No other failure name was added. `version.json` is still 0.7.18. A diff of `index.html` against `20906ad` adds no `dmgType` line, does not edit `castHellmouth`, `spawnBoss`, `seSpawn717`, or `seTick717`, and does not edit the loot `AFFIX` table. The crab contact predicate matches the tag; the shroud skip is the only extra term.
+
+---
+
 ## Approval gate
 
 Stage 0 is IMPLEMENTED. Jake merged it as PR #23 and GO'd Stage 1. This log does not mark Stage 0 VERIFIED.
@@ -1929,6 +2166,8 @@ Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #28 (`6eecf2439525da1
 
 Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). This log does not mark Stage 6 VERIFIED. The Stage 6 history entry above still describes that branch before the merge. It was not rewritten.
 
-Stage 7 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`). This log does not mark Stage 7 VERIFIED. The Stage 7 history entry above still describes that branch before this stage. It was not rewritten.
 
-**Wait for Jake's approval before Stage 8.** Stage 8 is enemy resist tables and elite affixes. It must not start from this branch. Stage 7 did not add those tables, did not redesign boss or Super Elite attacks, and did not change Hellmouth's deletion.
+Stage 8 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 9.** Stage 9 is bosses, Super Elites, and the Hellmouth deletion. It must not start from this branch. Stage 8 did not redesign those attacks, did not change Hellmouth's deletion, and did not turn on the five caster elements.

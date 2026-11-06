@@ -2829,6 +2829,294 @@ BOSSES.forEach((B, i) => { B.floor = (i + 1) * 5; B.img = B.oswin ? SPR.boss : w
 const MAX_ENEMIES = 120 /* v0.7.2 §0: was 60 */, MAX_EPROJ = 180, MAX_PARTS = 450, MAX_HAZ = 60;
 function bossForDepth(d) { if (d < 5 || d % 5) return null; const k = d / 5 - 1; return { B: BOSSES[k % 20], cycle: Math.floor(k / 20) }; }
 
+// ===== Stage 8: enemy resistance identities and elite affixes =====
+// Content resists use the Stage 2 clamp (soft 75, hard 90, penetration, negative vulnerability).
+// Nothing here adds a universal All resist. Physical still skips elemental resist.
+// Bosses and Super Elites are not given a profile and are not given affixes. Stage 9 owns them.
+// The five caster shots stay Physical. Stage 8 must not turn them on.
+// Elite affixes change what a champion does. They do not multiply HP or contact damage.
+// A champion below depth 4 is unchanged. Depth 4-11 rolls one affix. Depth 12+ rolls two,
+// and the two cannot both be control affixes (slow, web, blast, brand). That pair would
+// stack a snare under a rune. Each control effect is telegraphed, timed, and escapable.
+const ENEMY_RESIST = {
+  slime:    { fam: 'drowned', Fire: 30, Cold: -20, Lightning: -25, Poison: 25, Shadow: -10 },
+  bat:      { fam: 'vermin', Fire: -30, Cold: -10, Lightning: 10, Poison: 20, Shadow: 10 },
+  rat:      { fam: 'vermin', Fire: -25, Cold: -15, Lightning: 0, Poison: 30, Shadow: 10 },
+  skel:     { fam: 'bone', Fire: -30, Cold: 25, Lightning: -15, Poison: 35, Shadow: -15 },
+  ooze:     { fam: 'drowned', Fire: 25, Cold: -15, Lightning: -30, Poison: 35, Shadow: -15 },
+  mage:     { fam: 'choir', Fire: 10, Cold: -20, Lightning: -25, Poison: 15, Shadow: 20 },
+  eel:      { fam: 'drowned', Fire: 20, Cold: 15, Lightning: -40, Poison: 10, Shadow: -5 },
+  drowned:  { fam: 'drowned', Fire: 35, Cold: 10, Lightning: -30, Poison: 5, Shadow: -20 },
+  bomber:   { fam: 'vermin', Fire: -20, Cold: 0, Lightning: -10, Poison: 40, Shadow: -10 },
+  archer:   { fam: 'bone', Fire: -25, Cold: 20, Lightning: -10, Poison: 30, Shadow: -15 },
+  wisp:     { fam: 'choir', Fire: -10, Cold: -15, Lightning: 40, Poison: 15, Shadow: -30 },
+  guard:    { fam: 'bone', Fire: -20, Cold: 20, Lightning: -10, Poison: 30, Shadow: -20 },
+  spider:   { fam: 'vermin', Fire: -35, Cold: -5, Lightning: 0, Poison: 40, Shadow: 0 },
+  ghost:    { fam: 'choir', Fire: -15, Cold: 10, Lightning: -25, Poison: 40, Shadow: -10 },
+  ghoul:    { fam: 'bone', Fire: -25, Cold: 10, Lightning: -10, Poison: 20, Shadow: 5 },
+  mimic:    { fam: 'mimic', Fire: 15, Cold: 5, Lightning: -25, Poison: 20, Shadow: -15 },
+  cantor:   { fam: 'choir', Fire: -10, Cold: 15, Lightning: -30, Poison: 10, Shadow: 15 },
+  binder:   { fam: 'bone', Fire: -20, Cold: 15, Lightning: -15, Poison: 30, Shadow: -10 },
+  lobber:   { fam: 'vermin', Fire: -15, Cold: -10, Lightning: -5, Poison: 40, Shadow: -10 },
+  ram:      { fam: 'bone', Fire: -15, Cold: 25, Lightning: -20, Poison: 25, Shadow: -15 },
+  crawler:  { fam: 'vermin', Fire: -20, Cold: -10, Lightning: 0, Poison: 40, Shadow: -10 },
+  shade:    { fam: 'choir', Fire: -20, Cold: 0, Lightning: -15, Poison: 25, Shadow: 10 },
+  flies:    { fam: 'vermin', Fire: -40, Cold: -10, Lightning: 5, Poison: 35, Shadow: 10 },
+  golem:    { fam: 'bone', Fire: 10, Cold: 20, Lightning: -35, Poison: 25, Shadow: -20 },
+  siren:    { fam: 'drowned', Fire: 30, Cold: 20, Lightning: -40, Poison: 0, Shadow: -10 },
+  knight:   { fam: 'bone', Fire: -15, Cold: 20, Lightning: -10, Poison: 25, Shadow: -20 },
+  leech:    { fam: 'drowned', Fire: -10, Cold: -15, Lightning: -20, Poison: 35, Shadow: 10 },
+  exarch:   { fam: 'choir', Fire: -10, Cold: -10, Lightning: -20, Poison: 10, Shadow: 30 },
+  crab:     { fam: 'drowned', Fire: 25, Cold: 15, Lightning: -35, Poison: 5, Shadow: -10 },
+  seer:     { fam: 'drowned', Fire: 20, Cold: 15, Lightning: -25, Poison: 0, Shadow: -10 },
+  slimelet: { fam: 'drowned', Fire: 20, Cold: -15, Lightning: -20, Poison: 20, Shadow: -5 },
+  zombie:   { fam: 'drowned', Fire: 25, Cold: 0, Lightning: -20, Poison: 15, Shadow: -20 },
+  skelw:    { fam: 'bone', Fire: -25, Cold: 20, Lightning: -15, Poison: 30, Shadow: -10 },
+  spiderw:  { fam: 'vermin', Fire: -30, Cold: 0, Lightning: -5, Poison: 40, Shadow: -5 },
+  goblin:   { fam: 'bone', Fire: -20, Cold: 5, Lightning: -10, Poison: 15, Shadow: 10 }
+};
+const RESIST_ELEMS = ['Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
+const AFFIX_MIN_DEPTH = 4, AFFIX_PAIR_DEPTH = 12;
+const AFFIX_GUARD_MUL = 0.35, AFFIX_GUARD_GAP = 4.2;
+const AFFIX_PHASE_TELL = 0.5, AFFIX_PHASE_GAP = 4.2;
+const AFFIX_VOL_HP = 0.35, AFFIX_VOL_TELL = 1.15, AFFIX_VOL_R = 18;
+const AFFIX_MARK_TELL = 1.25, AFFIX_BRAND_R = 8;
+const AFFIX_RIME_R = 36, AFFIX_RIME_SLOW = 0.45, AFFIX_WEB_GAP = 5.5;
+const AFFIX_CALL_TELL = 0.7, AFFIX_CALL_CAP = 2;
+const ELITE_AFFIX = [
+  { id: 'bulwark', title: 'BULWARK', group: 'open', min: 4, ban: { guard: 1 }, pip: '#9eb0ff',
+    counter: 'The ward locks the direction he was facing. Step around it. Stagger still lands.' },
+  { id: 'siphon', title: 'SIPHON', group: 'open', min: 4, ban: { leech: 1 }, pip: '#80ff80',
+    counter: 'He only drinks a bite that connects. Kite, or stagger him. Spells do not feed him.' },
+  { id: 'shroud', title: 'SHROUD', group: 'open', min: 4, ban: { eel: 1, wisp: 1, shade: 1 }, pip: '#c8b8ff',
+    counter: 'The flicker is the tell. He can be hit again when the phase ends. It does not refresh early.' },
+  { id: 'harbinger', title: 'HARBINGER', group: 'open', min: 8, ban: { binder: 1 }, pip: '#d0a0ff',
+    counter: 'One rat, after a rune, and never more than two. Kill the champion or the rat. The rat is not elite.' },
+  { id: 'rime', title: 'RIME', group: 'control', min: 4, ban: { drowned: 1, siren: 1, spider: 1, spiderw: 1 }, pip: '#b8e0ff',
+    counter: 'A slow aura, not a freeze. Walk out of the ring. It cannot share a champion with a web or a brand.' },
+  { id: 'snare', title: 'SNARE', group: 'control', min: 5, ban: { spider: 1, spiderw: 1 }, pip: '#e8e8e8',
+    counter: 'One web, on a timer. Sidestep it. The slow is the existing web slow, and it ends.' },
+  { id: 'volatile', title: 'VOLATILE', group: 'control', min: 4, ban: { bomber: 1 }, pip: '#ff9040',
+    counter: 'Crossing a third of his life lights a fuse. Step out, or kill him and the fuse dies with him.' },
+  { id: 'brand', title: 'BRAND', group: 'control', min: 6, ban: null, pip: '#c080ff',
+    counter: 'The rune stays where it was drawn. Leave it. It does not chase and it does not root you.' }
+];
+const AFFIX_BY_ID = {};
+for (let ai = 0; ai < ELITE_AFFIX.length; ai++) AFFIX_BY_ID[ELITE_AFFIX[ai].id] = ELITE_AFFIX[ai];
+function resistProfile(type) {
+  const src = ENEMY_RESIST[type];
+  if (!src) return null;
+  return { Fire: src.Fire, Cold: src.Cold, Lightning: src.Lightning, Poison: src.Poison, Shadow: src.Shadow };
+}
+function resistTag(res) {
+  if (!res) return '';
+  let hiN = -1e9, loN = 1e9, hiK = '', loK = '';
+  for (let i = 0; i < RESIST_ELEMS.length; i++) {
+    const k = RESIST_ELEMS[i], v = +res[k] || 0;
+    if (v > hiN) { hiN = v; hiK = k; }
+    if (v < loN) { loN = v; loK = k; }
+  }
+  const hi = hiN > 0 ? hiK.toUpperCase() + ' RESIST' : '';
+  const lo = loN < 0 ? loK.toUpperCase() + ' WEAK' : '';
+  return hi && lo ? hi + '  ' + lo : (hi || lo);
+}
+function resistSanitize(e) {
+  if (!e || e.superElite || (e.T && (e.T.boss || e.T.superElite))) return;
+  if (e.resists && typeof e.resists === 'object') {
+    if (!e.resistTag) e.resistTag = resistTag(e.resists);
+    return;
+  }
+  const row = resistProfile(e.type);
+  if (!row) return;
+  e.resists = row;
+  e.resistTag = resistTag(row);
+}
+function affixGuardDur(d) { return Math.min(1.35, 0.85 + Math.max(0, (d || 0) - 4) * 0.02); }
+function affixPhaseDur(d) { return Math.min(0.8, 0.55 + Math.max(0, (d || 0) - 4) * 0.01); }
+function affixSiphonFrac(d) { return Math.min(0.10, 0.06 + Math.max(0, (d || 0) - 4) * 0.001); }
+function affixMarkGap(d) { return Math.max(5.2, 6.4 - Math.max(0, (d || 0) - 4) * 0.04); }
+function affixCallGap(d) { return Math.max(6.5, 8.5 - Math.max(0, (d || 0) - 4) * 0.06); }
+function eliteDepth(opt) {
+  if (opt && Number.isFinite(+opt.depth)) return +opt.depth;
+  if (typeof window.__eliteDepth === 'number') return window.__eliteDepth;
+  return depth;
+}
+function affixRand() {
+  const q = window.__affixRolls;
+  if (q && q.length) return +q.shift();
+  if (typeof window.__affixRoll === 'number') return window.__affixRoll;
+  return Math.random();
+}
+function affixHas(a, id) { return !!(a && a.ids && (a.ids[0] === id || a.ids[1] === id)); }
+function affixStacks(have, id) {
+  if (!have || have.indexOf(id) >= 0) return false;
+  const def = AFFIX_BY_ID[id];
+  if (!def || def.group !== 'control') return true;
+  for (let i = 0; i < have.length; i++) {
+    const other = AFFIX_BY_ID[have[i]];
+    if (other && other.group === 'control') return false;
+  }
+  return true;
+}
+function affixAllowed(e, def, d) {
+  if (!def || def.min > d) return false;
+  if (def.ban && e && def.ban[e.type]) return false;
+  return true;
+}
+function eligibleAffixIds(e, d) {
+  const out = [];
+  for (let i = 0; i < ELITE_AFFIX.length; i++) if (affixAllowed(e, ELITE_AFFIX[i], d)) out.push(ELITE_AFFIX[i].id);
+  return out;
+}
+function filterAffixIds(e, ids, d, loose) {
+  const out = [];
+  if (!ids) return out;
+  for (let i = 0; i < ids.length && out.length < 2; i++) {
+    const id = ids[i], def = AFFIX_BY_ID[id];
+    if (!def) continue;
+    if (!loose && !affixAllowed(e, def, d)) continue;
+    if (!affixStacks(out, id)) continue;
+    out.push(id);
+  }
+  return out;
+}
+function rollAffixIds(e, d) {
+  const want = d >= AFFIX_PAIR_DEPTH ? 2 : 1;
+  const pool = eligibleAffixIds(e, d);
+  const out = [];
+  let guard = 0;
+  while (out.length < want && pool.length && guard < 8) {
+    guard++;
+    const i = Math.min(pool.length - 1, Math.floor(affixRand() * pool.length));
+    const id = pool[i];
+    pool.splice(i, 1);
+    if (!affixStacks(out, id)) continue;
+    out.push(id);
+  }
+  return out;
+}
+function affixTitle(e) {
+  const zeal = e && e.type === 'mage';
+  const tail = zeal ? 'ZEALOT' : 'CHAMPION';
+  const ids = e && e.affix && e.affix.ids;
+  if (!ids || !ids.length) return zeal ? 'PALE CHOIR ZEALOT' : 'CHAMPION';
+  let s = '';
+  for (let i = 0; i < ids.length; i++) {
+    const def = AFFIX_BY_ID[ids[i]];
+    if (def) s += (s ? ' ' : '') + def.title;
+  }
+  return s ? s + ' ' + tail : (zeal ? 'PALE CHOIR ZEALOT' : 'CHAMPION');
+}
+function makeAffixState(ids, d) {
+  return {
+    ids: ids.slice(), depth: d,
+    guard: 0, guardCd: 1.8, aim: 0,
+    phase: 0, phaseTell: 0, phaseCd: 2.4,
+    fuse: 0,
+    mark: 0, markCd: 2.0, mx: 0, my: 0,
+    webCd: 2.2,
+    call: 0, callCd: 2.6,
+    rimeWarm: 1.2
+  };
+}
+function applyEliteAffixes(e, opt) {
+  opt = opt || {};
+  if (!e || e.superElite || (e.T && (e.T.boss || e.T.superElite))) return null;
+  const d = eliteDepth(opt);
+  let ids;
+  if (Array.isArray(opt.ids)) ids = filterAffixIds(e, opt.ids, d, !!opt.loose);
+  else if (e.elite && !e.minion && !opt.noAffix && d >= AFFIX_MIN_DEPTH) ids = rollAffixIds(e, d);
+  else ids = [];
+  if (!ids.length) { e.affix = null; return null; }
+  e.affix = makeAffixState(ids, d);
+  if (e.elite) e.name = affixTitle(e);
+  return e.affix;
+}
+function affixSanitize(e) {
+  if (!e || e.superElite || (e.T && (e.T.boss || e.T.superElite))) { if (e && e.affix) e.affix = null; return; }
+  const a = e.affix;
+  if (!a || !Array.isArray(a.ids)) { e.affix = null; return; }
+  const d = Number.isFinite(+a.depth) ? +a.depth : depth;
+  const ids = filterAffixIds(e, a.ids, d, false);
+  if (!ids.length) { e.affix = null; return; }
+  const keep = makeAffixState(ids, d);
+  const keys = ['guard', 'guardCd', 'aim', 'phase', 'phaseTell', 'phaseCd', 'fuse', 'mark', 'markCd', 'mx', 'my', 'webCd', 'call', 'callCd', 'rimeWarm'];
+  for (let i = 0; i < keys.length; i++) if (Number.isFinite(+a[keys[i]])) keep[keys[i]] = +a[keys[i]];
+  keep.ids = ids;
+  e.affix = keep;
+  if (e.elite) e.name = affixTitle(e);
+}
+function affixBurstDmg(e, frac, hpFrac) {
+  const raw = Math.max(1, Math.round((e && e.dmg || 1) * frac));
+  const cap = player && player.st ? Math.max(1, Math.round((player.st.maxHp || 1) * hpFrac)) : raw;
+  return raw < cap ? raw : cap;
+}
+function affixHurt(e, x, y, dmg) {
+  if (!player || state !== 'play' || !(dmg > 0)) return 0;
+  const res = hurtPlayer(dmg, { x: x, y: y, label: (e && e.T && e.T.label) || 'elite', from: e });
+  return res && res.dealt > 0 ? res.dealt : 0;
+}
+function affixSiphon(e, res) {
+  if (!e || !affixHas(e.affix, 'siphon') || !res || !(res.dealt > 0) || e.hp <= 0) return 0;
+  const cap = Math.max(1, Math.round(e.maxHp * affixSiphonFrac(e.affix.depth)));
+  const h = Math.max(1, Math.min(cap, Math.round(res.dealt * 0.2)));
+  const before = e.hp;
+  e.hp = e.hp + h > e.maxHp ? e.maxHp : e.hp + h;
+  const got = e.hp - before;
+  if (got > 0) addText(e.x, e.y - 10, '+' + got, '#80ff80');
+  return got;
+}
+function armVolatile(e) {
+  const a = e && e.affix;
+  if (!a || !affixHas(a, 'volatile') || a.fuse !== 0 || e.hp <= 0 || e.dead || e.downT || !(e.maxHp > 0)) return;
+  if (e.hp / e.maxHp > AFFIX_VOL_HP) return;
+  a.fuse = AFFIX_VOL_TELL;
+  tele({ x: e.x, y: e.y, r: AFFIX_VOL_R, dur: AFFIX_VOL_TELL, col: '#ff8040', follow: e });
+  addFoeText(e.x, e.y - 16, 'UNSTABLE', '#ff8040');
+}
+function affixCall(e) {
+  if (!e || e.hp <= 0 || e.dead || state !== 'play') return null;
+  if (minionCount(e) >= AFFIX_CALL_CAP || enemies.length >= MAX_ENEMIES) return null;
+  const s = freeNear(e.x, e.y, 14, 32);
+  const m = spawnEnemy('rat', s.x, s.y, false, { minion: true, owner: e.id, noAffix: true });
+  if (m) { m.state = 'chase'; m.hidden = false; }
+  return m;
+}
+function tickEnemyAffix(e, dt) {
+  const a = e && e.affix;
+  if (!a || e.dead || e.hp <= 0 || e.hmFreeze || e.downT) return;
+  const p = player;
+  if (!p || state !== 'play') return;
+  const ids = a.ids;
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    if (id === 'bulwark') {
+      if (a.guard > 0) { a.guard -= dt; if (a.guard < 0) a.guard = 0; }
+      else { a.guardCd -= dt; if (a.guardCd <= 0) { a.guardCd = AFFIX_GUARD_GAP; a.guard = affixGuardDur(a.depth); a.aim = Math.atan2(p.y - e.y, p.x - e.x); addFoeText(e.x, e.y - 14, 'GUARD', '#9eb0ff'); } }
+    } else if (id === 'shroud') {
+      if (a.phase > 0) { a.phase -= dt; if (a.phase < 0) a.phase = 0; }
+      else if (a.phaseTell > 0) { a.phaseTell -= dt; if (a.phaseTell <= 0) { a.phaseTell = 0; a.phase = affixPhaseDur(a.depth); addFoeText(e.x, e.y - 12, 'PHASE', '#c8b8ff'); } }
+      else { a.phaseCd -= dt; if (a.phaseCd <= 0) { a.phaseCd = AFFIX_PHASE_GAP; a.phaseTell = AFFIX_PHASE_TELL; } }
+    } else if (id === 'volatile') {
+      if (a.fuse > 0) { a.fuse -= dt; if (a.fuse <= 0) { a.fuse = -1; if (e.hp > 0 && !e.dead && Math.hypot(p.x - e.x, p.y - e.y) < AFFIX_VOL_R + (p.r || 5)) { burst(e.x, e.y, '#ff8040', 8, 40); affixHurt(e, e.x, e.y, affixBurstDmg(e, 0.45, 0.30)); } else burst(e.x, e.y, '#ff8040', 6, 30); } }
+    } else if (id === 'brand') {
+      if (a.mark > 0) {
+        a.mark -= dt;
+        if (a.mark <= 0) { a.mark = 0; burst(a.mx, a.my, '#c080ff', 6, 28); if (Math.hypot(p.x - a.mx, p.y - a.my) < AFFIX_BRAND_R + (p.r || 5)) affixHurt(e, a.mx, a.my, affixBurstDmg(e, 0.35, 0.22)); }
+      } else { a.markCd -= dt; if (a.markCd <= 0) { a.markCd = affixMarkGap(a.depth); a.mark = AFFIX_MARK_TELL; a.mx = p.x; a.my = p.y; tele({ x: p.x, y: p.y, r: AFFIX_BRAND_R, dur: AFFIX_MARK_TELL, col: '#c080ff' }); } }
+    } else if (id === 'rime') {
+      if (a.rimeWarm > 0) a.rimeWarm -= dt;
+      else if (Math.hypot(p.x - e.x, p.y - e.y) < AFFIX_RIME_R) p.slowT = Math.max(p.slowT || 0, AFFIX_RIME_SLOW);
+    } else if (id === 'snare') {
+      a.webCd -= dt;
+      if (a.webCd <= 0) { a.webCd = AFFIX_WEB_GAP; if (dist(e, p) < 170 && sightLOS(e, p)) eShoot(e, angTo(e, p), 90, { kind: 'web', mul: 0.35, life: 1.6 }); }
+    } else if (id === 'harbinger') {
+      if (a.call > 0) { a.call -= dt; if (a.call <= 0) { a.call = 0; affixCall(e); } }
+      else { a.callCd -= dt; if (a.callCd <= 0) { a.callCd = affixCallGap(a.depth); a.call = AFFIX_CALL_TELL; tele({ x: e.x, y: e.y, r: 8, dur: AFFIX_CALL_TELL, col: '#a040ff', rune: true }); } }
+    }
+  }
+}
+
 function spawnEnemy(type, x, y, elite, opt) {
   const T = ETYPES[type], d = depth; opt = opt || {};
   let hp = Math.round(T.hp[0] + T.hp[1] * (d - 1)), dmg = (T.dmg[0] + T.dmg[1] * (d - 1)) * dmgBump(d) * mobDmgMul(d); // v0.6.0 modest early bump; v0.7.3 §6 post-density-cap damage ramp
@@ -2840,6 +3128,9 @@ function spawnEnemy(type, x, y, elite, opt) {
   if (T.ai === 'eel') { e.hidden = true; e.mode = 'under'; e.t = 2; }
   if (T.disguise) e.disg = true;
   if (T.ai === 'crab') { e.mode = 'shell'; e.t = 2.6; }
+  e.resists = resistProfile(type);
+  e.resistTag = resistTag(e.resists);
+  if (!(opt && opt.noAffix) && (elite && !opt.minion || (opt && opt.ids))) applyEliteAffixes(e, opt);
   enemies.push(e); v073SpawnGuard(e); ensurePoise(e); return e; /* v0.7.3 §9: never into a sinking-floor room */
 }
 const BOSS_HP_MUL = 1.75; // v0.7.17 B2: every boss max HP
@@ -3127,6 +3418,7 @@ function updateEnemies(dt) {
     const sk = tomeSeek(), dSk = dist(e, sk), d = dist(e, p);
     if (d > 340 && dSk > 340 && !e.T.boss) continue; // far away: frozen (cheap)
     if (e.downT) { e.downT -= dt; if (e.downT <= 0) { e.downT = 0; e.hp = Math.round(e.maxHp * .5); flashMsg('The Revenant rises again!', '#c0c0ff'); burst(e.x, e.y, '#c0c0ff', 16, 60); e.state = 'chase'; } continue; }
+    tickEnemyAffix(e, dt);
     const spd = e.spd * ccMoveMul(e);
     if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt); const f = Math.pow(.001, dt); e.kx *= f; e.ky *= f; if (Math.abs(e.kx) + Math.abs(e.ky) < 2) e.kx = e.ky = 0; }
     if (ccImmobilized(e)) continue;
@@ -3149,9 +3441,9 @@ function updateEnemies(dt) {
       if (e.fearT > 0 && !e.T.boss) { e.fearT -= dt; moveDir(e, -ax, -ay, spd * 1.1, dt); continue; } // v0.5.0 fear pulse: flee, no contact
       if (e.T.boss) bossAI(e, dt, dSk, ax, ay); else mobAI(e, dt, dSk, ax, ay, spd);
       if (e.dead || state !== 'play') { if (state !== 'play') return; continue; }
-      const contact = !e.T.noContact && !e.hidden && e.mode !== 'stun' && !(e.T.ai === 'crab' && e.mode === 'open');
+      const contact = !e.T.noContact && !e.hidden && e.mode !== 'stun' && !(e.T.ai === 'crab' && e.mode === 'open') && !(e.affix && e.affix.phase > 0);
       if (contact && d < e.r + p.r + 3 && e.atkCd <= 0) {
-        e.atkCd = e.T.boss ? 1 : 1.1; const mul = e.mode === 'charge' ? 1.3 : 1; smpEnemyAttack(e); hurtPlayer(e.dmg * mul, e); if (state !== 'play') return;
+        e.atkCd = e.T.boss ? 1 : 1.1; const mul = e.mode === 'charge' ? 1.3 : 1; smpEnemyAttack(e); affixSiphon(e, hurtPlayer(e.dmg * mul, e)); if (state !== 'play') return;
         if (e.T.leech) { const h = Math.round(e.dmg); e.hp = Math.min(e.maxHp, e.hp + h); addText(e.x, e.y - 10, '+' + h, '#80ff80'); }
         if (e.T.ai === 'rat') { e.mode = 'flee'; e.t = .8; }
       }
@@ -3252,6 +3544,8 @@ function drawEnemy(e) {
   let alpha = 1;
   if (T.ghost) alpha = .65;
   if (T.ai === 'shade') alpha = e.flash > 0 || dist(e, player) < 30 || Math.sin(time * 7 + e.id) > .85 ? .8 : .14;
+  if (e.affix && e.affix.phase > 0) alpha = Math.min(alpha, .28);
+  else if (e.affix && e.affix.phaseTell > 0) alpha = Math.min(alpha, .62);
   if (e.downT) { ctx.save(); ctx.globalAlpha = .55; ctx.translate(Math.round(e.x), Math.round(e.y + 2)); ctx.rotate(Math.PI / 2); ctx.drawImage(S.r, -img.width / 2, -img.height / 2); ctx.restore(); return; }
   if (e.elite) drawChampGlow(e, img, X, Y); // v0.6.3 B8: soft glow under the sprite (outline drawn after it)
   if (T.boss && (e.phase >= 2 || e.glow > 0)) { ctx.fillStyle = `rgba(255,${e.phase >= 3 ? 220 : 40},40,${.15 + Math.sin(time * 8) * .08})`; ctx.fillRect(X - 3, Y - 3, img.width + 6, img.height + 6); }
@@ -3263,6 +3557,11 @@ function drawEnemy(e) {
   if (e.statuses) { let sx = X; if (e.statuses.bleed) { ctx.fillStyle = '#c02020'; ctx.fillRect(sx, Y - 2, 1, 1); sx += 2; } if (e.statuses.burning) { ctx.fillStyle = '#ff7020'; ctx.fillRect(sx, Y - 2, 1, 1); sx += 2; } if (e.statuses.poison) { ctx.fillStyle = '#a0e040'; ctx.fillRect(sx, Y - 2, 1, 1); sx += 2; } if (e.statuses.shock) { ctx.fillStyle = '#ffe040'; ctx.fillRect(sx, Y - 2, 1, 1); } }
   ctx.globalAlpha = 1;
   if (T.ai === 'guard') { const fx = Math.round(e.x + Math.cos(e.fa) * 7), fy = Math.round(e.y - 3 + Math.sin(e.fa) * 5); ctx.fillStyle = '#8888a0'; ctx.fillRect(fx - 1, fy - 3, 3, 6); ctx.fillStyle = '#e8c840'; ctx.fillRect(fx, fy - 1, 1, 2); }
+  if (e.affix && e.affix.ids && e.affix.ids.length) {
+    const pip = AFFIX_BY_ID[e.affix.ids[0]];
+    ctx.fillStyle = pip && pip.pip || '#fff'; ctx.fillRect(X, Y - 3, 2, 2);
+    if (e.affix.guard > 0) { const fx = Math.round(e.x + Math.cos(e.affix.aim) * 8), fy = Math.round(e.y - 3 + Math.sin(e.affix.aim) * 5); ctx.fillStyle = '#9eb0ff'; ctx.fillRect(fx - 1, fy - 2, 3, 5); }
+  }
   if (e.mode === 'stun') { for (let i = 0; i < 3; i++) { const an = time * 6 + i * 2.1; ctx.fillStyle = '#ffe040'; ctx.fillRect(Math.round(e.x + Math.cos(an) * 6), Math.round(Y - 2 + Math.sin(an) * 2), 1, 1); } }
 }
 const CHAMP_SIL = new WeakMap();
@@ -3381,7 +3680,7 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || solidAt(p.x, p.y) || pitHitAt(p.x, p.y, p.r)) { const r = rooms[0]; p.x = (r.cx + .5) * TS; p.y = (r.cy + .5) * TS; }
   computeStats(); debrisFix(); cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; p.slowT = 0; p.walk = null; p.pickT = null; p.useT = null; clickMark = null;
   ambEnsure(p); v077BuildRooms(); splitGoldPiles(); purgeBadSpawns(); /* v0.7.7: room letters from the saved seed; do not re-roll the bed */
-  if (Array.isArray(enemies)) for (let si = 0; si < enemies.length; si++) statusSanitize(enemies[si]);
+  if (Array.isArray(enemies)) for (let si = 0; si < enemies.length; si++) { statusSanitize(enemies[si]); resistSanitize(enemies[si]); affixSanitize(enemies[si]); }
   return true; }
 function debrisFix() { if (!Array.isArray(debris)) debris = []; }
 setInterval(() => { if (state === 'play' && player && time - lastSaveT > 12) save(); }, 4000); // v0.6.3 B10: autosave the live floor while playing
@@ -3735,8 +4034,10 @@ function drawClickMark() { if (!clickMark) return; const k = clickMark.t / .5; i
 function drawHoverBar(e, y) {
   const w = Math.min(120, Math.round(VW * .36)), x = Math.round(VW / 2 - w / 2), nm = (e.name || (e.T.n || e.T.label || '')).toUpperCase();
   drawTextC(nm, VW / 2, y, e.elite ? '#7a9cff' : '#e8e0c8');
-  ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y + 7, w + 2, 5); ctx.fillStyle = '#3a0808'; ctx.fillRect(x, y + 8, w, 3); ctx.fillStyle = '#c02028'; ctx.fillRect(x, y + 8, Math.round(w * clamp(e.hp / e.maxHp, 0, 1)), 3);
-  return y + 14;
+  let bar = y;
+  if (e.resistTag) { drawTextC(e.resistTag, VW / 2, y + 8, '#d8c8a8'); bar = y + 8; }
+  ctx.fillStyle = '#000'; ctx.fillRect(x - 1, bar + 7, w + 2, 5); ctx.fillStyle = '#3a0808'; ctx.fillRect(x, bar + 8, w, 3); ctx.fillStyle = '#c02028'; ctx.fillRect(x, bar + 8, Math.round(w * clamp(e.hp / e.maxHp, 0, 1)), 3);
+  return bar + 14;
 }
 function drawBigMap() {
   const op = mapOpacity(); ctx.save(); ctx.globalAlpha = op; // v0.7.17 B4: MAP slider only — do not inherit UI Dim (UIA)
@@ -4478,6 +4779,10 @@ function resolveEnemyDamage(e, packet) {
     burst(e.x, e.y, '#e0a040', 3, 30); aggro(e);
     return { phase: 'immune', target: 'enemy', prevented: 'crab', dealt: 0, killed: false };
   }
+  if (e.affix && e.affix.phase > 0) {
+    if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 10, 'PHASE', '#c8b8ff'); e.immT = time + .4; }
+    return { phase: 'immune', target: 'enemy', prevented: 'shroud', dealt: 0, killed: false };
+  }
   let kx = packet.kx, ky = packet.ky;
   const src = packet.source, col = packet.col || '#fff';
   const fromPlayer = packet.attacker === 'player';
@@ -4490,10 +4795,15 @@ function resolveEnemyDamage(e, packet) {
     if (c.type === 'Physical') dmg += c.amount;
     else dmg += mitigateElement(c, e, packet, fromPlayer);
   }
-  let guardFront = false;
+  let guardFront = false, affixFront = false;
   if (T.ai === 'guard') {
     const s = src || player, a = Math.atan2(s.y - e.y, s.x - e.x), da = Math.abs(((a - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (da < 1.0) { dmg *= .15; guardFront = true; if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 14, 'BLOCK', '#c8c8d8'); e.immT = time + .4; } kx *= .2; ky *= .2; }
+  }
+  if (e.affix && e.affix.guard > 0 && affixHas(e.affix, 'bulwark')) {
+    const s2 = src || player, a2 = Math.atan2(s2.y - e.y, s2.x - e.x);
+    const da2 = Math.abs(((a2 - e.affix.aim + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    if (da2 < 1.0) { dmg *= AFFIX_GUARD_MUL; affixFront = true; if ((e.immT || 0) < time) { addFoeText(e.x, e.y - 14, 'WARD', '#9eb0ff'); e.immT = time + .4; } }
   }
   if (T.armor && e.mode !== 'stun') dmg *= T.armor;
   if (e.mawVuln > 0) dmg *= 1.1;
@@ -4517,9 +4827,10 @@ function resolveEnemyDamage(e, packet) {
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
   if (!packet.isDot) notePoise(e, packet, { guard: guardFront });
   if (e.hp <= 0) killEnemy(e);
+  else if (!e.downT) armVolatile(e);
   return {
     phase: 'hit', target: 'enemy', prevented: null, dealt: hpDmg, amount: dmg, hpDmg: hpDmg, shieldAbs: shieldAbs,
-    guardFront: guardFront, crit: crit, killed: e.hp <= 0, components: comps, tags: packet.tags.slice(), type: packet.type, world: false
+    guardFront: guardFront, affixFront: affixFront, crit: crit, killed: e.hp <= 0, components: comps, tags: packet.tags.slice(), type: packet.type, world: false
   };
 }
 function resolveDamage(target, packet) {
@@ -9369,9 +9680,9 @@ function gridEnemyUpdate(e, dt, d, spd) { const slowM = gridSlowMul(e); if (slow
   if (A.state !== 'STUNNED' && aiClock < A.engagedUntil && !AI_NO_LEGACY[T.ai]) { const ax = (p.x - e.x) / (d || 1), ay = (p.y - e.y) / (d || 1); mobAI(e, dt, d, ax, ay, 0); if (e.dead || state !== 'play') return; }
   else if (T.ai === 'bomber' && e.mode === 'fuse') { mobAI(e, dt, d, 0, 0, 0); if (e.dead || state !== 'play') return; }
   if (e.dead) return;
-  const contact = !T.noContact && !e.hidden && A.state !== 'STUNNED' && !(T.ai === 'crab' && e.mode === 'open') && T.ai !== 'bomber';
+  const contact = !T.noContact && !e.hidden && A.state !== 'STUNNED' && !(T.ai === 'crab' && e.mode === 'open') && !(e.affix && e.affix.phase > 0) && T.ai !== 'bomber';
   const chasing = A.state === 'CHASE' && Math.max(Math.abs(A.tx - pt.tx), Math.abs(A.ty - pt.ty)) <= 1;
-  if (contact && (dist(e, p) < e.r + p.r + 3 || chasing) && e.atkCd <= 0) { e.atkCd = 1.1; const mul = A.state === 'CHARGING' ? 1.3 : 1; smpEnemyAttack(e); hurtPlayer(e.dmg * mul, e); if (state !== 'play') return;
+  if (contact && (dist(e, p) < e.r + p.r + 3 || chasing) && e.atkCd <= 0) { e.atkCd = 1.1; const mul = A.state === 'CHARGING' ? 1.3 : 1; smpEnemyAttack(e); affixSiphon(e, hurtPlayer(e.dmg * mul, e)); if (state !== 'play') return;
     if (T.leech) { const h = Math.round(e.dmg); e.hp = Math.min(e.maxHp, e.hp + h); addText(e.x, e.y - 10, '+' + h, '#80ff80'); }
     if (A.state === 'CHARGING') { A.state = 'CHASE'; A.nextTick = aiClock; } }
   if (T.ai === 'bomber' && e.mode !== 'fuse' && dist(e, p) < 22) mobAI(e, dt, dist(e, p), 0, 0, 0); }
@@ -13679,6 +13990,8 @@ drawEnemy = function (e) {
   let alpha = 1;
   if (T.ghost) alpha = .65;
   if (T.ai === 'shade') alpha = e.flash > 0 || dist(e, player) < 30 || Math.sin(time * 7 + e.id) > .85 ? .8 : .14;
+  if (e.affix && e.affix.phase > 0) alpha = Math.min(alpha, .28);
+  else if (e.affix && e.affix.phaseTell > 0) alpha = Math.min(alpha, .62);
   if (e.elite && typeof drawChampGlow === 'function') drawChampGlow(e, img, X, Y);
   if (T.boss && (e.phase >= 2 || e.glow > 0)) { ctx.fillStyle = 'rgba(255,' + (e.phase >= 3 ? 220 : 40) + ',40,' + (.15 + Math.sin(time * 8) * .08) + ')'; ctx.fillRect(X - 3, Y - 3, img.width + 6, img.height + 6); }
   else if (e.glow > 0) { ctx.fillStyle = 'rgba(160,64,255,.3)'; ctx.fillRect(X - 2, Y - 2, img.width + 4, img.height + 4); }
@@ -13686,6 +13999,11 @@ drawEnemy = function (e) {
   if (e.elite && typeof drawChampOutline === 'function') drawChampOutline(img, X, Y);
   ctx.drawImage(img, X, Y);
   ctx.globalAlpha = 1;
+  if (e.affix && e.affix.ids && e.affix.ids.length) {
+    const pip = AFFIX_BY_ID[e.affix.ids[0]];
+    ctx.fillStyle = pip && pip.pip || '#fff'; ctx.fillRect(X, Y - 3, 2, 2);
+    if (e.affix.guard > 0) { const fx = Math.round(e.x + Math.cos(e.affix.aim) * 8), fy = Math.round(e.y - 3 + Math.sin(e.affix.aim) * 5); ctx.fillStyle = '#9eb0ff'; ctx.fillRect(fx - 1, fy - 2, 3, 5); }
+  }
   if (e.statuses && e.statuses.stagger) { ctx.fillStyle = '#ffe0a0'; ctx.fillRect(X, Y - 2, 1, 1); }
   if (e.mode === 'stun') { for (let i = 0; i < 3; i++) { const an = time * 6 + i * 2.1; ctx.fillStyle = '#ffe040'; ctx.fillRect(Math.round(e.x + Math.cos(an) * 6), Math.round(Y - 2 + Math.sin(an) * 2), 1, 1); } }
 };
@@ -14483,6 +14801,14 @@ if (window.game) {
     HITSTOP_CAP: HITSTOP_CAP, ATK_BUF: ATK_BUF,
     setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
     SKILL_BUILD: SKILL_BUILD, skillBuild: skillBuild, skillSpecId: skillSpecId, setSkillSpec: setSkillSpec, spellPower: spellPower, skillSpecSanitize: skillSpecSanitize,
+    ENEMY_RESIST: ENEMY_RESIST, ELITE_AFFIX: ELITE_AFFIX, AFFIX_BY_ID: AFFIX_BY_ID, RESIST_ELEMS: RESIST_ELEMS,
+    AFFIX_MIN_DEPTH: AFFIX_MIN_DEPTH, AFFIX_PAIR_DEPTH: AFFIX_PAIR_DEPTH, AFFIX_GUARD_MUL: AFFIX_GUARD_MUL, AFFIX_GUARD_GAP: AFFIX_GUARD_GAP,
+    AFFIX_PHASE_TELL: AFFIX_PHASE_TELL, AFFIX_PHASE_GAP: AFFIX_PHASE_GAP, AFFIX_VOL_HP: AFFIX_VOL_HP, AFFIX_VOL_TELL: AFFIX_VOL_TELL, AFFIX_VOL_R: AFFIX_VOL_R,
+    AFFIX_MARK_TELL: AFFIX_MARK_TELL, AFFIX_BRAND_R: AFFIX_BRAND_R, AFFIX_RIME_R: AFFIX_RIME_R, AFFIX_RIME_SLOW: AFFIX_RIME_SLOW, AFFIX_WEB_GAP: AFFIX_WEB_GAP,
+    AFFIX_CALL_TELL: AFFIX_CALL_TELL, AFFIX_CALL_CAP: AFFIX_CALL_CAP,
+    resistProfile: resistProfile, resistTag: resistTag, resistSanitize: resistSanitize, applyEliteAffixes: applyEliteAffixes, affixSanitize: affixSanitize,
+    affixGuardDur: affixGuardDur, affixPhaseDur: affixPhaseDur, affixSiphonFrac: affixSiphonFrac, affixMarkGap: affixMarkGap, affixCallGap: affixCallGap,
+    eligibleAffixIds: eligibleAffixIds, filterAffixIds: filterAffixIds, tickEnemyAffix: tickEnemyAffix, affixSiphon: affixSiphon, armVolatile: armVolatile, affixCall: affixCall, affixBurstDmg: affixBurstDmg,
     flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });

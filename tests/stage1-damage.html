@@ -230,7 +230,7 @@ function run(w) {
   p.lvl = 1; p.st.fire = 0; p.mp = 80; p.cds[2] = 0;
   g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
   const novaE = g.spawnEnemy('rat', p.x + 10, p.y, false);
-  novaE.dead = false; novaE.hp = 100; novaE.slow = 0; novaE.hidden = false; novaE.downT = 0;
+  novaE.dead = false; novaE.hp = 100; novaE.slow = 0; novaE.hidden = false; novaE.downT = 0; novaE.resists = null;
   w.castSkill(2);
   check('frost nova formula tags and cold', novaE.hp === 92 && novaE.slow === 3.5 && w.__lastDamage && w.__lastDamage.type === 'Cold' && w.__lastDamage.tags.indexOf('Spell') >= 0 && w.__lastDamage.tags.indexOf('AoE') >= 0, 'hp ' + novaE.hp + ' slow ' + novaE.slow);
 
@@ -378,7 +378,7 @@ function run(w) {
   ]);
   g.enemies.forEach(e => { e.dead = true; e.hp = 0; });
   const conv = g.spawnEnemy('rat', p.x + 30, p.y, false);
-  conv.dead = false; conv.hp = 500; conv.shield = 0; conv.hidden = false; conv.downT = 0; conv.mawVuln = 0;
+  conv.dead = false; conv.hp = 500; conv.shield = 0; conv.hidden = false; conv.downT = 0; conv.mawVuln = 0; conv.resists = null;
   const convRes = w.damageEnemy(conv, 100, 0, 0, '#fff', false);
   const byType = {};
   (convRes.components || []).forEach(c => { byType[c.type] = (byType[c.type] || 0) + c.amount; });
