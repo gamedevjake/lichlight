@@ -1031,7 +1031,7 @@ The intended mapping stays the Stage 2 proposal: cultist Shadow, wisp Lightning,
 
 - **Date:** 2026-11-06.
 - **Stage:** Stage 8 — Enemy resistances and elite affixes.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Rollback tag `combat-redesign-pre-stage8` points at `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). Do not move it. Older rollback tags were not moved.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Implementation commit `6dcc0a27bdfefc44bd0205465cbe0556e9f75126`. Rollback tag `combat-redesign-pre-stage8` points at `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). Do not move it. Older rollback tags were not moved.
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 9 has not been started.
 - **Objective:** Give each enemy family a lore resist profile on the Stage 2 curve, and give champions affixes that change the fight. Do not inflate every resist. Do not make a single damage type unable to kill a family. Do not convert the five caster shots. Do not retune bosses, Super Elites, Hellmouth, `mods.fire`, or loot.
 
