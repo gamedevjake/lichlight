@@ -58,7 +58,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('callers stay physical', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf('legacySkillPower') >= 0);
-  check('no new combat affixes', src.indexOf("k: 'critDmg'") < 0 && src.indexOf("k: 'flatFire'") < 0 && src.indexOf("k: 'inc'") < 0 && src.indexOf("k: 'more'") < 0 && src.indexOf("k: 'bonusFire'") < 0 && src.indexOf("k: 'resFire'") < 0);
+  check('no generic more or bonus affix', src.indexOf("k: 'more'") < 0 && src.indexOf("k: 'bonusFire'") < 0 && src.indexOf("k: 'inc'") < 0 && src.indexOf("k: 'critDmg'") >= 0 && src.indexOf("k: 'flatFire'") >= 0);
   check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('crit base is x2', g.CRIT_MUL_BASE === 2);
 
@@ -317,9 +317,9 @@ function run(w) {
   for (let i = 0; i < 40; i++) {
     const it = g.makeItem(12, 1);
     const mods = (it && it.mods) || {};
-    for (const k in mods) if (/^(flat|inc|more|bonus|critDmg)/.test(k)) lootBad = true;
+    for (const k in mods) if (/^(inc|more|bonus)/.test(k)) lootBad = true;
   }
-  check('loot does not roll stage 3 mods', !lootBad);
+  check('loot does not roll generic increased more or bonus', !lootBad);
 
   g.newGame(); p = calm(g, w);
   p.equip.amulet = { id: 's3-save', slot: 'amulet', name: 'Save Charm', mods: { fire: 6, crit: 2, critDmg: 50, flat: 4, inc: 10, more: 10, bonusFire: 5 }, powers: [] };

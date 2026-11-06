@@ -223,7 +223,7 @@ function run(w) {
   check('legacy spell power untouched', src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('legacySkillPower') >= 0);
   check('melee stays physical and fireball is fire', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf("tags: ['Spell', 'AoE']") >= 0 && src.indexOf("type: 'Fire'") >= 0 && src.indexOf("type: 'Cold'") >= 0);
   check('envHurt stays world physical', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0);
-  check('no resist affix in the loot table', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
+  check('resist affixes use the stage 2 keys', src.indexOf("k: 'resFire'") >= 0 && src.indexOf("k: 'resAll'") >= 0 && src.indexOf('Spell Power') >= 0 && src.indexOf('legacySkillPower') >= 0);
 
   function foe(type, x) {
     const e = g.spawnEnemy(type, x, p.y, false);
@@ -311,13 +311,15 @@ function run(w) {
   check('se shield after cold resist', seDrop.shield === 0 && seDrop.hp === 40, 'sh ' + seDrop.shield + ' hp ' + seDrop.hp);
 
   g.newGame(); p = calm(g, w);
-  let lootResist = false;
-  for (let i = 0; i < 40; i++) {
-    const it = g.makeItem(20, 2);
+  let sawUnique = false, uniqueGrew = false;
+  for (let i = 0; i < 24; i++) {
+    const it = g.makeItem(8, 3);
+    if (!it || it.rarity !== 3) continue;
+    sawUnique = true;
     const mods = it.mods || {};
-    if (mods.resFire || mods.resCold || mods.resLightning || mods.resPoison || mods.resShadow || mods.resAll || mods.maxResist || mods.penFire || mods.penAll) lootResist = true;
+    if (mods.resFire || mods.resCold || mods.resLightning || mods.resPoison || mods.resShadow || mods.resAll || mods.maxResist || mods.penFire || mods.penAll || mods.conv || mods.ailment || mods.flatFire || mods.critDmg) uniqueGrew = true;
   }
-  check('loot rolls no resist mods', !lootResist);
+  check('uniques do not gain a resist ward', sawUnique && !uniqueGrew);
 
   const am = { id: 'stage2-charm', slot: 'amulet', name: 'Test Charm', mods: { fire: 6, crit: 2, def: 3, resFire: 20, resAll: 5, maxResist: 3, penFire: 4, penAll: 1 }, powers: [] };
   p.equip.amulet = am;

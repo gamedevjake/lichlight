@@ -1429,6 +1429,53 @@ const BASES = [
   { slot: 'shield', icon: 'shield', name: 'Choir Pavise', lvl: 28, def: 25, block: 22 },
 ];
 const BLOCK_CAP = 40;
+// Stage 10 ward: every non-unique copy of these bases carries all-resist. It is not an affix roll,
+// so a white leather coat is already elemental armor. Uniques do not inherit it.
+const GEAR_WARD = {
+  'Leather Armor': 8, 'Chain Mail': 6, 'Plate Mail': 4, 'Dusk Shroud': 4,
+  'Cap': 4, 'Helm': 4, 'Great Helm': 3, 'Bone Visage': 3,
+  'Boots': 3, 'Greaves': 3,
+  'Wooden Buckler': 6, 'Round Shield': 5, 'Kite Shield': 4, 'Tower Shield': 3,
+  'Gothic Shield': 3, 'Bone Ward': 3, 'Drowned Aegis': 3, 'Choir Pavise': 3,
+  'Copper Charm': 4, 'Bone Pendant': 3
+};
+function gearWard(baseName, L) {
+  const b = GEAR_WARD[baseName];
+  if (!b) return 0;
+  const lvl = Math.max(1, Math.floor(+L || 1));
+  return Math.min(16, Math.round(b + (lvl - 1) * 0.55));
+}
+// One conversion id, one edge, move not copy. Fraction is fixed so the choice is the element, not a bigger percent.
+const LOOT_CONV = {
+  'phys-fire': { from: 'Physical', to: 'Fire', fraction: 0.4, line: '40% of Physical damage converts to Fire', name: ['Ember', 'of Cinders'] },
+  'phys-cold': { from: 'Physical', to: 'Cold', fraction: 0.4, line: '40% of Physical damage converts to Cold', name: ['Rime', 'of Rime'] },
+  'phys-lightning': { from: 'Physical', to: 'Lightning', fraction: 0.4, line: '40% of Physical damage converts to Lightning', name: ['Storm', 'of the Storm'] },
+  'phys-poison': { from: 'Physical', to: 'Poison', fraction: 0.4, line: '40% of Physical damage converts to Poison', name: ['Blight', 'of Blight'] },
+  'phys-shadow': { from: 'Physical', to: 'Shadow', fraction: 0.4, line: '40% of Physical damage converts to Shadow', name: ['Grave', 'of the Grave'] },
+  'fire-cold': { from: 'Fire', to: 'Cold', fraction: 0.4, line: '40% of Fire damage converts to Cold', name: ['Pale', 'of Pale Fire'] },
+  'fire-lightning': { from: 'Fire', to: 'Lightning', fraction: 0.4, line: '40% of Fire damage converts to Lightning', name: ['Arc', 'of Arcing Flame'] },
+  'cold-fire': { from: 'Cold', to: 'Fire', fraction: 0.4, line: '40% of Cold damage converts to Fire', name: ['Thaw', 'of the Thaw'] },
+  'lightning-shadow': { from: 'Lightning', to: 'Shadow', fraction: 0.4, line: '40% of Lightning damage converts to Shadow', name: ['Dusk', 'of Dusk Sparks'] }
+};
+const LOOT_CONV_IDS = Object.keys(LOOT_CONV);
+// One ailment. The hit still uses the Stage 3 scale once. The status tick does not scale again.
+const GEAR_AILMENT = {
+  bleed: { id: 'bleed', trigger: 'Physical', tags: ['Melee'], base: 1, duration: 4, line: 'Melee Physical hits inflict Bleed', name: ['Open', 'of Open Wounds'] },
+  burn: { id: 'burning', trigger: 'Fire', base: 1, duration: 3, line: 'Fire hits inflict Burning', name: ['Kindled', 'of Kindling'] },
+  venom: { id: 'poison', trigger: 'Poison', base: 1, duration: 6, line: 'Poison hits inflict Poison', name: ['Venom', 'of Venom'] },
+  spark: { id: 'shock', trigger: 'Lightning', takenPct: 10, duration: 4, line: 'Lightning hits inflict Shock', name: ['Live', 'of Conduction'] },
+  hex: { id: 'curse', trigger: 'Shadow', curseId: 'hex', resistReduction: 8, outPenalty: 0, lifeDrain: 0, duration: 4, line: 'Shadow hits Hex (-8 resist, no life drain)', name: ['Hexed', 'of the Hex'] },
+  rime: { id: 'chill', trigger: 'Cold', slowPct: 12, buildup: 8, duration: 3, line: 'Cold hits Chill (slow, low freeze buildup)', name: ['Hoarfrost', 'of Hoarfrost'] }
+};
+const GEAR_AILMENT_IDS = Object.keys(GEAR_AILMENT);
+const DEFENSE_SLOT = { armor: 1, helm: 1, boots: 1, shield: 1 };
+function rollTypedResist(L) { return Math.min(24, irand(6, 8 + Math.floor(L / 2))); }
+function rollAllResist(L) { return Math.min(10, irand(3, 4 + Math.floor(L / 4))); }
+function rollPenAffix(L) { return Math.min(18, irand(6, 8 + Math.floor(L / 4))); }
+function rollPenAllAffix(L) { return Math.min(8, irand(3, 4 + Math.floor(L / 5))); }
+function rollCritDmgAffix(L) { return Math.min(30, irand(10, 14 + Math.floor(L / 3))); }
+function rollFlatAffix(L) { return Math.min(8, irand(1, 2 + Math.floor(L / 3))); }
+function rollMaxResistAffix() { return irand(2, 3); }
 const AFFIX = [
   { k: 'dmg', p: ['Sharp', 'Jagged', 'Cruel'], s: ['of Slaying', 'of Butchery'], roll: L => irand(1, 2 + L), txt: v => `+${v} Damage`, slots: ['weapon', 'ring', 'amulet'] },
   { k: 'def', p: ['Sturdy', 'Studded', 'Warded'], s: ['of Warding', 'of the Bulwark'], roll: L => irand(1, 2 + L), txt: v => `+${v} Defense`, slots: ['armor', 'helm', 'boots', 'ring', 'amulet', 'shield'] },
@@ -1441,6 +1488,31 @@ const AFFIX = [
   { k: 'ms', p: ['Fleet', 'Fleeing'], s: ['of the Fox', 'of the Courier'], roll: L => irand(5, 10 + L), txt: v => `+${v}% Move Speed`, slots: ['boots', 'ring', 'amulet'] },
   { k: 'light', p: ['Glowing', 'Lich-lit', 'Pale-lit'], s: ['of the Lich-light', 'of the Lantern'], roll: L => irand(6, 10 + L), txt: v => `+${v} Light Radius`, slots: ['ring', 'helm', 'amulet', 'shield'] },
   { k: 'regen', p: ['Hale', 'Mending', 'Undying'], s: ['of Renewal', 'of the Grave Moss'], roll: L => irand(1, 2 + Math.floor(L / 3)), txt: v => `+${v} Life/sec`, slots: ['armor', 'helm', 'ring', 'amulet', 'shield'] },
+  // Stage 10. Resist is on armor from item level 1. Penetration, crit damage, added damage,
+  // conversion, and ailments come later and do not stack as generic percent multipliers.
+  // mods.fire stays Spell Power. These keys are separate.
+  { k: 'resFire', group: 'resist', minLvl: 1, p: ['Ash-warded', 'Kiln'], s: ['of Ash Ward', 'of the Kiln'], roll: rollTypedResist, txt: v => `+${v}% Fire Resist`, slots: ['armor', 'helm', 'boots', 'shield', 'ring', 'amulet'] },
+  { k: 'resCold', group: 'resist', minLvl: 1, p: ['Rime-warded', 'Winter'], s: ['of Rime Ward', 'of Winter'], roll: rollTypedResist, txt: v => `+${v}% Cold Resist`, slots: ['armor', 'helm', 'boots', 'shield', 'ring', 'amulet'] },
+  { k: 'resLightning', group: 'resist', minLvl: 1, p: ['Storm-warded', 'Grounded'], s: ['of Storm Ward', 'of Grounding'], roll: rollTypedResist, txt: v => `+${v}% Lightning Resist`, slots: ['armor', 'helm', 'boots', 'shield', 'ring', 'amulet'] },
+  { k: 'resPoison', group: 'resist', minLvl: 1, p: ['Bile-warded', 'Pure'], s: ['of Bile Ward', 'of Purity'], roll: rollTypedResist, txt: v => `+${v}% Poison Resist`, slots: ['armor', 'helm', 'boots', 'shield', 'ring', 'amulet'] },
+  { k: 'resShadow', group: 'resist', minLvl: 1, p: ['Shade-warded', 'Lit'], s: ['of Shade Ward', 'of the Lamp'], roll: rollTypedResist, txt: v => `+${v}% Shadow Resist`, slots: ['armor', 'helm', 'boots', 'shield', 'ring', 'amulet'] },
+  { k: 'resAll', group: 'resist', minLvl: 1, p: ['Warded', 'Sealed'], s: ['of the Seal', 'of All Wards'], roll: rollAllResist, txt: v => `+${v}% All Elemental Resist`, slots: ['armor', 'helm', 'boots', 'shield', 'amulet'] },
+  { k: 'maxResist', group: 'resist', minLvl: 8, minRarity: 2, p: ['Capped', 'Unbroken'], s: ['of the Cap', 'of the Last Ward'], roll: rollMaxResistAffix, txt: v => `+${v}% Maximum Resist`, slots: ['helm', 'amulet'] },
+  { k: 'penFire', group: 'pen', minLvl: 6, p: ['Piercing', 'Boring'], s: ['of Fire Pen', 'of the Bore'], roll: rollPenAffix, txt: v => `+${v}% Fire Penetration`, slots: ['weapon', 'ring', 'amulet'] },
+  { k: 'penCold', group: 'pen', minLvl: 6, p: ['Piercing', 'Boring'], s: ['of Cold Pen', 'of the Bore'], roll: rollPenAffix, txt: v => `+${v}% Cold Penetration`, slots: ['weapon', 'ring', 'amulet'] },
+  { k: 'penLightning', group: 'pen', minLvl: 6, p: ['Piercing', 'Boring'], s: ['of Lightning Pen', 'of the Bore'], roll: rollPenAffix, txt: v => `+${v}% Lightning Penetration`, slots: ['weapon', 'ring', 'amulet'] },
+  { k: 'penPoison', group: 'pen', minLvl: 6, p: ['Piercing', 'Boring'], s: ['of Poison Pen', 'of the Bore'], roll: rollPenAffix, txt: v => `+${v}% Poison Penetration`, slots: ['weapon', 'ring', 'amulet'] },
+  { k: 'penShadow', group: 'pen', minLvl: 6, p: ['Piercing', 'Boring'], s: ['of Shadow Pen', 'of the Bore'], roll: rollPenAffix, txt: v => `+${v}% Shadow Penetration`, slots: ['weapon', 'ring', 'amulet'] },
+  { k: 'penAll', group: 'pen', minLvl: 10, minRarity: 2, p: ['Boring', 'Hungry'], s: ['of All Penetration'], roll: rollPenAllAffix, txt: v => `+${v}% All Penetration`, slots: ['weapon', 'amulet'] },
+  { k: 'critDmg', minLvl: 3, p: ['Vicious', 'Cruel'], s: ['of Cruelty', 'of the Deep Cut'], roll: rollCritDmgAffix, txt: v => `+${v}% Critical Damage`, slots: ['weapon', 'ring', 'helm', 'amulet'] },
+  { k: 'flatPhysical', group: 'flat', minLvl: 2, p: ['Heavy', 'Weighted'], s: ['of Added Might'], roll: rollFlatAffix, txt: v => `+${v} Added Physical Damage`, slots: ['weapon', 'amulet'] },
+  { k: 'flatFire', group: 'flat', minLvl: 2, p: ['Scorching', 'Coal'], s: ['of Added Fire'], roll: rollFlatAffix, txt: v => `+${v} Added Fire Damage`, slots: ['weapon', 'amulet'] },
+  { k: 'flatCold', group: 'flat', minLvl: 2, p: ['Biting', 'Frost'], s: ['of Added Cold'], roll: rollFlatAffix, txt: v => `+${v} Added Cold Damage`, slots: ['weapon', 'amulet'] },
+  { k: 'flatLightning', group: 'flat', minLvl: 2, p: ['Crackling', 'Spark'], s: ['of Added Lightning'], roll: rollFlatAffix, txt: v => `+${v} Added Lightning Damage`, slots: ['weapon', 'amulet'] },
+  { k: 'flatPoison', group: 'flat', minLvl: 2, p: ['Toxic', 'Bile'], s: ['of Added Poison'], roll: rollFlatAffix, txt: v => `+${v} Added Poison Damage`, slots: ['weapon', 'amulet'] },
+  { k: 'flatShadow', group: 'flat', minLvl: 2, p: ['Umbral', 'Dusk'], s: ['of Added Shadow'], roll: rollFlatAffix, txt: v => `+${v} Added Shadow Damage`, slots: ['weapon', 'amulet'] },
+  { k: 'conv', group: 'build', minLvl: 4, p: ['Twinned', 'Altered'], s: ['of Two Natures'], roll: () => pick(LOOT_CONV_IDS), txt: v => (LOOT_CONV[v] && LOOT_CONV[v].line) || 'Conversion', slots: ['weapon', 'amulet'] },
+  { k: 'ailment', group: 'build', minLvl: 4, p: ['Marked', 'Omen'], s: ['of the Affliction'], roll: () => pick(GEAR_AILMENT_IDS), txt: v => (GEAR_AILMENT[v] && GEAR_AILMENT[v].line) || 'Affliction', slots: ['weapon', 'amulet'] },
 ];
 // v0.5.0 power tags: data-driven special powers on gear (shape by Eve: { t, ...params }). Each tag has a text line, a roll for rares/magic amulets,
 // the slots it can roll on, and how copies stack. Hooks live in powersOnHurt / powersOnBlock / powersOnKill / updatePowers / castSkill / startRoll.
@@ -1583,6 +1655,38 @@ function repairWith(it) { // consume one Repair Potion on a chosen item
   p.rpPot--; it.dur = it.maxDur; it.warned = false; sfx('repair'); addText(p.x, p.y - 14, 'REPAIRED', '#ffa850');
   flashMsg(`${it.name} repaired (${p.rpPot} Repair Potion${p.rpPot === 1 ? '' : 's'} left)`, '#ffa850'); computeStats(); save(); return true;
 }
+function lootAffixOk(a, L, slot, rar) {
+  if (a.slots && a.slots.indexOf(slot) < 0) return false;
+  if (a.minLvl && L < a.minLvl) return false;
+  if (a.minRarity != null && rar < a.minRarity) return false;
+  return true;
+}
+function lootAffixBlocks(a, chosen) {
+  if (!a.group) return false;
+  let n = 0;
+  for (let i = 0; i < chosen.length; i++) if (chosen[i].group === a.group) n++;
+  if ((a.group === 'build' || a.group === 'pen' || a.group === 'flat') && n >= 1) return true;
+  if (a.group === 'resist' && n >= 2) return true;
+  return false;
+}
+function writeLootMod(it, a, L) {
+  const rolled = a.roll(L);
+  if (typeof rolled === 'number' && Number.isFinite(rolled)) it.mods[a.k] = (it.mods[a.k] || 0) + rolled;
+  else if (rolled != null && rolled !== '') it.mods[a.k] = rolled;
+}
+function applyGearWard(it) {
+  if (!it || it.rarity === 3) return it;
+  const w = gearWard(it.base, it.lvl);
+  if (w > 0) it.mods.resAll = (it.mods.resAll || 0) + w;
+  return it;
+}
+function affixNameBit(a, it, which) {
+  if (!a) return '';
+  if (a.k === 'conv' && LOOT_CONV[it.mods.conv] && LOOT_CONV[it.mods.conv].name) return LOOT_CONV[it.mods.conv].name[which] || '';
+  if (a.k === 'ailment' && GEAR_AILMENT[it.mods.ailment] && GEAR_AILMENT[it.mods.ailment].name) return GEAR_AILMENT[it.mods.ailment].name[which] || '';
+  const list = which === 0 ? a.p : a.s;
+  return list && list.length ? pick(list) : '';
+}
 function makeItem0(L, forceRarity, baseName) {
   const base = baseName ? BASES.find(b => b.name === baseName) : pick(BASES.filter(b => b.lvl <= L + 1 && !b.noDrop));
   let rar = forceRarity;
@@ -1610,13 +1714,26 @@ function makeItem0(L, forceRarity, baseName) {
     return U;
   }
   const n = rar === 0 ? 0 : rar === 1 ? irand(1, 2) : irand(3, 4);
-  const avail = AFFIX.filter(a => !a.slots || a.slots.includes(it.slot));
+  const avail = AFFIX.filter(a => lootAffixOk(a, L, it.slot, rar));
   const chosen = [];
-  while (chosen.length < n && chosen.length < avail.length) { const a = pick(avail); if (!chosen.includes(a)) chosen.push(a); }
-  chosen.forEach(a => it.mods[a.k] = (it.mods[a.k] || 0) + a.roll(L));
-  if (rar === 1) { const pre = chosen[0], suf = chosen[1]; it.name = (pre ? pick(pre.p) + ' ' : '') + base.name + (suf ? ' ' + pick(suf.s) : ''); }
+  while (chosen.length < n && chosen.length < avail.length) {
+    const pool = avail.filter(a => !chosen.includes(a) && !lootAffixBlocks(a, chosen));
+    if (!pool.length) break;
+    chosen.push(pick(pool));
+  }
+  // Magic and rare armor always includes one resist line. The ward below is the floor; this is the typed piece.
+  if (rar >= 1 && DEFENSE_SLOT[it.slot] && !chosen.some(a => a.group === 'resist')) {
+    const pool = avail.filter(a => a.group === 'resist' && a.k !== 'maxResist' && !chosen.includes(a));
+    if (pool.length) {
+      if (chosen.length) chosen[chosen.length - 1] = pick(pool);
+      else chosen.push(pick(pool));
+    }
+  }
+  chosen.forEach(a => writeLootMod(it, a, L));
+  if (rar === 1) { const pre = chosen[0], suf = chosen[1]; it.name = (pre ? affixNameBit(pre, it, 0) + ' ' : '') + base.name + (suf ? ' ' + affixNameBit(suf, it, 1) : ''); }
   if (rar === 2) it.name = pick(RARE_A) + ' ' + pick(RARE_B);
   if (rar === 0 && it.slot === 'ring') it.mods.hp = irand(3, 6);
+  applyGearWard(it);
   // v0.5.0 power tags: rares sometimes carry one (jewelry + shields more often); magic amulets rarely. Whites never.
   const pj = it.slot === 'amulet' || it.slot === 'shield' ? .25 : it.slot === 'ring' ? .2 : .12;
   if ((rar === 2 && Math.random() < pj) || (rar === 1 && it.slot === 'amulet' && Math.random() < .12)) { const q = rollPower(L, it.slot); if (q) it.powers = [q]; }
@@ -1755,12 +1872,17 @@ function computeStats() {
     fire: m.fire, spell: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05, block: Math.min(BLOCK_CAP, block), powers: pw,
     resFire: m.resFire + m.resAll, resCold: m.resCold + m.resAll, resLightning: m.resLightning + m.resAll,
     resPoison: m.resPoison + m.resAll, resShadow: m.resShadow + m.resAll, maxResist: m.maxResist,
-    penFire: m.penFire + m.penAll, penCold: m.penCold + m.penAll, penLightning: m.penLightning + m.penAll,
-    penPoison: m.penPoison + m.penAll, penShadow: m.penShadow + m.penAll,
+    penFire: capPen(m.penFire + m.penAll), penCold: capPen(m.penCold + m.penAll), penLightning: capPen(m.penLightning + m.penAll),
+    penPoison: capPen(m.penPoison + m.penAll), penShadow: capPen(m.penShadow + m.penAll),
+    ailment: '', conv: '',
     flat: m.flat, flatPhysical: m.flatPhysical, flatFire: m.flatFire, flatCold: m.flatCold, flatLightning: m.flatLightning, flatPoison: m.flatPoison, flatShadow: m.flatShadow,
     inc: m.inc, incPhysical: m.incPhysical, incFire: m.incFire, incCold: m.incCold, incLightning: m.incLightning, incPoison: m.incPoison, incShadow: m.incShadow,
     more: moreAcc.more, morePhysical: moreAcc.morePhysical, moreFire: moreAcc.moreFire, moreCold: moreAcc.moreCold, moreLightning: moreAcc.moreLightning, morePoison: moreAcc.morePoison, moreShadow: moreAcc.moreShadow,
     bonusPhysical: m.bonusPhysical, bonusFire: m.bonusFire, bonusCold: m.bonusCold, bonusLightning: m.bonusLightning, bonusPoison: m.bonusPoison, bonusShadow: m.bonusShadow };
+  const built = readGearBuild(p);
+  p.st.ailment = built.ailment;
+  p.st.conv = built.conv;
+  applyGearConversion(built.conv);
   p.hp = Math.min(p.hp, p.st.maxHp); p.mp = Math.min(p.mp, p.st.maxMp);
 }
 function dropAt(list, x, y, obj) {
@@ -3309,13 +3431,23 @@ function hazard(x, y, r, kind, life, dmg = 0, label) {
   if (hazards.length >= MAX_HAZ) hazards.shift();
   hazards.push({ x, y, r, kind, life, max: life, dmg, label, tick: 0 });
 }
+const CASTER_BOLT = { mage: 'Shadow', wisp: 'Lightning', siren: 'Cold', exarch: 'Shadow', seer: 'Lightning' };
+function casterBoltType(e, pr) {
+  if (!e || !e.type) return '';
+  const kind = pr && pr.kind;
+  if (kind === 'web' || kind === 'arrow') return '';
+  return CASTER_BOLT[e.type] || '';
+}
 function eShoot(e, a, spd, o = {}) {
   let n = 0; for (const q of projs) if (q.owner === 'e') n++;
   if (n >= MAX_EPROJ) return null;
   const pr = Object.assign({ x: e.x, y: e.y - 2, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, r: 3, dmg: e.dmg * (o.mul || 1), owner: 'e', kind: 'bolt', life: 3, label: e.T.label, from: e }, o);
-  // Boss and Super Elite shots stay Physical. Typing them would skip armor, and resist gear is Stage 10.
-  // Caster elements (cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning)
-  // stay off until Stage 10, when resist gear exists. Stage 8 must not turn them on.
+  // Cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning.
+  // Webs and arrows stay Physical. Boss and Super Elite shots stay Physical even if a caller asks.
+  if (DMG_TYPES.indexOf(pr.dmgType) < 0) {
+    const bolt = casterBoltType(e, pr);
+    if (bolt) pr.dmgType = bolt;
+  }
   if (!e || e.superElite || (e.T && e.T.boss) || DMG_TYPES.indexOf(pr.dmgType) < 0) delete pr.dmgType;
   projs.push(pr); return pr;
 }
@@ -4485,8 +4617,20 @@ function addBtn(parent, label, fn, cls) { const b = document.createElement('butt
 // Sort: group by kind (slot order below, unknown kinds last), then rarity (unique>rare>magic>normal),
 // then item level, then a rough power score, then name. Empty slots go to the end.
 const SORT_KIND = ['weapon', 'shield', 'armor', 'helm', 'boots', 'ring', 'amulet'];
-const POWER_W = { light: .4, dmg: 3, def: 2, hp: .3, mp: .25, ias: .6, ls: 2, crit: 1, fire: 1, ms: .5, regen: 3 };
-function itemPower(it) { let s = 0; if (it.min) s += (it.min + it.max) * 1.5 * (it.spd || 1); if (it.def) s += it.def * 2; if (it.block) s += it.block; s += (it.powers || []).length * 12; for (const k in it.mods) s += it.mods[k] * (POWER_W[k] || 1); return s; }
+const POWER_W = { light: .4, dmg: 3, def: 2, hp: .3, mp: .25, ias: .6, ls: 2, crit: 1, fire: 1, ms: .5, regen: 3, critDmg: .6, resAll: 1.2, maxResist: 2, penAll: 1.5 };
+function itemPower(it) {
+  let s = 0;
+  if (it.min) s += (it.min + it.max) * 1.5 * (it.spd || 1);
+  if (it.def) s += it.def * 2;
+  if (it.block) s += it.block;
+  s += (it.powers || []).length * 12;
+  for (const k in it.mods) {
+    if (k === 'conv' || k === 'ailment') { s += 8; continue; }
+    const v = +it.mods[k];
+    if (Number.isFinite(v)) s += v * (POWER_W[k] || 1);
+  }
+  return s;
+}
 function kindRank(it) { const i = SORT_KIND.indexOf(it.slot); return i < 0 ? 99 : i; }
 function compareItems(a, b) { return kindRank(a) - kindRank(b) || b.rarity - a.rarity || b.lvl - a.lvl || itemPower(b) - itemPower(a) || a.name.localeCompare(b.name); }
 function sortInventory() {
@@ -4542,7 +4686,8 @@ let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other
 const DMG_TYPES = ['Physical', 'Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
 const DMG_TAGS = ['Melee', 'Ranged', 'Spell', 'Projectile', 'AoE', 'DoT', 'Direct', 'Channelled'];
 const CRIT_MUL_BASE = 2; // sheet critMul with no critDmg mod. Chance base is the 5 inside computeStats.
-let conversionEdges = []; // {from, to, fraction, chain}. Empty until a test or a later stage adds edges. No loot adds edges.
+let conversionEdges = []; // {from, to, fraction, chain}. Gear supplies at most one edge. A test edge stays until gear has its own.
+let conversionFromGear = false;
 
 // Stage 2 resist model. One number per type, not a second vulnerability multiplier.
 // eff = clamp(raw - penetration, RESIST_MIN, resistCap)
@@ -4551,6 +4696,8 @@ let conversionEdges = []; // {from, to, fraction, chain}. Empty until a test or 
 // Overcap above the cap is real on the sheet and absorbs penetration before the cap binds.
 // Negative eff increases damage. -100 is ×2. Hellmouth's ×1.10 is applied later, once, and is not this.
 const RESIST_MIN = -100, RESIST_SOFT = 75, RESIST_HARD = 90;
+const PEN_CAP = 40; // sheet penetration per element. The Stage 2 subtract still runs once.
+function capPen(v) { const n = +v; if (!Number.isFinite(n) || n <= 0) return 0; return Math.min(PEN_CAP, n); }
 const RESIST_KEYS = { Fire: 'resFire', Cold: 'resCold', Lightning: 'resLightning', Poison: 'resPoison', Shadow: 'resShadow' };
 const PEN_KEYS = { Fire: 'penFire', Cold: 'penCold', Lightning: 'penLightning', Poison: 'penPoison', Shadow: 'penShadow' };
 
@@ -4666,6 +4813,37 @@ function setConversionEdges(edges) {
   }
   if (conversionCycle(list)) throw new Error('conversion cycle');
   conversionEdges = list;
+  conversionFromGear = false;
+  return getConversionEdges();
+}
+function gearConversionEdge(id) {
+  const row = LOOT_CONV[id];
+  if (!row) return null;
+  return { from: row.from, to: row.to, fraction: row.fraction, chain: false };
+}
+function readGearBuild(p) {
+  let conv = '', ailment = '';
+  if (!p || !p.equip) return { conv: '', ailment: '' };
+  const order = ['weapon', 'amulet', 'ring'];
+  for (let i = 0; i < order.length; i++) {
+    const it = p.equip[order[i]];
+    if (!it || !it.mods) continue;
+    if (!conv && LOOT_CONV[it.mods.conv]) conv = it.mods.conv;
+    if (!ailment && GEAR_AILMENT[it.mods.ailment]) ailment = it.mods.ailment;
+  }
+  return { conv: conv, ailment: ailment };
+}
+function applyGearConversion(convId) {
+  const edge = gearConversionEdge(convId);
+  if (edge) {
+    setConversionEdges([edge]);
+    conversionFromGear = true;
+    return getConversionEdges();
+  }
+  if (conversionFromGear) {
+    setConversionEdges([]);
+    conversionFromGear = false;
+  }
   return getConversionEdges();
 }
 function getConversionEdges() { return conversionEdges.map(e => ({ from: e.from, to: e.to, fraction: e.fraction, chain: !!e.chain })); }
@@ -4860,6 +5038,36 @@ function resolvePlayerDamage(packet) {
   else if (!dot) notePoise(p, packet, {});
   res.dealt = hp0 - p.hp; res.killed = p.hp <= 0; return res;
 }
+function gearAilmentOnHit(ent, packet, comps) {
+  if (!packet || packet.isDot || packet.attacker !== 'player' || packet.world || packet.ailmentApplied) return null;
+  const id = player && player.st && player.st.ailment;
+  const A = id && GEAR_AILMENT[id];
+  if (!A || !ent) return null;
+  // Fireball and Frost Nova already apply their own status. Gear must not add a second stack.
+  if (packet.skill === 'fireball' && A.id === 'burning') return null;
+  if (packet.skill === 'frost' && A.id === 'chill') return null;
+  let has = false;
+  for (let i = 0; i < comps.length; i++) if (comps[i].type === A.trigger && comps[i].amount > 0) has = true;
+  if (!has) return null;
+  if (A.tags && A.tags.length) {
+    let tagged = false;
+    const tags = packet.tags || [];
+    for (let t = 0; t < A.tags.length; t++) {
+      if (tags.indexOf(A.tags[t]) >= 0) tagged = true;
+      for (let i = 0; i < comps.length; i++) if (comps[i].tags && comps[i].tags.indexOf(A.tags[t]) >= 0) tagged = true;
+    }
+    if (!tagged) return null;
+  }
+  packet.ailmentApplied = true;
+  const res = applyStatus(ent, A.id, {
+    base: A.base || 0, duration: A.duration, attacker: 'player', scale: false,
+    source: { name: 'Gear', kind: 'affix', id: id },
+    takenPct: A.takenPct, slowPct: A.slowPct, buildup: A.buildup,
+    curseId: A.curseId, resistReduction: A.resistReduction, outPenalty: A.outPenalty, lifeDrain: 0
+  });
+  window.__lastAilment = res;
+  return res;
+}
 function resolveEnemyDamage(e, packet) {
   if (e.hp <= 0 || e.dead || e.hidden || e.downT) return { phase: 'skip', target: 'enemy', prevented: 'invalid', dealt: 0, killed: false };
   if (e.superElite && e.sePhase !== 'fight') {
@@ -4920,6 +5128,7 @@ function resolveEnemyDamage(e, packet) {
   if (hpDmg > 0) addFoeText(e.x, e.y - 10, hpDmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
   if (!packet.isDot) notePoise(e, packet, { guard: guardFront });
+  if (fromPlayer && !packet.isDot && e.hp > 0) gearAilmentOnHit(e, packet, comps);
   if (e.hp <= 0) killEnemy(e);
   else if (!e.downT) armVolatile(e);
   return {
@@ -6989,7 +7198,7 @@ function rollShopUnique(offer) { // blind buy: stats are rolled now, scaled by p
   if (it.min) { it.min = Math.max(1, Math.round(it.min * mul)); it.max = Math.max(it.min, Math.round(it.max * mul)); }
   if (it.def) it.def = Math.max(1, Math.round(it.def * mul));
   if (it.block) it.block = Math.min(BLOCK_CAP, Math.round(it.block * (1 + tier * .04)));
-  for (const k in it.mods) it.mods[k] = Math.max(1, Math.round(it.mods[k] * (1 + tier * .12 + d * .004)));
+  for (const k in it.mods) { const v = it.mods[k]; if (typeof v === 'number' && Number.isFinite(v)) it.mods[k] = Math.max(1, Math.round(v * (1 + tier * .12 + d * .004))); }
   const have = (it.powers || []).map(q => q.t), pChance = Math.min(.9, .15 + tier * .16 + d * .008);
   if (Math.random() < pChance) { const q = rollPower(L + tier, it.slot, have); if (q) it.powers = (it.powers || []).concat([q]); }
   it.reqLvl = calcReqLvl(it); setFullDur(it); it.rarity = 3; return it;
@@ -14955,7 +15164,9 @@ if (window.game) {
     resolveDamage: resolveDamage, makeDamagePacket: makeDamagePacket, setConversionEdges: setConversionEdges, getConversionEdges: getConversionEdges,
     DMG_TYPES: DMG_TYPES, DMG_TAGS: DMG_TAGS, physicalArmorFraction: physicalArmorFraction, elementalResist: elementalResist,
     elementalResistPercent: elementalResistPercent, resistCap: resistCap, rawElementalResist: rawElementalResist,
-    RESIST_MIN: RESIST_MIN, RESIST_SOFT: RESIST_SOFT, RESIST_HARD: RESIST_HARD, CRIT_MUL_BASE: CRIT_MUL_BASE,
+    RESIST_MIN: RESIST_MIN, RESIST_SOFT: RESIST_SOFT, RESIST_HARD: RESIST_HARD, PEN_CAP: PEN_CAP, CRIT_MUL_BASE: CRIT_MUL_BASE,
+    GEAR_WARD: GEAR_WARD, gearWard: gearWard, LOOT_CONV: LOOT_CONV, GEAR_AILMENT: GEAR_AILMENT, CASTER_BOLT: CASTER_BOLT,
+    AFFIX: AFFIX, applyGearWard: applyGearWard, readGearBuild: readGearBuild, applyGearConversion: applyGearConversion,
     scaleAmount: scaleAmount, scaleOutgoingComponents: scaleOutgoingComponents, mitigateElement: mitigateElement,
     critChance: critChance, critMultiplier: critMultiplier, rollPlayerCrit: rollPlayerCrit,
     STATUS: STATUS, HEAVY_CHILL: HEAVY_CHILL, STATUS_MAX_TICKS: STATUS_MAX_TICKS,
