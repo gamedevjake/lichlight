@@ -2380,3 +2380,30 @@ Hellmouth, boss pools, boss pattern multipliers, trash contact, sword timing, an
 - `version.json` was not edited. GitHub Pages was not deployed.
 
 The Stage 9 history above was not rewritten. The three harness lines that still lock the old depth-1 power and the old guaranteed Super Elite unique are listed in the report. They are the new failure names. They are not flakes.
+
+---
+
+### 2026-11-06 — Early-balance pre-merge verification
+
+- **Date:** 2026-11-06.
+- **Stage:** Same balance branch. Jake gave conditional approval of PR #35 at `1341087` and asked for these checks before any merge. PR #35 and PR #33 were not merged. `version.json` was not edited. Nothing was deployed.
+- **Version / Commit:** Still v0.7.18. Tag `balance-pre-early-se-loot` on origin is `a492023a5a442bce8404837648567626b58a51e1`.
+
+#### Harness updates
+
+The three outdated assertions now check the approved rule.
+
+- `tests/stage9-bosses.html` `standing on the power outline is hit` is on depth 1. Expected damage is `round(actorDmg × (1.7 + 1.3 × fade(1)))`, and that dealt hit must be greater than the same actor at the depth-5 ratio `1.7`. A center outside the outline still deals 0. A new check, `depth 1 power ratio is above the depth 5 ratio`, locks fade 1 versus fade 0.
+- `tests/v0717.html` and `tests/v0718.html` `se loot`: the depth-1 kill is a rare of item level 1, with 25 gold, a ration, and the gate key when `__seGkey` is 0. Seeded kills then cover depth 2 (rare at roll 0 and at 0.99), depth 3 (unique just under 20%, rare at exactly 20%), and depth 10+ (unique at 0, 0.5, and 0.999). `v0718` also seeds depth 4 at 35%.
+
+#### Results against `a492023`
+
+`tests/early-balance.html` 50/0, including the grandfather save. Stages 1–8 match the baseline counts exactly (71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0). Stage 9 is 77/0 here and 76/0 on the tag. The extra pass is the new ratio check. `v0717` fails only `version` on both sides (50/1 here, 47/1 on the tag). `v0718` is 23/0 here and 20/0 on the tag.
+
+No stable failure name exists on this branch that is absent from `a492023`. The names that moved between the two sequential passes are the known floor and layout flakes: `v0714` footer set (also 3 of 4 extra runs on the tag), `v0711` `trash in the maw` (emitted on the tag, not on this floor), and one `v077` `f2 brazier` (1 of 7 branch runs, 0 of 7 tag runs; braziers and interact range are not in this diff).
+
+`f4 skins rotate` in `tests/v075.html` is the intermittent UI check. `__prismForce` plus `startFloor` at 7, 14, 21, and 28 expects skins A–D from `prismSkin075`. The miss is a depth with no prism at all. `placePrism` returns false when no room, and the carved-hall fallback, can host the sockets. One of eight tag runs failed it (`{"7":"A","21":"C","28":"D"}`). It also failed once on this branch before this verification (`{"14":"B","21":"C","28":"D"}`). The skin formula is not random. Placement is. This diff does not edit it.
+
+Magic and rare required levels differ on purpose. Magic is `floor(0.70 × (L − 1)) + 1`. Rare is `floor(0.80 × (L − 1)) + 2`. Item level 3 is level 2 for magic and level 3 for rare. Whites at item level 3 or below stay at 1. The formulas are written in `EARLY_BALANCE_REPORT.md`.
+
+`git diff a492023` does not touch `manaCost`, boss spawning, boss multipliers, `seDmg717`, or the `SE_TELL` constants. Depth 5+ life, power, and brand stay on those constants because fade is 0. PR #33's Stage 10 files and its `makeItem0` / resolver / shop-mod edits are not in this diff.

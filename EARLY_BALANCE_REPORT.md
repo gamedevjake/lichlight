@@ -70,6 +70,21 @@ Depth 5 matches the audit's old time to kill, because life and the swing did not
 
 A miss on the Super Elite roll, including every depth 1–2 kill, is `makeItem(depth, 2)`.
 
+## Required level
+
+Magic and rare intentionally use different multipliers. That split was already in `REQ_MULT` / `REQ_ADD`. The old rule hid it: any non-unique with item level 3 or below required level 1. This change leaves that shortcut on whites only. Magic and rare now use the formula at every item level, including 1–3. Uniques are a third formula and did not change.
+
+`L` is the item level. Rarity index `r` is 0 white, 1 magic, 2 rare.
+
+| Rarity | Formula | Item level 3 |
+| --- | --- | --- |
+| White | `1` when `L <= 3`, else `floor(0.60 * (L - 1))` | **1** |
+| Magic | `floor(0.70 * (L - 1)) + 1` | **2** (`floor(1.4) + 1`) |
+| Rare | `floor(0.80 * (L - 1)) + 2` | **3** (`floor(1.6) + 2`) |
+| Unique | `max(1, round(max(1, L - 2) * 0.75) + bonus)` | unchanged |
+
+The constants are `REQ_MULT = [0.60, 0.70, 0.80]` and `REQ_ADD = [0, 1, 2]`. An item level 3 rare requiring level 3 is the rare row of that table, not a second rule pasted on top of magic. An item level 4 rare is `floor(0.80 * 3) + 2 = 4`, the same number the old formula already produced above the shortcut.
+
 ## Migration
 
 Policy name: `grandfather-owned`.
@@ -93,38 +108,59 @@ PR #33 (`cursor/stage10-equipment-affixes-e264`) edits `makeItem0`'s affix filte
 
 A merge should be textual-clean if this branch stays out of `makeItem0` and out of the shop-mod loop. Both sides add keys on the `window.game` export, in different parts of that object. The semantic overlap is that Stage 10's new affixes roll inside `makeItem0`, and this branch's required level is applied to that same item afterwards. Early magic and rare drops would then carry the new affixes and the new required level. Super Elite unique chances live only here. Stage 10 does not roll Super Elite loot.
 
-## Tests
+## Pre-merge verification
 
-`node tests/early-balance.mjs` — **50 passed, 0 failed.** It locks the depth 1–5 table, depth 5+ staying on the old body (brand 11, not 14), the sidestep, the unique-chance edges and a 200-roll sample, gold / ration / gate key, the level curve through depth 5, required level for new whites / magic / rare / uniques, gilt chests, the chest table, the Hollow Pedlar, the depth-5 boss unique, trash contact, Hellmouth's constants, the time-to-kill rows, the 70–198 hit tables, and the grandfather save (equipped, backpack, and floor loot).
+Compared with a fresh run of tag `balance-pre-early-se-loot` (`a492023`), after the three harnesses were pointed at the approved rules. `version.json` is still 0.7.18. The tag on origin resolves to that same commit.
 
-Stages 1–8, headless Chrome, one sequential pass: **71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0.** Same counts as the Stage 9 record. No new failure name.
+The three updated checks now derive the rule instead of a frozen integer:
 
-`tests/stage9-bosses.html`: **75 passed, 1 failed.** The new name is `standing on the power outline is hit` (life left 340). That check stands on a depth-1 floor and expects `20 × 1.7 = 34`. Depth-1 power is now `×3`, so the same actor deals 60. `power tell is 1.3s and times 1.7` still passes, because `SE_TELL.power.mul` is still 1.7 and that assertion runs at depth 10. Swing damage on that harness still matches.
+- `standing on the power outline is hit` (`tests/stage9-bosses.html`), on a depth-1 floor. Expected damage is `round(actor damage × (1.7 + 1.3 × fade(1)))`. The same actor's depth-5 ratio is `1.7`. The check requires the depth-1 hit to be larger, the center on the outline to take it, and the next check requires a center outside the outline to take 0.
+- `se loot` in `tests/v0717.html` and `tests/v0718.html`. The depth-1 kill must be a rare of item level 1, never a unique, with 25 gold, a ration, and the gate key when the roll is forced under 6.5%. Further kills seed `__seUnique`: depth 2 stays a rare on both a 0 roll and a 0.99 roll; depth 3 (and depth 4 in `v0718`) hits a unique just under the chance and a rare exactly on the chance; depths 10 and above stay unique at rolls 0, 0.5, and 0.999.
 
-Legacy, same pass. Counts are pass/fail. New names are only the two Super Elite loot lines.
+`tests/early-balance.html` is **50/0**, including the grandfather save: an equipped item-level-3 rare with the old requirement stays worn at level 1, can be removed and equipped again, a floor item with no stored requirement is stamped with the old shortcut, and a new drop keeps required level 3.
 
-| File | Result | Failure names that are new |
-| --- | --- | --- |
-| `v075` | 58/2, then 59/1, then 58/2 | none. `f4 skins rotate` was absent on the middle run. `f3 multi select` stayed. Same flake the Stage 9 log already reran. |
-| `v076` | 48/0 | |
-| `v077` | 60/4 | none. `version`, `version source`, `f4 pool`, `f5 shop boss`. |
-| `v078` | 60/1 | none. `version 0.7.11`. |
-| `v078-play` | 25/1 | none. `f11 champions only`. |
-| `v0781` | 27/2 | none. `version`, `f1 boss hits` (`49 at depth 5`, the recorded miss against `50 * depth`). |
-| `v079` | 49/1 | none. `version`. |
-| `v0710` | 36/1 | none. `version`. |
-| `v07101` | 41/1 | none. `version`. |
-| `v07102` | 54/0 | |
-| `v07103` | 24/3 | none. `version`, `stats canvas`, `name in panel`. |
-| `v0711` | 43/5 | none. Same five names (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). One extra pass versus the 42/5 record, which is the conditional check that file already emits. |
-| `v0712` | 37/6 | none. |
-| `v0713` | 32/5 | none. |
-| `v0714` | 33/8, twice on rerun | none. `version` plus the six footer names and `tab hitboxes match art`. This file already moved between 40/1 and 33/8. |
-| `v0715` | 19/13 | none. |
-| `v07151` | 8/45 | none. |
-| `v07152` | 36/1 | none. Only `version`. The other recorded state of this file is 34/3. |
-| `v0716` | 49/1 | none. `version`. |
-| `v0717` | 46/2 | **`se loot`** (`g25 r1 u0 k1`). Was 47/1, version only. Gold, the ration, and the forced gate key still match. The unique is gone on depth 1. |
-| `v0718` | 19/1 | **`se loot`** (`g25 r1 u0`). Was 20/0. |
+Stages 1–9 on this branch: **71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 77/0.** The same stages on `a492023`: **71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 76/0.** Stage 9 gained one passing check (`depth 1 power ratio is above the depth 5 ratio`). No stage failure name remains.
 
-Those three new names (`standing on the power outline is hit`, and `se loot` in `v0717` and `v0718`) are the old locks. They were not rewritten. They are deterministic, not flakes.
+Legacy, one sequential pass each. Counts are pass/fail. A name is listed when this run's set differs from the `a492023` run.
+
+| File | `a492023` | This branch | Name diff |
+| --- | --- | --- | --- |
+| `v075` | 59/1 | 59/1 | none. Both only `f3 multi select`. |
+| `v076` | 48/0 | 48/0 | |
+| `v077` | 60/4 | 59/5 | branch also emitted `f2 brazier` this pass. Six reruns on the branch were 60/4 five times and 59/5 once. Six reruns on `a492023` stayed 60/4. The check needs a spawned brazier whose nearest interact is `LIGHT TORCH`. This diff does not touch braziers or interact range. |
+| `v078` | 60/1 | 60/1 | none. `version 0.7.11`. |
+| `v078-play` | 25/1 | 25/1 | none. `f11 champions only`. |
+| `v0781` | 27/2 | 27/2 | none. `version`, `f1 boss hits` (`49 at depth 5`). |
+| `v079` | 49/1 | 49/1 | none. `version`. |
+| `v0710` | 36/1 | 36/1 | none. `version`. |
+| `v07101` | 41/1 | 41/1 | none. `version`. |
+| `v07102` | 54/0 | 54/0 | |
+| `v07103` | 24/3 | 24/3 | none. |
+| `v0711` | 42/6 | 40/5 | baseline emitted `trash in the maw` and two sibling checks. The branch floor did not, so those three lines were not emitted. The other five names match. |
+| `v0712` | 37/6 | 37/6 | none. |
+| `v0713` | 32/5 | 32/5 | none. |
+| `v0714` | 40/1 | 33/8 | footer set on the branch pass only. Four more runs on `a492023` were 33/8, 33/8, 40/1, 33/8. Same oscillation. |
+| `v0715` | 19/13 | 19/13 | none. |
+| `v07151` | 8/45 | 8/45 | none. |
+| `v07152` | 34/3 | 34/3 | none. `version`, `tab hits follow scale`, `slot hit follows scale`. |
+| `v0716` | 49/1 | 49/1 | none. `version`. |
+| `v0717` | 47/1 | 50/1 | none. Both fail only `version`. The branch file has three more passing loot checks. |
+| `v0718` | 20/0 | 23/0 | none. Three more passing loot checks. |
+
+No failure name that is stable on this branch is absent from `a492023`.
+
+### `f4 skins rotate`
+
+Test name: `f4 skins rotate` in `tests/v075.html`.
+
+Repro: `__prismForce` is set, then `startFloor` at depths 7, 14, 21, and 28. The check wants skins A, B, C, D. `prismSkin075(d)` is `'ABCD'[floor(d / 7) - 1]`, which is deterministic. The failing payload is a missing depth, not a wrong letter. One branch run before this verification printed `{"14":"B","21":"C","28":"D"}` (no depth 7). One of eight runs on `a492023` printed `{"7":"A","21":"C","28":"D"}` (no depth 14). The other seven baseline runs, the baseline sequential pass, the branch sequential pass, and eight dedicated branch runs did not emit this name.
+
+Cause: `placePrism` walks generated rooms looking for a north wall that can hold the sockets, a ray fan that strikes three distinct tiles, and a vault. If none of the rooms qualify it tries `carvePrismHall075`, which itself gives up after 500 random solid rectangles. A floor that fails both leaves `prism` unset, and the check reads that as the wrong skin. Depth does not change the skin formula. It changes how often a legal room exists. This branch does not edit `placePrism`, `prismSkin075`, or `prismWant`. The flake is on `a492023`.
+
+`f3 multi select` (`SELL ITEM  33G`) failed on every `v075` run on both commits. It is stable, not the intermittent one.
+
+## Diff boundary
+
+`git diff a492023` on this branch does not edit `manaCost`, `spawnBoss`, `BOSS_HP_MUL`, `BOSS_SHIELD_FRAC`, `BOSS_TELL`, `seDmg717`, or the `SE_TELL` durations and multipliers. Depth 5+ life is `seBaseHp717` because fade is 0. Depth 5+ power uses `SE_TELL.power.mul` (1.7). Depth 5+ brand uses `SE_TELL.brand.mul` (0.85). Hellmouth's mark and bite are not in the diff.
+
+PR #33's files that this branch does not contain: `STAGE10_REPORT.md`, `tests/stage10-equipment.html`, and the Stage 10 edits inside `makeItem0`, `computeStats`, the resolver, the shop-mod loop, and the stage harnesses. The shared file is `index.html`. The hunks do not meet. Both branches add different keys on the `window.game` export.
