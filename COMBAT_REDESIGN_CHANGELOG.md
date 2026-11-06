@@ -2407,3 +2407,24 @@ No stable failure name exists on this branch that is absent from `a492023`. The 
 Magic and rare required levels differ on purpose. Magic is `floor(0.70 × (L − 1)) + 1`. Rare is `floor(0.80 × (L − 1)) + 2`. Item level 3 is level 2 for magic and level 3 for rare. Whites at item level 3 or below stay at 1. The formulas are written in `EARLY_BALANCE_REPORT.md`.
 
 `git diff a492023` does not touch `manaCost`, boss spawning, boss multipliers, `seDmg717`, or the `SE_TELL` constants. Depth 5+ life, power, and brand stay on those constants because fade is 0. PR #33's Stage 10 files and its `makeItem0` / resolver / shop-mod edits are not in this diff.
+
+#### `f2 brazier` is known test debt
+
+The assertion in `tests/v077.html` is:
+
+```javascript
+pp.torches = 2; pp.torchT = 0;
+let litB = false;
+if (g.braziers.length) {
+  const b = g.braziers[0]; b.lit = 1;
+  pp.x = b.x; pp.y = b.y;
+  litB = w.interactables().some(o => o.ref === b && o.label === 'LIGHT TORCH') && w.nearestInteract().label === 'LIGHT TORCH';
+}
+check('f2 brazier', litB);
+```
+
+`placeLights` skips the start room unless `Math.random()` is 0, and skips every other room when `Math.random() > 0.35`. A floor can place no brazier, and then `litB` stays false. When a brazier does exist, `interactables` offers `LIGHT TORCH` only while that brazier is lit and the torch is not already full. `nearestInteract` ranks a chest, door, or shop above that flame (tier 3 versus tier 1). If the winner is not already `LIGHT TORCH`, and the torch is out with a spare in the pack, `nearestInteract` returns `LIGHT SPARE` instead.
+
+A mulberry seed installed immediately before `startFloor(3)` was swept for seeds 1 through 240 on `a492023` and on this branch. Both runs used 15115 `Math.random` calls on seed 1. Both failed the same 12 seeds: seed 29 is `no-brazier`; seeds 38, 66, 99, 109, 111, 144, 157 and four others are `nearest-not-torch`, with `nearestInteract` returning `LIGHT SPARE` because a locked chest, an open chest, or a lever is inside its radius. A hand-built floor agrees on both commits: no brazier fails, one isolated lit brazier passes with `LIGHT TORCH`, and the same brazier 8px from an open chest fails because the nearest label becomes `LIGHT SPARE`.
+
+`placeLights`, `interactables`, `nearestInteract`, and `brazierLit` are not in this diff. The new `Math.random` calls are inside `giltGear` and `seRollGear`, which run when a gilt chest is opened or a Super Elite dies, not while `startFloor` places braziers. This path does not shift spawn order. It is not a gameplay regression. It is a pre-existing nondeterministic test.

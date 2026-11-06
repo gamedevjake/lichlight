@@ -127,7 +127,7 @@ Legacy, one sequential pass each. Counts are pass/fail. A name is listed when th
 | --- | --- | --- | --- |
 | `v075` | 59/1 | 59/1 | none. Both only `f3 multi select`. |
 | `v076` | 48/0 | 48/0 | |
-| `v077` | 60/4 | 59/5 | branch also emitted `f2 brazier` this pass. Six reruns on the branch were 60/4 five times and 59/5 once. Six reruns on `a492023` stayed 60/4. The check needs a spawned brazier whose nearest interact is `LIGHT TORCH`. This diff does not touch braziers or interact range. |
+| `v077` | 60/4 | 59/5 | `f2 brazier` is pre-existing test debt. A seeded `startFloor(3)` fails the same 12 of 240 seeds on both commits. See the changelog. |
 | `v078` | 60/1 | 60/1 | none. `version 0.7.11`. |
 | `v078-play` | 25/1 | 25/1 | none. `f11 champions only`. |
 | `v0781` | 27/2 | 27/2 | none. `version`, `f1 boss hits` (`49 at depth 5`). |
