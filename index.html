@@ -3046,7 +3046,6 @@ function affixSanitize(e) {
   e.affix = keep;
   if (e.elite) e.name = affixTitle(e);
 }
-function crabShut(e) { return !!(e && e.T && e.T.ai === 'crab' && e.mode !== 'open'); }
 function affixBurstDmg(e, frac, hpFrac) {
   const raw = Math.max(1, Math.round((e && e.dmg || 1) * frac));
   const cap = player && player.st ? Math.max(1, Math.round((player.st.maxHp || 1) * hpFrac)) : raw;
@@ -3442,8 +3441,7 @@ function updateEnemies(dt) {
       if (e.fearT > 0 && !e.T.boss) { e.fearT -= dt; moveDir(e, -ax, -ay, spd * 1.1, dt); continue; } // v0.5.0 fear pulse: flee, no contact
       if (e.T.boss) bossAI(e, dt, dSk, ax, ay); else mobAI(e, dt, dSk, ax, ay, spd);
       if (e.dead || state !== 'play') { if (state !== 'play') return; continue; }
-      // Stage 8: a shelled crab does not bite. It bites while open. The shell still stops incoming damage.
-      const contact = !e.T.noContact && !e.hidden && e.mode !== 'stun' && !crabShut(e) && !(e.affix && e.affix.phase > 0);
+      const contact = !e.T.noContact && !e.hidden && e.mode !== 'stun' && !(e.T.ai === 'crab' && e.mode === 'open') && !(e.affix && e.affix.phase > 0);
       if (contact && d < e.r + p.r + 3 && e.atkCd <= 0) {
         e.atkCd = e.T.boss ? 1 : 1.1; const mul = e.mode === 'charge' ? 1.3 : 1; smpEnemyAttack(e); affixSiphon(e, hurtPlayer(e.dmg * mul, e)); if (state !== 'play') return;
         if (e.T.leech) { const h = Math.round(e.dmg); e.hp = Math.min(e.maxHp, e.hp + h); addText(e.x, e.y - 10, '+' + h, '#80ff80'); }
@@ -9682,7 +9680,7 @@ function gridEnemyUpdate(e, dt, d, spd) { const slowM = gridSlowMul(e); if (slow
   if (A.state !== 'STUNNED' && aiClock < A.engagedUntil && !AI_NO_LEGACY[T.ai]) { const ax = (p.x - e.x) / (d || 1), ay = (p.y - e.y) / (d || 1); mobAI(e, dt, d, ax, ay, 0); if (e.dead || state !== 'play') return; }
   else if (T.ai === 'bomber' && e.mode === 'fuse') { mobAI(e, dt, d, 0, 0, 0); if (e.dead || state !== 'play') return; }
   if (e.dead) return;
-  const contact = !T.noContact && !e.hidden && A.state !== 'STUNNED' && !crabShut(e) && !(e.affix && e.affix.phase > 0) && T.ai !== 'bomber';
+  const contact = !T.noContact && !e.hidden && A.state !== 'STUNNED' && !(T.ai === 'crab' && e.mode === 'open') && !(e.affix && e.affix.phase > 0) && T.ai !== 'bomber';
   const chasing = A.state === 'CHASE' && Math.max(Math.abs(A.tx - pt.tx), Math.abs(A.ty - pt.ty)) <= 1;
   if (contact && (dist(e, p) < e.r + p.r + 3 || chasing) && e.atkCd <= 0) { e.atkCd = 1.1; const mul = A.state === 'CHARGING' ? 1.3 : 1; smpEnemyAttack(e); affixSiphon(e, hurtPlayer(e.dmg * mul, e)); if (state !== 'play') return;
     if (T.leech) { const h = Math.round(e.dmg); e.hp = Math.min(e.maxHp, e.hp + h); addText(e.x, e.y - 10, '+' + h, '#80ff80'); }
@@ -14810,7 +14808,7 @@ if (window.game) {
     AFFIX_CALL_TELL: AFFIX_CALL_TELL, AFFIX_CALL_CAP: AFFIX_CALL_CAP,
     resistProfile: resistProfile, resistTag: resistTag, resistSanitize: resistSanitize, applyEliteAffixes: applyEliteAffixes, affixSanitize: affixSanitize,
     affixGuardDur: affixGuardDur, affixPhaseDur: affixPhaseDur, affixSiphonFrac: affixSiphonFrac, affixMarkGap: affixMarkGap, affixCallGap: affixCallGap,
-    eligibleAffixIds: eligibleAffixIds, filterAffixIds: filterAffixIds, tickEnemyAffix: tickEnemyAffix, affixSiphon: affixSiphon, armVolatile: armVolatile, affixCall: affixCall, crabShut: crabShut, affixBurstDmg: affixBurstDmg,
+    eligibleAffixIds: eligibleAffixIds, filterAffixIds: filterAffixIds, tickEnemyAffix: tickEnemyAffix, affixSiphon: affixSiphon, armVolatile: armVolatile, affixCall: affixCall, affixBurstDmg: affixBurstDmg,
     flatFor: flatFor, incFor: incFor, moreFor: moreFor, bonusFor: bonusFor,
     startFloor: startFloor, startClimb: startClimb, damageEnemy: damageEnemy, killEnemy: killEnemy, addText: addText, drawEnemy: drawEnemy
   });

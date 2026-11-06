@@ -348,11 +348,14 @@ function run(w) {
   p.hp = 400; p.st.def = 0; p.inv0 = 0;
   g.step(0.25, { x: 0, y: 0 });
   const shelled = p.hp;
-  check('a shelled crab does not bite', g.crabShut(crab) && shelled === 400, p.hp + ' mode ' + crab.mode);
-  crab.mode = 'open'; crab.atkCd = 0; crab.x = p.x + 4; crab.y = p.y; p.inv0 = 0;
+  check('shelled crab still bites', crab.mode === 'shell' && shelled < 400, p.hp + ' mode ' + crab.mode);
+  const shellHp = crab.hp;
+  g.damageEnemy(crab, 40, 0, 0, '#fff', false);
+  check('shelled crab still blocks incoming damage', crab.hp === shellHp && w.__lastDamage && w.__lastDamage.prevented === 'crab', crab.hp + ' ' + (w.__lastDamage && w.__lastDamage.prevented));
+  crab.mode = 'open'; crab.atkCd = 0; stick(crab, p, 4); crab.mode = 'open'; p.inv0 = 0;
   if (crab.ai) crab.ai.engagedUntil = 1e15;
   g.step(0.25, { x: 0, y: 0 });
-  check('an open crab does bite', p.hp < shelled && !g.crabShut(crab), p.hp);
+  check('open crab still does not bite', crab.mode === 'open' && p.hp === shelled, p.hp + ' mode ' + crab.mode);
 
   p = calm(g, w);
   w.__eliteDepth = 12; w.__affixRolls = [0, 0];

@@ -126,9 +126,10 @@ Headless Chrome, Puppeteer, system Google Chrome, SwiftShader, cache disabled. C
 | Run | Legacy 21 | Stages 1–6 | Stage 7 | Stage 8 |
 | --- | --- | --- | --- | --- |
 | Before | 809 passed, 96 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0 | 70/0 | not present |
-| After, one sequential pass | 807 passed, 96 failed | same, all green | 70/0 | 63/0 |
+| After the first landing | 807 passed, 96 failed | same, all green | 70/0 | 63/0 |
+| After the crab bite was restored | 802 passed, 102 failed | same, all green | 70/0 | 64/0 |
 
-`tests/stage8-enemies.html` is 63/0. Profiles, penetration, caps, spawn rules, stacking bans, bulwark versus poise, shroud, the fuse tell, the brand cap, rime without a freeze, one physical web, siphon only on a bite, the two-rat cap, a resisted burn, the crab bite, the save round-trip, the cultist bolt, and Hellmouth still deleting a Super Elite.
+`tests/stage8-enemies.html` is 64/0 after the crab bite was put back. Profiles, penetration, caps, spawn rules, stacking bans, bulwark versus poise, shroud, the fuse tell, the brand cap, rime without a freeze, one physical web, siphon only on a bite, the two-rat cap, a resisted burn, the Stage 7 crab bite, the save round-trip, the cultist bolt, and Hellmouth still deleting a Super Elite.
 
 Stages 1–6 did not rename a check. The Stage 1 Frost Nova rat and the conversion rat clear `resists` before the formula lock. The names stayed `frost nova formula tags and cold`, `conversion does not chain or change total`, and `original fire still converts`.
 
@@ -143,7 +144,19 @@ Legacy name movement:
 - `v076`: stayed 48/0, including `b3 damage no snap`. Two re-runs stayed 48/0.
 - `v07152`: stayed 34/3. Two re-runs were 36/1 with only `version`. Layout flake.
 
-No other new failure name.
+No other new failure name on that first landing.
+
+The crab-bite re-run against the same checkpoint moved these names, and the re-runs put them back:
+
+- `v075`: sequential pass added `f4 skins rotate` (59/1 → 58/2). Two re-runs were 59/1 with only `f3 multi select`, and the skin check passed.
+- `v0711`: 43/5 → 42/5 because `vault rare 3` was not emitted. Two re-runs were 43/5. The five stable names stayed. `trash in the maw` was not a failure.
+- `v0714`: 40/1 → 33/8, the seven footer and tab names. One re-run stayed 33/8. The next was 40/1 with only `version`.
+- `v076`: stayed 48/0 on the pass and both re-runs.
+- `v07152`: 34/3 → 36/1, then a re-run stayed 36/1, then 34/3 with `tab hits follow scale` and `slot hit follows scale` back.
+
+## Open debt: crab shell and bite
+
+Jake kept the crab resist profile and rejected the bite flip. Contact is the Stage 7 test again: a crab bites unless `mode === 'open'`. The shell still stops incoming damage (`prevented: 'crab'`) before resist. So a shelled crab bites while it cannot be hurt, and an open crab can be hurt and does not bite. That mismatch is OPEN. It is not scheduled inside Stage 8. `tests/stage8-enemies.html` locks it with `shelled crab still bites`, `shelled crab still blocks incoming damage`, and `open crab still does not bite`.
 
 ## Deliberately not in this PR
 

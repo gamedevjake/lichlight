@@ -1212,6 +1212,14 @@ That tag is `20906ade92233c9a7831c0a0c90a4ab90f898851`. Do not move it.
 
 Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 9 (boss and Super Elite attacks, and the Hellmouth deletion). Do not turn on caster elements. Do not add resist loot.
 
+#### Pre-merge adjustment — crab bite restored
+
+Jake approved the resist profiles and the elite affixes, and asked for one revert before merge. The contact test is back to the Stage 7 expression `!(ai === 'crab' && mode === 'open')` on both the legacy loop and the grid loop. A shelled crab bites. An open crab does not. Incoming damage while shelled is still `prevented: 'crab'`. The crab row in `ENEMY_RESIST` is unchanged (Fire 25, Cold 15, Lightning −35, Poison 5, Shadow −10). `crabShut` was removed. A shroud affix still skips contact while `affix.phase > 0`; that clause is the affix, and it is the only addition on those two lines versus `20906ad`.
+
+The shell/bite mismatch stays OPEN technical debt. It is not a Stage 8 fix.
+
+`tests/stage8-enemies.html` now locks that baseline: `shelled crab still bites`, `shelled crab still blocks incoming damage`, and `open crab still does not bite`. The harness is 64/0. Stages 1–7 stayed green. The per-name diff against `20906ad` is in the testing section below.
+
 ---
 
 ## Combat System Reference
@@ -1832,7 +1840,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7 did not change it. OPEN.
 - **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
 - **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 9. OPEN. Stage 8 did not touch Super Elite movement.
-- **Crab bites while shelled and does not contact-tick while open.** CLOSED in Stage 8. A shelled crab no longer connects. An open crab does. The shell still stops incoming damage. A grid stun still opens the crab, and the stun state still blocks the bite.
+- **Crab bites while shelled and does not contact-tick while open.** OPEN. The shell still returns `prevented: 'crab'` before any damage, and the contact test is still `!(ai === 'crab' && mode === 'open')`, so a shelled crab bites and an open crab does not. Jake rejected an unrequested flip of that bite before Stage 8 merged. The crab resist profile stays. A later stage may retune the bite only with an explicit ask.
 - **Floor of 1** after defense makes guard-front (×0.15) and ram armor (×0.40) chip instead of stopping a small hit, and makes thorns at least 1. Stage 2. OPEN.
 - **Enrage does not add boss damage.** Phase 2/3 move faster and cast faster. Stage 9. OPEN.
 - **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. Stage 9. OPEN.
@@ -2118,6 +2126,27 @@ Renamed earlier-stage check:
 Legacy name movement on the sequential pass is only `v0711` not emitting `vault rare 0` and `vault rare 3` (43/5 → 41/5). The five stable names stayed. Re-runs were 42/5 and 43/5 and did emit vault rares. `v0714` stayed 40/1, then two re-runs were 33/8 (layout flake). `v076` stayed 48/0 on the pass and both re-runs. `v07152` stayed 34/3, then two re-runs were 36/1 (layout flake). No new failure name. `version.json` is still 0.7.18. Stage 9 was not started.
 
 Contact survival matched the checkpoint on all 70 monster/depth rows. The worst single-element time-to-kill multiplier is 1.667. Physical is 1.000.
+
+### Stage 8 crab-bite revert
+
+Re-run after the contact test was put back to the Stage 7 expression. Same harness, same checkpoint tag `combat-redesign-pre-stage8` / `20906ad`. Resist profiles and elite affixes were not changed. `tests/stage8-enemies.html` is 64/0. The crab checks are `shelled crab still bites`, `shelled crab still blocks incoming damage`, and `open crab still does not bite`.
+
+| Run | Legacy 21 | Stages 1–7 | Stage 8 |
+| --- | --- | --- | --- |
+| Checkpoint `20906ad` | 809 passed, 96 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0 | not present |
+| After the bite revert | 802 passed, 102 failed | same, all green | 64/0 |
+
+Stages 1–6 names did not move. The Stage 7 rename is unchanged: `no resist affix and no stage 8 table` → `loot has no resist affix`.
+
+Legacy name movement against `20906ad` on this sequential pass:
+
+- `v075`: 59/1 → 58/2. Added `f4 skins rotate`. Two re-runs were 59/1 with only `f3 multi select`, and `f4 skins rotate` passed (`{"7":"A","14":"B","21":"C","28":"D"}`). Prism-skin flake. Spawn code was not touched.
+- `v0711`: 43/5 → 42/5. `vault rare 3` was not emitted. The five stable names stayed. Two re-runs were 43/5 (48 checks) with those five names. `trash in the maw` was not a failure. Generation variance.
+- `v0714`: 40/1 → 33/8. The seven footer and tab names failed. One re-run stayed 33/8. The next was 40/1 with only `version`. Layout flake.
+- `v076`: stayed 48/0, including `b3 damage no snap`. Two re-runs stayed 48/0.
+- `v07152`: 34/3 → 36/1. Cleared `tab hits follow scale` and `slot hit follows scale`. One re-run stayed 36/1. The next was 34/3 with those two names back. Layout flake.
+
+No other failure name was added. `version.json` is still 0.7.18. A diff of `index.html` against `20906ad` adds no `dmgType` line, does not edit `castHellmouth`, `spawnBoss`, `seSpawn717`, or `seTick717`, and does not edit the loot `AFFIX` table. The crab contact predicate matches the tag; the shroud skip is the only extra term.
 
 ---
 
