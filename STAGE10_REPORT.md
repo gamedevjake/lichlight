@@ -128,3 +128,13 @@ A save written before this stage does not gain the ward. New drops do.
 - Stage 11.
 
 Stage 11 and a live ship both wait for Jake.
+
+## Integration with main `e550e3d`
+
+Merged with `git merge --no-ff`. Merge commit `2783fa1bb173158f7e807ea0c652bc9f90188509`. Parents are the Stage 10 head `149a8d3` and main `e550e3d`. The only conflict was `COMBAT_REDESIGN_CHANGELOG.md`. Both histories were kept. `index.html` and `tests/stage9-bosses.html` auto-merged. PR #33 was not merged into main.
+
+Depth 1 Super Elite life is 80 after this merge, because main's early-balance curve replaced the old 56. Depth 5 is 141. Depth 10 is still 249. Mother Murk is still 840 / 210 / 18.144. Stage 10 did not edit those formulas.
+
+Warded whites at item level 1 and 3 still require level 1. New magic at item level 3 requires 2. New rare at item level 3 requires 3. A grandfathered item does not gain the ward. The Seer bolt gap for that old armor (58 with no resist, 30 on the old Physical curve) is recorded in the changelog with five options. None of them was applied.
+
+Against `e550e3d`, stages 1–9 and `tests/early-balance.html` match (77/0 on stage 9, 50/0 on the early-balance file). Stage 10 is 49/0. Legacy failure names match, including `v07152`'s tab and slot hit names, which also failed on main and cleared on main re-runs. `f2 brazier` did not fail on either tree in this session. The full tables are in the changelog entry for this integration.

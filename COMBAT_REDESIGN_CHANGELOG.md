@@ -2609,3 +2609,75 @@ A mulberry seed installed immediately before `startFloor(3)` was swept for seeds
 Stage 10 is IMPLEMENTED, not VERIFIED, on a later branch. The paragraph above the early-balance entries is the Stage 9 gate and was not rewritten. This PR is the Stage 10 review. It is not merged and it is not live. `version.json` is still 0.7.18.
 
 **Wait for Jake's approval before Stage 11.** Stage 11 is combat feedback. It must not start from this branch. Stage 10 did not raise boss or Super Elite HP or damage, did not reinterpret `mods.fire`, and did not close the crab bite, the uncapped crit chance, curse life drain, or pre-mitigation life steal.
+
+---
+
+### 2026-11-06 — Stage 10 integration with early balance (`e550e3d`)
+
+- **Date:** 2026-11-06.
+- **Stage:** Integrated review of Stage 10 (PR #33) on top of main `e550e3d` (PR #35). PR #33 was not merged. Stage 11 was not started. `version.json` was not edited. Nothing was deployed.
+- **Merge:** `git merge origin/main --no-ff` onto `cursor/stage10-equipment-affixes-e264`. Merge commit `2783fa1bb173158f7e807ea0c652bc9f90188509`. Parents `149a8d3e93e8d5ba417be7247a66616aa342475c` (Stage 10) and `e550e3d38e3b136ad3286df57efca38901a6effc` (main). No rebase. No force-push.
+- **Conflicts:** `COMBAT_REDESIGN_CHANGELOG.md` only. `index.html` and `tests/stage9-bosses.html` auto-merged. The resolution keeps the early-balance history from main verbatim, then the Stage 10 gate paragraphs. No combat hunk was edited by hand.
+
+#### Requirements
+
+New drops still go through `makeItem`, which stamps `reqSrc: 'drop'` and `calcReqLvl`. The ward does not change rarity, so it does not change the requirement.
+
+- White leather at item level 1 and 3 requires level 1 and carries the ward (8 at level 1). Item level 4 white leather requires `floor(0.6 × 3) = 1` and still has the ward.
+- New magic leather at item level 3 requires level 2 (`floor(0.7 × 2) + 1`). New rare leather at item level 3 requires level 3 (`floor(0.8 × 2) + 2`). A rare Rune Blade at item level 8 requires level 7 (`floor(0.8 × 7) + 2`).
+- `stampReq` on a pre-Stage-10 leather with no `reqLvl` stores the legacy requirement and `reqSrc: 'grandfather'`. It does not add `resAll`. A grandfathered magic of item level 3 stays required level 1, which is the old shortcut, not the new magic rule.
+
+#### Loot simulation
+
+24 runs per band. Each floor: player level equals the depth, two `chestLoot` calls, twelve trash kills at the live white rate (5%, times 0.35 while level ≤ 2), one `seRollGear`, a gilt chest on 25% of floors, and on every 5th floor the boss purse (`bossUnique(depth+2)`, one rare, one magic-or-rare). A piece is worn only when `reqLvl` is at most the depth. The kept set is the best piece per slot. Averages are that worn set.
+
+| Band | Chest W/M/R/U | SE rare/unique | Boss uniques | Req blocked | Runs with resist | Avg DEF | Avg life | Avg all-resist | Avg weapon |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1–5 | 59/152/29/0 of 240 | 101/19 of 120 | 24 of 24 runs | 123 | 24/24 | 19 | 24 | 28 | 15.6 |
+| 6–10 | 0/169/71/0 of 240 | 34/86 of 120 | 24 | 6 | 24/24 | 42 | 76 | 36 | 32.5 |
+| 11–20 | 0/308/172/0 of 480 | 0/240 of 240 | 48 | 11 | 24/24 | 68 | 144 | 49 | 52.2 |
+
+Chests never rolled a unique. Super Elite rates match the table: about 16% unique across depths 1–5 (expected 21% from 0/0/20/35/50), about 72% across 6–10 (expected 76% from 70/70/70/70/100), and 100% from 11–20. The 123 blocked pieces in depths 1–5 are mostly boss and rare drops whose new requirement is above the floor. The worn set still had resist on every run, from the white ward.
+
+#### Casters versus resist
+
+Cultists start at depth 3. A warded white is a floor-1 chest drop (item level 2, required level 1). All 24 early runs wore resist before any rare was required. The depth-3 cultist bolt is 8.51. The white kit (DEF 11, all-resist 29) takes 6. The old Physical hit at that DEF is also 6. Ten such hits remove 60 HP, the same as the old armor. The wisp at depth 5 is the same shape (11 naked, 7 kit, 7 old armor). Siren, Exarch, and Seer are depths 12, 14, and 15, after the mid band's kept all-resist of about 36. Their white kits take 8, 16, and 27 against old-armor hits of 9, 18, and 30.
+
+#### Old-save ward gap
+
+Not changed. A leather saved before Stage 10 has DEF and no `resAll`. An elemental bolt ignores DEF, so that armor does not resist. The depth-15 Seer bolt is 58 with no resist and 30 on the old Physical curve at DEF 27. A new white kit takes 27.
+
+Options, none applied:
+
+1. Leave it. The player replaces the old armor with a new drop. This is the current rule. `stampReq` does not add mods.
+2. On load, if a non-unique warded base has no resist key, add `gearWard(base, itemLevel)` to `resAll`. That changes saved combat power.
+3. Grant one new resist piece into the bag on the first load after this change. That changes the inventory.
+4. Keep caster bolts Physical until the character owns any resist. That changes the threat for every new character as well.
+5. Say on the item card that the piece has no elemental ward, and leave the numbers alone. That is presentation, later.
+
+This review keeps option 1.
+
+#### Builds
+
+Sword time and a naked Fireball time are the Stage 9 numbers. The tables in the Stage 10 entry still describe those hits. Hybrid still slows the depth-12 drowned (15.30s to 20.25s) and speeds the spider (6.75s to 5.40s). Eighteen Fire penetration still shortens that drowned Fireball from 1.80s to 1.35s. Bleed still waits out a full second before it shortens a long fight. Depth 1 Super Elite life is now 80, from the early-balance curve that this merge brought in. Depth 5 is 141 and depth 10 is 249. Mother Murk is still 840 HP, 210 shield, contact 18.144. Stage 10 did not edit those formulas. The harness check that used to lock depth 1 at 56 now locks 80 / 141 / 249.
+
+#### Saves, shops, spell power
+
+`mods.fire` is still spell power. A staff's 4 fire does not become flat Fire. `skillSpec` Kindling still loads. Shop offers are still three sealed uniques. Unique definitions still use the old mod keys, and a rolled unique still does not gain a ward or a conversion. Conversion is still one edge, 40% moved, scaled once before the move, and the destination resist and penetration apply once. Fireball still owns its own burn. Shock still refreshes at 10%. Hex still stores life drain 0. `tests/early-balance.html` is 50/0, including the grandfather save.
+
+#### Tests against `e550e3d`
+
+Same headless Chrome harness. Baseline is main `e550e3d` before this merge's test additions. Integrated is this branch.
+
+| Run | Legacy 21 | Stages 1–9 | early-balance | Stage 10 |
+| --- | --- | --- | --- | --- |
+| `e550e3d` | 816 passed, 95 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 77/0 | 50/0 | not present |
+| Integrated | 817 passed, 95 failed | same | 50/0 | 49/0 |
+
+The only legacy count change is `v0711`: 41/5 on the baseline (46 checks) and 42/5 after (47 checks). The five names are the same (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). One passing check was emitted the second time. `trash in the maw` was not a failure. `v076` was 48/0 on both. `v075` was 59/1 with only `f3 multi select` on both. `v0714` was 40/1 with only `version` on both.
+
+`v07152` failed `tab hits follow scale` and `slot hit follows scale` on both full passes, plus `version`. On `e550e3d`, two immediate re-runs were 36/1 with only `version`. On this branch, two re-runs stayed 34/3. A later detail run failed both trees the same way: `elementFromPoint` returned nothing for all six tabs, and the slot's local width was still 24. Satchel CSS and the hit-test were not edited. It is the layout flake, and it is already on main. It is not a Stage 10 combat failure.
+
+`v077` `f2 brazier` did not fail on the baseline pass, two baseline re-runs, the integrated pass, or one integrated re-run. The failure names were `version`, `version source`, `f4 pool`, and `f5 shop boss`. The brazier debt recorded in the early-balance entry is unchanged. This integration does not edit `placeLights`, `interactables`, or `nearestInteract`, and it does not treat a miss of that check as a new regression.
+
+Open debts are unchanged: crab shell versus bite, uncapped crit chance, curse life drain, and pre-mitigation life steal.

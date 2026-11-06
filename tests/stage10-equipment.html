@@ -132,6 +132,20 @@ function run(w) {
   }
   check('magic armor always adds a resist line on top of the ward', typed >= 16, typed + '/24 ward ' + g.gearWard('Leather Armor', 2));
 
+  const white1 = g.makeItem(1, 0, 'Leather Armor');
+  const white3 = g.makeItem(3, 0, 'Leather Armor');
+  const white4 = g.makeItem(4, 0, 'Leather Armor');
+  const magic3 = g.makeItem(3, 1, 'Leather Armor');
+  const rare3 = g.makeItem(3, 2, 'Leather Armor');
+  const rare8 = g.makeItem(8, 2, 'Rune Blade');
+  const expectRare8 = Math.max(1, Math.floor(0.8 * 7) + 2);
+  check('warded whites keep the white requirement', white1.reqLvl === 1 && white1.reqSrc === 'drop' && white1.mods.resAll === g.gearWard('Leather Armor', 1) && white3.reqLvl === 1 && white3.mods.resAll === g.gearWard('Leather Armor', 3) && white4.reqLvl === Math.max(1, Math.floor(0.6 * 3)) && white4.mods.resAll === g.gearWard('Leather Armor', 4), [white1.reqLvl, white3.reqLvl, white4.reqLvl, white1.mods.resAll].join(','));
+  check('new magic and rare use the revised requirement', magic3.reqLvl === 2 && magic3.reqSrc === 'drop' && magic3.mods.resAll >= g.gearWard('Leather Armor', 3) && rare3.reqLvl === 3 && rare3.reqSrc === 'drop' && rare8.reqLvl === expectRare8 && rare8.reqSrc === 'drop', [magic3.reqLvl, rare3.reqLvl, rare8.reqLvl, expectRare8].join(','));
+  const oldWhite = { slot: 'armor', base: 'Leather Armor', rarity: 0, lvl: 2, mods: {}, name: 'Leather Armor' };
+  const oldMagic = { slot: 'armor', base: 'Leather Armor', rarity: 1, lvl: 3, mods: { def: 2 }, name: 'Sturdy Leather' };
+  g.stampReq(oldWhite); g.stampReq(oldMagic);
+  check('a pre-stage10 save keeps its requirement and does not gain a ward', oldWhite.reqLvl === 1 && oldWhite.reqSrc === 'grandfather' && !oldWhite.mods.resAll && oldMagic.reqLvl === 1 && oldMagic.reqSrc === 'grandfather' && !oldMagic.mods.resAll, oldMagic.reqLvl + ' ' + oldMagic.reqSrc);
+
   let both = 0, pens = 0, generic = 0;
   for (let i = 0; i < 40; i++) {
     const it = g.makeItem(12, 2, 'Rune Blade');
@@ -370,10 +384,80 @@ function run(w) {
   check('early cultist kit is within 1.4 of the old armor hit', early && early.kit <= Math.ceil(early.oldArmor * 1.4), JSON.stringify(early));
   check('survival table', true, JSON.stringify(surv));
 
+  function emptyRar() { return { 0: 0, 1: 0, 2: 0, 3: 0, n: 0 }; }
+  function note(bag, it) { if (!it) return; bag[it.rarity] = (bag[it.rarity] || 0) + 1; bag.n++; }
+  function pieceScore(it) {
+    if (!it) return -1;
+    const m = it.mods || {};
+    return (it.def || 0) * 2 + ((it.min || 0) + (it.max || 0)) + (m.resAll || 0) + (m.hp || 0) / 4 + (m.dmg || 0) * 2;
+  }
+  const bands = [[1, 5], [6, 10], [11, 20]];
+  const sims = [];
+  bands.forEach(function (band) {
+    const runs = 24;
+    const acc = { band: band[0] + '-' + band[1], runs: runs, chest: emptyRar(), white: emptyRar(), se: emptyRar(), boss: emptyRar(), gilt: emptyRar(), blocked: 0, worn: 0, wardFloors: 0, floors: 0, def: 0, life: 0, res: 0, dmg: 0, spell: 0 };
+    for (let n = 0; n < runs; n++) {
+      const gear = {};
+      let sawWard = false;
+      for (let d = band[0]; d <= band[1]; d++) {
+        acc.floors++;
+        g.player.lvl = d;
+        const keep = function (it, bag) {
+          note(bag, it);
+          if (!it) return;
+          if ((it.reqLvl || 1) > d) { acc.blocked++; return; }
+          const slot = it.slot || 'weapon';
+          if (pieceScore(it) >= pieceScore(gear[slot])) gear[slot] = it;
+          if ((it.mods && it.mods.resAll) || it.mods && (it.mods.resFire || it.mods.resCold || it.mods.resLightning || it.mods.resPoison || it.mods.resShadow)) sawWard = true;
+        };
+        keep(w.chestLoot(d), acc.chest);
+        keep(w.chestLoot(d), acc.chest);
+        const whiteP = d <= 2 ? 0.05 * 0.35 : 0.05;
+        for (let k = 0; k < 12; k++) if (Math.random() < whiteP) keep(g.makeItem(d, 0), acc.white);
+        keep(w.seRollGear(d), acc.se);
+        if (Math.random() < 0.25) keep(w.giltGear(d), acc.gilt);
+        if (d % 5 === 0) {
+          keep(w.bossUnique(d + 2), acc.boss);
+          keep(g.makeItem(d + 2, 2), acc.boss);
+          keep(g.makeItem(d + 2, Math.random() < 0.5 ? 2 : 1), acc.boss);
+        }
+      }
+      if (sawWard) acc.wardFloors++;
+      let def = 0, life = 0, res = 0, dmg = 0, spell = 0, worn = 0;
+      for (const k in gear) {
+        const it = gear[k]; if (!it) continue;
+        worn++;
+        def += it.def || 0;
+        const m = it.mods || {};
+        life += m.hp || 0;
+        res += m.resAll || 0;
+        spell += m.fire || 0;
+        if (it.min) dmg = Math.max(dmg, (it.min + it.max) / 2 + (m.dmg || 0));
+      }
+      acc.worn += worn; acc.def += def; acc.life += life; acc.res += res; acc.dmg += dmg; acc.spell += spell;
+    }
+    const r = runs;
+    const slim = function (bag) { return { n: bag.n, white: bag[0], magic: bag[1], rare: bag[2], unique: bag[3] }; };
+    sims.push({
+      band: acc.band, runs: r,
+      chest: slim(acc.chest), white: slim(acc.white), se: slim(acc.se), boss: slim(acc.boss), gilt: slim(acc.gilt),
+      reqBlocked: acc.blocked,
+      runsWithResist: acc.wardFloors,
+      avgDef: Math.round(acc.def / r),
+      avgLife: Math.round(acc.life / r),
+      avgResAll: Math.round(acc.res / r),
+      avgWeapon: Math.round(acc.dmg / r * 10) / 10,
+      avgSpell: Math.round(acc.spell / r)
+    });
+  });
+  const earlySim = sims[0];
+  check('depths 1-5 can equip resist before a rare roll is required', earlySim && earlySim.runsWithResist === earlySim.runs && earlySim.chest.unique === 0 && earlySim.avgResAll > 0, JSON.stringify(earlySim));
+  check('loot acquisition sim', true, JSON.stringify(sims));
+
   g.startFloor(5, true);
   const boss = g.enemies.find(e => e.T && e.T.boss) || g.spawnBoss(240, 180);
   check('mother murk pool and contact are not raised', boss && boss.maxHp === 840 && boss.maxShield === 210 && Math.abs(boss.dmg - 18.144) < 0.02, boss && (boss.name + ' hp ' + boss.maxHp + ' sh ' + boss.maxShield + ' dmg ' + boss.dmg));
-  check('super elite pools are not raised', g.seMaxHp717(1) === 56 && g.seMaxHp717(10) === 249, g.seMaxHp717(1) + ' ' + g.seMaxHp717(10));
+  check('super elite life follows the early-balance curve', g.seMaxHp717(1) === 80 && g.seMaxHp717(5) === 141 && g.seMaxHp717(10) === 249, [g.seMaxHp717(1), g.seMaxHp717(5), g.seMaxHp717(10)].join(','));
   const crab = g.spawnEnemy('crab', 80, 80, false);
   crab.mode = 'shell'; crab.hp = 40;
   w.damageEnemy(crab, 20, 0, 0, '#fff', false);
