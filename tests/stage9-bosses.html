@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<!-- Stage 9: boss and Super Elite encounters, and the Hellmouth gate rule. -->
+<html>
+<head><meta charset="utf-8"><title>stage9</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage9" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.lvl = 1; p.hp = 400; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0; p.st.fire = 0; p.st.spell = 0;
+  p.st.crit = 0; p.st.critDmg = 0; p.st.block = 0; p.st.ls = 0; p.barrier = 0;
+  p.isArmorActive = false; p.isInvincible = false; p.inv0 = 0; p.roll = 0; p.mp = 80;
+  w.__hurtSpread = 1; w.__critRoll = 1; w.__champCrit = 1;
+  g.clearStatuses(p);
+  return p;
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage9src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire is still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
+  check('caster elements stay deferred', src.indexOf('Stage 8 must not') >= 0 && src.indexOf("dmgType: 'Shadow'") < 0);
+  check('crab bite debt stays open', src.indexOf("!(e.T.ai === 'crab' && e.mode === 'open')") >= 0 && src.indexOf("prevented: 'crab'") >= 0);
+
+  g.newGame();
+  let p = calm(g, w);
+  const elems = g.RESIST_ELEMS;
+  let profBad = '';
+  function audit(table, label) {
+    const weak = {};
+    elems.forEach(k => weak[k] = false);
+    for (const id in table) {
+      const row = table[id];
+      let sum = 0;
+      elems.forEach(k => {
+        const v = +row[k] || 0;
+        sum += v;
+        if (v < -20 || v > 20) profBad += label + ' ' + id + ' ' + k + ' ' + v + '; ';
+        if (v < 0) weak[k] = true;
+      });
+      if (sum !== 0) profBad += label + ' ' + id + ' sum ' + sum + '; ';
+    }
+    elems.forEach(k => { if (!weak[k]) profBad += label + ' never weak to ' + k + '; '; });
+  }
+  audit(g.BOSS_RESIST, 'boss');
+  audit(g.SE_RESIST, 'se');
+  check('profiles sum to 0 and stay inside 20', !profBad && Object.keys(g.BOSS_RESIST).length === 20 && Object.keys(g.SE_RESIST).length === 20, profBad);
+
+  const pools = [];
+  g.BOSSES.forEach((B, i) => {
+    const d = (i + 1) * 5;
+    g.startFloor(d, true);
+    calm(g, w);
+    const b = g.enemies.find(e => e.T && e.T.boss);
+    const hp = Math.round((240 + 60 * (d - 1)) * B.hp * g.BOSS_HP_MUL);
+    const sh = Math.round(hp * g.BOSS_SHIELD_FRAC);
+    if (!b || b.maxHp !== hp || b.maxShield !== sh || b.affix) pools.push(B.n + ' hp ' + (b && b.maxHp) + '/' + hp);
+    if (b && b.resists) {
+      const got = g.damageEnemy(b, 100, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
+      if (!got || got.amount !== 100) pools.push(B.n + ' phys ' + (got && got.amount));
+    }
+  });
+  check('boss pools and physical hits are not inflated', pools.length === 0, pools.slice(0, 4).join(' | '));
+
+  g.startFloor(10, true); p = calm(g, w);
+  const seHp = g.seMaxHp717(10), seSh = Math.round(seHp * g.SE_SHIELD_FRAC);
+  const seBad = [];
+  g.SE_IDS.forEach(id => {
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717(id, 'fight');
+    if (!e || e.maxHp !== seHp || e.maxShield !== seSh || e.affix || !e.resists) seBad.push(id + ' hp ' + (e && e.maxHp));
+    const fire = e && e.resists ? e.resists.Fire : 0;
+    const dealt = Math.max(1, Math.round(64 * (100 - fire) / 100));
+    if (e) {
+      e.shield = 0; e.hp = 400; e.sePhase = 'fight';
+      const hit = g.damageEnemy(e, 64, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, scale: false });
+      if (!hit || hit.amount !== dealt) seBad.push(id + ' fire ' + (hit && hit.amount) + '/' + dealt);
+      e.hp = 0; e.dead = true;
+      try { g.killEnemy(e); } catch (err) {}
+      if (g.SE717) g.SE717.dead = false;
+    }
+  });
+  check('super elite pools match and fire stays killable', seBad.length === 0, seBad.slice(0, 4).join(' | '));
+  check('a plus twenty fire hit is 51 not a wall', Math.round(64 * 0.8) === 51 && Math.round(64 * 1.2) === 77);
+
+  g.startFloor(5, true); p = calm(g, w);
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = -3; y <= 3; y++) for (let x = -2; x <= 10; x++) g.setTile(tx + x, ty + y, 1);
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss)) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
+  const rat = g.spawnEnemy('rat', p.x + 20, p.y, false, { noAffix: true });
+  rat.dead = false; rat.hp = 30; rat.hidden = false; rat.hmFreeze = false;
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_nyx', 'fight');
+  se.sePhase = 'fight'; se.x = p.x + 28; se.y = p.y; se.hp = 90; se.maxHp = 90; se.shield = 9; se.maxShield = 9; se.dead = false; se.hidden = false; se.mawVuln = 0;
+  g.ensurePoise(se); const poise0 = se.poise;
+  let boss = g.enemies.find(e => e.T && e.T.boss);
+  if (!boss) boss = g.spawnBoss(p.x + 64, p.y);
+  boss.x = p.x + 64; boss.y = p.y; boss.hp = 400; boss.maxHp = 400; boss.shield = 200; boss.mawVuln = 0; boss.dead = false; boss.hidden = false;
+  p.lichTome.isAcquired = true; g.unlockSpell('hellmouth'); p.mp = 80; p.activeHellSinks = [];
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth sinks the rat and not the gate', sinks.some(s => s.enemyRef === rat) && !sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss));
+  check('hellmouth marks both gate encounters', (boss.mawVuln || 0) >= 3 && (se.mawVuln || 0) >= 3 && se.hmFreeze !== true);
+  check('hellmouth bites a quarter of the shield', se.shield === 7 && se.hp === 90 && se.dead !== true, 'sh ' + se.shield);
+  check('the bite spends skill poise and does not stagger', se.poise < poise0 && g.ccImmobilized(se) !== 'stagger', se.poise);
+  const sh0 = boss.shield;
+  g.damageEnemy(boss, 100, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
+  check('marked boss still takes 110', boss.shield === sh0 - 110 && boss.hp === 400, 'sh ' + boss.shield);
+  boss.shield = 80; boss.hp = 400; boss.mawVuln = 3;
+  g.damageEnemy(boss, 4, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
+  check('a 4 point mark still rounds to 4', boss.shield === 76, boss.shield);
+  boss.shield = 80;
+  g.damageEnemy(boss, 40, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
+  check('a 40 point mark deals 44', boss.shield === 36, boss.shield);
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('the rat is deleted and the super elite is not', (rat.dead === true || rat.hp <= 0 || g.enemies.indexOf(rat) < 0) && se.hp === 90 && se.dead !== true && g.enemies.indexOf(se) >= 0, 'rat ' + rat.hp + ' se ' + se.hp);
+
+  if (g.SE717) g.SE717.dead = false;
+  const drop = g.seSpawn717('se_ymir', 'drop');
+  drop.sePhase = 'drop'; drop.hp = 80; drop.shield = 8; drop.mawVuln = 0; drop.x = p.x + 16; drop.y = p.y; drop.dead = false; drop.hidden = false;
+  g.ensurePoise(drop); const dropPoise = drop.poise;
+  p.activeHellSinks = []; p.mp = 80;
+  w.castHellmouth();
+  check('intro super elite is marked and not bitten', drop.shield === 8 && drop.hp === 80 && (drop.mawVuln || 0) >= 3 && drop.poise === dropPoise && drop.dead !== true, 'sh ' + drop.shield + ' poise ' + drop.poise);
+  g.damageEnemy(drop, 50, 0, 0, '#fff', false);
+  check('intro immunity still stops the hit', drop.hp === 80 && drop.shield === 8 && w.__lastDamage.prevented === 'super-elite', w.__lastDamage && w.__lastDamage.prevented);
+
+  boss.hp = boss.maxHp * 0.5 - 1; boss.shield = 0; boss.mawVuln = 0; boss.phase = 1; boss.enr = 1; boss.pool = ['ring']; boss.patCd = 2; boss.busy = 0; boss.phaseBeat = 0;
+  g.bossIntro = 0; g.introBoss = null;
+  w.bossAI(boss, 0, 200, 1, 0);
+  check('half the hp bar enrages without a damage multiplier', boss.phase === 2 && boss.enr === 1.25 && boss.phaseBeat === 0 && boss.patCd >= 0.6, 'ph ' + boss.phase + ' cd ' + boss.patCd);
+  const before = boss.hp;
+  g.damageEnemy(boss, 100, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
+  check('phase 2 physical hit is still 100', boss.hp === before - 100, boss.hp);
+
+  g.teles.length = 0;
+  boss.phase = 1; boss.enr = 1; boss.patCd = 0; boss.busy = 0; boss.phaseBeat = 0; boss.pool = ['slam']; boss.last = '';
+  g.bossIntro = 2; g.introBoss = boss;
+  w.bossAI(boss, 0.05, 80, 1, 0);
+  check('intro holds the next pattern', g.teles.length === 0 && boss.busy === 0, 'teles ' + g.teles.length + ' busy ' + boss.busy);
+  g.bossIntro = 0; g.introBoss = null;
+
+  const tells = [];
+  function arm(pat) {
+    g.teles.length = 0;
+    boss.hp = 5000; boss.maxHp = 5000; boss.shield = 0; boss.phase = 1; boss.enr = 1; boss.dead = false;
+    boss.pool = [pat]; boss.last = ''; boss.patCd = 0; boss.busy = 0; boss.phaseBeat = 0; boss.mode = ''; boss.spd = 0;
+    boss.x = p.x + 90; boss.y = p.y;
+    w.bossAI(boss, 0, 90, 1, 0);
+    boss.patCd = 5;
+  }
+  ['ring', 'spiral', 'charge', 'nova', 'hop', 'beam', 'teleport', 'lob'].forEach(pat => {
+    arm(pat);
+    const tel = g.teles[0];
+    const want = g.BOSS_TELL[pat];
+    if (!tel || tel.dur + 1e-6 < want) tells.push(pat + ' ' + (tel && tel.dur));
+  });
+  arm('spread'); g.step(0.05, { x: 0, y: 0 }); boss.patCd = 5;
+  const spread = g.teles.filter(t => t.kind === 'line' && t.dur + 1e-6 >= g.BOSS_TELL.spread);
+  if (!spread.length) tells.push('spread ' + g.teles.length);
+  arm('slam'); g.step(0.05, { x: 0, y: 0 });
+  const slam = g.teles.find(t => t.kind !== 'line' && t.dur + 1e-6 >= g.BOSS_TELL.slam);
+  if (!slam) tells.push('slam');
+  check('every dangerous boss tell meets its windup', tells.length === 0, tells.join(' | '));
+
+  const slow = 62 * 0.2;
+  check('super elite swing clears at the move floor', slow * (g.SE_TELL.swing.dur - 0.25) + 1e-6 >= g.SE_TELL.swing.hit, g.SE_TELL.swing.dur);
+  check('super elite power clears at the move floor', slow * g.SE_TELL.power.dur + 1e-6 >= g.SE_TELL.power.r + 5);
+  check('super elite brand clears at the move floor', slow * g.SE_TELL.brand.dur + 1e-6 >= g.SE_TELL.brand.r + 5);
+
+  if (g.SE717) g.SE717.dead = false;
+  const fighter = g.seSpawn717('se_nyx', 'fight');
+  g.enemies.forEach(e => { if (e !== fighter && e.superElite) { e.hp = 0; e.dead = true; e.sePhase = 'fight'; e.seCd = 99; } });
+  fighter.sePhase = 'fight'; fighter.x = p.x - 30; fighter.y = p.y; fighter.hp = 200; fighter.maxHp = 200; fighter.shield = 0; fighter.dead = false; fighter.hidden = false; fighter.dmg = 10; fighter.seStep = 0; fighter.seAct = ''; fighter.spd = 0;
+  g.teles.length = 0; p.hp = 400; p.inv0 = 0; p.st.def = 0;
+  check('phase 1 read is a swing', g.seFightPhase(fighter) === 1 && g.seNextKind(fighter) === 'swing');
+  g.seBeginTell(fighter, 'swing');
+  const swing = g.teles.find(t => t.seTell === 'swing');
+  check('swing tell is one second and locked', swing && swing.dur === 1 && swing.lockAt === 0.25, swing && swing.dur);
+  p.y = fighter.y + 24;
+  swing.onDone(swing);
+  check('sidestepping the swing deals nothing', p.hp === 400, p.hp);
+  p.x = fighter.x + 12; p.y = fighter.y; p.inv0 = 0;
+  g.teles.length = 0; fighter.seAct = '';
+  g.seBeginTell(fighter, 'swing');
+  const swing2 = g.teles.find(t => t.seTell === 'swing');
+  swing2.onDone(swing2);
+  check('standing in the swing deals the listed hit', p.hp === 390, p.hp);
+
+  fighter.hp = 90; fighter.maxHp = 200;
+  check('phase 2 opens the power tell', g.seFightPhase(fighter) === 2);
+  fighter.seStep = 2; fighter.seAct = '';
+  check('the third phase 2 action is the power', g.seNextKind(fighter) === 'power');
+  g.teles.length = 0; p.hp = 400; p.inv0 = 0; p.x = fighter.x; p.y = fighter.y;
+  g.seBeginTell(fighter, 'power');
+  const power = g.teles.find(t => t.seTell === 'power');
+  check('power tell is 1.3s and times 1.7', power && power.dur === 1.3 && g.SE_TELL.power.mul === 1.7, power && power.dur);
+  power.onDone(power);
+  check('standing in the power pays 17', p.hp === 383, p.hp);
+  fighter.seAct = ''; g.teles.length = 0; p.hp = 400; p.inv0 = 0; p.x = fighter.x + 40;
+  g.seBeginTell(fighter, 'power');
+  g.teles.find(t => t.seTell === 'power').onDone(g.teles.find(t => t.seTell === 'power'));
+  check('leaving the power circle deals nothing', p.hp === 400, p.hp);
+
+  fighter.hp = 40; fighter.maxHp = 200; fighter.seStep = 2; fighter.seAct = '';
+  check('phase 3 opens the brand', g.seFightPhase(fighter) === 3 && g.seNextKind(fighter) === 'brand');
+  g.teles.length = 0; p.x = fighter.x + 20; p.y = fighter.y; p.hp = 400; p.inv0 = 0;
+  g.seBeginTell(fighter, 'brand');
+  const brand = g.teles.find(t => t.seTell === 'brand');
+  const markX = brand.x, markY = brand.y;
+  p.x = markX + 40; p.y = markY;
+  brand.onDone(brand);
+  check('the brand stays where it was drawn', brand && brand.dur === 1.15 && p.hp === 400 && Math.hypot(markX - (fighter.x + 20), markY - fighter.y) < 1, p.hp);
+
+  const fr = g.applyStatus(fighter, 'freeze');
+  const ch = g.applyStatus(fighter, 'chill', { slowPct: 50, buildup: 100 });
+  check('super elite stays freeze immune and heavy chilled', fr.reason === 'immune' && ch.ok && g.getStatus(fighter, 'chill').slowPct === 20, fr.reason);
+  g.clearStatuses(fighter); fighter.slow = 0; fighter.auraT = 1e9; fighter.auraPct = 40;
+  check('chill aura now slows the super elite', Math.abs(g.seMoveMul(fighter) - 0.6) < 1e-6, g.seMoveMul(fighter));
+  fighter.auraT = 0; fighter.fearT = 1; fighter.seAct = '';
+  g.teles.length = 0; g.seBeginTell(fighter, 'swing');
+  w.seTick717(0.05);
+  check('fear cancels a super elite tell', !g.teles.some(t => t.seTell) && !fighter.seAct, fighter.seAct);
+
+  fighter.fearT = 0; fighter.seAct = ''; fighter.staggerImmune = 0; g.clearStatuses(fighter); g.resetPoise(fighter); g.ensurePoise(fighter);
+  g.teles.length = 0; g.seBeginTell(fighter, 'swing');
+  fighter.poise = 1;
+  g.applyPoiseDamage(fighter, 50);
+  check('a stagger removes the super elite tell', g.ccImmobilized(fighter) === 'stagger' && !g.teles.some(t => t.src === fighter), g.ccImmobilized(fighter));
+
+  fighter.sePhase = 'fight'; fighter._mark = 's9'; fighter.hp = 77; fighter.shield = 4; fighter.mawVuln = 2; fighter.resists = { Fire: 0, Cold: -15, Lightning: 0, Poison: 15, Shadow: 0 };
+  w.save();
+  g.continueGame();
+  const back = g.enemies.find(e => e && e._mark === 's9');
+  check('save keeps the super elite gate state', back && back.hp === 77 && back.shield === 4 && back.mawVuln === 2 && back.resists && back.resists.Poison === 15 && back.sePhase === 'fight', back && (back.hp + ' sh ' + (back && back.shield)));
+
+  finish();
+}
+</script>
+</body>
+</html>

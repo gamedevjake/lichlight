@@ -62,7 +62,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
-  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('poison ground still hurtPlayer', src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0);
   check('env burn still world flames', src.indexOf("envHurt(d, 'flames'") >= 0 && src.indexOf('p.burn = { vfx: BURN_VFX') >= 0);
   check('frost nova still sets slow', src.indexOf('e.slow = 3.5') >= 0);
@@ -393,7 +393,7 @@ function run(w) {
   p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
   w.castHellmouth();
   const sinks = p.activeHellSinks || [];
-  check('hellmouth sinks se not boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss2), 'n ' + sinks.length);
+  check('hellmouth does not sink a gate encounter', !sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss2), 'n ' + sinks.length);
   const sh0 = boss2.shield;
   w.damageEnemy(boss2, 100, 0, 0, '#fff', false);
   check('marked boss still takes 110', boss2.shield === sh0 - 110 && boss2.hp === 400, 'sh ' + boss2.shield);
@@ -402,7 +402,7 @@ function run(w) {
   w.damageEnemy(boss2, 100, 0, 0, '#fff', false);
   check('shock does not replace the hellmouth mark', boss2.shield === 200 - 132 && boss2.hp === 400, 'sh ' + boss2.shield);
   for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
-  check('hellmouth still deletes se', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp + ' dead ' + se.dead);
+  check('hellmouth does not delete the super elite', se.dead !== true && se.hp === 90 && se.shield === 7 && g.enemies.indexOf(se) >= 0, 'hp ' + se.hp + ' sh ' + se.shield);
 
   finish();
 }

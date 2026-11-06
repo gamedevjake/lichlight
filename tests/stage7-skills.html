@@ -73,7 +73,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire is still the spell power key', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
-  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('hazards stay on their old paths', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0 && src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0 && src.indexOf("envHurt(d, 'flames'") >= 0);
   check('loot has no resist affix', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
   check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
@@ -340,9 +340,9 @@ function run(w) {
   p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
   w.castHellmouth();
   const sinks = p.activeHellSinks || [];
-  check('hellmouth still sinks the super elite and not the boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === bossE));
+  check('hellmouth does not sink a gate encounter', !sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === bossE));
   for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
-  check('hellmouth still deletes the super elite', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp);
+  check('hellmouth does not delete the super elite', se.dead !== true && se.hp === 90 && se.shield === 7 && g.enemies.indexOf(se) >= 0, 'hp ' + se.hp + ' sh ' + se.shield);
 
   const rows = [
     { label: 'fists', dealt: 2, period: 0.45 },

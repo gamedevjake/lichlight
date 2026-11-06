@@ -74,7 +74,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire is still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
-  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
   check('loot still has no resist affix', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
   check('resist caps stay 75 and 90', g.RESIST_SOFT === 75 && g.RESIST_HARD === 90 && g.RESIST_MIN === -100);
@@ -153,11 +153,11 @@ function run(w) {
 
   g.startFloor(5, true); p = g.player; p.hp = 400; p.st.maxHp = 400; p.st.def = 0; w.__hurtSpread = 1;
   const boss = g.spawnBoss(p.x + 40, p.y);
-  check('bosses are not given a resist profile', boss && !boss.resists && !boss.affix, boss && boss.resists);
-  if (boss) { boss.hp = 400; boss.maxHp = 400; boss.shield = 0; boss.mawVuln = 0; hit(g, boss, 100, 'Fire'); check('an unprofiled boss still takes the full hit', boss.hp === 300, boss.hp); }
-  else check('an unprofiled boss still takes the full hit', false, 'no boss');
+  check('boss profile is not an affix', boss && boss.resists && boss.resists.Fire === 0 && boss.resists.Poison === 20 && !boss.affix, boss && JSON.stringify(boss.resists));
+  if (boss) { boss.hp = 400; boss.maxHp = 400; boss.shield = 0; boss.mawVuln = 0; hit(g, boss, 100, 'Fire'); check('mother murk still takes a full fire hit', boss.hp === 300, boss.hp); }
+  else check('mother murk still takes a full fire hit', false, 'no boss');
   const se = g.seSpawn717('se_arachnex', 'fight');
-  check('super elites are not given a resist profile', se && se.superElite && !se.resists && !se.affix, se && se.resists);
+  check('super elite profile is not an affix', se && se.superElite && se.resists && se.resists.Poison === 15 && se.resists.Lightning === -15 && !se.affix, se && JSON.stringify(se.resists));
 
   p = calm(g, w);
   const plain = g.spawnEnemy('skel', p.x + 20, p.y, true);
@@ -395,9 +395,9 @@ function run(w) {
   p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
   w.castHellmouth();
   const sinks = p.activeHellSinks || [];
-  check('hellmouth still sinks the super elite and not the boss', sinks.some(s => s.enemyRef === se2) && !sinks.some(s => s.enemyRef === boss2));
+  check('hellmouth does not sink a gate encounter', !sinks.some(s => s.enemyRef === se2) && !sinks.some(s => s.enemyRef === boss2));
   for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
-  check('hellmouth still deletes the super elite', se2.dead === true || se2.hp <= 0 || g.enemies.indexOf(se2) < 0, 'hp ' + se2.hp);
+  check('hellmouth does not delete the super elite', se2.dead !== true && se2.hp === 80 && se2.shield === 10 && g.enemies.indexOf(se2) >= 0, 'hp ' + se2.hp + ' sh ' + se2.shield);
 }
 </script>
 </body>
