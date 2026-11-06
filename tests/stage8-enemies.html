@@ -75,8 +75,8 @@ function run(w) {
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire is still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
   check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
-  check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
-  check('loot still has no resist affix', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
+  check('caster bolts are typed and bosses stay physical', src.indexOf("mage: 'Shadow'") >= 0 && src.indexOf("seer: 'Lightning'") >= 0 && src.indexOf('e.superElite') >= 0);
+  check('loot can roll a resist affix', src.indexOf("k: 'resFire'") >= 0 && src.indexOf("k: 'resAll'") >= 0);
   check('resist caps stay 75 and 90', g.RESIST_SOFT === 75 && g.RESIST_HARD === 90 && g.RESIST_MIN === -100);
 
   const elems = ['Fire', 'Cold', 'Lightning', 'Poison', 'Shadow'];
@@ -377,7 +377,7 @@ function run(w) {
   const mage = g.spawnEnemy('mage', p.x + 80, p.y, false);
   const cultist = w.eShoot(mage, 0, 90, { label: mage.T.label });
   w.hurtPlayer(20, cultist);
-  check('cultist bolt stays physical', cultist && !cultist.dmgType && w.__lastDamage.type === 'Physical' && w.__lastDamage.dealt === 10, w.__lastDamage && w.__lastDamage.dealt);
+  check('cultist bolt is shadow', cultist && cultist.dmgType === 'Shadow' && w.__lastDamage.type === 'Shadow' && w.__lastDamage.dealt === 20, (cultist && cultist.dmgType) + ' ' + (w.__lastDamage && w.__lastDamage.dealt));
 
   g.startFloor(5, true);
   p = g.player;

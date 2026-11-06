@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<!-- Stage 10: resist gear before caster elements, conversion, ailments. version stays 0.7.18. -->
+<html>
+<head><meta charset="utf-8"><title>stage10</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage10" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 8000) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+function calm(g, w) {
+  g.newGame();
+  const p = g.player;
+  p.hp = 400; p.st.maxHp = 400; p.st.def = 0; p.st.regen = 0; p.st.crit = 0; p.st.critDmg = 0; p.st.ls = 0;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.maxResist = 0; p.st.penFire = p.st.penCold = p.st.penLightning = p.st.penPoison = p.st.penShadow = 0;
+  p.st.flat = p.st.flatFire = p.st.flatPhysical = 0; p.st.fire = 0; p.st.spell = 0;
+  p.st.ailment = ''; p.st.conv = '';
+  p.inv0 = 0; p.roll = 0; p.barrier = 0; p.mp = 80; p.lvl = 1;
+  p.isArmorActive = false; p.isInvincible = false;
+  w.__hurtSpread = 1; w.__critRoll = 1; w.__champCrit = 1; w.__skillRoll = 0;
+  g.clearStatuses(p); g.clearSkillCrit(); g.setConversionEdges([]);
+  for (const k of ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet']) p.equip[k] = null;
+  return p;
+}
+function foe(g, p, type) {
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const e = g.spawnEnemy(type || 'rat', p.x + 40, p.y, false);
+  e.dead = false; e.hp = 5000; e.maxHp = 5000; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.mawVuln = 0; e.mode = 'open'; e.spd = 0; e.hmFreeze = true; e.superElite = false;
+  if (e.T) e.T = Object.assign({}, e.T, { boss: false, armor: 0 });
+  g.clearStatuses(e);
+  return e;
+}
+function strike(g, e, amount, type) {
+  e.hp = 5000; e.maxHp = 5000; e.shield = 0; e.mawVuln = 0;
+  g.resolveDamage(e, { amount: amount, type: type || 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  return 5000 - e.hp;
+}
+function physKeep(amount, def) {
+  return Math.max(1, Math.round(amount * (1 - def / (def + 30))));
+}
+function eleKeep(amount, resist) {
+  const pct = Math.max(-100, Math.min(75, resist));
+  return Math.max(1, Math.round(amount * (100 - pct) / 100));
+}
+function hits(pool, dealt) { return dealt > 0 ? Math.ceil(pool / dealt) : 999; }
+function bleedSim(hp, hit, period) {
+  // Swing at the end of each period. A 1-damage unscaled bleed stack ticks on each whole second it is still up.
+  let left = hp, t = 0, nextTick = 1, stacks = [], guard = 0;
+  while (left > 0 && guard++ < 5000) {
+    const swingAt = t + period;
+    while (nextTick <= swingAt + 1e-9 && left > 0) {
+      if (stacks.length) left -= stacks.length;
+      for (let i = stacks.length - 1; i >= 0; i--) {
+        stacks[i] -= 1;
+        if (stacks[i] <= 0) stacks.splice(i, 1);
+      }
+      if (left <= 0) return Math.round(nextTick * 1000) / 1000;
+      nextTick += 1;
+    }
+    t = swingAt;
+    left -= hit;
+    if (left <= 0) return Math.round(t * 1000) / 1000;
+    stacks.push(4);
+    if (stacks.length > 5) stacks.shift();
+  }
+  return Math.round(t * 1000) / 1000;
+}
+function bootStage10() {
+  if (bootStage10.done) return;
+  bootStage10.done = true;
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+}
+const stageFrame = document.getElementById('g');
+stageFrame.addEventListener('load', bootStage10);
+if (stageFrame.contentWindow && stageFrame.contentWindow.game) bootStage10();
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage10src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire is still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
+  check('no generic more or bonus affix', src.indexOf("k: 'more'") < 0 && src.indexOf("k: 'bonusFire'") < 0 && src.indexOf("k: 'inc'") < 0);
+  check('crab bite debt stays open', src.indexOf("!(e.T.ai === 'crab' && e.mode === 'open')") >= 0 && src.indexOf("prevented: 'crab'") >= 0);
+  check('crit chance is still uncapped', src.indexOf('function critChance') >= 0 && g.PEN_CAP === 40 && g.RESIST_SOFT === 75 && g.RESIST_HARD === 90);
+
+  const legacyKeys = { dmg: 1, def: 1, hp: 1, mp: 1, ias: 1, ls: 1, crit: 1, fire: 1, ms: 1, light: 1, regen: 1 };
+  let uniqueBad = '';
+  g.UNIQUES.forEach(u => {
+    for (const k in (u.mods || {})) if (!legacyKeys[k]) uniqueBad += u.name + ':' + k + ' ';
+  });
+  check('unique definitions keep their old mod keys', !uniqueBad, uniqueBad);
+
+  let p = calm(g, w);
+  const leather = g.makeItem(1, 0, 'Leather Armor');
+  const cap = g.makeItem(1, 0, 'Cap');
+  const boots = g.makeItem(1, 0, 'Boots');
+  const buckler = g.makeItem(1, 0, 'Wooden Buckler');
+  const charm = g.makeItem(1, 0, 'Copper Charm');
+  const sword = g.makeItem(1, 0, 'Short Sword');
+  check('early whites carry a resist ward', leather.mods.resAll >= 8 && cap.mods.resAll >= 4 && boots.mods.resAll >= 3 && buckler.mods.resAll >= 6 && charm.mods.resAll >= 4 && !sword.mods.resAll, JSON.stringify({ leather: leather.mods.resAll, cap: cap.mods.resAll, boots: boots.mods.resAll, buckler: buckler.mods.resAll, charm: charm.mods.resAll }));
+  check('a white sword is not resist armor', !sword.mods.resAll && !sword.mods.conv && sword.mods.fire == null, JSON.stringify(sword.mods));
+  const staff = g.makeItem(2, 0, 'Gnarled Staff');
+  p.equip.weapon = staff;
+  w.computeStats();
+  check('staff fire stays spell power and is not added fire', p.st.fire === 4 && p.st.spell === 4 && p.st.flatFire === 0 && staff.mods.fire === 4, JSON.stringify({ fire: p.st.fire, flat: p.st.flatFire }));
+
+  let whites = 0, warded = 0;
+  for (let i = 0; i < 80; i++) {
+    const it = g.makeItem(2, 0);
+    whites++;
+    const m = it.mods || {};
+    if ((m.resAll || 0) > 0 || m.resFire || m.resCold || m.resLightning || m.resPoison || m.resShadow) warded++;
+  }
+  check('floor-1 whites include resist without an affix roll', warded >= 32, warded + '/' + whites);
+
+  let typed = 0;
+  for (let i = 0; i < 24; i++) {
+    const it = g.makeItem(2, 1, 'Leather Armor');
+    const m = it.mods || {};
+    if (m.resFire || m.resCold || m.resLightning || m.resPoison || m.resShadow || (m.resAll || 0) > g.gearWard('Leather Armor', 2)) typed++;
+  }
+  check('magic armor always adds a resist line on top of the ward', typed >= 16, typed + '/24 ward ' + g.gearWard('Leather Armor', 2));
+
+  const white1 = g.makeItem(1, 0, 'Leather Armor');
+  const white3 = g.makeItem(3, 0, 'Leather Armor');
+  const white4 = g.makeItem(4, 0, 'Leather Armor');
+  const magic3 = g.makeItem(3, 1, 'Leather Armor');
+  const rare3 = g.makeItem(3, 2, 'Leather Armor');
+  const rare8 = g.makeItem(8, 2, 'Rune Blade');
+  const expectRare8 = Math.max(1, Math.floor(0.8 * 7) + 2);
+  check('warded whites keep the white requirement', white1.reqLvl === 1 && white1.reqSrc === 'drop' && white1.mods.resAll === g.gearWard('Leather Armor', 1) && white3.reqLvl === 1 && white3.mods.resAll === g.gearWard('Leather Armor', 3) && white4.reqLvl === Math.max(1, Math.floor(0.6 * 3)) && white4.mods.resAll === g.gearWard('Leather Armor', 4), [white1.reqLvl, white3.reqLvl, white4.reqLvl, white1.mods.resAll].join(','));
+  check('new magic and rare use the revised requirement', magic3.reqLvl === 2 && magic3.reqSrc === 'drop' && magic3.mods.resAll >= g.gearWard('Leather Armor', 3) && rare3.reqLvl === 3 && rare3.reqSrc === 'drop' && rare8.reqLvl === expectRare8 && rare8.reqSrc === 'drop', [magic3.reqLvl, rare3.reqLvl, rare8.reqLvl, expectRare8].join(','));
+  const oldWhite = { slot: 'armor', base: 'Leather Armor', rarity: 0, lvl: 2, mods: {}, name: 'Leather Armor' };
+  const oldMagic = { slot: 'armor', base: 'Leather Armor', rarity: 1, lvl: 3, mods: { def: 2 }, name: 'Sturdy Leather' };
+  g.stampReq(oldWhite); g.stampReq(oldMagic);
+  check('stampReq grandfathers the requirement and does not add a ward', oldWhite.reqLvl === 1 && oldWhite.reqSrc === 'grandfather' && !oldWhite.mods.resAll && oldMagic.reqLvl === 1 && oldMagic.reqSrc === 'grandfather' && !oldMagic.mods.resAll, oldMagic.reqLvl + ' ' + oldMagic.reqSrc);
+
+  let both = 0, pens = 0, generic = 0;
+  for (let i = 0; i < 40; i++) {
+    const it = g.makeItem(12, 2, 'Rune Blade');
+    const m = it.mods || {};
+    if (m.conv && m.ailment) both++;
+    let pn = 0;
+    for (const k in m) if (k.indexOf('pen') === 0) pn++;
+    if (pn > 1) pens++;
+    for (const k in m) if (/^(inc|more|bonus)/.test(k)) generic++;
+  }
+  check('a rare weapon does not stack two build affixes or two pens', both === 0 && pens === 0 && generic === 0, 'both ' + both + ' pens ' + pens + ' generic ' + generic);
+
+  let sawUnique = false, grew = false;
+  for (let i = 0; i < 20; i++) {
+    const it = g.makeItem(8, 3);
+    if (!it || it.rarity !== 3) continue;
+    sawUnique = true;
+    const m = it.mods || {};
+    if (m.resAll || m.resFire || m.conv || m.ailment || m.flatFire || m.critDmg || m.penFire) grew = true;
+  }
+  check('rolled uniques do not grow a ward or a conversion', sawUnique && !grew);
+
+  p = calm(g, w);
+  p.equip.armor = leather; p.equip.helm = cap; p.equip.boots = boots; p.equip.shield = buckler;
+  w.computeStats();
+  const ward = p.st.resShadow;
+  check('the early kit folds all-resist once', ward === leather.mods.resAll + cap.mods.resAll + boots.mods.resAll + buckler.mods.resAll && p.st.resFire === ward && p.st.resCold === ward && p.st.fire === 0, 'shadow ' + ward + ' def ' + p.st.def);
+  const kitDef = p.st.def;
+
+  g.startFloor(3, true);
+  p = g.player;
+  p.equip.armor = g.makeItem(2, 0, 'Leather Armor');
+  p.equip.helm = g.makeItem(2, 0, 'Cap');
+  p.equip.boots = g.makeItem(2, 0, 'Boots');
+  p.equip.shield = g.makeItem(2, 0, 'Wooden Buckler');
+  p.equip.weapon = null; p.equip.ring = null; p.equip.amulet = null;
+  w.computeStats();
+  p.hp = 400; p.st.maxHp = 400; p.inv0 = 0; p.roll = 0; p.st.block = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+  g.projs.length = 0;
+  const cult = g.spawnEnemy('mage', p.x + 90, p.y, false);
+  const shot = w.eShoot(cult, 0, 90, { label: cult.T.label });
+  const bolt = shot.dmg;
+  w.hurtPlayer(bolt, shot);
+  const lived = w.__lastDamage.dealt;
+  const beforePhys = physKeep(bolt, p.st.def);
+  const naked = eleKeep(bolt, 0);
+  check('early ward kit survives a cultist bolt without a lucky affix', shot.dmgType === 'Shadow' && lived <= Math.ceil(beforePhys * 1.4) && lived <= naked && p.st.resShadow >= 15, 'dealt ' + lived + ' oldArmor ' + beforePhys + ' naked ' + naked + ' res ' + p.st.resShadow + ' def ' + p.st.def + ' bolt ' + bolt);
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.def = 0; p.st.block = 0; p.hp = 400; p.inv0 = 0; p.roll = 0;
+  w.hurtPlayer(bolt, shot);
+  check('naked defense zero matches the old physical hit', w.__lastDamage.dealt === physKeep(bolt, 0) && w.__lastDamage.type === 'Shadow', w.__lastDamage.dealt);
+
+  const casters = [
+    ['mage', 'Shadow'], ['wisp', 'Lightning'], ['siren', 'Cold'], ['exarch', 'Shadow'], ['seer', 'Lightning']
+  ];
+  let casterOk = true, casterWhy = '';
+  casters.forEach(row => {
+    const e = g.spawnEnemy(row[0], p.x + 70, p.y, false);
+    const pr = w.eShoot(e, 0, 80, row[0] === 'siren' ? { kind: 'water', mul: 0.7 } : row[0] === 'seer' ? { kind: 'snipe', mul: 1.2 } : row[0] === 'exarch' ? { kind: 'orb' } : row[0] === 'wisp' ? { kind: 'water' } : { label: e.T.label });
+    if (!pr || pr.dmgType !== row[1]) { casterOk = false; casterWhy += row[0] + '=' + (pr && pr.dmgType) + ' '; }
+  });
+  const spider = g.spawnEnemy('spider', p.x + 40, p.y, false);
+  const web = w.eShoot(spider, 0, 80, { kind: 'web' });
+  const arch = g.spawnEnemy('archer', p.x + 40, p.y, false);
+  const arrow = w.eShoot(arch, 0, 80, { kind: 'arrow' });
+  const fakeBoss = g.spawnEnemy('mage', p.x + 40, p.y, false);
+  fakeBoss.T = Object.assign({}, fakeBoss.T, { boss: true });
+  const bossShot = w.eShoot(fakeBoss, 0, 40, { dmgType: 'Shadow' });
+  check('five casters are typed and webs arrows bosses are not', casterOk && web && !web.dmgType && arrow && !arrow.dmgType && bossShot && !bossShot.dmgType, casterWhy);
+
+  p = calm(g, w);
+  const convW = g.makeItem(6, 0, 'Short Sword');
+  convW.mods.conv = 'phys-fire';
+  const convA = g.makeItem(6, 0, 'Copper Charm');
+  convA.mods.conv = 'fire-cold';
+  convA.mods.ailment = 'burn';
+  p.equip.weapon = convW; p.equip.amulet = convA;
+  w.computeStats();
+  const edges = g.getConversionEdges();
+  check('two conversion items become one edge and do not chain', edges.length === 1 && edges[0].from === 'Physical' && edges[0].to === 'Fire' && edges[0].fraction === 0.4 && edges[0].chain === false && p.st.ailment === 'burn' && p.st.conv === 'phys-fire', JSON.stringify(edges) + ' ailment ' + p.st.ailment);
+  p.st.flatFire = 10; p.st.flat = 0; p.st.crit = 0;
+  const rat = foe(g, p, 'rat');
+  rat.resists = { Fire: 50 };
+  const info = g.resolveDamage(rat, { amount: 100, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  let sum = 0, fire = 0, phys = 0;
+  (info.components || []).forEach(c => { sum += c.amount; if (c.type === 'Fire') fire += c.amount; if (c.type === 'Physical') phys += c.amount; });
+  check('conversion moves and does not copy or take flat fire twice', Math.abs(sum - 100) < 1e-6 && Math.abs(phys - 60) < 1e-6 && Math.abs(fire - 40) < 1e-6 && info.dealt === 80, 'sum ' + sum + ' phys ' + phys + ' fire ' + fire + ' dealt ' + info.dealt);
+  const again = g.scaleOutgoingComponents(info.components, { attacker: 'player', scale: true, critApplied: true });
+  let sum2 = 0; again.forEach(c => sum2 += c.amount);
+  check('a second scale pass does not grow converted damage', Math.abs(sum2 - 100) < 1e-6, sum2);
+  rat.hp = 5000; p.st.penFire = 20;
+  const penned = g.resolveDamage(rat, { amount: 100, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  const fireComp = (penned.components || []).filter(c => c.type === 'Fire')[0];
+  check('converted fire takes fire penetration once', penned.dealt === 88 && fireComp && fireComp.penHits === 1 && fireComp.resistPct === 30, 'dealt ' + penned.dealt + ' penHits ' + (fireComp && fireComp.penHits) + ' resist ' + (fireComp && fireComp.resistPct));
+  convW.mods.penFire = 80; convA.mods.penAll = 30;
+  w.computeStats();
+  check('sheet penetration caps at 40', p.st.penFire === 40 && p.st.penCold === 30, 'fire ' + p.st.penFire + ' cold ' + p.st.penCold);
+  p.equip.weapon = null; p.equip.amulet = null;
+  w.computeStats();
+  g.setConversionEdges([{ from: 'Physical', to: 'Cold', fraction: 0.25 }]);
+  w.computeStats();
+  const kept = g.getConversionEdges();
+  check('a test edge stays when gear has no conversion', kept.length === 1 && kept[0].to === 'Cold' && kept[0].fraction === 0.25, JSON.stringify(kept));
+  let cycle = '';
+  try { g.setConversionEdges([{ from: 'Fire', to: 'Cold', fraction: 1 }, { from: 'Cold', to: 'Fire', fraction: 1 }]); } catch (e) { cycle = String(e.message || e); }
+  check('conversion still rejects a cycle', cycle.indexOf('cycle') >= 0, cycle);
+
+  p = calm(g, w);
+  const burnW = { id: 'bw', slot: 'weapon', name: 'Burn Sword', base: 'Short Sword', mods: { conv: 'phys-fire', ailment: 'burn' }, powers: [] };
+  p.equip.weapon = burnW;
+  w.computeStats();
+  p.st.crit = 0; p.st.min = 4; p.st.max = 4;
+  const victim = foe(g, p, 'rat');
+  victim.resists = null;
+  g.resolveDamage(victim, { amount: 10, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  const burn = g.getStatus(victim, 'burning');
+  check('fire conversion plus burn applies one burning stack', burn && burn.stacks && burn.stacks.length === 1 && burn.stacks[0].base === 1, burn && JSON.stringify(burn.stacks));
+  g.tickStatuses(victim, 1);
+  check('the gear burn tick does not scale a second time', w.__lastStatusTick && w.__lastStatusTick.dealt === 1 && w.__lastStatusTick.crit === false, w.__lastStatusTick && w.__lastStatusTick.dealt);
+  g.resolveDamage(victim, { amount: 10, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  check('a second hit stacks bleed-style caps instead of double-applying the same hit', g.getStatus(victim, 'burning').stacks.length === 2);
+  g.clearStatuses(victim);
+  g.resolveDamage(victim, { amount: 64, type: 'Fire', tags: ['Spell', 'Projectile', 'AoE'], attacker: 'player', critApplied: true, scale: true, skill: 'fireball' });
+  g.applyStatus(victim, 'burning', { base: 0, duration: 3, attacker: 'player', source: { name: 'Fireball', kind: 'skill', id: 'fireball' } });
+  check('fireball keeps its own burn and gear does not add another', g.getStatus(victim, 'burning').stacks.length === 1, g.getStatus(victim, 'burning').stacks.length);
+  p.equip.weapon = { id: 'phys', slot: 'weapon', name: 'Plain', base: 'Short Sword', mods: { ailment: 'burn' }, powers: [] };
+  w.computeStats();
+  g.clearStatuses(victim);
+  g.resolveDamage(victim, { amount: 10, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  check('burn does not apply to a hit with no fire', !g.getStatus(victim, 'burning'));
+  p.equip.weapon = { id: 'hexw', slot: 'weapon', name: 'Hex', base: 'Short Sword', mods: { conv: 'phys-shadow', ailment: 'hex' }, powers: [] };
+  w.computeStats();
+  g.clearStatuses(victim);
+  g.resolveDamage(victim, { amount: 10, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  const hex = g.curseHooks(victim);
+  check('hex shreds resist and does not wire life drain', hex.resistReduction === 8 && hex.lifeDrain === 0 && hex.lifeDrainWired === false, JSON.stringify(hex));
+  p.st.ls = 50; p.hp = 40; p.st.maxHp = 400;
+  w.leech(10, 'melee');
+  const healed = p.hp;
+  check('life steal still ignores curse drain', healed === 45 && g.curseHooks(victim).lifeDrainWired === false, p.hp);
+  p.st.crit = 250;
+  const big = g.rollPlayerCrit('melee');
+  check('crit chance stays uncapped', big.crit === true && big.chance === 250, big.chance);
+  p.equip.weapon = { id: 'spk', slot: 'weapon', name: 'Spark', base: 'Short Sword', mods: { conv: 'phys-lightning', ailment: 'spark' }, powers: [] };
+  w.computeStats();
+  g.clearStatuses(victim);
+  g.resolveDamage(victim, { amount: 10, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  g.resolveDamage(victim, { amount: 10, type: 'Physical', tags: ['Melee', 'Direct'], attacker: 'player', critApplied: true, scale: true, skill: 'melee' });
+  check('shock refreshes at 10 and does not stack to the cap', g.getStatus(victim, 'shock') && g.getStatus(victim, 'shock').takenPct === 10, g.getStatus(victim, 'shock') && g.getStatus(victim, 'shock').takenPct);
+
+  p = calm(g, w);
+  p.skillSpec = ['kindling', 'base', 'base'];
+  w.computeStats();
+  check('skillSpec is unchanged by the loot pass', g.skillSpecId(0) === 'kindling' && g.skillBuild(0).burnBase === 'pw' && p.st.fire === 0, g.skillSpecId(0));
+  const offers = g.rollShopOffers();
+  check('shop offers stay three sealed uniques', offers.length === 3 && offers.every(o => o.label.indexOf('Sealed Unique') === 0 && o.price === g.shopUniquePrice(o.tier) && o.sold === false), offers.map(o => o.slot + ':' + o.price).join(','));
+
+  p.equip.amulet = { id: 'old', slot: 'amulet', name: 'Old Charm', mods: { fire: 6 }, powers: [] };
+  w.computeStats();
+  check('an old charm is still spell power with zero resist', p.st.fire === 6 && p.st.spell === 6 && p.st.resFire === 0 && p.st.flatFire === 0 && !p.st.conv, JSON.stringify({ fire: p.st.fire, res: p.st.resFire }));
+  w.save();
+  g.continueGame();
+  w.computeStats();
+  const q = g.player;
+  check('save keeps fire and does not invent resists', q && q.equip.amulet.mods.fire === 6 && q.st.fire === 6 && q.st.resFire === 0 && q.st.spell === 6 && !(q.skillSpec && q.skillSpec[0] && q.skillSpec[0] !== 'base' && q.skillSpec[0] !== 'kindling'), q && JSON.stringify({ fire: q.st.fire, res: q.st.resFire, spec: q.skillSpec }));
+
+  const rows = [];
+  function measure(depth, ids) {
+    g.startFloor(depth, true);
+    const pp = g.player;
+    pp.equip.weapon = null; pp.equip.armor = null; pp.equip.helm = null; pp.equip.shield = null; pp.equip.boots = null; pp.equip.amulet = null; pp.equip.ring = null;
+    w.computeStats();
+    pp.st.crit = 0; pp.st.critDmg = 0; pp.st.flat = 0; pp.st.flatFire = 0; pp.st.fire = 0; pp.lvl = 10;
+    pp.hp = 400; pp.inv0 = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+    g.setConversionEdges([]);
+    ids.forEach(id => {
+      const e = g.spawnEnemy(id, pp.x + 60, pp.y, false);
+      e.hmFreeze = true; e.spd = 0; e.shield = 0; e.mawVuln = 0;
+      if (e.T && e.T.boss) return;
+      const hp = e.maxHp;
+      const sword = strike(g, e, 4, 'Physical');
+      g.setConversionEdges([]);
+      pp.st.penFire = 0; pp.st.fire = 20; pp.lvl = 10;
+      const ball = strike(g, e, 64, 'Fire');
+      pp.st.penFire = 18;
+      const ballPen = strike(g, e, 64, 'Fire');
+      pp.st.penFire = 0; pp.st.fire = 0;
+      g.setConversionEdges([{ from: 'Physical', to: 'Fire', fraction: 0.4, chain: false }]);
+      const hybrid = strike(g, e, 4, 'Physical');
+      g.setConversionEdges([]);
+      const bleed = bleedSim(hp, sword, 0.45);
+      rows.push({
+        depth: depth, id: id, hp: hp,
+        sword: sword, swordT: Math.round(hits(hp, sword) * 0.45 * 1000) / 1000,
+        fire: ball, fireT: Math.round(hits(hp, ball) * 0.45 * 1000) / 1000,
+        firePen: ballPen, firePenT: Math.round(hits(hp, ballPen) * 0.45 * 1000) / 1000,
+        hybrid: hybrid, hybridT: Math.round(hits(hp, hybrid) * 0.45 * 1000) / 1000,
+        bleedT: bleed
+      });
+    });
+  }
+  measure(1, ['rat', 'slime']);
+  measure(3, ['mage', 'skel']);
+  measure(12, ['skel', 'drowned', 'wisp', 'spider']);
+  measure(20, ['golem', 'seer', 'exarch']);
+  const physSame = rows.every(r => r.sword > 0);
+  check('physical sword still deals its hit on every sample', physSame && rows.length === 11, rows.length);
+  check('ttk table', true, JSON.stringify(rows));
+
+  const surv = [];
+  [[3, 'mage', 'Shadow'], [5, 'wisp', 'Lightning'], [12, 'siren', 'Cold'], [14, 'exarch', 'Shadow'], [15, 'seer', 'Lightning']].forEach(spec => {
+    g.startFloor(spec[0], true);
+    const pp = g.player;
+    pp.inv0 = 0; pp.roll = 0; pp.st.block = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+    const e = g.spawnEnemy(spec[1], pp.x + 80, pp.y, false);
+    const pr = w.eShoot(e, 0, 90, spec[1] === 'siren' ? { kind: 'water', mul: 0.7 } : spec[1] === 'seer' ? { kind: 'snipe', mul: 1.2 } : spec[1] === 'wisp' ? { kind: 'water' } : spec[1] === 'exarch' ? { kind: 'orb' } : {});
+    const amount = pr.dmg;
+    pp.equip.armor = null; pp.equip.helm = null; pp.equip.boots = null; pp.equip.shield = null; pp.equip.amulet = null;
+    w.computeStats();
+    pp.st.def = 0; pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    ['resFire', 'resCold', 'resLightning', 'resPoison', 'resShadow'].forEach(k => pp.st[k] = 0);
+    w.hurtPlayer(amount, pr);
+    const naked = w.__lastDamage.dealt;
+    pp.equip.armor = g.makeItem(spec[0] + 1, 0, 'Leather Armor');
+    pp.equip.helm = g.makeItem(spec[0] + 1, 0, 'Cap');
+    pp.equip.boots = g.makeItem(spec[0] + 1, 0, 'Boots');
+    pp.equip.shield = g.makeItem(spec[0] + 1, 0, 'Wooden Buckler');
+    w.computeStats();
+    pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    w.hurtPlayer(amount, pr);
+    const kit = w.__lastDamage.dealt;
+    const old = physKeep(amount, pp.st.def);
+    surv.push({ id: spec[1], depth: spec[0], type: spec[2], bolt: Math.round(amount * 100) / 100, def: pp.st.def, res: pp.st.resShadow, naked: naked, kit: kit, oldArmor: old, nakedHits: hits(60, naked), kitHits: hits(60, kit), oldHits: hits(60, old) });
+  });
+  const early = surv[0];
+  check('early cultist kit is within 1.4 of the old armor hit', early && early.kit <= Math.ceil(early.oldArmor * 1.4), JSON.stringify(early));
+  check('survival table', true, JSON.stringify(surv));
+
+  function emptyRar() { return { 0: 0, 1: 0, 2: 0, 3: 0, n: 0 }; }
+  function note(bag, it) { if (!it) return; bag[it.rarity] = (bag[it.rarity] || 0) + 1; bag.n++; }
+  function pieceScore(it) {
+    if (!it) return -1;
+    const m = it.mods || {};
+    return (it.def || 0) * 2 + ((it.min || 0) + (it.max || 0)) + (m.resAll || 0) + (m.hp || 0) / 4 + (m.dmg || 0) * 2;
+  }
+  const bands = [[1, 5], [6, 10], [11, 20]];
+  const sims = [];
+  bands.forEach(function (band) {
+    const runs = 24;
+    const acc = { band: band[0] + '-' + band[1], runs: runs, chest: emptyRar(), white: emptyRar(), se: emptyRar(), boss: emptyRar(), gilt: emptyRar(), blocked: 0, worn: 0, wardFloors: 0, floors: 0, def: 0, life: 0, res: 0, dmg: 0, spell: 0 };
+    for (let n = 0; n < runs; n++) {
+      const gear = {};
+      let sawWard = false;
+      for (let d = band[0]; d <= band[1]; d++) {
+        acc.floors++;
+        g.player.lvl = d;
+        const keep = function (it, bag) {
+          note(bag, it);
+          if (!it) return;
+          if ((it.reqLvl || 1) > d) { acc.blocked++; return; }
+          const slot = it.slot || 'weapon';
+          if (pieceScore(it) >= pieceScore(gear[slot])) gear[slot] = it;
+          if ((it.mods && it.mods.resAll) || it.mods && (it.mods.resFire || it.mods.resCold || it.mods.resLightning || it.mods.resPoison || it.mods.resShadow)) sawWard = true;
+        };
+        keep(w.chestLoot(d), acc.chest);
+        keep(w.chestLoot(d), acc.chest);
+        const whiteP = d <= 2 ? 0.05 * 0.35 : 0.05;
+        for (let k = 0; k < 12; k++) if (Math.random() < whiteP) keep(g.makeItem(d, 0), acc.white);
+        keep(w.seRollGear(d), acc.se);
+        if (Math.random() < 0.25) keep(w.giltGear(d), acc.gilt);
+        if (d % 5 === 0) {
+          keep(w.bossUnique(d + 2), acc.boss);
+          keep(g.makeItem(d + 2, 2), acc.boss);
+          keep(g.makeItem(d + 2, Math.random() < 0.5 ? 2 : 1), acc.boss);
+        }
+      }
+      if (sawWard) acc.wardFloors++;
+      let def = 0, life = 0, res = 0, dmg = 0, spell = 0, worn = 0;
+      for (const k in gear) {
+        const it = gear[k]; if (!it) continue;
+        worn++;
+        def += it.def || 0;
+        const m = it.mods || {};
+        life += m.hp || 0;
+        res += m.resAll || 0;
+        spell += m.fire || 0;
+        if (it.min) dmg = Math.max(dmg, (it.min + it.max) / 2 + (m.dmg || 0));
+      }
+      acc.worn += worn; acc.def += def; acc.life += life; acc.res += res; acc.dmg += dmg; acc.spell += spell;
+    }
+    const r = runs;
+    const slim = function (bag) { return { n: bag.n, white: bag[0], magic: bag[1], rare: bag[2], unique: bag[3] }; };
+    sims.push({
+      band: acc.band, runs: r,
+      chest: slim(acc.chest), white: slim(acc.white), se: slim(acc.se), boss: slim(acc.boss), gilt: slim(acc.gilt),
+      reqBlocked: acc.blocked,
+      runsWithResist: acc.wardFloors,
+      avgDef: Math.round(acc.def / r),
+      avgLife: Math.round(acc.life / r),
+      avgResAll: Math.round(acc.res / r),
+      avgWeapon: Math.round(acc.dmg / r * 10) / 10,
+      avgSpell: Math.round(acc.spell / r)
+    });
+  });
+  const earlySim = sims[0];
+  check('depths 1-5 can equip resist before a rare roll is required', earlySim && earlySim.runsWithResist === earlySim.runs && earlySim.chest.unique === 0 && earlySim.avgResAll > 0, JSON.stringify(earlySim));
+  check('loot acquisition sim', true, JSON.stringify(sims));
+
+  g.startFloor(5, true);
+  const boss = g.enemies.find(e => e.T && e.T.boss) || g.spawnBoss(240, 180);
+  check('mother murk pool and contact are not raised', boss && boss.maxHp === 840 && boss.maxShield === 210 && Math.abs(boss.dmg - 18.144) < 0.02, boss && (boss.name + ' hp ' + boss.maxHp + ' sh ' + boss.maxShield + ' dmg ' + boss.dmg));
+  check('super elite life follows the early-balance curve', g.seMaxHp717(1) === 80 && g.seMaxHp717(5) === 141 && g.seMaxHp717(10) === 249, [g.seMaxHp717(1), g.seMaxHp717(5), g.seMaxHp717(10)].join(','));
+  const crab = g.spawnEnemy('crab', 80, 80, false);
+  crab.mode = 'shell'; crab.hp = 40;
+  w.damageEnemy(crab, 20, 0, 0, '#fff', false);
+  const shelledBites = !(crab.T.ai === 'crab' && crab.mode === 'open');
+  check('shelled crab still blocks and the bite debt is untouched', w.__lastDamage.prevented === 'crab' && crab.hp === 40 && shelledBites === true, crab.mode + ' hp ' + crab.hp);
+
+  // Legacy ward migration. WARD_MIG adds gearWard(base, stored ilvl) once. No RNG.
+  check('ward formula is the documented table', g.WARD_MIG === 1 && g.gearWard('Leather Armor', 1) === 8 && g.gearWard('Leather Armor', 2) === 9 && g.gearWard('Leather Armor', 3) === 9 && g.gearWard('Cap', 3) === 5 && g.gearWard('Plate Mail', 8) === 8 && g.gearWard('Dusk Shroud', 40) === 16 && g.gearWard('Short Sword', 8) === 0 && g.gearWard('Silver Locket', 8) === 0, [g.gearWard('Leather Armor', 1), g.gearWard('Leather Armor', 2), g.gearWard('Cap', 3), g.gearWard('Plate Mail', 8), g.gearWard('Dusk Shroud', 40)].join(','));
+
+  const whiteBefore = { id: 11, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: 2, def: 3, mods: {}, maxDur: 40, dur: 37 };
+  const magicBefore = { id: 12, slot: 'helm', icon: 'helm', base: 'Cap', name: 'Sturdy Cap', rarity: 1, lvl: 3, def: 2, mods: { def: 2, hp: 6 }, maxDur: 30, dur: 30 };
+  const rareBefore = { id: 13, slot: 'armor', icon: 'armor', base: 'Plate Mail', name: 'Doom Psalm', rarity: 2, lvl: 8, def: 14, mods: { hp: 30, regen: 1, fire: 4 }, reqLvl: 7, reqSrc: 'drop', maxDur: 52, dur: 40, powers: [{ t: 'thorns', pct: 10 }] };
+  const bucklerBefore = { id: 14, slot: 'shield', icon: 'shield', base: 'Wooden Buckler', name: 'Wooden Buckler', rarity: 0, lvl: 2, def: 2, block: 8, mods: {}, maxDur: 44, dur: 44 };
+  const charmBefore = { id: 15, slot: 'amulet', icon: 'amulet', base: 'Copper Charm', name: 'Copper Charm', rarity: 0, lvl: 1, mods: { light: 8 }, maxDur: 22, dur: 22 };
+  const bootsBefore = { id: 16, slot: 'boots', icon: 'boots', base: 'Boots', name: 'Boots', rarity: 0, lvl: 4, def: 2, mods: {}, reqLvl: 1, maxDur: 26, dur: 11 };
+  const swordBefore = { id: 17, slot: 'weapon', icon: 'sword', base: 'Short Sword', name: 'Short Sword', rarity: 0, lvl: 4, min: 4, max: 7, spd: 1, mods: { dmg: 2, fire: 3 }, reqLvl: 1, reqSrc: 'grandfather', maxDur: 30, dur: 30 };
+  const ringBefore = { id: 18, slot: 'ring', icon: 'ring', base: 'Ring', name: 'Ring', rarity: 0, lvl: 5, mods: { hp: 4 }, reqLvl: 2, reqSrc: 'grandfather' };
+  const locketBefore = { id: 19, slot: 'amulet', icon: 'amulet', base: 'Silver Locket', name: 'Silver Locket', rarity: 1, lvl: 8, mods: { mp: 12, fire: 2 }, reqLvl: 6, reqSrc: 'drop', maxDur: 22, dur: 22 };
+  const coat = g.UNIQUES.find(u => u.name === "Ratcatcher's Coat");
+  const uniqueBefore = { id: 20, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: "Ratcatcher's Coat", lore: coat.lore, rarity: 3, lvl: 6, def: 12, mods: { def: 10, ms: 19, regen: 1 }, reqLvl: 5, reqSrc: 'grandfather', maxDur: 60, dur: 60 };
+  const already = { id: 21, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: 2, def: 3, mods: { resAll: g.gearWard('Leather Armor', 2) }, reqLvl: 1, reqSrc: 'drop', maxDur: 40, dur: 40 };
+  const typedHelmItem = { id: 22, slot: 'helm', icon: 'helm', base: 'Helm', name: 'Ash Helm', rarity: 1, lvl: 5, def: 4, mods: { resFire: 12, resAll: g.gearWard('Helm', 5), def: 1 }, reqLvl: 3, reqSrc: 'drop', maxDur: 30, dur: 30 };
+  const snap = it => JSON.stringify({ id: it.id, slot: it.slot, base: it.base, name: it.name, rarity: it.rarity, lvl: it.lvl, def: it.def, min: it.min, max: it.max, spd: it.spd, block: it.block, mods: it.mods, reqLvl: it.reqLvl, reqSrc: it.reqSrc, dur: it.dur, maxDur: it.maxDur, powers: it.powers, lore: it.lore, wardMig: it.wardMig });
+  const uniqueSnap = snap(uniqueBefore);
+  const swordSnap = snap(swordBefore);
+  const ringSnap = snap(ringBefore);
+  const locketSnap = snap(locketBefore);
+  let rngCalls = 0;
+  const realRandom = w.Math.random;
+  w.Math.random = function () { rngCalls++; return realRandom(); };
+  let directOk = true;
+  try {
+    const probe = { id: 11, slot: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: 2, def: 3, mods: {} };
+    g.migrateGearWard(probe);
+    for (let n = 0; n < 20; n++) g.migrateGearWard(probe);
+    directOk = probe.mods.resAll === 9 && probe.wardMig === 1 && probe.def === 3 && probe.lvl === 2 && probe.mods.def == null;
+    const uniqProbe = { rarity: 3, base: 'Leather Armor', name: "Ratcatcher's Coat", lvl: 6, mods: { def: 10 } };
+    g.migrateGearWard(uniqProbe);
+    directOk = directOk && !uniqProbe.mods.resAll && uniqProbe.wardMig == null;
+    const swordProbe = { rarity: 0, base: 'Short Sword', lvl: 4, mods: { fire: 3 } };
+    g.migrateGearWard(swordProbe);
+    directOk = directOk && !swordProbe.mods.resAll && swordProbe.wardMig == null && swordProbe.mods.fire === 3;
+  } finally { w.Math.random = realRandom; }
+  check('migration value is gearWard and it does not roll', directOk && rngCalls === 0, 'calls ' + rngCalls);
+
+  const pre = {
+    depth: 3, itemId: 80,
+    p: {
+      lvl: 4, xp: 0, gold: 10, hp: 80, mp: 20, hpPot: 1, mpPot: 1, keys: 0, rpPot: 0,
+      kills: 0, found: ["Ratcatcher's Coat"], gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100,
+      learned: [true, true, true], skillSpec: ['kindling', 'base', 'base'],
+      inv: [null, magicBefore, null, rareBefore, null, uniqueBefore, swordBefore, ringBefore, locketBefore, bucklerBefore, charmBefore, already, typedHelmItem],
+      equip: { weapon: null, shield: null, helm: null, armor: whiteBefore, boots: bootsBefore, ring: null, amulet: null }
+    }
+  };
+  w.localStorage.setItem('cryptdelve', JSON.stringify(pre));
+  g.continueGame();
+  let gp = g.player;
+  const byId = id => {
+    const bag = (gp.inv || []).concat([gp.equip.armor, gp.equip.helm, gp.equip.boots, gp.equip.shield, gp.equip.weapon, gp.equip.ring, gp.equip.amulet]);
+    return bag.filter(Boolean).find(it => it.id === id);
+  };
+  const migWhite = byId(11), migMagic = byId(12), migRare = byId(13), migBuckler = byId(14), migCharm = byId(15), migBoots = byId(16);
+  const migSword = byId(17), migRing = byId(18), migLocket = byId(19), migUnique = byId(20), migKept = byId(21), migTyped = byId(22);
+  const whiteWant = g.gearWard('Leather Armor', 2), magicWant = g.gearWard('Cap', 3), rareWant = g.gearWard('Plate Mail', 8);
+  const buckWant = g.gearWard('Wooden Buckler', 2), charmWant = g.gearWard('Copper Charm', 1), bootWant = g.gearWard('Boots', 4);
+  check('equipped white gains the stored-ilvl ward', migWhite && gp.equip.armor === migWhite && migWhite.mods.resAll === whiteWant && migWhite.wardMig === 1 && migWhite.def === 3 && migWhite.lvl === 2 && migWhite.rarity === 0 && migWhite.name === 'Leather Armor' && migWhite.reqLvl === 1 && migWhite.reqSrc === 'grandfather' && migWhite.dur === 37, migWhite && (migWhite.mods.resAll + ' req ' + migWhite.reqLvl + ' ' + migWhite.reqSrc));
+  check('inventory magic gains only the ward', migMagic && gp.inv.indexOf(migMagic) === 1 && migMagic.mods.resAll === magicWant && migMagic.mods.def === 2 && migMagic.mods.hp === 6 && migMagic.wardMig === 1 && migMagic.reqLvl === 1 && migMagic.reqSrc === 'grandfather' && migMagic.lvl === 3 && migMagic.rarity === 1 && migMagic.name === 'Sturdy Cap' && migMagic.def === 2, migMagic && JSON.stringify(migMagic.mods));
+  check('rare between early-loot and stage 10 keeps req, affixes, and spell power', migRare && gp.inv.indexOf(migRare) === 3 && migRare.mods.resAll === rareWant && migRare.mods.hp === 30 && migRare.mods.regen === 1 && migRare.mods.fire === 4 && migRare.reqLvl === 7 && migRare.reqSrc === 'drop' && migRare.lvl === 8 && migRare.def === 14 && migRare.rarity === 2 && migRare.dur === 40 && migRare.powers && migRare.powers[0].t === 'thorns' && migRare.powers[0].pct === 10 && migRare.wardMig === 1, migRare && (migRare.reqLvl + ' ' + migRare.reqSrc + ' ' + JSON.stringify(migRare.mods)));
+  check('shield, charm, and boots are eligible warded bases', migBuckler && migBuckler.mods.resAll === buckWant && migBuckler.block === 8 && migCharm && migCharm.mods.resAll === charmWant && migCharm.mods.light === 8 && migBoots && gp.equip.boots === migBoots && migBoots.mods.resAll === bootWant && migBoots.reqLvl === 1 && migBoots.reqSrc === 'grandfather' && migBoots.def === 2 && migBoots.dur === 11, [migBuckler && migBuckler.mods.resAll, migCharm && migCharm.mods.resAll, migBoots && migBoots.mods.resAll].join(','));
+  check('sword, ring, and unwared amulet are not modified', migSword && snap(migSword) === swordSnap && migRing && snap(migRing) === ringSnap && migLocket && snap(migLocket) === locketSnap && migSword.wardMig == null && migRing.wardMig == null && migLocket.wardMig == null, migSword && migSword.base);
+  check('legacy unique armor is not modified', migUnique && snap(migUnique) === uniqueSnap && migUnique.wardMig == null && !migUnique.mods.resAll && gp.inv.indexOf(migUnique) === 5, migUnique && JSON.stringify(migUnique.mods));
+  check('a stage 10 drop is not warded twice', migKept && migKept.mods.resAll === whiteWant && migKept.wardMig === 1 && migTyped && migTyped.mods.resAll === g.gearWard('Helm', 5) && migTyped.mods.resFire === 12 && migTyped.mods.def === 1 && migTyped.wardMig === 1, migKept && migKept.mods.resAll);
+  check('empty inventory slots stay put', gp.inv[0] == null && gp.inv[2] == null && gp.inv[4] == null && gp.inv[1] && gp.inv[1].id === 12 && gp.inv[3] && gp.inv[3].id === 13, gp.inv.slice(0, 6).map(it => it && it.id).join(','));
+  check('skillSpec and spell power survive the armor migration', gp.skillSpec && gp.skillSpec[0] === 'kindling' && migSword.mods.fire === 3 && migRare.mods.fire === 4, (gp.skillSpec || []).join(','));
+  const firstSig = [11, 12, 13, 14, 15, 16, 20, 21].map(id => snap(byId(id))).join('|');
+  let stable = true;
+  for (let n = 0; n < 8; n++) {
+    w.save();
+    g.continueGame();
+    gp = g.player;
+    const sig = [11, 12, 13, 14, 15, 16, 20, 21].map(id => snap(byId(id))).join('|');
+    if (sig !== firstSig) stable = false;
+  }
+  check('eight more loads do not add or reroll wards', stable && byId(11).mods.resAll === whiteWant && byId(11).wardMig === 1 && byId(20).wardMig == null && !byId(20).mods.resAll, byId(11).mods.resAll + ' / ' + byId(12).mods.resAll);
+
+  g.newGame();
+  gp = g.player;
+  gp.lvl = 6;
+  // Items have to be born in the game window. The world packer skips objects whose prototype is another realm's.
+  const floorMail = w.JSON.parse(JSON.stringify({ id: 501, slot: 'armor', icon: 'armor', base: 'Chain Mail', name: 'Chain Mail', rarity: 0, lvl: 5, def: 8, mods: {}, maxDur: 40, dur: 40 }));
+  const floorUnique = w.JSON.parse(JSON.stringify({ id: 502, slot: 'shield', icon: 'shield', base: 'Wooden Buckler', name: "Tam's Coffin Lid", rarity: 3, lvl: 4, def: 8, mods: { def: 7, hp: 22 }, reqLvl: 3, reqSrc: 'grandfather', maxDur: 44, dur: 44, powers: [{ t: 'thorns', pct: 10 }] }));
+  const dropped = w.JSON.parse(JSON.stringify({ x: gp.x + 8, y: gp.y, bob: 0, lock: true }));
+  dropped.item = floorMail;
+  g.ground.push(dropped);
+  if (g.chests && g.chests.length) g.chests[0].item = floorUnique;
+  else g.chests.push(w.JSON.parse(JSON.stringify({ x: gp.x, y: gp.y, open: false, item: floorUnique })));
+  const chainWant = g.gearWard('Chain Mail', 5);
+  w.save();
+  g.continueGame();
+  const mailBack = (g.ground || []).map(o => o && o.item).find(it => it && it.id === 501);
+  const lidBack = (g.chests || []).map(c => c && c.item).find(it => it && it.id === 502);
+  check('saved floor armor gains the ward and a floor unique does not', !!(mailBack && mailBack.mods.resAll === chainWant && mailBack.wardMig === 1 && mailBack.def === 8 && mailBack.lvl === 5 && mailBack.reqSrc === 'grandfather' && lidBack && !lidBack.mods.resAll && lidBack.wardMig == null && lidBack.mods.def === 7 && lidBack.mods.hp === 22 && lidBack.reqLvl === 3), (mailBack && mailBack.mods.resAll) + ' / ' + (lidBack && JSON.stringify(lidBack.mods)));
+  let floorStable = !!(mailBack && lidBack);
+  const mailSig = mailBack ? snap(mailBack) : '';
+  const lidSig = lidBack ? snap(lidBack) : '';
+  for (let n = 0; n < 4 && floorStable; n++) {
+    w.save();
+    g.continueGame();
+    const m2 = (g.ground || []).map(o => o && o.item).find(it => it && it.id === 501);
+    const u2 = (g.chests || []).map(c => c && c.item).find(it => it && it.id === 502);
+    if (!m2 || !u2 || snap(m2) !== mailSig || snap(u2) !== lidSig) floorStable = false;
+  }
+  check('floor items stay put across further loads', floorStable);
+
+  const migHits = [];
+  [[3, 'mage', 'Shadow'], [12, 'siren', 'Cold'], [14, 'exarch', 'Shadow'], [15, 'seer', 'Lightning']].forEach(spec => {
+    const ilvl = spec[0] + 1;
+    const legacy = {
+      armor: { id: 801, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: ilvl, def: 3 + Math.floor(ilvl / 3), mods: {}, maxDur: 40, dur: 40 },
+      helm: { id: 802, slot: 'helm', icon: 'helm', base: 'Cap', name: 'Cap', rarity: 0, lvl: ilvl, def: 1 + Math.floor(ilvl / 3), mods: {}, maxDur: 30, dur: 30 },
+      boots: { id: 803, slot: 'boots', icon: 'boots', base: 'Boots', name: 'Boots', rarity: 0, lvl: ilvl, def: 1 + Math.floor(ilvl / 3), mods: {}, maxDur: 26, dur: 26 },
+      shield: { id: 804, slot: 'shield', icon: 'shield', base: 'Wooden Buckler', name: 'Wooden Buckler', rarity: 0, lvl: ilvl, def: 2 + Math.floor(ilvl / 3), block: 8, mods: {}, maxDur: 44, dur: 44 }
+    };
+    w.localStorage.setItem('cryptdelve', JSON.stringify({
+      depth: spec[0], itemId: 900,
+      p: { lvl: spec[0], xp: 0, gold: 0, hp: 80, mp: 20, learned: [true, true, true], skillSpec: ['base', 'base', 'base'], inv: [], equip: { weapon: null, shield: legacy.shield, helm: legacy.helm, armor: legacy.armor, boots: legacy.boots, ring: null, amulet: null } }
+    }));
+    g.continueGame();
+    const pp = g.player;
+    pp.inv0 = 0; pp.roll = 0; pp.st.block = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+    const e = g.spawnEnemy(spec[1], pp.x + 80, pp.y, false);
+    const pr = w.eShoot(e, 0, 90, spec[1] === 'siren' ? { kind: 'water', mul: 0.7 } : spec[1] === 'seer' ? { kind: 'snipe', mul: 1.2 } : spec[1] === 'exarch' ? { kind: 'orb' } : {});
+    const amount = pr.dmg;
+    w.computeStats();
+    pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    w.hurtPlayer(amount, pr);
+    const migrated = w.__lastDamage.dealt;
+    const migRes = pp.st.resShadow;
+    const migDef = pp.st.def;
+    const freshArmor = g.makeItem(ilvl, 0, 'Leather Armor');
+    const freshHelm = g.makeItem(ilvl, 0, 'Cap');
+    const freshBoots = g.makeItem(ilvl, 0, 'Boots');
+    const freshShield = g.makeItem(ilvl, 0, 'Wooden Buckler');
+    const sameMods = freshArmor.mods.resAll === pp.equip.armor.mods.resAll && freshHelm.mods.resAll === pp.equip.helm.mods.resAll && freshBoots.mods.resAll === pp.equip.boots.mods.resAll && freshShield.mods.resAll === pp.equip.shield.mods.resAll && freshArmor.def === pp.equip.armor.def;
+    pp.equip.armor = freshArmor; pp.equip.helm = freshHelm; pp.equip.boots = freshBoots; pp.equip.shield = freshShield;
+    w.computeStats();
+    pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    w.hurtPlayer(amount, pr);
+    const freshDealt = w.__lastDamage.dealt;
+    pp.equip.armor = null; pp.equip.helm = null; pp.equip.boots = null; pp.equip.shield = null;
+    w.computeStats();
+    pp.st.def = 0; pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    ['resFire', 'resCold', 'resLightning', 'resPoison', 'resShadow'].forEach(k => { pp.st[k] = 0; });
+    w.hurtPlayer(amount, pr);
+    const naked = w.__lastDamage.dealt;
+    migHits.push({ id: spec[1], depth: spec[0], type: spec[2], bolt: Math.round(amount * 100) / 100, def: migDef, res: migRes, migrated: migrated, fresh: freshDealt, naked: naked, sameMods: sameMods });
+  });
+  const matched = migHits.length === 4 && migHits.every(r => r.sameMods && r.migrated === r.fresh && r.migrated < r.naked && r.migrated > 0);
+  check('migrated whites take the same bolt as a new ward kit', matched, JSON.stringify(migHits));
+  try { w.localStorage.removeItem('cryptdelve'); } catch (e) {}
+}
+</script>
+</body>
+</html>

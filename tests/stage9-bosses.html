@@ -40,7 +40,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire is still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
-  check('caster elements stay deferred', src.indexOf('Stage 8 must not') >= 0 && src.indexOf("dmgType: 'Shadow'") < 0);
+  check('boss shots stay physical while casters are typed', src.indexOf("mage: 'Shadow'") >= 0 && src.indexOf('e.superElite') >= 0 && src.indexOf('delete pr.dmgType') >= 0);
   check('crab bite debt stays open', src.indexOf("!(e.T.ai === 'crab' && e.mode === 'open')") >= 0 && src.indexOf("prevented: 'crab'") >= 0);
 
   g.newGame();

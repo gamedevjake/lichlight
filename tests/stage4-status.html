@@ -329,9 +329,10 @@ function run(w) {
   for (let i = 0; i < 30; i++) {
     const it = g.makeItem(12, 1);
     const mods = (it && it.mods) || {};
-    for (const k in mods) if (/bleed|burning|poison|shock|chill|freeze|curse|outPenalty/i.test(k)) lootBad = true;
+    const statusKey = { bleed: 1, burning: 1, poison: 1, shock: 1, chill: 1, freeze: 1, curse: 1, outPenalty: 1 };
+    for (const k in mods) if (statusKey[k]) lootBad = true;
   }
-  check('loot does not roll status mods', !lootBad && src.indexOf("k: 'bleed'") < 0);
+  check('loot does not roll status keys', !lootBad && src.indexOf("k: 'bleed'") < 0);
 
   g.newGame(); p = calm(g, w);
   g.applyStatus(p, 'bleed', { base: 6, attacker: 'enemy', source: { name: 'Saved', kind: 'test', id: 'sv' } });

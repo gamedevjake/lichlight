@@ -15,8 +15,8 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 9 — Boss and Super Elite combat redesign. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`), Stage 7 PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`), and Stage 8 PR #31 (`1fb0f155ca794750167f143182869222bdfab790`). Stages 0–8 stay IMPLEMENTED (not marked VERIFIED here). Stage 9 is IMPLEMENTED and waiting for Jake. Stages 10–13 are NOT STARTED. Do not begin Stage 10 until Jake approves Stage 9.
+- **Current implementation stage:** Stage 10 — Equipment, loot, and build-defining affixes. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`), Stage 7 PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`), and Stage 8 PR #31 (`1fb0f155ca794750167f143182869222bdfab790`). Stages 0–8 stay IMPLEMENTED (not marked VERIFIED here). Stage 9 is IMPLEMENTED. Stage 10 is IMPLEMENTED and waiting for Jake. Stages 11–13 are NOT STARTED. Do not begin Stage 11 until Jake approves Stage 10.
 - **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). `combat-redesign-pre-stage7` → `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). `combat-redesign-pre-stage8` → `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). `combat-redesign-pre-stage9` → `1fb0f155ca794750167f143182869222bdfab790` (Stage 8 squash on main, PR #31). Do not move these tags.
 
 ---
@@ -35,12 +35,12 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 7 | Skill system and build specialization | IMPLEMENTED |
 | 8 | Enemy resistances and elite affixes | IMPLEMENTED |
 | 9 | Boss and Super Elite redesign | IMPLEMENTED |
-| 10 | Equipment, loot, and build-changing affixes | NOT STARTED |
+| 10 | Equipment, loot, and build-changing affixes | IMPLEMENTED |
 | 11 | Combat feedback and presentation | NOT STARTED |
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`) and this log does not mark it VERIFIED. Stage 8 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #31 (`1fb0f155ca794750167f143182869222bdfab790`). Stage 9 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 9 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`) and this log does not mark it VERIFIED. Stage 8 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #31 (`1fb0f155ca794750167f143182869222bdfab790`). Stage 9 is IMPLEMENTED, not VERIFIED. Stage 10 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 10 did; the counts are in those entries.
 
 ---
 
@@ -1393,9 +1393,155 @@ The 25% shield bite already stopped at the remaining shield. It now also clamps 
 
 ---
 
+### 2026-11-06 — Stage 10: Equipment, Loot, and Build-Defining Affixes
+
+- **Date:** 2026-11-06.
+- **Stage:** Stage 10 — Equipment, loot, and build-defining affixes.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Rollback tag `combat-redesign-pre-stage10` points at `a492023a5a442bce8404837648567626b58a51e1` (Stage 9 squash on main, PR #32). Do not move it. Tags `combat-redesign-pre-stage1` through `combat-redesign-pre-stage9` were not moved.
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. Stage 11 has not been started.
+- **Objective:** Add elemental resist, penetration, crit damage, typed added damage, one controlled conversion, and one status synergy, using the Stage 2 and Stage 3 formulas. Put resist on common early armor before the five caster bolts become elemental. Do not raise boss or Super Elite HP or damage. Do not reinterpret `mods.fire`. Do not touch the open debts.
+
+#### Implementation
+
+Resist is on the item before any caster bolt is elemental. A non-unique copy of the early armor bases carries `mods.resAll` from `gearWard`. That is not an affix roll. A white leather coat has it. Uniques do not. `fixItem` does not add it to a loaded item, so an old save keeps the mods it was saved with.
+
+```
+gearWard = min(16, round(base + (itemLevel - 1) * 0.55))
+```
+
+| Base | Ward at item level 1 |
+| --- | --- |
+| Leather Armor | 8 |
+| Chain Mail | 6 |
+| Plate Mail, Dusk Shroud | 4 |
+| Cap, Helm | 4 |
+| Great Helm, Bone Visage | 3 |
+| Boots, Greaves | 3 |
+| Wooden Buckler | 6 |
+| Round Shield | 5 |
+| Kite Shield | 4 |
+| Tower Shield and later shields | 3 |
+| Copper Charm | 4 |
+| Bone Pendant | 3 |
+
+`computeStats` still folds `resAll` into the five resists once. The Stage 2 curve is unchanged: `eff = clamp(raw - penetration, -100, resistCap)`, soft cap 75, hard cap 90.
+
+Magic and rare armor, helms, boots, and shields always include one resist line on top of that ward. A rare item can hold two resist lines, not five. `maxResist` is rare-only, item level 8+, helm or amulet, roll 2 or 3.
+
+Offense affixes, and the level they start:
+
+| Key | From item level | Roll cap | Rule |
+| --- | --- | --- | --- |
+| `resFire` `resCold` `resLightning` `resPoison` `resShadow` | 1 | 24 | one or two per item |
+| `resAll` | 1 | 10 | stacks with the ward on the same key |
+| `maxResist` | 8, rare | 2–3 | raises the Stage 2 cap, still stops at 90 |
+| `penFire` through `penShadow` | 6 | 18 | one penetration key per item |
+| `penAll` | 10, rare | 8 | folds once, then the sheet cap |
+| `critDmg` | 3 | 30 | `critMul = 2 + critDmg/100`. Chance is still uncapped |
+| `flatPhysical` and the five `flat*` | 2 | 8 | one flat key per item. Added damage, not spell power |
+| `conv` | 4 | the id | one build affix per item |
+| `ailment` | 4 | the id | one build affix per item |
+
+There is no `inc`, `more`, or `bonus*` affix. Those would be stacked percent multipliers. The sheet still honors them if a test or a hand-edited item sets them. Loot does not roll them.
+
+Sheet penetration per element is `min(40, typed + penAll)`. That cap is applied when stats are summed. A packet's own `penetration` field is still added once inside `mitigateElement`, which is the Stage 2 rule.
+
+#### Conversion
+
+Gear supplies at most one edge. Weapon wins, then amulet, then ring. The fraction is 0.40. `chain` is false. The edge moves that fraction. It does not copy. `setConversionEdges` still rejects a self-edge, a duplicate, and a cycle. A test that sets an edge is left alone until some equipped item actually has `conv`. Taking that item off clears the gear edge and does not clear a test edge that was set while nothing was equipped.
+
+Scale still runs once, on the source type, before the move. Flat fire is not added again to a portion that used to be physical. The moved portion then takes the destination resist and the destination penetration, once. A second pass sees `scaled` and does not grow the number.
+
+| Id | Move |
+| --- | --- |
+| `phys-fire` `phys-cold` `phys-lightning` `phys-poison` `phys-shadow` | 40% of Physical |
+| `fire-cold` `fire-lightning` | 40% of Fire |
+| `cold-fire` | 40% of Cold |
+| `lightning-shadow` | 40% of Lightning |
+
+#### Ailments
+
+One id, from the same slot order. The hit is still scaled once. The status tick is created with `scale: false`, so flat and increased do not apply a second time. One `damageEnemy` call applies the status once. A second hit uses the Stage 4 stack or refresh rules. It does not apply the status twice for the same hit.
+
+| Id | Lands when | Effect |
+| --- | --- | --- |
+| `bleed` | a Melee component is still Physical | Bleed, base 1, 4s. Not on bows or Fireball |
+| `burn` | any Fire component, except a Fireball | Burning, base 1, 3s. Fireball keeps its own burn |
+| `venom` | a Poison component | Poison, base 1 |
+| `spark` | a Lightning component | Shock at 10% taken. Refresh stays 10, not 25 |
+| `hex` | a Shadow component | Curse, −8 resist, 0 outgoing penalty, life drain 0 |
+| `rime` | a Cold component, except Frost Nova | Chill, 12% slow, buildup 8 |
+
+Hex does not wire curse life drain. `curseHooks(...).lifeDrainWired` stays false. Life steal is still the pre-mitigation number.
+
+#### Caster bolts
+
+Resist gear is generated by the same `makeItem` that has always dropped the whites. The bolts are typed in that same change, after the ward exists.
+
+| Attacker | Type |
+| --- | --- |
+| Pale Choir Cultist | Shadow |
+| Lich Wisp | Lightning |
+| Drowned Siren | Cold |
+| Choir Exarch | Shadow |
+| Drowned Seer | Lightning |
+
+Webs and bone arrows stay Physical. `eShoot` still deletes a type on a boss or a Super Elite, so Stage 9 patterns stay Physical. Boss and Super Elite HP, contact, shields, tells, and the Hellmouth mark were not edited. Mother Murk at floor 5 is still 840 HP, 210 shield, contact 18.144. `seMaxHp717(1)` is still 56. `seMaxHp717(10)` is still 249.
+
+#### Loot tables
+
+Rarity rates are unchanged. Whites roll no affix. Magic rolls 1–2. Rare rolls 3–4. Unique is still the boss and the sealed shop, and it still copies the unique's own mods. The shop still offers three sealed uniques at `shopUniquePrice`. Numeric unique mods still scale by tier and depth. String mods are not multiplied.
+
+What changed inside those rates:
+
+- Every non-unique Leather, Chain, Plate, Dusk, Cap, Helm, Great Helm, Bone Visage, Boots, Greaves, every shield base, Copper Charm, and Bone Pendant carries the ward, including whites.
+- Magic and rare armor, helm, boots, and shield replace one rolled line with a resist line if the roll missed.
+- A floor-1 white (`makeItem(2, 0)`, the chest's item level) carried some resist on 58 of 80 samples in the harness. That is the base mix, not a lucky rare.
+- Weapons do not get the ward. A white short sword is still just a sword. `mods.fire` on a staff is still spell power and is not copied into `flatFire`.
+- Conversion and ailments start at item level 4, so they are not on the floor-1 white.
+- Penetration starts at item level 6.
+
+#### Formulas
+
+No Stage 2 or Stage 3 formula constant changed. Physical is still `DEF / (DEF + 30)` on the player only. Elemental mitigation is still one pass of the resist curve. Outgoing order is still crit once, then flat, then increased, then more, then type bonus, then conversion, then mitigation. Crit chance is still `5 + mods.crit` with no cap. Crit damage from gear changes only `critMul`.
+
+#### Balance
+
+Pinned spread 1, crit off. Sword hit is 4. Fireball is the level-10, spell-power-20 hit of 64. "Before" for player damage is that hit with no new affix. Enemy resists are already the Stage 8 rows, so a naked Fireball "before" and "after" are the same number. The pen column is 18 Fire penetration, one affix. Hybrid moves 40% of the sword hit to Fire. Bleed is the unscaled 1-damage stack, capped at 5, ticked on whole seconds. The full rows are in `STAGE10_REPORT.md`.
+
+The early ward kit (leather, cap, boots, buckler, item level 2, no rolled affix) takes a depth-3 cultist bolt for 6. The same DEF as Physical would have dealt 7. A naked DEF 0 hit is 9 either way, because elemental and Physical match when DEF and resist are both 0. Wearing the DEF and stripping the resist is the bad case, and that is why the ward is on the armor rather than on a rare roll.
+
+#### Known issues left open
+
+Crab shell versus bite. Uncapped crit chance. Curse life drain not wired into `leech`. Life steal on the pre-mitigation number, and not on bows, Fireball, or Frost Nova. Stage 10 did not retune any of those.
+
+Old saves do not gain the ward. A leather armor that was already in the bag stays as it was saved.
+
+#### Files
+
+- `index.html` — ward, affixes, one conversion edge, one ailment, the five caster types. `version.json` was not edited.
+- `tests/stage10-equipment.html` — new harness, 44/0.
+- `tests/stage2-resist.html`, `tests/stage3-crit-scaling.html`, `tests/stage4-status.html`, `tests/stage7-skills.html`, `tests/stage8-enemies.html`, `tests/stage9-bosses.html` — the deferred-loot and deferred-bolt checks now lock the Stage 10 rules. Counts did not change.
+- `STAGE10_REPORT.md` — this stage.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry. Earlier history was not rewritten.
+
+#### Rollback
+
+```
+git checkout combat-redesign-pre-stage10
+```
+
+That tag is `a492023a5a442bce8404837648567626b58a51e1`. Do not move it.
+
+#### Next steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 11.
+
+---
+
 ## Combat System Reference
 
-The Stage 9 entry is the boss, Super Elite, and Hellmouth layer. The Stage 8 block is the enemy resist and affix layer under it. The Stage 7 block is the skill layer. The Stage 6 block is the weapon model under it. The Stage 5 block is the poise model under that. The Stage 4 block is the status model. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those numbers still follow when the target has no resist and the skill build is the base row. Planned work for later stages stays marked as planned.
+The Stage 10 entry is the gear layer: resist wards, one conversion edge, and one ailment. `mods.fire` is still spell power. The Stage 9 entry is the boss, Super Elite, and Hellmouth layer. The Stage 8 block is the enemy resist and affix layer under it. The Stage 7 block is the skill layer. The Stage 6 block is the weapon model under it. The Stage 5 block is the poise model under that. The Stage 4 block is the status model. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those numbers still follow when the target has no resist and the skill build is the base row. Planned work for later stages stays marked as planned.
 
 ### Stage 7 implemented architecture
 
@@ -2011,7 +2157,8 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7 did not change it. OPEN.
 - **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
 - **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. RESOLVED in Stage 9. `seMoveMul` now multiplies the aura the same way `ccMoveMul` does. `HEAVY_CHILL` and freeze immunity are unchanged. While `fearT` is up, `seTick717` does not chase and it drops a tell that has not landed.
-- **Crab bites while shelled and does not contact-tick while open.** OPEN. The shell still returns `prevented: 'crab'` before any damage, and the contact test is still `!(ai === 'crab' && mode === 'open')`, so a shelled crab bites and an open crab does not. Jake rejected an unrequested flip of that bite before Stage 8 merged. The crab resist profile stays. A later stage may retune the bite only with an explicit ask.
+- **Crab bites while shelled and does not contact-tick while open.** OPEN. The shell still returns `prevented: 'crab'` before any damage, and the contact test is still `!(ai === 'crab' && mode === 'open')`, so a shelled crab bites and an open crab does not. Jake rejected an unrequested flip of that bite before Stage 8 merged. The crab resist profile stays. A later stage may retune the bite only with an explicit ask. Stage 10 did not retune it.
+- **Stage 10 left the other open combat debts alone.** Crit chance is still uncapped. Curse `lifeDrain` is still not added to `leech` (`lifeDrainWired` stays false). Life steal is still the pre-mitigation number and still skips bows, Fireball, and Frost Nova. The new hex affix stores life drain 0 on purpose. A saved item does not gain the Stage 10 ward on load. New drops of the warded bases do.
 - **Floor of 1** after defense makes guard-front (×0.15) and ram armor (×0.40) chip instead of stopping a small hit, and makes thorns at least 1. Stage 2. OPEN.
 - **Enrage does not add boss damage.** RESOLVED in Stage 9 by keeping it that way. Phase 2 and 3 still add patterns and the existing `enr` speed (1.25, then 1.4). They do not multiply hit damage. A new pattern waits out `phaseBeat` (0.7s).
 - **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. RESOLVED in Stage 9 as the readable rule. The bar's midpoint tick is phase 2. The quarter tick, where `B.p3` is set, is phase 3. The shield is the opening ward and is not folded into that fraction. HP and the shield fraction were not changed.
@@ -2319,6 +2466,36 @@ Legacy name movement against `20906ad` on this sequential pass:
 
 No other failure name was added. `version.json` is still 0.7.18. A diff of `index.html` against `20906ad` adds no `dmgType` line, does not edit `castHellmouth`, `spawnBoss`, `seSpawn717`, or `seTick717`, and does not edit the loot `AFFIX` table. The crab contact predicate matches the tag; the shroud skip is the only extra term.
 
+### Stage 10 executed results
+
+Headless Chrome, Puppeteer, system Google Chrome, SwiftShader, cache disabled, `python3 -m http.server` on 127.0.0.1. The pre-change run is this checkout at `a492023` / tag `combat-redesign-pre-stage10`, before any Stage 10 code. The same runner and viewport were used after. Counts are pass/fail. New and cleared names are listed.
+
+Checkpoint, before Stage 10 code: legacy **806 passed, 100 failed**. Stages 1–9 were 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 76/0.
+
+After, one sequential pass, before the Stage 4 key match was tightened: legacy **803 passed, 103 failed**. Stages 1–3 and 5–9 stayed green at those counts. Stage 4 was 74/1. Stage 10 was 44/0.
+
+The Stage 4 name was `loot does not roll status mods`. The check used a substring, and `resPoison` contains `poison`. The status ids are still not affix keys. The check is now `loot does not roll status keys`, matching the whole key, and the re-run was 75/0. That is a test adjustment. Bleed, burn, chill, shock, and curse behavior were not retuned.
+
+Renamed earlier-stage checks, all passing at the old counts:
+
+- `tests/stage2-resist.html`: `no resist affix in the loot table` → `resist affixes use the stage 2 keys`. `loot rolls no resist mods` → `uniques do not gain a resist ward`.
+- `tests/stage3-crit-scaling.html`: `no new combat affixes` → `no generic more or bonus affix`. `loot does not roll stage 3 mods` → `loot does not roll generic increased more or bonus`.
+- `tests/stage7-skills.html`: `loot has no resist affix` → `resist affixes exist and spell power stays spell power`. `caster elements stay deferred` → `caster bolts are typed and bosses stay physical`. `cultist bolt is physical and uses armor` → `cultist bolt is shadow and skips armor`. `caster bolts stay physical until resist gear` → `caster bolts use their elements`.
+- `tests/stage8-enemies.html`: `caster elements stay deferred` → `caster bolts are typed and bosses stay physical`. `loot still has no resist affix` → `loot can roll a resist affix`. `cultist bolt stays physical` → `cultist bolt is shadow`.
+- `tests/stage9-bosses.html`: `caster elements stay deferred` → `boss shots stay physical while casters are typed`.
+
+Legacy name movement on the sequential pass:
+
+- `v076`: 48/0 → 47/1. Added `b3 damage no snap`. Two re-runs were 48/0. Snap flake.
+- `v07152`: 36/1 → 34/3. Added `tab hits follow scale` and `slot hit follows scale`. `version` remains. Three re-runs stayed 34/3 with those two names. The pre-change run of this same harness was 36/1 with only `version`. Layout flake. Satchel scale and hit-testing were not edited.
+- `v0714`: stayed 33/8 on the sequential pass, the seven footer and tab names plus `version`. Two re-runs were 40/1 with only `version`. Layout flake.
+- `v0711`: stayed 42/5. The five stable names stayed (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). Two re-runs stayed 42/5. `trash in the maw` was not a failure.
+- `v075`: stayed 59/1 with only `f3 multi select` on the sequential pass. One re-run was 58/2 and added `f4 skins rotate`. The next was 59/1 with only `f3 multi select`. Prism-skin flake.
+
+No other legacy failure name was added. `version.json` is still 0.7.18. Stage 11 was not started.
+
+Time-to-kill and the caster survival rows are in the Stage 10 history entry and in `STAGE10_REPORT.md`. Mother Murk is still 840 HP, 210 shield, contact 18.144. Super Elite pools at depth 1 and 10 are still 56 and 249.
+
 ---
 
 ## Approval gate
@@ -2428,3 +2605,237 @@ check('f2 brazier', litB);
 A mulberry seed installed immediately before `startFloor(3)` was swept for seeds 1 through 240 on `a492023` and on this branch. Both runs used 15115 `Math.random` calls on seed 1. Both failed the same 12 seeds: seed 29 is `no-brazier`; seeds 38, 66, 99, 109, 111, 144, 157 and four others are `nearest-not-torch`, with `nearestInteract` returning `LIGHT SPARE` because a locked chest, an open chest, or a lever is inside its radius. A hand-built floor agrees on both commits: no brazier fails, one isolated lit brazier passes with `LIGHT TORCH`, and the same brazier 8px from an open chest fails because the nearest label becomes `LIGHT SPARE`.
 
 `placeLights`, `interactables`, `nearestInteract`, and `brazierLit` are not in this diff. The new `Math.random` calls are inside `giltGear` and `seRollGear`, which run when a gilt chest is opened or a Super Elite dies, not while `startFloor` places braziers. This path does not shift spawn order. It is not a gameplay regression. It is a pre-existing nondeterministic test.
+
+Stage 10 is IMPLEMENTED, not VERIFIED, on a later branch. The paragraph above the early-balance entries is the Stage 9 gate and was not rewritten. This PR is the Stage 10 review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 11.** Stage 11 is combat feedback. It must not start from this branch. Stage 10 did not raise boss or Super Elite HP or damage, did not reinterpret `mods.fire`, and did not close the crab bite, the uncapped crit chance, curse life drain, or pre-mitigation life steal.
+
+---
+
+### 2026-11-06 — Stage 10 integration with early balance (`e550e3d`)
+
+- **Date:** 2026-11-06.
+- **Stage:** Integrated review of Stage 10 (PR #33) on top of main `e550e3d` (PR #35). PR #33 was not merged. Stage 11 was not started. `version.json` was not edited. Nothing was deployed.
+- **Merge:** `git merge origin/main --no-ff` onto `cursor/stage10-equipment-affixes-e264`. Merge commit `2783fa1bb173158f7e807ea0c652bc9f90188509`. Parents `149a8d3e93e8d5ba417be7247a66616aa342475c` (Stage 10) and `e550e3d38e3b136ad3286df57efca38901a6effc` (main). No rebase. No force-push.
+- **Conflicts:** `COMBAT_REDESIGN_CHANGELOG.md` only. `index.html` and `tests/stage9-bosses.html` auto-merged. The resolution keeps the early-balance history from main verbatim, then the Stage 10 gate paragraphs. No combat hunk was edited by hand.
+
+#### Requirements
+
+New drops still go through `makeItem`, which stamps `reqSrc: 'drop'` and `calcReqLvl`. The ward does not change rarity, so it does not change the requirement.
+
+- White leather at item level 1 and 3 requires level 1 and carries the ward (8 at level 1). Item level 4 white leather requires `floor(0.6 × 3) = 1` and still has the ward.
+- New magic leather at item level 3 requires level 2 (`floor(0.7 × 2) + 1`). New rare leather at item level 3 requires level 3 (`floor(0.8 × 2) + 2`). A rare Rune Blade at item level 8 requires level 7 (`floor(0.8 × 7) + 2`).
+- `stampReq` on a pre-Stage-10 leather with no `reqLvl` stores the legacy requirement and `reqSrc: 'grandfather'`. It does not add `resAll`. A grandfathered magic of item level 3 stays required level 1, which is the old shortcut, not the new magic rule.
+
+#### Loot simulation
+
+24 runs per band. Each floor: player level equals the depth, two `chestLoot` calls, twelve trash kills at the live white rate (5%, times 0.35 while level ≤ 2), one `seRollGear`, a gilt chest on 25% of floors, and on every 5th floor the boss purse (`bossUnique(depth+2)`, one rare, one magic-or-rare). A piece is worn only when `reqLvl` is at most the depth. The kept set is the best piece per slot. Averages are that worn set.
+
+| Band | Chest W/M/R/U | SE rare/unique | Boss uniques | Req blocked | Runs with resist | Avg DEF | Avg life | Avg all-resist | Avg weapon |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1–5 | 59/152/29/0 of 240 | 101/19 of 120 | 24 of 24 runs | 123 | 24/24 | 19 | 24 | 28 | 15.6 |
+| 6–10 | 0/169/71/0 of 240 | 34/86 of 120 | 24 | 6 | 24/24 | 42 | 76 | 36 | 32.5 |
+| 11–20 | 0/308/172/0 of 480 | 0/240 of 240 | 48 | 11 | 24/24 | 68 | 144 | 49 | 52.2 |
+
+Chests never rolled a unique. Super Elite rates match the table: about 16% unique across depths 1–5 (expected 21% from 0/0/20/35/50), about 72% across 6–10 (expected 76% from 70/70/70/70/100), and 100% from 11–20. The 123 blocked pieces in depths 1–5 are mostly boss and rare drops whose new requirement is above the floor. The worn set still had resist on every run, from the white ward.
+
+#### Casters versus resist
+
+Cultists start at depth 3. A warded white is a floor-1 chest drop (item level 2, required level 1). All 24 early runs wore resist before any rare was required. The depth-3 cultist bolt is 8.51. The white kit (DEF 11, all-resist 29) takes 6. The old Physical hit at that DEF is also 6. Ten such hits remove 60 HP, the same as the old armor. The wisp at depth 5 is the same shape (11 naked, 7 kit, 7 old armor). Siren, Exarch, and Seer are depths 12, 14, and 15, after the mid band's kept all-resist of about 36. Their white kits take 8, 16, and 27 against old-armor hits of 9, 18, and 30.
+
+#### Old-save ward gap
+
+Not changed. A leather saved before Stage 10 has DEF and no `resAll`. An elemental bolt ignores DEF, so that armor does not resist. The depth-15 Seer bolt is 58 with no resist and 30 on the old Physical curve at DEF 27. A new white kit takes 27.
+
+Options, none applied:
+
+1. Leave it. The player replaces the old armor with a new drop. This is the current rule. `stampReq` does not add mods.
+2. On load, if a non-unique warded base has no resist key, add `gearWard(base, itemLevel)` to `resAll`. That changes saved combat power.
+3. Grant one new resist piece into the bag on the first load after this change. That changes the inventory.
+4. Keep caster bolts Physical until the character owns any resist. That changes the threat for every new character as well.
+5. Say on the item card that the piece has no elemental ward, and leave the numbers alone. That is presentation, later.
+
+This review keeps option 1.
+
+#### Builds
+
+Sword time and a naked Fireball time are the Stage 9 numbers. The tables in the Stage 10 entry still describe those hits. Hybrid still slows the depth-12 drowned (15.30s to 20.25s) and speeds the spider (6.75s to 5.40s). Eighteen Fire penetration still shortens that drowned Fireball from 1.80s to 1.35s. Bleed still waits out a full second before it shortens a long fight. Depth 1 Super Elite life is now 80, from the early-balance curve that this merge brought in. Depth 5 is 141 and depth 10 is 249. Mother Murk is still 840 HP, 210 shield, contact 18.144. Stage 10 did not edit those formulas. The harness check that used to lock depth 1 at 56 now locks 80 / 141 / 249.
+
+#### Saves, shops, spell power
+
+`mods.fire` is still spell power. A staff's 4 fire does not become flat Fire. `skillSpec` Kindling still loads. Shop offers are still three sealed uniques. Unique definitions still use the old mod keys, and a rolled unique still does not gain a ward or a conversion. Conversion is still one edge, 40% moved, scaled once before the move, and the destination resist and penetration apply once. Fireball still owns its own burn. Shock still refreshes at 10%. Hex still stores life drain 0. `tests/early-balance.html` is 50/0, including the grandfather save.
+
+#### Tests against `e550e3d`
+
+Same headless Chrome harness. Baseline is main `e550e3d` before this merge's test additions. Integrated is this branch.
+
+| Run | Legacy 21 | Stages 1–9 | early-balance | Stage 10 |
+| --- | --- | --- | --- | --- |
+| `e550e3d` | 816 passed, 95 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 77/0 | 50/0 | not present |
+| Integrated | 817 passed, 95 failed | same | 50/0 | 49/0 |
+
+The only legacy count change is `v0711`: 41/5 on the baseline (46 checks) and 42/5 after (47 checks). The five names are the same (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). One passing check was emitted the second time. `trash in the maw` was not a failure. `v076` was 48/0 on both. `v075` was 59/1 with only `f3 multi select` on both. `v0714` was 40/1 with only `version` on both.
+
+`v07152` failed `tab hits follow scale` and `slot hit follows scale` on both full passes, plus `version`. On `e550e3d`, two immediate re-runs were 36/1 with only `version`. On this branch, two re-runs stayed 34/3. A later detail run failed both trees the same way: `elementFromPoint` returned nothing for all six tabs, and the slot's local width was still 24. Satchel CSS and the hit-test were not edited. It is the layout flake, and it is already on main. It is not a Stage 10 combat failure.
+
+`v077` `f2 brazier` did not fail on the baseline pass, two baseline re-runs, the integrated pass, or one integrated re-run. The failure names were `version`, `version source`, `f4 pool`, and `f5 shop boss`. The brazier debt recorded in the early-balance entry is unchanged. This integration does not edit `placeLights`, `interactables`, or `nearestInteract`, and it does not treat a miss of that check as a new regression.
+
+Open debts are unchanged: crab shell versus bite, uncapped crit chance, curse life drain, and pre-mitigation life steal.
+
+---
+
+### 2026-11-06 — Legacy armor ward migration (option 2)
+
+- **Date:** 2026-11-06.
+- **Stage:** Stage 10, still IMPLEMENTED, not VERIFIED. Jake gave conditional approval of PR #33 at `b3cebac` and chose legacy-armor option 2. This commit is on `cursor/stage10-equipment-affixes-e264`, on top of `b3cebac`. No rebase. No force-push. PR #33 was not merged. Stage 11 was not started. `version.json` is still 0.7.18. Nothing was deployed.
+- **Parent:** `b3cebac5179d257c0a0eecd7fa61fb58e8edd22d`.
+
+#### Rule
+
+`WARD_MIG` is 1. On load, `fixItem` still calls `stampReq` first, then `migrateGearWard`. Saved-floor ground items and chest items that already hold a piece take the same two calls inside `grandfatherWorldItems`. The satchel inventory is the bag. There is no second stash array. Equipped slots and inventory slots are both walked, and empty inventory slots stay empty.
+
+`migrateGearWard` does not call `Math.random`.
+
+1. If `wardMig >= 1`, return. Do not add or change mods.
+2. If `rarity === 3`, return. Do not write `wardMig` or any other field. Legacy uniques stay as saved.
+3. If `gearWard(base, stored item level)` is 0, return. Weapons, rings, and amulets outside `GEAR_WARD` are not written.
+4. If `resFire`, `resCold`, `resLightning`, `resPoison`, `resShadow`, or `resAll` is a number greater than 0, the piece already carries Stage 10 resist. A new drop writes the ward into `resAll` before any extra line, so this case is not given a second ward. Set `wardMig = 1` and return.
+5. Otherwise the piece is a pre-Stage-10 non-unique of a warded base. Set `mods.resAll` to `gearWard(base, stored item level)` and `wardMig = 1`.
+
+`gearWard` is `min(16, round(baseWard + (itemLevel - 1) * 0.55))` using the item level already stored on the piece. No ilvl increase. No extra affix roll. Magic and rare pieces do not grow the typed resist line that a new magic or rare would roll. `mods.fire` stays spell power. `reqLvl` and `reqSrc` stay with `stampReq`, including the early-loot grandfather shortcut for a save that has no `reqLvl` and no `reqSrc`.
+
+`applyGearWard` stamps `wardMig` when it writes the ward onto a new drop, so a later save and load does not add that ward again.
+
+#### Before and after
+
+White Leather Armor, item level 2, defense 3, no mods, no `reqLvl`, no `reqSrc`. Equipped. This is a save from before the early-loot field existed.
+
+| | |
+| --- | --- |
+| Before | `mods {}`, def 3, rarity 0, ilvl 2, name Leather Armor, durability 37/40 |
+| After one load | `mods.resAll 9`, `wardMig 1`, `reqLvl 1`, `reqSrc grandfather`, def 3, ilvl 2, rarity 0, name and durability unchanged |
+
+9 is `gearWard('Leather Armor', 2)` = `round(8 + 0.55)`.
+
+Magic Sturdy Cap, item level 3, `mods { def: 2, hp: 6 }`, no requirement fields. Inventory index 1.
+
+| | |
+| --- | --- |
+| Before | def 2 and life 6, no resist |
+| After | `resAll 5`, def 2, life 6, `reqLvl 1`, `reqSrc grandfather`, index 1, name Sturdy Cap, ilvl 3, rarity 1 |
+
+5 is `gearWard('Cap', 3)`. The new magic formula at item level 3 would require level 2. The grandfather shortcut keeps level 1.
+
+Rare Doom Psalm, Plate Mail, item level 8, `mods { hp: 30, regen: 1, fire: 4 }`, `reqLvl 7`, `reqSrc drop`, thorns 10. This is the shape of a piece generated after early loot and before Stage 10.
+
+| | |
+| --- | --- |
+| Before | life 30, regen 1, spell power 4, required level 7, def 14 |
+| After | those same fields, plus `resAll 8` and `wardMig 1` |
+
+8 is `gearWard('Plate Mail', 8)`. `mods.fire` is still 4. The requirement stays 7 and `drop`.
+
+Unique Ratcatcher's Coat, Leather Armor, item level 6, `mods { def: 10, ms: 19, regen: 1 }`, `reqLvl 5`, `reqSrc grandfather`. Inventory index 5.
+
+| | |
+| --- | --- |
+| Before | those mods, no resist |
+| After eight further loads | the same object. No `resAll`. No `wardMig` |
+
+A white short sword with `mods.fire 3`, a ring, and a Silver Locket are also unchanged, because they are not warded bases. A Stage 10 white that already has `resAll` equal to its ward is stamped and not increased. A Helm that already has `resFire 12` and `resAll` equal to `gearWard('Helm', 5)` keeps both numbers.
+
+#### What the load covers
+
+The harness loads one pre-early-loot save (no `reqSrc`) with the white equipped, the magic and the rare and the unique in the bag, plus a buckler, a copper charm, and boots. A second save puts Chain Mail on the ground and Tam's Coffin Lid on a chest. Chain Mail item level 5 gains `resAll 8`. The coffin lid does not.
+
+Direct calls of `migrateGearWard` twenty times on one white add the ward once. `Math.random` is not called. Eight more `continueGame` cycles after the first load, and four more on the floor items, keep the same mods, requirements, item levels, defense, durability, powers, and inventory indexes.
+
+#### Elemental hits, migrated whites versus a new ward kit
+
+Same bases and the same stored item level (`depth + 1`): leather, cap, boots, wooden buckler. Spread 1, block 0. "Naked" is defense 0 and resist 0.
+
+| Bolt | Depth | Damage | DEF | All-resist | Migrated | New kit | Naked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Cultist, Shadow | 3 | 8.51 | 11 | 29 | 6 | 6 | 9 |
+| Siren, Cold | 12 | 15.42 | 23 | 49 | 8 | 8 | 15 |
+| Exarch, Shadow | 14 | 33.58 | 27 | 53 | 16 | 16 | 34 |
+| Seer, Lightning | 15 | 57.85 | 27 | 53 | 27 | 27 | 58 |
+
+The unwarded elemental Seer hit is 58. The migrated kit takes 27, the same as a kit generated now. The old Physical number at that defense was 30. `mods.fire`, `skillSpec` Kindling, `manaCost`, and the boss formulas were not edited. Mother Murk is still 840 / 210 / 18.144. Super Elite life is still 80 / 141 / 249.
+
+#### `v07152` tab and slot hits
+
+`git diff e550e3d -- index.html` has no satchel, `elementFromPoint`, or `sizeSatchel` hunk from Stage 10 or from this migration. `tests/v07152.html` is identical to main.
+
+The stock harness was repeated 12 times on this branch and 12 times on main `e550e3d`, same Chrome, viewport, and device scale. A failure is `elementFromPoint` returning null for all six tabs (`character->none` through `map->none`). The slot check fails in the same run.
+
+| Tree | Outer viewport | Tab fail | Slot fail | Immediate remeasure | 50ms later |
+| --- | --- | --- | --- | --- | --- |
+| Branch | 800×600 | 6/12 | 6/12 | 0/12 | 0/12 |
+| Branch | 1680×900 | 6/12 | 6/12 | 0/12 | 0/12 |
+| `e550e3d` | 800×600 | 6/12 | 6/12 | 0/12 | 0/12 |
+| `e550e3d` | 1680×900 | 5/12 | 5/12 | 0/12 | 0/12 |
+
+The remeasure runs the same resize and reads `elementFromPoint` in that turn, then again 50ms later. Both reads hit the tab and the slot on every repeat, on both trees, including runs whose harness line had just failed. An earlier 8-repeat pass with the game as the top document, no iframe, was 8/8 at 1560×390 and 8/8 at 800×600. The null result is the iframe harness changing the frame size and hit-testing in the same turn, before the frame's viewport and the pinned satchel agree. It is the same rate on main. It is not a Stage 10 combat or satchel regression.
+
+In the full-suite pass below, both trees failed `v07152` only on `version`. That is one sample of the same coin flip.
+
+#### Tests against `e550e3d`
+
+Headless Chrome, viewport 800×600, device scale 1, cache disabled, SwiftShader. One sequential pass each. Counts are pass/fail.
+
+| File | Branch | `e550e3d` |
+| --- | --- | --- |
+| stage 1 | 71/0 | 71/0 |
+| stage 2 | 73/0 | 73/0 |
+| stage 3 | 58/0 | 58/0 |
+| stage 4 | 75/0 | 75/0 |
+| stage 5 | 78/0 | 78/0 |
+| stage 6 | 47/0 | 47/0 |
+| stage 7 | 70/0 | 70/0 |
+| stage 8 | 64/0 | 64/0 |
+| stage 9 | 77/0 | 76/1, then a rerun 77/0 |
+| stage 10 | 64/0 | not present |
+| early-balance | 50/0 | 50/0 |
+| v075 | 59/1 | 59/1 |
+| v076 | 48/0 | 47/1 |
+| v077 | 60/4 | 60/4 |
+| v078 | 60/1 | 60/1 |
+| v078-play | 25/1 | 25/1 |
+| v0781 | 27/2 | 27/2 |
+| v079 | 49/1 | 49/1 |
+| v0710 | 36/1 | 36/1 |
+| v07101 | 41/1 | 41/1 |
+| v07102 | 54/0 | 54/0 |
+| v07103 | 24/3 | 24/3 |
+| v0711 | 41/5 | 43/5 |
+| v0712 | 37/6 | 37/6 |
+| v0713 | 32/5 | 32/5 |
+| v0714 | 40/1 | 40/1 |
+| v0715 | 19/13 | 19/13 |
+| v07151 | 8/45 | 8/45 |
+| v07152 | 36/1 | 36/1 |
+| v0716 | 49/1 | 49/1 |
+| v0717 | 50/1 | 50/1 |
+| v0718 | 23/0 | 23/0 |
+
+No failure name exists on this branch that is absent from `e550e3d`.
+
+Main-only on the first pass, and why:
+
+- Stage 9 `slam does not hit during the windup`. The branch pass was 77/0. Main was 76/1. An immediate rerun of `tests/stage9-bosses.html` on `e550e3d` was 77/0. The windup check steps 0.8s and expects the player still at 500 HP. Boss AI was not edited by the migration.
+- `v076` `b3 damage no snap`. Branch 48/0. Main 47/1. The same name is the snap flake already recorded on earlier stages. Spike damage was not edited.
+
+`v0711` is 41/5 here and 43/5 on main. The five names match: `version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`. Main emitted two extra passing checks. `trash in the maw` was not a failure.
+
+`v075` failed only `f3 multi select` on both. `f4 skins rotate` did not fail. `v077` failed `version`, `version source`, `f4 pool`, and `f5 shop boss` on both. `f2 brazier` did not fail. Both remain the documented debts.
+
+`tests/stage10-equipment.html` is 64/0. The new checks are the ward formula, eligibility, the stored-ilvl value, no RNG, the pre-early-loot save, the between-early-loot rare, equipped and inventory positions, uniques, idempotency, floor loot, and the four caster rows above. `tests/early-balance.html` stays 50/0, including the grandfather save.
+
+#### Left alone
+
+`manaCost` is still the thirst and fatigue multiplier. `skillSpec` Kindling still loads. `mods.fire` is still spell power. Boss HP, shields, contact, and the Hellmouth mark were not edited. Crab bite, uncapped crit chance, curse life drain, and pre-mitigation life steal stay open.
+
+A migrated rare gains the base ward only. It does not gain the extra resist line a newly rolled rare would have. That is the rule above.
+
+**Wait for Jake.** Do not merge PR #33 on the strength of this entry alone. Do not deploy. Do not start Stage 11.

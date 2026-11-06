@@ -75,8 +75,8 @@ function run(w) {
   check('mods.fire is still the spell power key', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
   check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('hazards stay on their old paths', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0 && src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0 && src.indexOf("envHurt(d, 'flames'") >= 0);
-  check('loot has no resist affix', src.indexOf("k: 'resFire'") < 0 && src.indexOf("k: 'resAll'") < 0);
-  check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
+  check('resist affixes exist and spell power stays spell power', src.indexOf("k: 'resFire'") >= 0 && src.indexOf('Spell Power') >= 0 && src.indexOf('legacySkillPower') >= 0);
+  check('caster bolts are typed and bosses stay physical', src.indexOf("mage: 'Shadow'") >= 0 && src.indexOf("wisp: 'Lightning'") >= 0 && src.indexOf("siren: 'Cold'") >= 0 && src.indexOf('e.superElite') >= 0);
 
   let p = calm(g, w);
   const am = { id: 's7', slot: 'amulet', name: 'Old Charm', mods: { fire: 6 }, powers: [] };
@@ -297,7 +297,7 @@ function run(w) {
   const openBolt = w.__lastDamage.dealt;
   p.st.def = 30; p.hp = 300; p.inv0 = 0; p.roll = 0;
   w.hurtPlayer(20, cultist);
-  check('cultist bolt is physical and uses armor', cultist && !cultist.dmgType && openBolt === 20 && w.__lastDamage.dealt === 10 && w.__lastDamage.type === 'Physical', openBolt + ' then ' + w.__lastDamage.dealt + ' ' + (w.__lastDamage && w.__lastDamage.type));
+  check('cultist bolt is shadow and skips armor', cultist && cultist.dmgType === 'Shadow' && openBolt === 20 && w.__lastDamage.dealt === 20 && w.__lastDamage.type === 'Shadow', openBolt + ' then ' + w.__lastDamage.dealt + ' ' + (w.__lastDamage && w.__lastDamage.type));
 
   const wisp = g.spawnEnemy('wisp', p.x + 90, p.y, false);
   const bolt = w.eShoot(wisp, 0, 100, { kind: 'water', label: wisp.T.label });
@@ -313,7 +313,7 @@ function run(w) {
   const arrow = w.eShoot(arch, 0, 120, { kind: 'arrow' });
   p.st.def = 30; p.hp = 300; p.inv0 = 0; p.roll = 0; w.__hurtSpread = 1;
   w.hurtPlayer(20, snipe);
-  check('caster bolts stay physical until resist gear', !cultist.dmgType && !bolt.dmgType && !ring.dmgType && !orb.dmgType && !snipe.dmgType && !web.dmgType && !arrow.dmgType && w.__lastDamage.type === 'Physical' && w.__lastDamage.dealt === 10, [bolt.dmgType || 'phys', ring.dmgType || 'phys', orb.dmgType || 'phys', snipe.dmgType || 'phys', w.__lastDamage.dealt].join(','));
+  check('caster bolts use their elements', cultist.dmgType === 'Shadow' && bolt.dmgType === 'Lightning' && ring.dmgType === 'Cold' && orb.dmgType === 'Shadow' && snipe.dmgType === 'Lightning' && !web.dmgType && !arrow.dmgType && w.__lastDamage.type === 'Lightning' && w.__lastDamage.dealt === 20, [bolt.dmgType, ring.dmgType, orb.dmgType, snipe.dmgType, w.__lastDamage.dealt].join(','));
 
   const fakeBoss = foe(g, p, p.x + 70);
   fakeBoss.T = Object.assign({}, fakeBoss.T, { boss: true });
