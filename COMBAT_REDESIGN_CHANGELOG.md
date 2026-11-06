@@ -2346,3 +2346,37 @@ Stage 8 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and
 Stage 9 is IMPLEMENTED, not VERIFIED, on a later branch. The paragraph above is the Stage 8 gate and was not rewritten. This PR is the Stage 9 review. It is not merged and it is not live. `version.json` is still 0.7.18.
 
 **Wait for Jake's approval before Stage 10.** Stage 10 is loot and the five caster elements. It must not start from this branch. Stage 9 did not add resist loot, did not retype those shots, and did not change the crab bite.
+
+---
+
+### 2026-11-06 — Early-game balance: Super Elite depths 1–4 and the early unique
+
+- **Date:** 2026-11-06.
+- **Stage:** Not a combat-redesign stage. Jake-approved early balance, after Stage 9 merged on `main` at `a492023`. Stage 10 (PR #33) was not edited.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Rollback tag `balance-pre-early-se-loot` points at `a492023a5a442bce8404837648567626b58a51e1`. Do not move it.
+- **Status:** IMPLEMENTED, not VERIFIED. This entry does not mark Stage 9 VERIFIED and does not start Stage 10.
+- **Objective:** Make early Super Elite heavies matter, stop handing a unique to the first two floors, and make magic and rare required level follow the existing formula. Depth 5 and deeper combat stays on the live numbers.
+
+#### What changed
+
+`fade(d) = max(0, 1 - (d - 1) / 4)`. It is 1 at depth 1 and 0 at depth 5 and every floor after.
+
+- Power multiplier `1.7 + 1.3 * fade`. Depth 5+ stays ×1.7, which is still `SE_TELL.power.mul`.
+- Brand multiplier `1.15 + 0.85 * fade` while fade is above 0. At fade 0 the brand stays ×0.85. The audit's depth-5 brand of 14 is not applied. Jake kept depth 5+ combat exactly as it is, so depth 5 brand stays 11.
+- Swing multiplier stays 1. Tell durations, lock, lane width, and radii are unchanged.
+- Life is `round(currentLife * (1 + (80/56 - 1) * fade))` while fade is above 0, and the current formula when fade is 0. Depth 1 is 80, depth 2 is 102, depth 3 is 119, depth 4 is 133, depth 5 is 141. Shield stays 10% of that life.
+- Super Elite unique chance: depths 1–2 are 0% (guaranteed rare), depth 3 is 20%, depth 4 is 35%, depth 5 is 50%, depths 6–9 are 70%, depth 10+ is 100%. A miss is `makeItem(depth, 2)`. Gold 25, the ration, and the 6.5% gate key are unchanged. Bosses still call `bossUnique` and stay a guaranteed unique. The depth-5 boss is the first drop that cannot miss.
+- Magic and rare required level use the normal formula at every item level. An item level 3 rare requires level 3. An item level 3 magic requires level 2 (`floor(0.7 * 2) + 1`). Whites with item level 3 or below still require level 1. Uniques are unchanged.
+- Gilt secret chest before depth 5 is a rare at item level `depth + 1`. From depth 5 the 20% unique returns, still at item level `depth + 1` (the audit's level, not the old `depth + 2`). Prism gilt chests stay gold. The gold roll and the repair-potion coin-flip are unchanged.
+- Migration policy `grandfather-owned`: a save keeps a stored `reqLvl`. A saved item with no `reqLvl` is stamped with the old rule (`calcReqLvlLegacy`) and `reqSrc: 'grandfather'`. Load does not delete or unequip. Equip checks the stored number, so a grandfathered piece can be taken off and put back on. `makeItem` stamps `reqSrc: 'drop'` and the new formula. That requirement applies the next time someone tries to equip the new drop.
+
+Hellmouth, boss pools, boss pattern multipliers, trash contact, sword timing, and the tell dodge are not part of this change.
+
+#### Files
+
+- `index.html` — the formulas, the loot rolls, and the save migration.
+- `tests/early-balance.html`, `tests/early-balance.mjs` — the new harness.
+- `EARLY_BALANCE_REPORT.md` — before and after.
+- `version.json` was not edited. GitHub Pages was not deployed.
+
+The Stage 9 history above was not rewritten. The three harness lines that still lock the old depth-1 power and the old guaranteed Super Elite unique are listed in the report. They are the new failure names. They are not flakes.

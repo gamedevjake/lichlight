@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<!-- Early-game balance: Super Elite depths 1-4, unique rates, required level, gilt chest, grandfathered saves. -->
+<html>
+<head><meta charset="utf-8"><title>early-balance</title></head>
+<body>
+<iframe id="g" src="../index.html?v=early-balance" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.hp = 500; p.st.maxHp = 500; p.st.def = 0; p.st.block = 0; p.st.regen = 0; p.st.fire = 0;
+  p.barrier = 0; p.inv0 = 0; p.roll = 0; p.isInvincible = false; p.isArmorActive = false;
+  w.__hurtSpread = 1; w.__champCrit = 1; w.__critRoll = 1;
+  if (g.state !== 'play' && typeof w.setState === 'function') w.setState('play');
+  return p;
+}
+function blankEquip() {
+  return { weapon: null, shield: null, helm: null, armor: null, boots: null, ring: null, amulet: null };
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=early-src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('grandfather policy is named', g.REQ_POLICY === 'grandfather-owned');
+
+  const life = { 1: 80, 2: 102, 3: 119, 4: 133, 5: 141 };
+  const shield = { 1: 8, 2: 10, 3: 12, 4: 13, 5: 14 };
+  const swing = { 1: 6, 2: 8, 3: 10, 4: 11, 5: 13 };
+  const power = { 1: 19, 2: 22, 3: 23, 4: 22, 5: 21 };
+  const brand = { 1: 13, 2: 14, 3: 15, 4: 15, 5: 11 };
+  g.newGame();
+  let p = calm(g, w);
+  const rows = [];
+  for (let d = 1; d <= 12; d++) {
+    g.startFloor(d, true);
+    p = calm(g, w);
+    const fade = g.seEarlyFade(d);
+    const base = g.seBaseHp717(d);
+    const hp = g.seMaxHp717(d);
+    const sh = Math.round(hp * g.SE_SHIELD_FRAC);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_morbius', 'fight');
+    e.sePhase = 'fight'; e.x = p.x; e.y = p.y; e.spd = 0;
+    const expectMul = {
+      swing: 1,
+      power: g.SE_TELL.power.mul + 1.3 * fade,
+      brand: fade > 0 ? 1.15 + 0.85 * fade : g.SE_TELL.brand.mul
+    };
+    const dealt = {};
+    for (const kind of ['swing', 'power', 'brand']) {
+      p.hp = 500; p.inv0 = 0; p.st.def = 0; p.st.block = 0;
+      e.seAct = ''; e.sePhase = 'fight';
+      g.seResolveTell(e, kind, { x: e.x, y: e.y, a: 0, len: 80, w: 40, r: 80 });
+      dealt[kind] = 500 - p.hp;
+      const mul = g.seTellMul(kind, d);
+      if (Math.abs(mul - expectMul[kind]) > 1e-9) rows.push('d' + d + ' ' + kind + ' mul ' + mul);
+    }
+    if (e.maxHp !== hp || e.maxShield !== sh) rows.push('d' + d + ' spawn ' + e.maxHp + '/' + hp);
+    if (d <= 5) {
+      if (hp !== life[d] || sh !== shield[d]) rows.push('d' + d + ' pool ' + hp + '/' + sh);
+      if (dealt.swing !== swing[d] || dealt.power !== power[d] || dealt.brand !== brand[d]) rows.push('d' + d + ' hit ' + dealt.swing + '/' + dealt.power + '/' + dealt.brand);
+    } else {
+      if (hp !== base) rows.push('d' + d + ' life moved ' + hp + ' base ' + base);
+      if (Math.abs(g.seTellMul('power', d) - 1.7) > 1e-9 || Math.abs(g.seTellMul('brand', d) - 0.85) > 1e-9) rows.push('d' + d + ' mul not baseline');
+    }
+    if (Math.abs(g.seTellMul('swing', d) - 1) > 1e-9) rows.push('d' + d + ' swing mul');
+    e.hp = 0; e.dead = true;
+  }
+  check('depths 1-5 match the approved table and 5+ stays on the old body', rows.length === 0, rows.join(' | '));
+  check('tell geometry is unchanged', g.SE_TELL.swing.dur === 1 && g.SE_TELL.swing.mul === 1 && g.SE_TELL.power.dur === 1.3 && g.SE_TELL.power.mul === 1.7 && g.SE_TELL.power.r === 10 && g.SE_TELL.brand.dur === 1.15 && g.SE_TELL.brand.mul === 0.85 && g.SE_TELL.brand.r === 8);
+  check('depth 5 brand stays 11, not the audit 14', brand[5] === 11);
+
+  g.startFloor(1, true); p = calm(g, w);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const lane = g.seSpawn717('se_nyx', 'fight');
+  lane.sePhase = 'fight'; lane.x = p.x; lane.y = p.y; lane.spd = 0;
+  p.x = lane.x + 40; p.y = lane.y + 40; p.hp = 400;
+  const missed = g.seResolveTell(lane, 'swing', { x: lane.x, y: lane.y, a: 0, len: 52, w: 16 });
+  check('a sidestepped swing still deals 0', missed === 0 && p.hp === 400, p.hp);
+  p.x = lane.x + 10; p.y = lane.y; p.hp = 400;
+  const landed = g.seResolveTell(lane, 'swing', { x: lane.x, y: lane.y, a: 0, len: 52, w: 16 });
+  check('standing in the depth 1 swing still deals 6', landed === 1 && p.hp === 394, p.hp);
+
+  const chance = { 1: 0, 2: 0, 3: 0.2, 4: 0.35, 5: 0.5, 6: 0.7, 9: 0.7, 10: 1, 12: 1 };
+  let chanceBad = '';
+  Object.keys(chance).forEach(d => { const got = g.seUniqueChance(+d); if (got !== chance[d]) chanceBad += d + '=' + got + ' '; });
+  check('super elite unique chances', !chanceBad, chanceBad);
+  function gearAt(d, roll) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_morbius', 'fight');
+    e.sePhase = 'fight'; e.hp = 1; e.shield = 0;
+    g.ground.length = 0;
+    w.__seUnique = roll;
+    w.__seGkey = 1;
+    w.damageEnemy(e, 80, 0, 0, '#fff', false);
+    return g.ground.filter(it => it.item).map(it => it.item);
+  }
+  const d1 = gearAt(1, 0), d2 = gearAt(2, 0);
+  check('depths 1-2 are a rare and never a unique', d1.length === 1 && d1[0].rarity === 2 && d1[0].lvl === 1 && d1[0].reqSrc === 'drop' && d2.length === 1 && d2[0].rarity === 2 && d2[0].lvl === 2, (d1[0] && d1[0].rarity) + '/' + (d2[0] && d2[0].rarity));
+  const edge = [
+    [3, 0.199, 3], [3, 0.20, 2], [4, 0.349, 3], [4, 0.35, 2],
+    [5, 0.499, 3], [5, 0.50, 2], [6, 0.699, 3], [9, 0.70, 2], [10, 0.99, 3], [15, 0, 3]
+  ];
+  const edgeBad = [];
+  edge.forEach(([d, roll, rar]) => {
+    w.__seUnique = roll;
+    const it = g.seRollGear(d);
+    if (!it || it.rarity !== rar || it.lvl !== d) edgeBad.push(d + '@' + roll + ' r' + (it && it.rarity) + ' L' + (it && it.lvl));
+  });
+  const liveEdge = gearAt(3, 0);
+  if (!(liveEdge[0] && liveEdge[0].rarity === 3 && liveEdge[0].lvl === 3)) edgeBad.push('kill d3 ' + (liveEdge[0] && liveEdge[0].rarity));
+  check('unique roll edges', edgeBad.length === 0, edgeBad.join(' | '));
+  let rateBad = '';
+  [[1, 0], [3, 0.20], [5, 0.50], [10, 1]].forEach(([d, p]) => {
+    let u = 0; const n = d === 10 || d === 1 ? 40 : 200;
+    for (let i = 0; i < n; i++) {
+      w.__seUnique = undefined;
+      const it = g.seRollGear(d);
+      if (it && it.rarity === 3) u++;
+    }
+    const rate = u / n;
+    const band = d === 1 || d === 10 ? 0 : 0.12;
+    if (Math.abs(rate - p) > band) rateBad += 'd' + d + ' ' + rate.toFixed(2) + ' ';
+  });
+  check('sampled unique rates sit on the table', !rateBad, rateBad);
+
+  function purse(d, gkey) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_morbius', 'fight');
+    e.sePhase = 'fight'; e.hp = 1; e.shield = 0;
+    g.ground.length = 0;
+    w.__seUnique = 1;
+    w.__seGkey = gkey;
+    w.damageEnemy(e, 80, 0, 0, '#fff', false);
+    const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
+    const rats = g.ground.filter(it => it.ration).length;
+    const keys = g.ground.filter(it => it.gkey).length;
+    return { gold, rats, keys };
+  }
+  const withKey = purse(4, 0), noKey = purse(8, 0.065);
+  check('gold ration and gate key chances stay', withKey.gold === 25 && withKey.rats === 1 && withKey.keys === 1 && noKey.gold === 25 && noKey.rats === 1 && noKey.keys === 0 && g.SE_GKEY_P === 0.065, JSON.stringify(withKey) + ' ' + JSON.stringify(noKey));
+
+  g.newGame(); p = g.player; p.lvl = 1; p.xp = 0; w.computeStats();
+  const prog = [];
+  for (let d = 1; d <= 5; d++) {
+    const before = p.lvl;
+    w.gainXp(Math.round(48 + 14 * d));
+    prog.push(p.lvl + '.' + p.xp);
+    void before;
+  }
+  check('depth 1-5 super elite xp reaches level 2 then 3 then 4', prog.join(',') === '2.32,3.21,3.111,4.51,4.169', prog.join(','));
+  p.lvl = 2; w.computeStats();
+  const rare1 = w.makeItem(1, 2, 'Short Sword');
+  const rare3 = w.makeItem(3, 2, 'Leather Armor');
+  const magic3 = w.makeItem(3, 1, 'Cap');
+  const white3 = w.makeItem(3, 0, 'Boots');
+  check('item level 3 rare requires 3, magic uses the formula, white stays 1', rare3.reqLvl === 3 && rare3.reqSrc === 'drop' && magic3.reqLvl === 2 && white3.reqLvl === 1 && rare1.reqLvl === 2, rare3.reqLvl + '/' + magic3.reqLvl + '/' + white3.reqLvl + ' L1 rare ' + rare1.reqLvl);
+  check('item level 1 rare now requires 2 and the old shortcut would have been 1', rare1.reqLvl === 2 && g.calcReqLvlLegacy(rare1) === 1);
+  const rare4 = w.makeItem(4, 2, 'Leather Armor');
+  const magic4 = w.makeItem(4, 1, 'Helm');
+  check('item level 4 and uniques keep the old formula', rare4.reqLvl === 4 && rare4.reqLvl === g.calcReqLvlLegacy(rare4) && magic4.reqLvl === g.calcReqLvlLegacy(magic4) && magic4.reqLvl === 3);
+  let uniq = null;
+  for (let i = 0; i < 400 && !uniq; i++) { const it = w.makeItem(1, 3); if (it && it.name === 'Grandsire Oswin') uniq = it; }
+  check('a depth 1 unique still uses the unique requirement', uniq && uniq.reqLvl === g.calcReqLvlLegacy(uniq) && uniq.rarity === 3, uniq && uniq.reqLvl);
+
+  function gilt(d, roll, prism) {
+    g.startFloor(d, true);
+    g.ground.length = 0;
+    w.__giltUnique = roll;
+    w.__goldRoll = 0;
+    w.openSecretChest({ open: 0, tx: 4, ty: 4, prism: prism ? 1 : 0 });
+    const items = g.ground.filter(it => it.item).map(it => it.item);
+    const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
+    return { items, gold };
+  }
+  const g2 = gilt(2, 0, false), g4 = gilt(4, 0, false);
+  check('gilt before depth 5 is rare only at item level depth+1', g2.items.length === 1 && g2.items[0].rarity === 2 && g2.items[0].lvl === 3 && g4.items.length === 1 && g4.items[0].rarity === 2 && g4.items[0].lvl === 5 && g2.gold >= 13 * 2 && g2.gold <= 23 * 2, 'L' + (g2.items[0] && g2.items[0].lvl) + ' r' + (g2.items[0] && g2.items[0].rarity));
+  const g5u = gilt(5, 0, false), g5r = gilt(5, 0.2, false), g8 = gilt(8, 0.19, false);
+  check('gilt from depth 5 restores a 20% unique at item level depth+1', g5u.items[0] && g5u.items[0].rarity === 3 && g5u.items[0].lvl === 6 && g5r.items[0] && g5r.items[0].rarity === 2 && g5r.items[0].lvl === 6 && g8.items[0] && g8.items[0].rarity === 3 && g8.items[0].lvl === 9, (g5u.items[0] && g5u.items[0].lvl) + '/' + (g5r.items[0] && g5r.items[0].rarity));
+  g.ground.length = 0; w.__goldRoll = 1;
+  w.openSecretChest({ open: 0, tx: 5, ty: 5, prism: 1 });
+  check('a prism gilt chest is still only gold', g.ground.every(it => !it.item) && g.ground.reduce((n, it) => n + (it.gold || 0), 0) === 0);
+  w.__goldRoll = 0; g.ground.length = 0;
+  w.openSecretChest({ open: 0, tx: 6, ty: 6, prism: 1 });
+  const prismGold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
+  check('prism gold piles are unchanged', prismGold > 0 && g.ground.every(it => !it.item), prismGold);
+  check('chest table still cannot be unique', w.chestLoot && w.chestLoot.toString().indexOf('makeItem(d + 1') >= 0 && w.chestLoot.toString().indexOf(', 3)') < 0);
+
+  g.startFloor(1, true); check('no shop on depth 1', !g.shop);
+  g.startFloor(2, true); check('no shop on depth 2', !g.shop);
+  g.startFloor(5, true);
+  const shop = g.shop;
+  check('Hollow Pedlar still stands on the depth 5 boss floor', !!(shop && shop.offers && shop.offers.length === 3 && shop.sealed === true), shop && shop.offers && shop.offers.length);
+  p = g.player; p.gold = 99999;
+  const offer = shop.offers[0];
+  const bought = w.rollShopUnique(offer);
+  check('shop unique is still a unique at the shop formula', bought && bought.rarity === 3 && bought.reqLvl === g.calcReqLvl(bought) && offer.price === g.shopUniquePrice(offer.tier), bought && (bought.rarity + ' req ' + bought.reqLvl + ' price ' + offer.price));
+  g.ground.length = 0;
+  const boss = g.enemies.find(e => e && e.T && e.T.boss);
+  const bossHp = boss && boss.maxHp, bossSh = boss && boss.maxShield;
+  if (boss) { boss.hp = 1; boss.shield = 0; w.damageEnemy(boss, 5000, 0, 0, '#fff', false); }
+  const bossUniq = g.ground.filter(it => it.item && it.item.rarity === 3).length;
+  check('depth 5 boss is still a guaranteed unique and its pool is the old size', !!boss && bossHp === 840 && bossSh === 210 && bossUniq >= 1 && g.BOSS_HP_MUL === 1.75 && g.BOSS_SHIELD_FRAC === 0.25, 'hp ' + bossHp + ' sh ' + bossSh + ' u ' + bossUniq);
+  g.startFloor(1, true); p = calm(g, w);
+  const slime = w.spawnEnemy('slime', p.x + 20, p.y, false);
+  p.hp = 200; p.st.def = 0; p.st.block = 0; w.__hurtSpread = 1;
+  w.hurtPlayer(slime.dmg, slime);
+  check('depth 1 slime is unchanged', slime.maxHp === 12 && p.hp === 196, 'hp ' + slime.maxHp + ' dealt ' + (200 - p.hp));
+  g.startFloor(5, true); p = calm(g, w); p.hp = 200;
+  const arch = w.spawnEnemy('archer', p.x + 24, p.y, false);
+  w.hurtPlayer(arch.dmg, arch);
+  check('depth 5 archer contact is unchanged', arch.maxHp === 34 && p.hp === 189, 'hp ' + arch.maxHp + ' dealt ' + (200 - p.hp));
+  check('hellmouth mark and bite are unchanged', g.HM_MARK === 3 && g.HM_BITE === 0.25 && src.indexOf('function castHellmouth') >= 0);
+
+  function ttk(d, dmg, period) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_morbius', 'fight');
+    e.sePhase = 'fight'; e.shield = e.maxShield; e.hp = e.maxHp;
+    let hits = 0, half = null;
+    while (e.hp > 0 && hits < 80) {
+      w.damageEnemy(e, dmg, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
+      hits++;
+      if (half == null && e.hp <= e.maxHp * 0.5) half = hits;
+    }
+    return { hits, time: Math.round(hits * period * 100) / 100, window: Math.round((hits - half) * period * 100) / 100, dead: e.hp <= 0 };
+  }
+  const near = (got, want, name, bag) => { if (Math.abs(got - want) > 0.06) bag.push(name + ' ' + got + '!=' + want); };
+  const ttkBad = [];
+  const r1 = ttk(1, 4, 0.45); near(r1.time, 9.9, 'd1 rusty', ttkBad); near(r1.window, 4.5, 'd1 rusty window', ttkBad);
+  const c1 = ttk(1, 5, 0.45); near(c1.time, 8.1, 'd1 common', ttkBad); near(c1.window, 3.6, 'd1 common window', ttkBad);
+  const a1 = ttk(1, 6, 0.45); near(a1.time, 6.8, 'd1 rare', ttkBad); near(a1.window, 3.2, 'd1 rare window', ttkBad);
+  const u1 = ttk(1, 12, 0.45 / 1.21); near(u1.time, 3.0, 'd1 unique', ttkBad); near(u1.window, 1.5, 'd1 unique window', ttkBad);
+  const u1max = ttk(1, 14, 0.45 / 1.21); near(u1max.window, 1.1, 'd1 unique max window', ttkBad);
+  const r5 = ttk(5, 4, 0.45); near(r5.time, 17.5, 'd5 rusty', ttkBad); near(r5.window, 7.6, 'd5 rusty window', ttkBad);
+  check('time to kill matches the audit for common, rare, and unique', ttkBad.length === 0 && u1.window >= 1.3 && u1max.window < 1.3 && r5.dead, ttkBad.join(' | '));
+
+  g.newGame(); p = g.player; p.lvl = 2; w.computeStats();
+  p.equip = blankEquip();
+  p.equip.weapon = w.makeRusty ? w.makeRusty() : w.makeItem(1, 0, 'Rusty Sword');
+  if (!w.makeRusty) p.equip.weapon.rusty = true;
+  w.computeStats();
+  const rustyAvg = Math.round((p.st.min + p.st.max) / 2);
+  check('level 2 rusty sword sheet is 2-5', p.st.min === 2 && p.st.max === 5 && rustyAvg === 4, p.st.min + '-' + p.st.max);
+  p.equip.weapon = w.makeItem(1, 0, 'Short Sword'); w.computeStats();
+  check('level 2 common short sword sheet is 3-6', p.st.min === 3 && p.st.max === 6 && Math.round((p.st.min + p.st.max) / 2) === 5, p.st.min + '-' + p.st.max);
+  const rareW = w.makeItem(1, 2, 'Short Sword'); rareW.mods.dmg = 1; p.equip.weapon = rareW; w.computeStats();
+  check('level 2 rare sword with +1 damage sheets 4-7', p.st.min === 4 && p.st.max === 7 && Math.round((p.st.min + p.st.max) / 2) === 6, p.st.min + '-' + p.st.max);
+  p.equip.weapon = uniq; w.computeStats();
+  const gPeriod = w.attackPeriod();
+  check('Grandsire at level 2 is 10-14 at 1.21 speed', uniq && p.st.min === 10 && p.st.max === 14 && Math.abs(p.st.aspd - 1.21) < 1e-9 && Math.abs(gPeriod - 0.45 / 1.21) < 1e-9, p.st.min + '-' + p.st.max + ' aspd ' + p.st.aspd);
+
+  function hits(life, blow) {
+    if (g.state !== 'play') w.setState('play');
+    p.lvl = 2; w.computeStats();
+    p.st.maxHp = life; p.st.def = 0; p.st.block = 0; p.st.regen = 0; p.hp = life; p.barrier = 0; p.inv0 = 0; p.isInvincible = false;
+    w.__hurtSpread = 1; w.__champCrit = 1;
+    let n = 0;
+    while (p.hp > blow && n < 40) { p.inv0 = 0; w.hurtPlayer(blow, { x: p.x, y: p.y, label: 'heavy' }); n++; }
+    if (p.hp > 0 && p.hp <= blow) n++;
+    if (g.state !== 'play') w.setState('play');
+    p.hp = p.st.maxHp;
+    return n;
+  }
+  const lives = [70, 74, 91, 102, 111, 198];
+  const powHits = lives.map(L => hits(L, 19));
+  const brHits = lives.map(L => hits(L, 13));
+  check('powers of 19 to die on the measured life band', powHits.join(',') === '4,4,5,6,6,11', powHits.join(','));
+  check('brands of 13 to die on the measured life band', brHits.join(',') === '6,6,7,8,9,16', brHits.join(','));
+  g.startFloor(1, true); p = calm(g, w); p.st.def = 7; p.hp = 200;
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const arm = g.seSpawn717('se_morbius', 'fight');
+  arm.sePhase = 'fight'; arm.x = p.x; arm.y = p.y;
+  g.seResolveTell(arm, 'power', { x: arm.x, y: arm.y, r: 40 });
+  check('depth 1 power at defense 7 deals 16', p.hp === 184, 200 - p.hp);
+
+  const worn = { id: 41, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Old Mail', rarity: 2, lvl: 3, mods: { hp: 12 }, reqLvl: 1, maxDur: 40, dur: 40 };
+  const bagMagic = { id: 42, slot: 'helm', icon: 'helm', base: 'Cap', name: 'Old Cap', rarity: 1, lvl: 3, mods: { def: 1 }, maxDur: 20, dur: 20 };
+  const bagRare = { id: 43, slot: 'boots', icon: 'boots', base: 'Boots', name: 'Old Boots', rarity: 2, lvl: 3, mods: {}, reqLvl: 1, maxDur: 20, dur: 20 };
+  const save = {
+    depth: 1, itemId: 80,
+    p: {
+      lvl: 1, xp: 0, gold: 15, hp: 60, mp: 25, hpPot: 3, mpPot: 2, keys: 0, rpPot: 0,
+      kills: 1, found: [], gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100,
+      learned: [false, false, false],
+      inv: [bagMagic, bagRare],
+      equip: { weapon: null, shield: null, helm: null, armor: worn, boots: null, ring: null, amulet: null }
+    }
+  };
+  localStorage.setItem('cryptdelve', JSON.stringify(save));
+  g.continueGame();
+  p = g.player;
+  const still = p.equip.armor;
+  check('legacy equipped rare stays worn at level 1', p.lvl === 1 && still && still.id === 41 && still.reqLvl === 1 && still.reqSrc === 'grandfather' && p.inv.indexOf(still) < 0, still && (still.reqLvl + ' ' + still.reqSrc));
+  const mag = p.inv.filter(Boolean).find(it => it.id === 42);
+  const boots = p.inv.filter(Boolean).find(it => it.id === 43);
+  check('owned items with no stored requirement get the old shortcut', mag && mag.reqLvl === 1 && mag.reqSrc === 'grandfather' && g.calcReqLvl(mag) === 2, mag && (mag.reqLvl + ' new ' + g.calcReqLvl(mag)));
+  check('a stored requirement is not raised', boots && boots.reqLvl === 1 && boots.reqSrc === 'grandfather' && w.canWear(boots));
+  const idx = p.inv.indexOf(still);
+  w.unequipSlot('armor');
+  const held = p.inv.filter(Boolean).find(it => it.id === 41);
+  const heldAt = p.inv.indexOf(held);
+  check('unequip keeps the grandfathered rare', !p.equip.armor && held && held.reqLvl === 1, held && held.reqLvl);
+  const wore = w.equipFrom(heldAt);
+  check('re-equip of a grandfathered item succeeds below the new requirement', p.equip.armor && p.equip.armor.id === 41 && wore !== false, p.equip.armor && p.equip.armor.reqLvl);
+  w.unequipSlot('armor');
+  const fresh = w.makeItem(3, 2, 'Leather Armor');
+  const slot = p.inv.indexOf(null);
+  p.inv[slot] = fresh;
+  p.lvl = 1; w.computeStats();
+  const blocked = w.equipFrom(slot);
+  check('a new item level 3 rare cannot be equipped at level 1 or 2', blocked === false && !p.equip.armor && fresh.reqLvl === 3 && fresh.reqSrc === 'drop');
+  p.lvl = 2; w.computeStats();
+  check('level 2 still cannot wear the new rare', w.equipFrom(slot) === false && !p.equip.armor);
+  p.lvl = 3; w.computeStats();
+  w.equipFrom(slot);
+  check('level 3 can equip the new rare', p.equip.armor && p.equip.armor.id === fresh.id, p.equip.armor && p.equip.armor.reqLvl);
+  const cap = w.makeItem(3, 1, 'Cap');
+  const capAt = p.inv.indexOf(null); p.inv[capAt] = cap;
+  p.lvl = 1; w.computeStats();
+  check('a new item level 3 magic requires 2', cap.reqLvl === 2 && w.equipFrom(capAt) === false && !p.equip.helm);
+  p.lvl = 2; w.computeStats(); w.equipFrom(capAt);
+  check('level 2 can equip the new magic', p.equip.helm && p.equip.helm.id === cap.id);
+  const white = w.makeItem(3, 0, 'Boots');
+  check('a new white of item level 3 still requires 1', white.reqLvl === 1 && w.canWear(white));
+
+  g.newGame();
+  const onFloor = w.makeItem(3, 2, 'Leather Armor');
+  onFloor.id = 501; onFloor.name = 'Floor Rare'; delete onFloor.reqLvl; delete onFloor.reqSrc;
+  const dropped = w.makeItem(3, 2, 'Leather Armor');
+  dropped.id = 502;
+  const pile = (item, dx) => {
+    const o = w.Object.create(w.Object.prototype);
+    o.x = g.player.x + dx; o.y = g.player.y; o.item = item; o.bob = 0; o.lock = true;
+    g.ground.push(o);
+  };
+  pile(onFloor, 6); pile(dropped, -6);
+  w.save();
+  g.continueGame();
+  const backFloor = (g.ground || []).filter(it => it && it.item).map(it => it.item);
+  const oldFloor = backFloor.find(it => it.id === 501);
+  const newFloor = backFloor.find(it => it.id === 502);
+  check('saved floor loot is grandfathered and a new drop keeps the new requirement', oldFloor && oldFloor.reqLvl === 1 && oldFloor.reqSrc === 'grandfather' && newFloor && newFloor.reqLvl === 3 && newFloor.reqSrc === 'drop', (oldFloor && oldFloor.reqLvl + ' ' + oldFloor.reqSrc) + ' / ' + (newFloor && newFloor.reqLvl + ' ' + newFloor.reqSrc));
+
+  finish();
+}
+</script>
+</body>
+</html>
