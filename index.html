@@ -1431,6 +1431,7 @@ const BASES = [
 const BLOCK_CAP = 40;
 // Stage 10 ward: every non-unique copy of these bases carries all-resist. It is not an affix roll,
 // so a white leather coat is already elemental armor. Uniques do not inherit it.
+// Pre-Stage-10 copies of these bases are migrated once on load. See migrateGearWard.
 const GEAR_WARD = {
   'Leather Armor': 8, 'Chain Mail': 6, 'Plate Mail': 4, 'Dusk Shroud': 4,
   'Cap': 4, 'Helm': 4, 'Great Helm': 3, 'Bone Visage': 3,
@@ -1625,7 +1626,7 @@ function stampReq(it) {
   return it;
 }
 function grandfatherWorldItems() {
-  const touch = it => stampReq(it);
+  const touch = it => { stampReq(it); migrateGearWard(it); };
   if (typeof ground !== 'undefined' && Array.isArray(ground)) for (const g of ground) if (g && g.item) touch(g.item);
   if (typeof chests !== 'undefined' && Array.isArray(chests)) for (const c of chests) if (c && c.item) touch(c.item);
 }
@@ -1696,10 +1697,45 @@ function writeLootMod(it, a, L) {
   if (typeof rolled === 'number' && Number.isFinite(rolled)) it.mods[a.k] = (it.mods[a.k] || 0) + rolled;
   else if (rolled != null && rolled !== '') it.mods[a.k] = rolled;
 }
+// WARD_MIG 1. Load-time rule for pre-Stage-10 armor. No RNG. Repeated loads cannot add or reroll.
+// Eligible: non-unique, base is in GEAR_WARD, and the item does not already carry a resist key
+// (resFire, resCold, resLightning, resPoison, resShadow, or resAll greater than 0). A newly
+// generated copy always has resAll from this ward, so it is not eligible for a second add.
+// The value is gearWard(base, stored item level): min(16, round(base + (ilvl - 1) * 0.55)).
+// Stamp wardMig = 1 after that decision. A later load sees the stamp and returns.
+// Uniques are not written (no ward, no stamp). Weapons, rings, and amulets outside GEAR_WARD
+// are not written. Item id, name, rarity, def, ilvl, reqLvl, reqSrc, other mods, powers,
+// durability, and inventory index are not changed here. stampReq still owns requirements.
+const WARD_MIG = 1;
+const WARD_RESIST_KEYS = ['resFire', 'resCold', 'resLightning', 'resPoison', 'resShadow', 'resAll'];
+function wardResistPresent(it) {
+  const m = it && it.mods;
+  if (!m || typeof m !== 'object') return false;
+  for (let i = 0; i < WARD_RESIST_KEYS.length; i++) {
+    const v = m[WARD_RESIST_KEYS[i]];
+    if (typeof v === 'number' && v > 0) return true;
+  }
+  return false;
+}
+function migrateGearWard(it) {
+  if (!it || typeof it !== 'object') return it;
+  if ((it.wardMig | 0) >= WARD_MIG) return it;
+  if ((it.rarity | 0) === 3) return it;
+  const w = gearWard(it.base, it.lvl);
+  if (!(w > 0)) return it;
+  if (!it.mods || typeof it.mods !== 'object') it.mods = {};
+  if (!wardResistPresent(it)) it.mods.resAll = (it.mods.resAll || 0) + w;
+  it.wardMig = WARD_MIG;
+  return it;
+}
 function applyGearWard(it) {
   if (!it || it.rarity === 3) return it;
+  if ((it.wardMig | 0) >= WARD_MIG) return it;
   const w = gearWard(it.base, it.lvl);
-  if (w > 0) it.mods.resAll = (it.mods.resAll || 0) + w;
+  if (w > 0) {
+    it.mods.resAll = (it.mods.resAll || 0) + w;
+    it.wardMig = WARD_MIG;
+  }
   return it;
 }
 function affixNameBit(a, it, which) {
@@ -3948,7 +3984,7 @@ function continueGame() {
     player.inv = (inv0.length > n ? items : inv0).concat(new Array(n).fill(null)).slice(0, n); }
   for (const k of SLOTS) player.equip[k] = player.equip[k] || null;
   const fixItem = it => { if (!it || typeof it !== 'object') return null; if (!it.mods || typeof it.mods !== 'object') it.mods = {};
-    if (it.rarity === 3 && !it.lore) { const u = UNIQUES.find(u => u.name === it.name); if (u) it.lore = u.lore; } if (!ICONS[it.icon]) it.icon = 'ring'; stampReq(it);
+    if (it.rarity === 3 && !it.lore) { const u = UNIQUES.find(u => u.name === it.name); if (u) it.lore = u.lore; } if (!ICONS[it.icon]) it.icon = 'ring'; stampReq(it); migrateGearWard(it);
     if (it.powers !== undefined) { it.powers = cleanPowers(it.powers); if (!it.powers.length) delete it.powers; }
     if (it.rarity === 3 && !it.powers) { const u = UNIQUES.find(u => u.name === it.name && u.powers); if (u) it.powers = cleanPowers(u.powers); } // v0.5.0: batch-1 uniques gain their signature powers
     if (it.slot === 'shield') { const b = BASES.find(b => b.name === it.base); if (!Number.isFinite(it.block)) it.block = b ? b.block + (it.rarity === 3 ? 3 : 0) : 8; }
@@ -15230,6 +15266,7 @@ if (window.game) {
     SE_ROSTER: SE_ROSTER, SE_IDS: SE_IDS, SE_SHIELD_IDS: SE_SHIELD_IDS, SE_SHIELD_FRAC: SE_SHIELD_FRAC, SE_GKEY_P: SE_GKEY_P,
     sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seBaseHp717: seBaseHp717, seEarlyFade: seEarlyFade, seTellMul: seTellMul, seUniqueChance: seUniqueChance, seRollGear: seRollGear, seLoot717: seLoot717, seSnap717: seSnap717,
     giltGear: giltGear, calcReqLvl: calcReqLvl, calcReqLvlLegacy: calcReqLvlLegacy, stampReq: stampReq, REQ_POLICY: REQ_POLICY,
+    WARD_MIG: WARD_MIG, migrateGearWard: migrateGearWard,
     seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, seRecover717: seRecover717, seMarkDead717: seMarkDead717,
     loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,
     crispCtx: crispCtx, uiEff718: uiEff718, textPix718: textPix718, syncTextLayer718: syncTextLayer718,

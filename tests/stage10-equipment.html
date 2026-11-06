@@ -78,11 +78,16 @@ function bleedSim(hp, hit, period) {
   }
   return Math.round(t * 1000) / 1000;
 }
-document.getElementById('g').addEventListener('load', () => {
+function bootStage10() {
+  if (bootStage10.done) return;
+  bootStage10.done = true;
   try { run(document.getElementById('g').contentWindow); }
   catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
   finish();
-});
+}
+const stageFrame = document.getElementById('g');
+stageFrame.addEventListener('load', bootStage10);
+if (stageFrame.contentWindow && stageFrame.contentWindow.game) bootStage10();
 function run(w) {
   const g = w.game;
   w.__noSampleSfx = true;
@@ -144,7 +149,7 @@ function run(w) {
   const oldWhite = { slot: 'armor', base: 'Leather Armor', rarity: 0, lvl: 2, mods: {}, name: 'Leather Armor' };
   const oldMagic = { slot: 'armor', base: 'Leather Armor', rarity: 1, lvl: 3, mods: { def: 2 }, name: 'Sturdy Leather' };
   g.stampReq(oldWhite); g.stampReq(oldMagic);
-  check('a pre-stage10 save keeps its requirement and does not gain a ward', oldWhite.reqLvl === 1 && oldWhite.reqSrc === 'grandfather' && !oldWhite.mods.resAll && oldMagic.reqLvl === 1 && oldMagic.reqSrc === 'grandfather' && !oldMagic.mods.resAll, oldMagic.reqLvl + ' ' + oldMagic.reqSrc);
+  check('stampReq grandfathers the requirement and does not add a ward', oldWhite.reqLvl === 1 && oldWhite.reqSrc === 'grandfather' && !oldWhite.mods.resAll && oldMagic.reqLvl === 1 && oldMagic.reqSrc === 'grandfather' && !oldMagic.mods.resAll, oldMagic.reqLvl + ' ' + oldMagic.reqSrc);
 
   let both = 0, pens = 0, generic = 0;
   for (let i = 0; i < 40; i++) {
@@ -463,6 +468,162 @@ function run(w) {
   w.damageEnemy(crab, 20, 0, 0, '#fff', false);
   const shelledBites = !(crab.T.ai === 'crab' && crab.mode === 'open');
   check('shelled crab still blocks and the bite debt is untouched', w.__lastDamage.prevented === 'crab' && crab.hp === 40 && shelledBites === true, crab.mode + ' hp ' + crab.hp);
+
+  // Legacy ward migration. WARD_MIG adds gearWard(base, stored ilvl) once. No RNG.
+  check('ward formula is the documented table', g.WARD_MIG === 1 && g.gearWard('Leather Armor', 1) === 8 && g.gearWard('Leather Armor', 2) === 9 && g.gearWard('Leather Armor', 3) === 9 && g.gearWard('Cap', 3) === 5 && g.gearWard('Plate Mail', 8) === 8 && g.gearWard('Dusk Shroud', 40) === 16 && g.gearWard('Short Sword', 8) === 0 && g.gearWard('Silver Locket', 8) === 0, [g.gearWard('Leather Armor', 1), g.gearWard('Leather Armor', 2), g.gearWard('Cap', 3), g.gearWard('Plate Mail', 8), g.gearWard('Dusk Shroud', 40)].join(','));
+
+  const whiteBefore = { id: 11, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: 2, def: 3, mods: {}, maxDur: 40, dur: 37 };
+  const magicBefore = { id: 12, slot: 'helm', icon: 'helm', base: 'Cap', name: 'Sturdy Cap', rarity: 1, lvl: 3, def: 2, mods: { def: 2, hp: 6 }, maxDur: 30, dur: 30 };
+  const rareBefore = { id: 13, slot: 'armor', icon: 'armor', base: 'Plate Mail', name: 'Doom Psalm', rarity: 2, lvl: 8, def: 14, mods: { hp: 30, regen: 1, fire: 4 }, reqLvl: 7, reqSrc: 'drop', maxDur: 52, dur: 40, powers: [{ t: 'thorns', pct: 10 }] };
+  const bucklerBefore = { id: 14, slot: 'shield', icon: 'shield', base: 'Wooden Buckler', name: 'Wooden Buckler', rarity: 0, lvl: 2, def: 2, block: 8, mods: {}, maxDur: 44, dur: 44 };
+  const charmBefore = { id: 15, slot: 'amulet', icon: 'amulet', base: 'Copper Charm', name: 'Copper Charm', rarity: 0, lvl: 1, mods: { light: 8 }, maxDur: 22, dur: 22 };
+  const bootsBefore = { id: 16, slot: 'boots', icon: 'boots', base: 'Boots', name: 'Boots', rarity: 0, lvl: 4, def: 2, mods: {}, reqLvl: 1, maxDur: 26, dur: 11 };
+  const swordBefore = { id: 17, slot: 'weapon', icon: 'sword', base: 'Short Sword', name: 'Short Sword', rarity: 0, lvl: 4, min: 4, max: 7, spd: 1, mods: { dmg: 2, fire: 3 }, reqLvl: 1, reqSrc: 'grandfather', maxDur: 30, dur: 30 };
+  const ringBefore = { id: 18, slot: 'ring', icon: 'ring', base: 'Ring', name: 'Ring', rarity: 0, lvl: 5, mods: { hp: 4 }, reqLvl: 2, reqSrc: 'grandfather' };
+  const locketBefore = { id: 19, slot: 'amulet', icon: 'amulet', base: 'Silver Locket', name: 'Silver Locket', rarity: 1, lvl: 8, mods: { mp: 12, fire: 2 }, reqLvl: 6, reqSrc: 'drop', maxDur: 22, dur: 22 };
+  const coat = g.UNIQUES.find(u => u.name === "Ratcatcher's Coat");
+  const uniqueBefore = { id: 20, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: "Ratcatcher's Coat", lore: coat.lore, rarity: 3, lvl: 6, def: 12, mods: { def: 10, ms: 19, regen: 1 }, reqLvl: 5, reqSrc: 'grandfather', maxDur: 60, dur: 60 };
+  const already = { id: 21, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: 2, def: 3, mods: { resAll: g.gearWard('Leather Armor', 2) }, reqLvl: 1, reqSrc: 'drop', maxDur: 40, dur: 40 };
+  const typedHelmItem = { id: 22, slot: 'helm', icon: 'helm', base: 'Helm', name: 'Ash Helm', rarity: 1, lvl: 5, def: 4, mods: { resFire: 12, resAll: g.gearWard('Helm', 5), def: 1 }, reqLvl: 3, reqSrc: 'drop', maxDur: 30, dur: 30 };
+  const snap = it => JSON.stringify({ id: it.id, slot: it.slot, base: it.base, name: it.name, rarity: it.rarity, lvl: it.lvl, def: it.def, min: it.min, max: it.max, spd: it.spd, block: it.block, mods: it.mods, reqLvl: it.reqLvl, reqSrc: it.reqSrc, dur: it.dur, maxDur: it.maxDur, powers: it.powers, lore: it.lore, wardMig: it.wardMig });
+  const uniqueSnap = snap(uniqueBefore);
+  const swordSnap = snap(swordBefore);
+  const ringSnap = snap(ringBefore);
+  const locketSnap = snap(locketBefore);
+  let rngCalls = 0;
+  const realRandom = w.Math.random;
+  w.Math.random = function () { rngCalls++; return realRandom(); };
+  let directOk = true;
+  try {
+    const probe = { id: 11, slot: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: 2, def: 3, mods: {} };
+    g.migrateGearWard(probe);
+    for (let n = 0; n < 20; n++) g.migrateGearWard(probe);
+    directOk = probe.mods.resAll === 9 && probe.wardMig === 1 && probe.def === 3 && probe.lvl === 2 && probe.mods.def == null;
+    const uniqProbe = { rarity: 3, base: 'Leather Armor', name: "Ratcatcher's Coat", lvl: 6, mods: { def: 10 } };
+    g.migrateGearWard(uniqProbe);
+    directOk = directOk && !uniqProbe.mods.resAll && uniqProbe.wardMig == null;
+    const swordProbe = { rarity: 0, base: 'Short Sword', lvl: 4, mods: { fire: 3 } };
+    g.migrateGearWard(swordProbe);
+    directOk = directOk && !swordProbe.mods.resAll && swordProbe.wardMig == null && swordProbe.mods.fire === 3;
+  } finally { w.Math.random = realRandom; }
+  check('migration value is gearWard and it does not roll', directOk && rngCalls === 0, 'calls ' + rngCalls);
+
+  const pre = {
+    depth: 3, itemId: 80,
+    p: {
+      lvl: 4, xp: 0, gold: 10, hp: 80, mp: 20, hpPot: 1, mpPot: 1, keys: 0, rpPot: 0,
+      kills: 0, found: ["Ratcatcher's Coat"], gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100,
+      learned: [true, true, true], skillSpec: ['kindling', 'base', 'base'],
+      inv: [null, magicBefore, null, rareBefore, null, uniqueBefore, swordBefore, ringBefore, locketBefore, bucklerBefore, charmBefore, already, typedHelmItem],
+      equip: { weapon: null, shield: null, helm: null, armor: whiteBefore, boots: bootsBefore, ring: null, amulet: null }
+    }
+  };
+  w.localStorage.setItem('cryptdelve', JSON.stringify(pre));
+  g.continueGame();
+  let gp = g.player;
+  const byId = id => {
+    const bag = (gp.inv || []).concat([gp.equip.armor, gp.equip.helm, gp.equip.boots, gp.equip.shield, gp.equip.weapon, gp.equip.ring, gp.equip.amulet]);
+    return bag.filter(Boolean).find(it => it.id === id);
+  };
+  const migWhite = byId(11), migMagic = byId(12), migRare = byId(13), migBuckler = byId(14), migCharm = byId(15), migBoots = byId(16);
+  const migSword = byId(17), migRing = byId(18), migLocket = byId(19), migUnique = byId(20), migKept = byId(21), migTyped = byId(22);
+  const whiteWant = g.gearWard('Leather Armor', 2), magicWant = g.gearWard('Cap', 3), rareWant = g.gearWard('Plate Mail', 8);
+  const buckWant = g.gearWard('Wooden Buckler', 2), charmWant = g.gearWard('Copper Charm', 1), bootWant = g.gearWard('Boots', 4);
+  check('equipped white gains the stored-ilvl ward', migWhite && gp.equip.armor === migWhite && migWhite.mods.resAll === whiteWant && migWhite.wardMig === 1 && migWhite.def === 3 && migWhite.lvl === 2 && migWhite.rarity === 0 && migWhite.name === 'Leather Armor' && migWhite.reqLvl === 1 && migWhite.reqSrc === 'grandfather' && migWhite.dur === 37, migWhite && (migWhite.mods.resAll + ' req ' + migWhite.reqLvl + ' ' + migWhite.reqSrc));
+  check('inventory magic gains only the ward', migMagic && gp.inv.indexOf(migMagic) === 1 && migMagic.mods.resAll === magicWant && migMagic.mods.def === 2 && migMagic.mods.hp === 6 && migMagic.wardMig === 1 && migMagic.reqLvl === 1 && migMagic.reqSrc === 'grandfather' && migMagic.lvl === 3 && migMagic.rarity === 1 && migMagic.name === 'Sturdy Cap' && migMagic.def === 2, migMagic && JSON.stringify(migMagic.mods));
+  check('rare between early-loot and stage 10 keeps req, affixes, and spell power', migRare && gp.inv.indexOf(migRare) === 3 && migRare.mods.resAll === rareWant && migRare.mods.hp === 30 && migRare.mods.regen === 1 && migRare.mods.fire === 4 && migRare.reqLvl === 7 && migRare.reqSrc === 'drop' && migRare.lvl === 8 && migRare.def === 14 && migRare.rarity === 2 && migRare.dur === 40 && migRare.powers && migRare.powers[0].t === 'thorns' && migRare.powers[0].pct === 10 && migRare.wardMig === 1, migRare && (migRare.reqLvl + ' ' + migRare.reqSrc + ' ' + JSON.stringify(migRare.mods)));
+  check('shield, charm, and boots are eligible warded bases', migBuckler && migBuckler.mods.resAll === buckWant && migBuckler.block === 8 && migCharm && migCharm.mods.resAll === charmWant && migCharm.mods.light === 8 && migBoots && gp.equip.boots === migBoots && migBoots.mods.resAll === bootWant && migBoots.reqLvl === 1 && migBoots.reqSrc === 'grandfather' && migBoots.def === 2 && migBoots.dur === 11, [migBuckler && migBuckler.mods.resAll, migCharm && migCharm.mods.resAll, migBoots && migBoots.mods.resAll].join(','));
+  check('sword, ring, and unwared amulet are not modified', migSword && snap(migSword) === swordSnap && migRing && snap(migRing) === ringSnap && migLocket && snap(migLocket) === locketSnap && migSword.wardMig == null && migRing.wardMig == null && migLocket.wardMig == null, migSword && migSword.base);
+  check('legacy unique armor is not modified', migUnique && snap(migUnique) === uniqueSnap && migUnique.wardMig == null && !migUnique.mods.resAll && gp.inv.indexOf(migUnique) === 5, migUnique && JSON.stringify(migUnique.mods));
+  check('a stage 10 drop is not warded twice', migKept && migKept.mods.resAll === whiteWant && migKept.wardMig === 1 && migTyped && migTyped.mods.resAll === g.gearWard('Helm', 5) && migTyped.mods.resFire === 12 && migTyped.mods.def === 1 && migTyped.wardMig === 1, migKept && migKept.mods.resAll);
+  check('empty inventory slots stay put', gp.inv[0] == null && gp.inv[2] == null && gp.inv[4] == null && gp.inv[1] && gp.inv[1].id === 12 && gp.inv[3] && gp.inv[3].id === 13, gp.inv.slice(0, 6).map(it => it && it.id).join(','));
+  check('skillSpec and spell power survive the armor migration', gp.skillSpec && gp.skillSpec[0] === 'kindling' && migSword.mods.fire === 3 && migRare.mods.fire === 4, (gp.skillSpec || []).join(','));
+  const firstSig = [11, 12, 13, 14, 15, 16, 20, 21].map(id => snap(byId(id))).join('|');
+  let stable = true;
+  for (let n = 0; n < 8; n++) {
+    w.save();
+    g.continueGame();
+    gp = g.player;
+    const sig = [11, 12, 13, 14, 15, 16, 20, 21].map(id => snap(byId(id))).join('|');
+    if (sig !== firstSig) stable = false;
+  }
+  check('eight more loads do not add or reroll wards', stable && byId(11).mods.resAll === whiteWant && byId(11).wardMig === 1 && byId(20).wardMig == null && !byId(20).mods.resAll, byId(11).mods.resAll + ' / ' + byId(12).mods.resAll);
+
+  g.newGame();
+  gp = g.player;
+  gp.lvl = 6;
+  // Items have to be born in the game window. The world packer skips objects whose prototype is another realm's.
+  const floorMail = w.JSON.parse(JSON.stringify({ id: 501, slot: 'armor', icon: 'armor', base: 'Chain Mail', name: 'Chain Mail', rarity: 0, lvl: 5, def: 8, mods: {}, maxDur: 40, dur: 40 }));
+  const floorUnique = w.JSON.parse(JSON.stringify({ id: 502, slot: 'shield', icon: 'shield', base: 'Wooden Buckler', name: "Tam's Coffin Lid", rarity: 3, lvl: 4, def: 8, mods: { def: 7, hp: 22 }, reqLvl: 3, reqSrc: 'grandfather', maxDur: 44, dur: 44, powers: [{ t: 'thorns', pct: 10 }] }));
+  const dropped = w.JSON.parse(JSON.stringify({ x: gp.x + 8, y: gp.y, bob: 0, lock: true }));
+  dropped.item = floorMail;
+  g.ground.push(dropped);
+  if (g.chests && g.chests.length) g.chests[0].item = floorUnique;
+  else g.chests.push(w.JSON.parse(JSON.stringify({ x: gp.x, y: gp.y, open: false, item: floorUnique })));
+  const chainWant = g.gearWard('Chain Mail', 5);
+  w.save();
+  g.continueGame();
+  const mailBack = (g.ground || []).map(o => o && o.item).find(it => it && it.id === 501);
+  const lidBack = (g.chests || []).map(c => c && c.item).find(it => it && it.id === 502);
+  check('saved floor armor gains the ward and a floor unique does not', !!(mailBack && mailBack.mods.resAll === chainWant && mailBack.wardMig === 1 && mailBack.def === 8 && mailBack.lvl === 5 && mailBack.reqSrc === 'grandfather' && lidBack && !lidBack.mods.resAll && lidBack.wardMig == null && lidBack.mods.def === 7 && lidBack.mods.hp === 22 && lidBack.reqLvl === 3), (mailBack && mailBack.mods.resAll) + ' / ' + (lidBack && JSON.stringify(lidBack.mods)));
+  let floorStable = !!(mailBack && lidBack);
+  const mailSig = mailBack ? snap(mailBack) : '';
+  const lidSig = lidBack ? snap(lidBack) : '';
+  for (let n = 0; n < 4 && floorStable; n++) {
+    w.save();
+    g.continueGame();
+    const m2 = (g.ground || []).map(o => o && o.item).find(it => it && it.id === 501);
+    const u2 = (g.chests || []).map(c => c && c.item).find(it => it && it.id === 502);
+    if (!m2 || !u2 || snap(m2) !== mailSig || snap(u2) !== lidSig) floorStable = false;
+  }
+  check('floor items stay put across further loads', floorStable);
+
+  const migHits = [];
+  [[3, 'mage', 'Shadow'], [12, 'siren', 'Cold'], [14, 'exarch', 'Shadow'], [15, 'seer', 'Lightning']].forEach(spec => {
+    const ilvl = spec[0] + 1;
+    const legacy = {
+      armor: { id: 801, slot: 'armor', icon: 'armor', base: 'Leather Armor', name: 'Leather Armor', rarity: 0, lvl: ilvl, def: 3 + Math.floor(ilvl / 3), mods: {}, maxDur: 40, dur: 40 },
+      helm: { id: 802, slot: 'helm', icon: 'helm', base: 'Cap', name: 'Cap', rarity: 0, lvl: ilvl, def: 1 + Math.floor(ilvl / 3), mods: {}, maxDur: 30, dur: 30 },
+      boots: { id: 803, slot: 'boots', icon: 'boots', base: 'Boots', name: 'Boots', rarity: 0, lvl: ilvl, def: 1 + Math.floor(ilvl / 3), mods: {}, maxDur: 26, dur: 26 },
+      shield: { id: 804, slot: 'shield', icon: 'shield', base: 'Wooden Buckler', name: 'Wooden Buckler', rarity: 0, lvl: ilvl, def: 2 + Math.floor(ilvl / 3), block: 8, mods: {}, maxDur: 44, dur: 44 }
+    };
+    w.localStorage.setItem('cryptdelve', JSON.stringify({
+      depth: spec[0], itemId: 900,
+      p: { lvl: spec[0], xp: 0, gold: 0, hp: 80, mp: 20, learned: [true, true, true], skillSpec: ['base', 'base', 'base'], inv: [], equip: { weapon: null, shield: legacy.shield, helm: legacy.helm, armor: legacy.armor, boots: legacy.boots, ring: null, amulet: null } }
+    }));
+    g.continueGame();
+    const pp = g.player;
+    pp.inv0 = 0; pp.roll = 0; pp.st.block = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+    const e = g.spawnEnemy(spec[1], pp.x + 80, pp.y, false);
+    const pr = w.eShoot(e, 0, 90, spec[1] === 'siren' ? { kind: 'water', mul: 0.7 } : spec[1] === 'seer' ? { kind: 'snipe', mul: 1.2 } : spec[1] === 'exarch' ? { kind: 'orb' } : {});
+    const amount = pr.dmg;
+    w.computeStats();
+    pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    w.hurtPlayer(amount, pr);
+    const migrated = w.__lastDamage.dealt;
+    const migRes = pp.st.resShadow;
+    const migDef = pp.st.def;
+    const freshArmor = g.makeItem(ilvl, 0, 'Leather Armor');
+    const freshHelm = g.makeItem(ilvl, 0, 'Cap');
+    const freshBoots = g.makeItem(ilvl, 0, 'Boots');
+    const freshShield = g.makeItem(ilvl, 0, 'Wooden Buckler');
+    const sameMods = freshArmor.mods.resAll === pp.equip.armor.mods.resAll && freshHelm.mods.resAll === pp.equip.helm.mods.resAll && freshBoots.mods.resAll === pp.equip.boots.mods.resAll && freshShield.mods.resAll === pp.equip.shield.mods.resAll && freshArmor.def === pp.equip.armor.def;
+    pp.equip.armor = freshArmor; pp.equip.helm = freshHelm; pp.equip.boots = freshBoots; pp.equip.shield = freshShield;
+    w.computeStats();
+    pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    w.hurtPlayer(amount, pr);
+    const freshDealt = w.__lastDamage.dealt;
+    pp.equip.armor = null; pp.equip.helm = null; pp.equip.boots = null; pp.equip.shield = null;
+    w.computeStats();
+    pp.st.def = 0; pp.st.block = 0; pp.hp = 400; pp.inv0 = 0; pp.roll = 0;
+    ['resFire', 'resCold', 'resLightning', 'resPoison', 'resShadow'].forEach(k => { pp.st[k] = 0; });
+    w.hurtPlayer(amount, pr);
+    const naked = w.__lastDamage.dealt;
+    migHits.push({ id: spec[1], depth: spec[0], type: spec[2], bolt: Math.round(amount * 100) / 100, def: migDef, res: migRes, migrated: migrated, fresh: freshDealt, naked: naked, sameMods: sameMods });
+  });
+  const matched = migHits.length === 4 && migHits.every(r => r.sameMods && r.migrated === r.fresh && r.migrated < r.naked && r.migrated > 0);
+  check('migrated whites take the same bolt as a new ward kit', matched, JSON.stringify(migHits));
+  try { w.localStorage.removeItem('cryptdelve'); } catch (e) {}
 }
 </script>
 </body>

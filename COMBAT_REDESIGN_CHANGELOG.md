@@ -2681,3 +2681,161 @@ The only legacy count change is `v0711`: 41/5 on the baseline (46 checks) and 42
 `v077` `f2 brazier` did not fail on the baseline pass, two baseline re-runs, the integrated pass, or one integrated re-run. The failure names were `version`, `version source`, `f4 pool`, and `f5 shop boss`. The brazier debt recorded in the early-balance entry is unchanged. This integration does not edit `placeLights`, `interactables`, or `nearestInteract`, and it does not treat a miss of that check as a new regression.
 
 Open debts are unchanged: crab shell versus bite, uncapped crit chance, curse life drain, and pre-mitigation life steal.
+
+---
+
+### 2026-11-06 — Legacy armor ward migration (option 2)
+
+- **Date:** 2026-11-06.
+- **Stage:** Stage 10, still IMPLEMENTED, not VERIFIED. Jake gave conditional approval of PR #33 at `b3cebac` and chose legacy-armor option 2. This commit is on `cursor/stage10-equipment-affixes-e264`, on top of `b3cebac`. No rebase. No force-push. PR #33 was not merged. Stage 11 was not started. `version.json` is still 0.7.18. Nothing was deployed.
+- **Parent:** `b3cebac5179d257c0a0eecd7fa61fb58e8edd22d`.
+
+#### Rule
+
+`WARD_MIG` is 1. On load, `fixItem` still calls `stampReq` first, then `migrateGearWard`. Saved-floor ground items and chest items that already hold a piece take the same two calls inside `grandfatherWorldItems`. The satchel inventory is the bag. There is no second stash array. Equipped slots and inventory slots are both walked, and empty inventory slots stay empty.
+
+`migrateGearWard` does not call `Math.random`.
+
+1. If `wardMig >= 1`, return. Do not add or change mods.
+2. If `rarity === 3`, return. Do not write `wardMig` or any other field. Legacy uniques stay as saved.
+3. If `gearWard(base, stored item level)` is 0, return. Weapons, rings, and amulets outside `GEAR_WARD` are not written.
+4. If `resFire`, `resCold`, `resLightning`, `resPoison`, `resShadow`, or `resAll` is a number greater than 0, the piece already carries Stage 10 resist. A new drop writes the ward into `resAll` before any extra line, so this case is not given a second ward. Set `wardMig = 1` and return.
+5. Otherwise the piece is a pre-Stage-10 non-unique of a warded base. Set `mods.resAll` to `gearWard(base, stored item level)` and `wardMig = 1`.
+
+`gearWard` is `min(16, round(baseWard + (itemLevel - 1) * 0.55))` using the item level already stored on the piece. No ilvl increase. No extra affix roll. Magic and rare pieces do not grow the typed resist line that a new magic or rare would roll. `mods.fire` stays spell power. `reqLvl` and `reqSrc` stay with `stampReq`, including the early-loot grandfather shortcut for a save that has no `reqLvl` and no `reqSrc`.
+
+`applyGearWard` stamps `wardMig` when it writes the ward onto a new drop, so a later save and load does not add that ward again.
+
+#### Before and after
+
+White Leather Armor, item level 2, defense 3, no mods, no `reqLvl`, no `reqSrc`. Equipped. This is a save from before the early-loot field existed.
+
+| | |
+| --- | --- |
+| Before | `mods {}`, def 3, rarity 0, ilvl 2, name Leather Armor, durability 37/40 |
+| After one load | `mods.resAll 9`, `wardMig 1`, `reqLvl 1`, `reqSrc grandfather`, def 3, ilvl 2, rarity 0, name and durability unchanged |
+
+9 is `gearWard('Leather Armor', 2)` = `round(8 + 0.55)`.
+
+Magic Sturdy Cap, item level 3, `mods { def: 2, hp: 6 }`, no requirement fields. Inventory index 1.
+
+| | |
+| --- | --- |
+| Before | def 2 and life 6, no resist |
+| After | `resAll 5`, def 2, life 6, `reqLvl 1`, `reqSrc grandfather`, index 1, name Sturdy Cap, ilvl 3, rarity 1 |
+
+5 is `gearWard('Cap', 3)`. The new magic formula at item level 3 would require level 2. The grandfather shortcut keeps level 1.
+
+Rare Doom Psalm, Plate Mail, item level 8, `mods { hp: 30, regen: 1, fire: 4 }`, `reqLvl 7`, `reqSrc drop`, thorns 10. This is the shape of a piece generated after early loot and before Stage 10.
+
+| | |
+| --- | --- |
+| Before | life 30, regen 1, spell power 4, required level 7, def 14 |
+| After | those same fields, plus `resAll 8` and `wardMig 1` |
+
+8 is `gearWard('Plate Mail', 8)`. `mods.fire` is still 4. The requirement stays 7 and `drop`.
+
+Unique Ratcatcher's Coat, Leather Armor, item level 6, `mods { def: 10, ms: 19, regen: 1 }`, `reqLvl 5`, `reqSrc grandfather`. Inventory index 5.
+
+| | |
+| --- | --- |
+| Before | those mods, no resist |
+| After eight further loads | the same object. No `resAll`. No `wardMig` |
+
+A white short sword with `mods.fire 3`, a ring, and a Silver Locket are also unchanged, because they are not warded bases. A Stage 10 white that already has `resAll` equal to its ward is stamped and not increased. A Helm that already has `resFire 12` and `resAll` equal to `gearWard('Helm', 5)` keeps both numbers.
+
+#### What the load covers
+
+The harness loads one pre-early-loot save (no `reqSrc`) with the white equipped, the magic and the rare and the unique in the bag, plus a buckler, a copper charm, and boots. A second save puts Chain Mail on the ground and Tam's Coffin Lid on a chest. Chain Mail item level 5 gains `resAll 8`. The coffin lid does not.
+
+Direct calls of `migrateGearWard` twenty times on one white add the ward once. `Math.random` is not called. Eight more `continueGame` cycles after the first load, and four more on the floor items, keep the same mods, requirements, item levels, defense, durability, powers, and inventory indexes.
+
+#### Elemental hits, migrated whites versus a new ward kit
+
+Same bases and the same stored item level (`depth + 1`): leather, cap, boots, wooden buckler. Spread 1, block 0. "Naked" is defense 0 and resist 0.
+
+| Bolt | Depth | Damage | DEF | All-resist | Migrated | New kit | Naked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Cultist, Shadow | 3 | 8.51 | 11 | 29 | 6 | 6 | 9 |
+| Siren, Cold | 12 | 15.42 | 23 | 49 | 8 | 8 | 15 |
+| Exarch, Shadow | 14 | 33.58 | 27 | 53 | 16 | 16 | 34 |
+| Seer, Lightning | 15 | 57.85 | 27 | 53 | 27 | 27 | 58 |
+
+The unwarded elemental Seer hit is 58. The migrated kit takes 27, the same as a kit generated now. The old Physical number at that defense was 30. `mods.fire`, `skillSpec` Kindling, `manaCost`, and the boss formulas were not edited. Mother Murk is still 840 / 210 / 18.144. Super Elite life is still 80 / 141 / 249.
+
+#### `v07152` tab and slot hits
+
+`git diff e550e3d -- index.html` has no satchel, `elementFromPoint`, or `sizeSatchel` hunk from Stage 10 or from this migration. `tests/v07152.html` is identical to main.
+
+The stock harness was repeated 12 times on this branch and 12 times on main `e550e3d`, same Chrome, viewport, and device scale. A failure is `elementFromPoint` returning null for all six tabs (`character->none` through `map->none`). The slot check fails in the same run.
+
+| Tree | Outer viewport | Tab fail | Slot fail | Immediate remeasure | 50ms later |
+| --- | --- | --- | --- | --- | --- |
+| Branch | 800×600 | 6/12 | 6/12 | 0/12 | 0/12 |
+| Branch | 1680×900 | 6/12 | 6/12 | 0/12 | 0/12 |
+| `e550e3d` | 800×600 | 6/12 | 6/12 | 0/12 | 0/12 |
+| `e550e3d` | 1680×900 | 5/12 | 5/12 | 0/12 | 0/12 |
+
+The remeasure runs the same resize and reads `elementFromPoint` in that turn, then again 50ms later. Both reads hit the tab and the slot on every repeat, on both trees, including runs whose harness line had just failed. An earlier 8-repeat pass with the game as the top document, no iframe, was 8/8 at 1560×390 and 8/8 at 800×600. The null result is the iframe harness changing the frame size and hit-testing in the same turn, before the frame's viewport and the pinned satchel agree. It is the same rate on main. It is not a Stage 10 combat or satchel regression.
+
+In the full-suite pass below, both trees failed `v07152` only on `version`. That is one sample of the same coin flip.
+
+#### Tests against `e550e3d`
+
+Headless Chrome, viewport 800×600, device scale 1, cache disabled, SwiftShader. One sequential pass each. Counts are pass/fail.
+
+| File | Branch | `e550e3d` |
+| --- | --- | --- |
+| stage 1 | 71/0 | 71/0 |
+| stage 2 | 73/0 | 73/0 |
+| stage 3 | 58/0 | 58/0 |
+| stage 4 | 75/0 | 75/0 |
+| stage 5 | 78/0 | 78/0 |
+| stage 6 | 47/0 | 47/0 |
+| stage 7 | 70/0 | 70/0 |
+| stage 8 | 64/0 | 64/0 |
+| stage 9 | 77/0 | 76/1, then a rerun 77/0 |
+| stage 10 | 64/0 | not present |
+| early-balance | 50/0 | 50/0 |
+| v075 | 59/1 | 59/1 |
+| v076 | 48/0 | 47/1 |
+| v077 | 60/4 | 60/4 |
+| v078 | 60/1 | 60/1 |
+| v078-play | 25/1 | 25/1 |
+| v0781 | 27/2 | 27/2 |
+| v079 | 49/1 | 49/1 |
+| v0710 | 36/1 | 36/1 |
+| v07101 | 41/1 | 41/1 |
+| v07102 | 54/0 | 54/0 |
+| v07103 | 24/3 | 24/3 |
+| v0711 | 41/5 | 43/5 |
+| v0712 | 37/6 | 37/6 |
+| v0713 | 32/5 | 32/5 |
+| v0714 | 40/1 | 40/1 |
+| v0715 | 19/13 | 19/13 |
+| v07151 | 8/45 | 8/45 |
+| v07152 | 36/1 | 36/1 |
+| v0716 | 49/1 | 49/1 |
+| v0717 | 50/1 | 50/1 |
+| v0718 | 23/0 | 23/0 |
+
+No failure name exists on this branch that is absent from `e550e3d`.
+
+Main-only on the first pass, and why:
+
+- Stage 9 `slam does not hit during the windup`. The branch pass was 77/0. Main was 76/1. An immediate rerun of `tests/stage9-bosses.html` on `e550e3d` was 77/0. The windup check steps 0.8s and expects the player still at 500 HP. Boss AI was not edited by the migration.
+- `v076` `b3 damage no snap`. Branch 48/0. Main 47/1. The same name is the snap flake already recorded on earlier stages. Spike damage was not edited.
+
+`v0711` is 41/5 here and 43/5 on main. The five names match: `version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`. Main emitted two extra passing checks. `trash in the maw` was not a failure.
+
+`v075` failed only `f3 multi select` on both. `f4 skins rotate` did not fail. `v077` failed `version`, `version source`, `f4 pool`, and `f5 shop boss` on both. `f2 brazier` did not fail. Both remain the documented debts.
+
+`tests/stage10-equipment.html` is 64/0. The new checks are the ward formula, eligibility, the stored-ilvl value, no RNG, the pre-early-loot save, the between-early-loot rare, equipped and inventory positions, uniques, idempotency, floor loot, and the four caster rows above. `tests/early-balance.html` stays 50/0, including the grandfather save.
+
+#### Left alone
+
+`manaCost` is still the thirst and fatigue multiplier. `skillSpec` Kindling still loads. `mods.fire` is still spell power. Boss HP, shields, contact, and the Hellmouth mark were not edited. Crab bite, uncapped crit chance, curse life drain, and pre-mitigation life steal stay open.
+
+A migrated rare gains the base ward only. It does not gain the extra resist line a newly rolled rare would have. That is the rule above.
+
+**Wait for Jake.** Do not merge PR #33 on the strength of this entry alone. Do not deploy. Do not start Stage 11.

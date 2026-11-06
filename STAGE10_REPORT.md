@@ -138,3 +138,7 @@ Depth 1 Super Elite life is 80 after this merge, because main's early-balance cu
 Warded whites at item level 1 and 3 still require level 1. New magic at item level 3 requires 2. New rare at item level 3 requires 3. A grandfathered item does not gain the ward. The Seer bolt gap for that old armor (58 with no resist, 30 on the old Physical curve) is recorded in the changelog with five options. None of them was applied.
 
 Against `e550e3d`, stages 1–9 and `tests/early-balance.html` match (77/0 on stage 9, 50/0 on the early-balance file). Stage 10 is 49/0. Legacy failure names match, including `v07152`'s tab and slot hit names, which also failed on main and cleared on main re-runs. `f2 brazier` did not fail on either tree in this session. The full tables are in the changelog entry for this integration.
+
+## Legacy ward migration (option 2)
+
+Jake's conditional approval at `b3cebac` chose option 2. Load now adds `gearWard(base, stored item level)` once to a non-unique warded base that has no resist key, then stamps `wardMig = 1`. A later load sees the stamp and does not add or reroll. Uniques are not written. Requirements, item level, defense, affixes, and inventory position stay. The before/after rows, the caster table (migrated Seer bolt 27, same as a new kit, naked 58), and the `v07152` repeat counts are in the changelog entry for this commit. `version.json` is still 0.7.18. PR #33 is not merged. Stage 11 is not started.
