@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<!--
+  Lichlight combat playtest entry. Baseline source is a492023 (Stage 9 on main).
+  This file does not replace index.html. Production saves stay on the cryptdelve keys.
+  Local: python3 -m http.server 8000  then open http://127.0.0.1:8000/playtest.html
+  file:// cannot load it: this page fetches index.html and the asset folder.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Lichlight Combat Playtest a492023</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #e6d7b8; font-family: "Pixelify Sans", sans-serif; }
+  #ptBanner {
+    position: fixed; z-index: 20; left: 0; right: 0; top: 0; height: 36px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 0 8px; background: #14080c; border-bottom: 3px solid #c9a050; color: #f0d090;
+    font-weight: 700; letter-spacing: .04em;
+  }
+  #ptBanner strong { font-size: 14px; }
+  #ptSha { color: #fff; font-size: 13px; letter-spacing: 0; }
+  #ptHint { color: #a89880; font-size: 11px; font-weight: 600; }
+  #ptDevBtn {
+    min-width: 64px; min-height: 28px; padding: 4px 10px; font: 700 14px sans-serif;
+    color: #1a1008; background: #e0b040; border: 2px solid #fff2c4; border-radius: 4px;
+  }
+  #ptGame { position: fixed; z-index: 1; left: 0; right: 0; top: 36px; bottom: 0; width: 100%; height: calc(100% - 36px); border: 0; background: #000; }
+  #ptMenu {
+    position: fixed; z-index: 30; top: 44px; right: 8px; width: min(440px, calc(100vw - 16px));
+    max-height: calc(100vh - 52px); overflow: auto; padding: 10px;
+    background: rgba(16, 8, 12, .96); border: 3px solid #c9a050; border-radius: 6px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.65);
+  }
+  #ptMenu[hidden] { display: none; }
+  #ptMenu h2 { margin: 10px 0 6px; font-size: 13px; color: #e0b040; letter-spacing: .06em; }
+  #ptMenu h2:first-child { margin-top: 0; }
+  #ptMenu p, #ptMenu label { font-size: 12px; line-height: 1.35; color: #d9cbb4; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0; }
+  #ptMenu button, #ptMenu select, #ptMenu input {
+    font: 600 13px sans-serif; color: #f4efe4; background: #2a1c18; border: 2px solid #8a7050; border-radius: 4px;
+    min-height: 32px; padding: 4px 8px;
+  }
+  #ptMenu button { cursor: pointer; }
+  #ptMenu button.on { background: #6a4010; border-color: #e0b040; color: #ffe7a8; }
+  #ptHell { background: #6a1810; border-color: #e07050; color: #ffe0d0; font-weight: 700; }
+  #ptStatus { min-height: 2.6em; white-space: pre-wrap; color: #c8e0a0; }
+  details { margin-top: 8px; font-size: 12px; color: #cbbda8; }
+  details summary { cursor: pointer; color: #e0b040; }
+  kbd { border: 1px solid #8a7050; padding: 0 4px; border-radius: 3px; color: #fff; }
+</style>
+</head>
+<body>
+<header id="ptBanner">
+  <div>
+    <strong>LICHLIGHT COMBAT PLAYTEST</strong>
+    <span id="ptSha">source a492023</span>
+    <span id="ptHint">F9 or ` · saves are separate</span>
+  </div>
+  <button id="ptDevBtn" type="button">DEV</button>
+</header>
+<iframe id="ptGame" title="Lichlight combat playtest"></iframe>
+<div id="ptMenu" hidden>
+  <h2>RUN</h2>
+  <div class="row">
+    <label>Depth <input id="ptDepth" type="number" min="1" max="200" value="1"></label>
+    <button id="ptGo" type="button">Set depth</button>
+    <button id="ptNew" type="button">New run</button>
+    <button id="ptClear" type="button">Clear encounter</button>
+    <button id="ptHeal" type="button">Heal</button>
+    <button id="ptGod" type="button">God mode: off</button>
+  </div>
+  <h2>HELLMOUTH</h2>
+  <p>Clears the fight, opens the tiles around you, unlocks Hellmouth, and spawns the selected Super Elite already in the fight.</p>
+  <div class="row"><button id="ptHell" type="button">Hellmouth vs Super Elite</button></div>
+  <h2>SPAWN</h2>
+  <div class="row">
+    <select id="ptEnemy"></select>
+    <label><input id="ptElite" type="checkbox"> Elite</label>
+    <select id="ptAffix"><option value="">Affix: floor roll</option></select>
+    <button id="ptSpawn" type="button">Spawn enemy</button>
+  </div>
+  <div class="row">
+    <select id="ptSE"></select>
+    <button id="ptSpawnSE" type="button">Spawn Super Elite</button>
+  </div>
+  <div class="row">
+    <select id="ptBoss"></select>
+    <button id="ptSpawnBoss" type="button">Spawn boss</button>
+  </div>
+  <h2>WEAPONS</h2>
+  <div class="row" id="ptWeapons"></div>
+  <h2>STAGE 7 SKILLS</h2>
+  <div class="row"><button id="ptUnlock" type="button">Unlock all skills</button></div>
+  <div id="ptSpecs"></div>
+  <p id="ptStatus">Loading the game…</p>
+  <details>
+    <summary>Controls</summary>
+    <p><b>Dev menu:</b> <kbd>F9</kbd> or <kbd>`</kbd>, or the DEV button. Ignored while a text field is focused, except F9 still toggles.</p>
+    <p><b>Play:</b> left-click walk and attack, hold Ctrl to stand still, right-click casts the selected spell. <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Fireball, Whirlwind, Frost Nova. <kbd>6</kbd><kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> Clone, Ward, Shift, Hellmouth once those pages are unlocked. <kbd>Q</kbd>/<kbd>E</kbd> potions, <kbd>Space</kbd> roll, <kbd>F</kbd> use, <kbd>I</kbd> satchel, <kbd>M</kbd> map, <kbd>Esc</kbd> pause. <kbd>-</kbd>/<kbd>=</kbd> zoom.</p>
+    <p><b>Touch:</b> drag the left side to move. ATTACK, ROLL, spell buttons, and the DEV button are on screen.</p>
+    <p>God mode uses the game's own invulnerability flag and holds hunger, thirst, and rest full so starvation cannot bypass it. The hero flickers, the same way Ethereal Shift does. Heal is separate.</p>
+    <p>Saves use the <code>lichlight_playtest_</code> prefix. A production <code>cryptdelve</code> character is not read and is not overwritten.</p>
+  </details>
+</div>
+<script>
+(function () {
+  const COMMIT = 'a492023';
+  const PREFIX = 'lichlight_playtest_';
+  const TOME_IDS = ['fireball', 'spin', 'frostNova', 'spectralClone', 'etherealShield', 'etherealShift', 'hellmouth'];
+  const WEAPONS = [
+    ['fist', 'Fists', null],
+    ['sword', 'Sword', 'Short Sword'],
+    ['axe', 'Axe', 'Hand Axe'],
+    ['maul', 'Maul', 'Great Maul'],
+    ['staff', 'Staff', 'Gnarled Staff'],
+    ['bow', 'Bow', 'Short Bow']
+  ];
+  const SPEC_NAMES = ['Fireball', 'Whirlwind', 'Frost Nova'];
+  const BOOT = [
+    '(function () {',
+    '  var PREFIX = "lichlight_playtest_";',
+    '  window.__LICHLIGHT_PLAYTEST__ = { build: "combat-stage9", entry: "playtest.html", commit: "a492023", savePrefix: PREFIX };',
+    '  var ls = localStorage;',
+    '  var getItem = ls.getItem.bind(ls);',
+    '  var setItem = ls.setItem.bind(ls);',
+    '  var removeItem = ls.removeItem.bind(ls);',
+    '  var keyFn = ls.key.bind(ls);',
+    '  function prefixed(k) { return PREFIX + String(k); }',
+    '  ls.getItem = function (k) { return getItem(prefixed(k)); };',
+    '  ls.setItem = function (k, v) { return setItem(prefixed(k), String(v)); };',
+    '  ls.removeItem = function (k) { return removeItem(prefixed(k)); };',
+    '  ls.clear = function () {',
+    '    var keys = [];',
+    '    for (var i = 0; i < ls.length; i++) { var k = keyFn(i); if (k && k.indexOf(PREFIX) === 0) keys.push(k); }',
+    '    for (var j = 0; j < keys.length; j++) removeItem(keys[j]);',
+    '  };',
+    '  ls.key = function (i) {',
+    '    var own = [];',
+    '    for (var j = 0; j < ls.length; j++) { var k = keyFn(j); if (k && k.indexOf(PREFIX) === 0) own.push(k.slice(PREFIX.length)); }',
+    '    return i >= 0 && i < own.length ? own[i] : null;',
+    '  };',
+    '  window.addEventListener("keydown", function (e) {',
+    '    if (e.repeat) return;',
+    '    var typed = e.target && e.target.tagName;',
+    '    var field = typed === "INPUT" || typed === "TEXTAREA" || typed === "SELECT";',
+    '    var toggle = e.key === "F9" || (!field && (e.key === "`" || e.code === "Backquote"));',
+    '    if (!toggle) return;',
+    '    e.preventDefault();',
+    '    e.stopPropagation();',
+    '    try { parent.postMessage({ type: "lichlight-playtest", cmd: "toggle" }, "*"); } catch (err) {}',
+    '  }, true);',
+    '  try { if (/[?&]nosfx=1/.test(parent.location.search || "")) window.__noSampleSfx = true; } catch (err) {}',
+    '})();'
+  ].join('\n');
+
+  const frame = document.getElementById('ptGame');
+  const menu = document.getElementById('ptMenu');
+  const statusEl = document.getElementById('ptStatus');
+  let godOn = false;
+  let menuOn = false;
+  let filled = false;
+  let ready = false;
+  let bootError = '';
+
+  function $(id) { return document.getElementById(id); }
+  function game() {
+    const w = frame.contentWindow;
+    if (!w || !w.game || !w.game.version) throw new Error(bootError || 'game not ready');
+    return w.game;
+  }
+  function gdoc() { return frame.contentDocument; }
+  function say(text) { statusEl.textContent = text; }
+  function carve(g, x, y, r) {
+    const tx = Math.floor(x / 16), ty = Math.floor(y / 16);
+    for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) g.setTile(tx + i, ty + j, 1);
+  }
+  function lightIfDark(g) {
+    const p = g.player;
+    if (!p || p.torchT > 0) return;
+    if (!(p.torches > 0)) g.giveTorch();
+    g.lightTorch();
+  }
+  function applyGod() {
+    if (!godOn) return;
+    let g;
+    try { g = game(); } catch (e) { return; }
+    const p = g.player;
+    if (!p) return;
+    p.isInvincible = true;
+    p.shiftT = 1e9;
+    p.hunger = 100;
+    p.thirst = 100;
+    p.fatigue = 100;
+    if (p.hp < 1 && p.st && p.st.maxHp) p.hp = p.st.maxHp;
+  }
+  function ensurePlay() {
+    const g = game();
+    if (!g.player || g.state === 'menu' || g.state === 'dead' || g.state === 'dying') {
+      g.newGame();
+      lightIfDark(g);
+    } else if (g.state === 'inv') g.closeInv();
+    else if (g.state === 'pause') {
+      const b = gdoc() && gdoc().getElementById('mResume');
+      if (b) b.click();
+      if (g.state !== 'play') g.newGame();
+    } else if (g.state !== 'play') {
+      g.newGame();
+      lightIfDark(g);
+    }
+    applyGod();
+    return g;
+  }
+  function openSe(g) {
+    const s = g.SE717;
+    if (!s) return;
+    s.dead = false;
+    s.alive = true;
+    s.spawned = false;
+  }
+  function clearBodies(g) {
+    const list = g.enemies || [];
+    const se = list.find(e => e && (e.superElite || (e.T && e.T.superElite)));
+    if (se) { try { g.seMarkDead717(se); } catch (e) {} }
+    else if (g.SE717) { g.SE717.dead = true; g.SE717.alive = false; }
+    list.splice(0, list.length);
+    ['projs', 'hazards', 'teles'].forEach(k => { if (g[k] && g[k].splice) g[k].splice(0, g[k].length); });
+    g.bossIntro = 0;
+    g.introBoss = null;
+  }
+  function keepOnly(g, keep) {
+    const list = g.enemies || [];
+    for (let i = list.length - 1; i >= 0; i--) if (list[i] !== keep) list.splice(i, 1);
+  }
+  function placeNear(g, e, dist) {
+    const p = g.player;
+    carve(g, p.x, p.y, 6);
+    e.x = p.x + dist;
+    e.y = p.y;
+    carve(g, e.x, e.y, 4);
+    e.hidden = false;
+    e.disg = false;
+    e.dead = false;
+  }
+  function ensureTome(p) {
+    if (!p.lichTome || !p.lichTome.spells) p.lichTome = { isAcquired: false, offered: true, spells: {} };
+    TOME_IDS.forEach(id => { if (!p.lichTome.spells[id]) p.lichTome.spells[id] = { isUnlocked: false }; });
+    if (!p.cds || p.cds.length < 7) p.cds = [0, 0, 0, 0, 0, 0, 0];
+    if (!p.activeHellSinks) p.activeHellSinks = [];
+    if (!p.learned) p.learned = [false, false, false];
+    return p.lichTome;
+  }
+  function unlockId(g, id) {
+    const p = g.player;
+    const tome = ensureTome(p);
+    tome.isAcquired = true;
+    tome.spells[id].isUnlocked = true;
+    const i = TOME_IDS.indexOf(id);
+    if (i >= 0 && i < 3) p.learned[i] = true;
+  }
+  function unlockAll(g) {
+    TOME_IDS.forEach(id => unlockId(g, id));
+    g.player.learned = [true, true, true];
+  }
+  function snapshot() {
+    let g, p;
+    try { g = game(); p = g.player; } catch (e) { return { ready: ready, error: String(e.message || e), commit: COMMIT }; }
+    const tome = p && p.lichTome;
+    return {
+      ready: ready,
+      commit: COMMIT,
+      state: g.state,
+      depth: g.depth,
+      version: g.version,
+      god: godOn,
+      menu: menuOn,
+      weapon: p ? g.weaponFamilyOf(p).id : '',
+      specs: p ? [0, 1, 2].map(i => g.skillSpecId(i)) : [],
+      hellmouth: !!(tome && tome.isAcquired && tome.spells && tome.spells.hellmouth && tome.spells.hellmouth.isUnlocked),
+      hp: p ? p.hp : 0,
+      maxHp: p && p.st ? p.st.maxHp : 0,
+      mp: p ? p.mp : 0,
+      enemies: (g.enemies || []).filter(Boolean).map(e => ({
+        type: e.type || '',
+        name: e.name || '',
+        elite: !!e.elite,
+        superElite: !!e.superElite,
+        boss: !!(e.T && e.T.boss),
+        hp: e.hp,
+        shield: e.shield || 0,
+        phase: e.sePhase || '',
+        affix: e.affix && e.affix.ids ? e.affix.ids.slice() : [],
+        dead: !!e.dead
+      }))
+    };
+  }
+  function result(note) {
+    const snap = snapshot();
+    say(note + (snap.depth ? ' · depth ' + snap.depth : '') + (snap.weapon ? ' · ' + snap.weapon : ''));
+    paintToggles(snap);
+    return Object.assign({ note: note }, snap);
+  }
+  function newRun() {
+    const g = game();
+    g.newGame();
+    lightIfDark(g);
+    applyGod();
+    return result('New run');
+  }
+  function setDepth(d) {
+    d = Math.max(1, Math.min(200, parseInt(d, 10) || 1));
+    const g = ensurePlay();
+    g.startFloor(d, true);
+    lightIfDark(g);
+    applyGod();
+    return result('Depth ' + g.depth);
+  }
+  function clearEncounter() {
+    const g = ensurePlay();
+    clearBodies(g);
+    return result('Encounter cleared');
+  }
+  function heal() {
+    const g = ensurePlay();
+    const p = g.player;
+    if (g.clearStatuses) g.clearStatuses(p);
+    p.hp = p.st.maxHp;
+    p.mp = p.st.maxMp;
+    p.hunger = 100;
+    p.thirst = 100;
+    p.fatigue = 100;
+    return result('Healed');
+  }
+  function setGod(on) {
+    godOn = !!on;
+    if (!godOn) {
+      try {
+        const p = game().player;
+        if (p) { p.isInvincible = false; p.shiftT = 0; }
+      } catch (e) {}
+    }
+    applyGod();
+    return result(godOn ? 'God mode on' : 'God mode off');
+  }
+  function spawnMob(type, elite, affix) {
+    const g = ensurePlay();
+    const p = g.player;
+    carve(g, p.x, p.y, 4);
+    const opt = {};
+    if (affix) { opt.ids = [affix]; opt.depth = Math.max(12, g.depth | 0); elite = true; }
+    else if (!elite) opt.noAffix = true;
+    const e = g.spawnEnemy(type, p.x + 24, p.y, !!elite, opt);
+    if (!e) return result('Spawn failed');
+    placeNear(g, e, 24);
+    e.state = 'chase';
+    const tag = (e.elite ? 'elite ' : '') + (e.name || e.type);
+    return result('Spawned ' + tag);
+  }
+  function spawnSE(id) {
+    const g = ensurePlay();
+    clearBodies(g);
+    openSe(g);
+    const e = g.seSpawn717(id, 'fight');
+    if (!e) return result('Super Elite did not spawn');
+    placeNear(g, e, 48);
+    e.sePhase = 'fight';
+    e.seUnlocked = true;
+    if (!(e.hp > 0)) e.hp = e.maxHp;
+    keepOnly(g, e);
+    return result('Spawned ' + (e.name || id));
+  }
+  function spawnBoss(index) {
+    const g = ensurePlay();
+    const B = g.BOSSES[index];
+    if (!B) return result('No such boss');
+    g.startFloor((index + 1) * 5, false);
+    const b = (g.enemies || []).find(e => e && e.T && e.T.boss);
+    if (!b) return result('Boss was not placed');
+    const p = g.player;
+    p.x = b.x - 40;
+    p.y = b.y;
+    carve(g, b.x, b.y, 4);
+    lightIfDark(g);
+    applyGod();
+    return result('Boss ' + (b.name || B.n));
+  }
+  function equip(fam) {
+    const row = WEAPONS.find(w => w[0] === fam);
+    if (!row) return result('Unknown weapon');
+    const g = ensurePlay();
+    const p = g.player;
+    if (!row[2]) p.equip.weapon = null;
+    else {
+      const it = g.makeItem(1, 0, row[2]);
+      it.reqLvl = 1;
+      if (fam === 'bow') { it.bow = 1; it.icon = 'bow'; }
+      p.equip.weapon = it;
+    }
+    g.openInv();
+    if (g.state === 'inv') g.closeInv();
+    return result('Equipped ' + row[1]);
+  }
+  function setSpec(i, id) {
+    const g = ensurePlay();
+    const got = g.setSkillSpec(i, id);
+    return result(SPEC_NAMES[i] + ' → ' + got);
+  }
+  function hellmouthScenario(id) {
+    const g = ensurePlay();
+    unlockId(g, 'hellmouth');
+    const p = g.player;
+    p.mp = p.st.maxMp;
+    clearBodies(g);
+    openSe(g);
+    carve(g, p.x, p.y, 6);
+    const e = g.seSpawn717(id || 'se_nyx', 'fight');
+    if (!e) return result('Hellmouth scenario failed');
+    placeNear(g, e, 48);
+    e.sePhase = 'fight';
+    e.seUnlocked = true;
+    if (!(e.hp > 0)) e.hp = e.maxHp;
+    keepOnly(g, e);
+    return result('Hellmouth vs ' + (e.name || id || 'Super Elite'));
+  }
+  function toggle() {
+    menuOn = !menuOn;
+    menu.hidden = !menuOn;
+    if (menuOn) paintToggles(snapshot());
+  }
+  function paintToggles(snap) {
+    $('ptGod').textContent = godOn ? 'God mode: on' : 'God mode: off';
+    $('ptGod').classList.toggle('on', godOn);
+    document.querySelectorAll('#ptWeapons button').forEach(b => b.classList.toggle('on', b.dataset.fam === snap.weapon));
+    document.querySelectorAll('#ptSpecs button').forEach(b => {
+      const parts = (b.dataset.spec || '').split(':');
+      b.classList.toggle('on', snap.specs && snap.specs[+parts[0]] === parts[1]);
+    });
+  }
+  function fillMenus() {
+    if (filled) return;
+    const g = game();
+    const enemy = $('ptEnemy');
+    Object.keys(g.ETYPES).forEach(id => {
+      const o = document.createElement('option');
+      o.value = id;
+      o.textContent = (g.ETYPES[id].label || id).replace(/^a /, '');
+      enemy.appendChild(o);
+    });
+    if ([...enemy.options].some(o => o.value === 'rat')) enemy.value = 'rat';
+    const affix = $('ptAffix');
+    (g.ELITE_AFFIX || []).forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = a.title + ' (' + a.id + ')';
+      affix.appendChild(o);
+    });
+    const se = $('ptSE');
+    (g.SE_ROSTER || []).forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id;
+      o.textContent = s.name;
+      se.appendChild(o);
+    });
+    if ([...se.options].some(o => o.value === 'se_nyx')) se.value = 'se_nyx';
+    const boss = $('ptBoss');
+    (g.BOSSES || []).forEach((B, i) => {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = 'D' + ((i + 1) * 5) + ' ' + B.n;
+      boss.appendChild(o);
+    });
+    const weapons = $('ptWeapons');
+    WEAPONS.forEach(w => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.fam = w[0];
+      b.textContent = w[1];
+      b.addEventListener('click', () => run(() => equip(w[0])));
+      weapons.appendChild(b);
+    });
+    const specs = $('ptSpecs');
+    SPEC_NAMES.forEach((name, i) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const lab = document.createElement('span');
+      lab.textContent = name;
+      row.appendChild(lab);
+      const table = g.SKILL_BUILD[['fireball', 'whirlwind', 'frost'][i]];
+      Object.keys(table).forEach(id => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.spec = i + ':' + id;
+        b.textContent = table[id].name || id;
+        b.addEventListener('click', () => run(() => setSpec(i, id)));
+        row.appendChild(b);
+      });
+      specs.appendChild(row);
+    });
+    filled = true;
+  }
+  function run(fn) {
+    try { return fn(); }
+    catch (e) { say(String(e && e.message || e)); return { note: String(e && e.message || e), error: true }; }
+  }
+  function isToggleKey(e) {
+    if (e.repeat) return false;
+    if (e.key === 'F9') return true;
+    const typed = e.target && e.target.tagName;
+    const field = typed === 'INPUT' || typed === 'TEXTAREA' || typed === 'SELECT';
+    return !field && (e.key === '`' || e.code === 'Backquote');
+  }
+  window.addEventListener('keydown', e => {
+    if (!isToggleKey(e)) return;
+    e.preventDefault();
+    toggle();
+  }, true);
+  window.addEventListener('message', e => {
+    if (e.source !== frame.contentWindow) return;
+    if (!e.data || e.data.type !== 'lichlight-playtest' || e.data.cmd !== 'toggle') return;
+    toggle();
+  });
+  $('ptDevBtn').addEventListener('click', toggle);
+  $('ptGo').addEventListener('click', () => run(() => setDepth($('ptDepth').value)));
+  $('ptNew').addEventListener('click', () => run(newRun));
+  $('ptClear').addEventListener('click', () => run(clearEncounter));
+  $('ptHeal').addEventListener('click', () => run(heal));
+  $('ptGod').addEventListener('click', () => run(() => setGod(!godOn)));
+  $('ptHell').addEventListener('click', () => run(() => hellmouthScenario($('ptSE').value || 'se_nyx')));
+  $('ptSpawn').addEventListener('click', () => run(() => spawnMob($('ptEnemy').value, $('ptElite').checked, $('ptAffix').value)));
+  $('ptSpawnSE').addEventListener('click', () => run(() => spawnSE($('ptSE').value)));
+  $('ptSpawnBoss').addEventListener('click', () => run(() => spawnBoss(parseInt($('ptBoss').value, 10) || 0)));
+  $('ptUnlock').addEventListener('click', () => run(() => { unlockAll(ensurePlay()); return result('All skills unlocked'); }));
+  setInterval(applyGod, 50);
+
+  window.__PT = {
+    ready: false,
+    commit: COMMIT,
+    prefix: PREFIX,
+    build: 'combat-stage9',
+    error: '',
+    toggle: toggle,
+    newRun: () => run(newRun),
+    setDepth: d => run(() => setDepth(d)),
+    spawnMob: (type, elite, affix) => run(() => spawnMob(type, !!elite, affix || '')),
+    spawnSE: id => run(() => spawnSE(id)),
+    spawnBoss: i => run(() => spawnBoss(i)),
+    equip: fam => run(() => equip(fam)),
+    setSpec: (i, id) => run(() => setSpec(i, id)),
+    unlockAll: () => run(() => { unlockAll(ensurePlay()); return result('All skills unlocked'); }),
+    clearEncounter: () => run(clearEncounter),
+    setGod: on => run(() => setGod(on)),
+    heal: () => run(heal),
+    hellmouthScenario: id => run(() => hellmouthScenario(id)),
+    snapshot: snapshot
+  };
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+  async function boot() {
+    const res = await fetch('index.html', { cache: 'no-store' });
+    if (!res.ok) throw new Error('index.html HTTP ' + res.status);
+    let html = await res.text();
+    if (html.indexOf('__LICHLIGHT_PLAYTEST__') >= 0 || html.indexOf('LICHLIGHT COMBAT PLAYTEST') >= 0 || html.indexOf('lichlight_playtest_') >= 0) {
+      throw new Error('index.html contains playtest markers');
+    }
+    const base = new URL('.', location.href).href;
+    const inject = '<base href="' + esc(base) + '"><script>' + BOOT + '<\/script>';
+    if (html.indexOf('<head>') < 0) throw new Error('index.html has no head');
+    html = html.replace('<head>', '<head>' + inject);
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('game frame timed out')), 45000);
+      frame.onload = () => { clearTimeout(timer); resolve(); };
+      frame.srcdoc = html;
+    });
+    const deadline = performance.now() + 20000;
+    while (!(frame.contentWindow && frame.contentWindow.game && frame.contentWindow.game.version)) {
+      if (performance.now() > deadline) throw new Error('game API missing');
+      await new Promise(r => setTimeout(r, 40));
+    }
+    if (frame.contentWindow.game.version !== '0.7.18') throw new Error('unexpected version ' + frame.contentWindow.game.version);
+    fillMenus();
+    ready = true;
+    window.__PT.ready = true;
+    say('Ready. v' + frame.contentWindow.game.version + ' from ' + COMMIT + '. DEV, F9, or backtick opens this menu.');
+  }
+  boot().catch(e => {
+    bootError = String(e && e.message || e);
+    window.__PT.error = bootError;
+    window.__PT.ready = false;
+    say(bootError + ' — serve the repo over http (python3 -m http.server) and open /playtest.html');
+  });
+})();
+</script>
+</body>
+</html>

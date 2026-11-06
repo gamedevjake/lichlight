@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- Playtest guard: production index.html has no combat dev menu, and playtest saves do not touch cryptdelve. -->
+<html>
+<head><meta charset="utf-8"><title>playtest-guard</title></head>
+<body>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+function waitFor(pred, ms) {
+  return new Promise((resolve, reject) => {
+    const t0 = performance.now();
+    (function tick() {
+      let v;
+      try { v = pred(); } catch (e) { v = null; }
+      if (v) return resolve(v);
+      if (performance.now() - t0 > ms) return reject(new Error('timeout'));
+      setTimeout(tick, 50);
+    })();
+  });
+}
+const src = fetchText('../index.html?v=ptguard-src');
+const ptSrc = fetchText('../playtest.html?v=ptguard-pt');
+const ver = fetchText('../version.json');
+check('version untouched', ver.indexOf('"0.7.18"') >= 0, ver.trim());
+check('production source has no combat playtest',
+  src.indexOf('LICHLIGHT COMBAT PLAYTEST') < 0 && src.indexOf('__LICHLIGHT_PLAYTEST__') < 0 && src.indexOf('lichlight_playtest_') < 0 && src.indexOf('id="ptMenu"') < 0 && src.length > 100000,
+  'len ' + src.length);
+check('playtest entry carries the banner and the save prefix',
+  ptSrc.indexOf('LICHLIGHT COMBAT PLAYTEST') >= 0 && ptSrc.indexOf('a492023') >= 0 && ptSrc.indexOf('lichlight_playtest_') >= 0 && ptSrc.indexOf('__LICHLIGHT_PLAYTEST__') >= 0);
+
+const prod = document.createElement('iframe');
+prod.id = 'prod';
+prod.style.cssText = 'width:960px;height:540px;border:0';
+prod.src = '../index.html?v=ptguard';
+document.body.appendChild(prod);
+prod.addEventListener('load', async () => {
+  try {
+    const w = prod.contentWindow;
+    const doc = prod.contentDocument;
+    await waitFor(() => w.game && w.game.version, 30000);
+    check('production game version', w.game.version === '0.7.18', w.game.version);
+    w.dispatchEvent(new KeyboardEvent('keydown', { key: 'F9', bubbles: true, cancelable: true }));
+    w.dispatchEvent(new KeyboardEvent('keydown', { key: '`', code: 'Backquote', bubbles: true, cancelable: true }));
+    doc.dispatchEvent(new KeyboardEvent('keydown', { key: 'F9', bubbles: true, cancelable: true }));
+    const text = (doc.body && doc.body.innerText) || '';
+    check('production has no playtest flag', !w.__LICHLIGHT_PLAYTEST__ && !w.__PT);
+    check('production has no dev menu', !doc.getElementById('ptMenu') && !doc.getElementById('ptDevBtn') && !doc.getElementById('ptBanner') && text.indexOf('LICHLIGHT COMBAT PLAYTEST') < 0, text.slice(0, 120));
+    check('production api has no playtest hook', !w.game.playtest && !w.game.__playtest);
+    prod.src = 'about:blank';
+    prod.remove();
+
+    localStorage.setItem('cryptdelve', 'PROD_SENTINEL');
+    localStorage.setItem('cryptdelve-settings', 'PROD_SETTINGS');
+    const pt = document.createElement('iframe');
+    pt.id = 'pt';
+    pt.style.cssText = 'width:960px;height:540px;border:0';
+    pt.src = '../playtest.html?nosfx=1&v=ptguard';
+    document.body.appendChild(pt);
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('playtest frame')), 20000);
+      pt.onload = () => { clearTimeout(timer); resolve(); };
+    });
+    const pw = pt.contentWindow;
+    await waitFor(() => pw.__PT && pw.__PT.ready, 40000);
+    const banner = (pw.document.body.innerText || '');
+    check('playtest banner shows the build and source commit', banner.indexOf('LICHLIGHT COMBAT PLAYTEST') >= 0 && banner.indexOf('a492023') >= 0);
+    const gw = pw.document.getElementById('ptGame').contentWindow;
+    check('playtest flag exists only inside the playtest frame', !!(gw.__LICHLIGHT_PLAYTEST__ && gw.__LICHLIGHT_PLAYTEST__.commit === 'a492023' && gw.__LICHLIGHT_PLAYTEST__.savePrefix === 'lichlight_playtest_'));
+    pw.__PT.newRun();
+    check('production save key untouched', localStorage.getItem('cryptdelve') === 'PROD_SENTINEL', localStorage.getItem('cryptdelve'));
+    check('production settings key untouched', localStorage.getItem('cryptdelve-settings') === 'PROD_SETTINGS', localStorage.getItem('cryptdelve-settings'));
+    const bag = localStorage.getItem('lichlight_playtest_cryptdelve');
+    check('playtest save uses its own key', !!bag && bag.indexOf('PROD_SENTINEL') < 0 && bag.indexOf('"depth"') >= 0, bag ? bag.slice(0, 80) : 'missing');
+    const seen = gw.localStorage.getItem('cryptdelve');
+    check('playtest frame cannot read the production save', seen !== 'PROD_SENTINEL', seen ? String(seen).slice(0, 60) : 'null');
+  } catch (e) {
+    lines.push('FAIL harness :: ' + (e && e.stack || e));
+  }
+  finish();
+});
+</script>
+</body>
+</html>
