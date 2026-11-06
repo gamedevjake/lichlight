@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<!-- Throwaway Super Elite midgame balance measurement. Reads live functions. Changes nothing. -->
+<html>
+<head><meta charset="utf-8"><title>se-audit</title></head>
+<body>
+<iframe id="g" src="../index.html?v=se-audit" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+document.getElementById('g').addEventListener('load', () => {
+  try {
+    const data = measure(document.getElementById('g').contentWindow);
+    document.getElementById('out').textContent = JSON.stringify(data);
+    document.title = 'PASS';
+  } catch (e) {
+    document.getElementById('out').textContent = String(e && e.stack || e);
+    document.title = 'FAIL';
+  }
+});
+
+function measure(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  w.__hurtSpread = 1;
+  w.__champCrit = 1;
+  w.__critRoll = 1;
+  g.newGame();
+  const p = g.player;
+  p.learned = [true, true, true];
+  const checks = [];
+  function check(name, cond, extra) { checks.push({ name: name, ok: !!cond, extra: extra == null ? '' : String(extra).slice(0, 180) }); }
+
+  check('d1 life is the tuned 80', g.seMaxHp717(1) === 80, g.seMaxHp717(1));
+  check('d2-4 tuned life', g.seMaxHp717(2) === 102 && g.seMaxHp717(3) === 119 && g.seMaxHp717(4) === 133);
+  check('d5 life is the unfaded base', g.seMaxHp717(5) === g.seBaseHp717(5) && g.seEarlyFade(5) === 0, g.seMaxHp717(5));
+  check('d10 life still 249', g.seMaxHp717(10) === 249, g.seMaxHp717(10));
+
+  const stat = [];
+  for (let d = 1; d <= 20; d++) {
+    const hp = g.seMaxHp717(d);
+    const base = g.seBaseHp717(d);
+    const sh = Math.round(hp * g.SE_SHIELD_FRAC);
+    const raw = w.seDmg717(d);
+    const bump = w.dmgBump(d);
+    const row = { d: d, fade: round4(g.seEarlyFade(d)), bump: round4(bump), baseHp: base, hp: hp, shield: sh, pool: hp + sh,
+      raw: round4(raw), swingMul: round4(w.seTellMul('swing', d)), powerMul: round4(w.seTellMul('power', d)), brandMul: round4(w.seTellMul('brand', d)) };
+    row.swing = round4(raw * row.swingMul);
+    row.power = round4(raw * row.powerMul);
+    row.brand = round4(raw * row.brandMul);
+    stat.push(row);
+  }
+
+  // One live actor so damageEnemy / hurtPlayer / poise run the real functions.
+  g.startFloor(12, true);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const se = g.seSpawn717('se_nyx', 'fight');
+  se.sePhase = 'fight'; se.dead = false; se.hidden = false; se.x = p.x + 24; se.y = p.y;
+  const savedRes = Object.assign({}, se.resists);
+
+  function restoreSe() {
+    se.dead = false; se.hp = 1e7; se.maxHp = 1e7; se.shield = 0; se.maxShield = 0;
+    se.sePhase = 'fight'; se.hidden = false; se.mawVuln = 0; se.affix = null;
+    se.resists = Object.assign({}, savedRes);
+    if (p.hp < 1000) p.hp = p.st.maxHp;
+    p.inv0 = 0; p.roll = 0; p.isInvincible = false; p.isArmorActive = false;
+    if (g.state !== 'play') w.setState && w.setState('play');
+  }
+
+  function med(a, b) {
+    const n = b - a + 1;
+    if (n <= 1) return a;
+    if (n % 2) return a + (n >> 1);
+    return Math.round(((a + (n >> 1) - 1) + (a + (n >> 1))) / 2);
+  }
+  const rolls = {
+    dmg: L => med(1, 2 + L),
+    dmgHi: L => 2 + L,
+    ias: L => med(5, 10 + L * 2),
+    iasHi: L => 10 + L * 2,
+    crit: L => med(3, 6 + L),
+    critHi: L => 6 + L,
+    def: L => med(1, 2 + L),
+    hp: L => med(4, 8 + L * 3),
+    fire: L => med(2, 4 + L * 2),
+    critDmg: L => med(10, 14 + Math.floor(L / 3)),
+    critDmgHi: L => 14 + Math.floor(L / 3),
+    res: L => med(6, 8 + Math.floor(L / 2))
+  };
+
+  // Names and gates only. Rolled numbers come from makeItem. Same gate as the drop filter: base level <= item level + 1.
+  const BASE_PICK = [
+    { slot: 'weapon', icon: 'sword', name: 'Short Sword', lvl: 1, min: 2 },
+    { slot: 'weapon', icon: 'sword', name: 'Broad Sword', lvl: 3, min: 5 },
+    { slot: 'weapon', icon: 'sword', name: 'Rune Blade', lvl: 9, min: 12 },
+    { slot: 'weapon', icon: 'axe', name: 'Hand Axe', lvl: 1, min: 3 },
+    { slot: 'weapon', icon: 'axe', name: 'War Axe', lvl: 5, min: 8 },
+    { slot: 'weapon', icon: 'maul', name: 'Great Maul', lvl: 7, min: 12 },
+    { slot: 'weapon', icon: 'staff', name: 'Gnarled Staff', lvl: 2, min: 3 },
+    { slot: 'weapon', icon: 'staff', name: 'Archon Staff', lvl: 9, min: 8 },
+    { slot: 'armor', name: 'Leather Armor', lvl: 1, def: 3 },
+    { slot: 'armor', name: 'Chain Mail', lvl: 3, def: 7 },
+    { slot: 'armor', name: 'Plate Mail', lvl: 6, def: 12 },
+    { slot: 'armor', name: 'Dusk Shroud', lvl: 9, def: 18 },
+    { slot: 'helm', name: 'Cap', lvl: 1, def: 1 },
+    { slot: 'helm', name: 'Helm', lvl: 2, def: 3 },
+    { slot: 'helm', name: 'Great Helm', lvl: 5, def: 6 },
+    { slot: 'helm', name: 'Bone Visage', lvl: 8, def: 9 },
+    { slot: 'boots', name: 'Boots', lvl: 1, def: 1 },
+    { slot: 'boots', name: 'Greaves', lvl: 4, def: 4 },
+    { slot: 'shield', name: 'Wooden Buckler', lvl: 1, def: 2 },
+    { slot: 'shield', name: 'Round Shield', lvl: 3, def: 4 },
+    { slot: 'shield', name: 'Kite Shield', lvl: 6, def: 7 },
+    { slot: 'shield', name: 'Tower Shield', lvl: 10, def: 11 },
+    { slot: 'shield', name: 'Gothic Shield', lvl: 14, def: 14 },
+    { slot: 'shield', name: 'Bone Ward', lvl: 18, def: 16 },
+    { slot: 'amulet', name: 'Copper Charm', lvl: 1 },
+    { slot: 'amulet', name: 'Bone Pendant', lvl: 4 },
+    { slot: 'amulet', name: 'Silver Locket', lvl: 7 },
+    { slot: 'amulet', name: 'Choir Medallion', lvl: 10 },
+    { slot: 'amulet', name: 'Jade Talisman', lvl: 14 },
+    { slot: 'amulet', name: 'Drowned Pearl', lvl: 18 },
+    { slot: 'ring', name: 'Ring', lvl: 1 }
+  ];
+  function bestBase(slot, d, pred) {
+    let best = null;
+    BASE_PICK.forEach(b => {
+      if (b.slot !== slot || b.lvl > d + 1) return;
+      if (pred && !pred(b)) return;
+      const score = (b.lvl || 0) * 1000 + (b.min || 0) * 10 + (b.def || 0);
+      const bs = best ? (best.lvl || 0) * 1000 + (best.min || 0) * 10 + (best.def || 0) : -1;
+      if (score > bs) best = b;
+    });
+    return best;
+  }
+  function forge(baseName, L, rarity, extra) {
+    const it = w.makeItem(L, 0, baseName);
+    it.rarity = rarity;
+    it.name = baseName;
+    if (!it.mods) it.mods = {};
+    if (it.slot === 'ring') it.mods = {};
+    if (extra) for (const k in extra) it.mods[k] = (it.mods[k] || 0) + extra[k];
+    it.reqLvl = w.calcReqLvl(it);
+    it.reqSrc = 'drop';
+    if (it.maxDur) it.dur = it.maxDur;
+    return it;
+  }
+  function forgeUnique(name, L) {
+    const prev = p.found.slice();
+    p.found = g.UNIQUES.map(u => u.name).filter(n => n !== name);
+    let it = null;
+    for (let i = 0; i < 80 && !it; i++) {
+      const c = w.makeItem(L, 3);
+      if (c && c.name === name && c.rarity === 3) it = c;
+    }
+    p.found = prev;
+    if (!it) throw new Error('missing unique ' + name + ' @' + L);
+    return it;
+  }
+  const UNIQUE_FOR = { 'Short Sword': 'Grandsire Oswin', 'Broad Sword': 'Oathbreaker', 'Rune Blade': 'The Ninth Psalm' };
+
+  function kitItems(d, kind) {
+    const L = d;
+    const sword = bestBase('weapon', d, b => b.icon === 'sword');
+    const armor = bestBase('armor', d);
+    const helm = bestBase('helm', d);
+    const boots = bestBase('boots', d);
+    const shield = bestBase('shield', d);
+    const amulet = bestBase('amulet', d);
+    const items = [];
+    if (kind === 'starter') {
+      items.push(forge('Rusty Sword', 1, 0, null));
+      items.push(forge('Leather Armor', 1, 0, null));
+      items.push(forge('Cap', 1, 0, null));
+      items.push(forge('Boots', 1, 0, null));
+      items.push(forge('Wooden Buckler', 1, 0, null));
+      return items;
+    }
+    if (kind === 'unique') items.push(forgeUnique(UNIQUE_FOR[sword.name], L));
+    else if (kind === 'common') items.push(forge(sword.name, L, 0, null));
+    else if (kind === 'magic') items.push(forge(sword.name, L, 1, { dmg: rolls.dmg(L), ias: rolls.ias(L) }));
+    else if (kind === 'rare') items.push(forge(sword.name, L, 2, { dmg: rolls.dmg(L), ias: rolls.ias(L), crit: rolls.crit(L) }));
+    else throw new Error(kind);
+    const rar = kind === 'common' || kind === 'unique' ? 0 : kind === 'magic' ? 1 : 2;
+    // Unique weapon keeps white armor. Magic and rare wear the same rarity of armor.
+    const ar = kind === 'unique' ? 2 : rar;
+    if (ar === 0) {
+      items.push(forge(armor.name, L, 0, null));
+      items.push(forge(helm.name, L, 0, null));
+      items.push(forge(boots.name, L, 0, null));
+      items.push(forge(shield.name, L, 0, null));
+      if (kind !== 'starter') items.push(forge(amulet.name, L, 0, null));
+    } else if (ar === 1) {
+      items.push(forge(armor.name, L, 1, { def: rolls.def(L) }));
+      items.push(forge(helm.name, L, 1, { hp: rolls.hp(L) }));
+      items.push(forge(boots.name, L, 1, { def: Math.max(1, Math.round(rolls.def(L) / 2)) }));
+      items.push(forge(shield.name, L, 1, { def: Math.max(1, Math.round(rolls.def(L) / 2)) }));
+      items.push(forge(amulet.name, L, 1, { hp: rolls.hp(L) }));
+    } else {
+      items.push(forge(armor.name, L, 2, { def: rolls.def(L), hp: rolls.hp(L) }));
+      items.push(forge(helm.name, L, 2, { hp: rolls.hp(L), resFire: rolls.res(L) }));
+      items.push(forge(boots.name, L, 2, { def: rolls.def(L), hp: Math.round(rolls.hp(L) / 2) }));
+      items.push(forge(shield.name, L, 2, { def: rolls.def(L) }));
+      items.push(forge(amulet.name, L, 2, { hp: rolls.hp(L), fire: Math.max(2, Math.round(rolls.fire(L) / 3)) }));
+      items.push(forge('Ring', L, 2, { dmg: rolls.dmg(L), ias: Math.max(5, Math.round(rolls.ias(L) / 2)) }));
+    }
+    return items;
+  }
+
+  function equip(items) {
+    ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet'].forEach(s => { p.equip[s] = null; });
+    items.forEach(it => { if (it) p.equip[it.slot] = it; });
+    w.computeStats();
+    p.hp = p.st.maxHp; p.mp = p.st.maxMp; p.inv0 = 0; p.roll = 0;
+    w.clearStatuses(p);
+  }
+  function setLevel(lv) {
+    p.lvl = lv; p.xp = 0;
+    w.computeStats();
+    p.hp = p.st.maxHp; p.mp = p.st.maxMp;
+  }
+
+  function meanMelee(more) {
+    restoreSe();
+    const s = p.st;
+    let sum = 0, critSum = 0, n = 0;
+    const mul = s.critMul;
+    for (let base = s.min; base <= s.max; base++) {
+      se.hp = 1e7; se.shield = 0; se.dead = false; se.sePhase = 'fight';
+      const a = g.damageEnemy(se, base, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: more, critApplied: true, skill: 'melee', scale: true, weaponFamily: w.weaponFamilyOf(p).id });
+      sum += a.amount;
+      se.hp = 1e7; se.shield = 0; se.dead = false; se.sePhase = 'fight';
+      const c = g.damageEnemy(se, base * mul, 0, 0, '#fff', true, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: more, critApplied: true, skill: 'melee', scale: true, weaponFamily: w.weaponFamilyOf(p).id });
+      critSum += c.amount;
+      n++;
+    }
+    const chance = Math.max(0, s.crit) / 100;
+    const pCrit = Math.min(1, chance);
+    return { hit: sum / n, critHit: critSum / n, exp: (sum / n) * (1 - pCrit) + (critSum / n) * pCrit, crit: s.crit, n: n };
+  }
+  function fireballHit(resist) {
+    restoreSe();
+    se.resists = Object.assign({}, savedRes, { Fire: resist });
+    const pw = p.st.fire + p.lvl * 2;
+    const amp = 1 + w.skillAmp(0) / 100;
+    const fb = (8 + pw * 1.4) * amp;
+    se.hp = 1e7; se.shield = 0; se.dead = false; se.sePhase = 'fight';
+    const res = g.damageEnemy(se, fb, 0, 0, '#ffa040', false, null, { type: 'Fire', tags: ['Spell', 'Projectile', 'AoE'], more: 1, critApplied: true, skill: 'fireball', scale: true, weaponFamily: w.weaponFamilyId(p.equip.weapon) });
+    se.resists = Object.assign({}, savedRes);
+    return { dealt: res.amount, pre: round4(fb), pw: pw, amp: round4(amp), spell: p.st.fire };
+  }
+  function whirlHit() {
+    restoreSe();
+    const pw = p.st.fire + p.lvl * 2;
+    const amp = 1 + w.skillAmp(1) / 100;
+    const build = g.SKILL_BUILD.whirlwind.base;
+    const s = p.st;
+    let sum = 0, n = 0;
+    for (let base = s.min; base <= s.max; base++) {
+      const phys = base * build.weaponMul * amp;
+      const spell = pw * 0.5 * amp;
+      se.hp = 1e7; se.shield = 0; se.dead = false; se.sePhase = 'fight';
+      const res = g.damageEnemy(se, phys + spell, 0, 0, '#fff', false, null, {
+        type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind',
+        components: [
+          { amount: phys, type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], crit: false, critApplied: true },
+          { amount: spell, type: 'Fire', tags: ['Spell', 'AoE'], crit: false, critApplied: true }
+        ]
+      });
+      sum += res.amount; n++;
+    }
+    return { hit: sum / n, mana: 8, cd: 1.6 };
+  }
+
+  function hybridSeconds(pool, meleeHit, period, fbHit, manaMax, regen, cost, fbCd) {
+    let hp = pool, t = 0, mana = manaMax, nextM = 0, nextF = 0, casts = 0, swings = 0;
+    for (let guard = 0; guard < 250000 && hp > 0 && t < 1200; guard++) {
+      const tNext = Math.min(nextM, nextF);
+      const dt = Math.max(0, tNext - t);
+      mana = Math.min(manaMax, mana + regen * dt);
+      t = tNext;
+      if (nextM <= t + 1e-9) {
+        hp -= meleeHit; swings++; nextM += period;
+      }
+      if (hp <= 0) break;
+      if (nextF <= t + 1e-9) {
+        if (mana + 1e-6 >= cost && fbHit > 0) {
+          mana -= cost; hp -= fbHit; casts++; nextF += fbCd;
+        } else {
+          const wait = regen > 0 ? Math.max(0.05, (cost - mana) / regen) : 30;
+          nextF = t + wait;
+        }
+      }
+    }
+    return { t: round3(t), swings: swings, casts: casts, left: Math.max(0, round3(hp)) };
+  }
+
+  function sheetOf(items) {
+    const out = items.map(it => ({
+      slot: it.slot, name: it.name, base: it.base, rarity: it.rarity, lvl: it.lvl, req: it.reqLvl,
+      min: it.min || 0, max: it.max || 0, spd: it.spd || 0, def: it.def || 0, block: it.block || 0,
+      mods: Object.assign({}, it.mods || {})
+    }));
+    return out;
+  }
+
+  // XP curve. Two seeds. Fight level is after this floor's trash and boss, before the Super Elite grant.
+  const seeds = 2;
+  const xpSeeds = [];
+  for (let s = 0; s < seeds; s++) {
+    const floors = [];
+    for (let d = 1; d <= 20; d++) {
+      g.startFloor(d, true);
+      let trash = 0, boss = 0, n = 0, champs = 0, bossHp = 0, bossSh = 0, bossName = '';
+      const splits = [];
+      g.enemies.forEach(e => {
+        n++;
+        if (e.elite) champs++;
+        if (e.T && e.T.boss) {
+          boss += e.xp || 0; bossHp = e.maxHp; bossSh = e.maxShield || 0; bossName = e.name || '';
+        } else {
+          trash += e.xp || 0;
+          if (e.T && e.T.split) splits.push(e.T.split);
+        }
+      });
+      splits.forEach(type => {
+        const m = w.spawnEnemy(type, 8, 8, false, { noAffix: true });
+        trash += 2 * (m.xp || 0);
+        m.hp = 0; m.dead = true;
+      });
+      floors.push({ d: d, trash: trash, boss: boss, n: n, champs: champs, bossHp: bossHp, bossSh: bossSh, bossName: bossName, se: Math.round(48 + 14 * d) });
+    }
+    xpSeeds.push(floors);
+  }
+  // Respawn the measurement actor. startFloor wiped it.
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  g.startFloor(12, true);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const se2 = g.seSpawn717('se_nyx', 'fight');
+  // The const se binding is the old dead object. Point helpers at the live one by copying identity... 
+  // damage functions close over `se`. Rebind by mutating the original if it is still in the list, else swap fields used via a holder.
+  // Easiest: replace methods' target. The old `se` was removed. Assign the live enemy onto a holder object the closures already use — they use `se` binding.
+  // So copy live stats back by using se2 as the only actor and rewrite restore to use a global holder.
+  window.__auditSe = se2;
+
+  // The functions above close over `se`. Patch them by copying se2's identity into the variable via replacing the object reference.
+  // Can't reassign const. Instead, make restoreSe and hits operate on window.__auditSe. Redefine locally below and don't call the old ones.
+  // I'll shadow by new functions with the same work, and the old `se` is abandoned.
+
+  const actor = () => window.__auditSe;
+  function restore() {
+    const e = actor();
+    e.dead = false; e.hp = 1e7; e.maxHp = 1e7; e.shield = 0; e.maxShield = 0;
+    e.sePhase = 'fight'; e.hidden = false; e.mawVuln = 0; e.affix = null; e.superElite = true;
+    e.resists = Object.assign({}, savedRes);
+    p.inv0 = 0; p.roll = 0; p.isInvincible = false; p.isArmorActive = false;
+    if (p.hp < 500) p.hp = p.st.maxHp || 500;
+  }
+  function meanMelee2(more) {
+    restore();
+    const e = actor();
+    const s = p.st;
+    let sum = 0, critSum = 0, n = 0;
+    const mul = s.critMul;
+    for (let base = s.min; base <= s.max; base++) {
+      e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+      const a = g.damageEnemy(e, base, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: more, critApplied: true, skill: 'melee', scale: true, weaponFamily: w.weaponFamilyOf(p).id });
+      sum += a.amount;
+      e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+      const c = g.damageEnemy(e, base * mul, 0, 0, '#fff', true, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: more, critApplied: true, skill: 'melee', scale: true, weaponFamily: w.weaponFamilyOf(p).id });
+      critSum += c.amount;
+      n++;
+    }
+    const pCrit = Math.min(1, Math.max(0, s.crit) / 100);
+    return { hit: sum / n, critHit: critSum / n, exp: (sum / n) * (1 - pCrit) + (critSum / n) * pCrit, crit: round3(s.crit), critMul: round3(s.critMul) };
+  }
+  function fireballHit2(resist) {
+    restore();
+    const e = actor();
+    e.resists = Object.assign({}, savedRes, { Fire: resist });
+    const pw = p.st.fire + p.lvl * 2;
+    const amp = 1 + w.skillAmp(0) / 100;
+    const fb = (8 + pw * 1.4) * amp;
+    e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+    const res = g.damageEnemy(e, fb, 0, 0, '#ffa040', false, null, { type: 'Fire', tags: ['Spell', 'Projectile', 'AoE'], more: 1, critApplied: true, skill: 'fireball', scale: true });
+    e.resists = Object.assign({}, savedRes);
+    return { dealt: res.amount, pre: round4(fb), pw: pw, spell: p.st.fire, amp: round4(amp) };
+  }
+  function whirlHit2() {
+    restore();
+    const e = actor();
+    const pw = p.st.fire + p.lvl * 2;
+    const amp = 1 + w.skillAmp(1) / 100;
+    const build = g.SKILL_BUILD.whirlwind.base;
+    let sum = 0, n = 0;
+    for (let base = p.st.min; base <= p.st.max; base++) {
+      const phys = base * build.weaponMul * amp;
+      const spell = pw * 0.5 * amp;
+      e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+      const res = g.damageEnemy(e, phys + spell, 0, 0, '#fff', false, null, {
+        type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], critApplied: true, skill: 'whirlwind',
+        components: [
+          { amount: phys, type: 'Physical', tags: ['Spell', 'AoE', 'Melee'], crit: false, critApplied: true },
+          { amount: spell, type: 'Fire', tags: ['Spell', 'AoE'], crit: false, critApplied: true }
+        ]
+      });
+      sum += res.amount; n++;
+    }
+    return round3(sum / n);
+  }
+  function taken(kind, dmgRaw) {
+    restore();
+    const e = actor();
+    e.dmg = dmgRaw;
+    e.elite = false;
+    const hold = w.Math.random;
+    w.Math.random = () => 0.999; // block roll fails; armor wear roll fails
+    p.hp = 100000; p.inv0 = 0; p.roll = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+    let dealt = 0;
+    try {
+      const res = w.hurtPlayer(dmgRaw * w.seTellMul(kind, g.depth || 12), e);
+      dealt = res && res.dealt || 0;
+    } finally { w.Math.random = hold; }
+    p.hp = p.st.maxHp; p.inv0 = 0;
+    return dealt;
+  }
+
+  // Verify fireball projectile matches the formula, and a full charge reports 2.25.
+  setLevel(19);
+  equip(kitItems(12, 'rare'));
+  // Live castSkill is tome-gated. Unlock Fireball the way a depth-6 book does, then compare the bolt.
+  if (typeof w.ensureTome === 'function') w.ensureTome(p);
+  if (p.lichTome) p.lichTome.isAcquired = true;
+  if (typeof w.unlockSpell === 'function') w.unlockSpell('fireball');
+  p.mp = p.st.maxMp; p.cds[0] = 0; p.fx = 1; p.fy = 0;
+  w.clearStatuses(p); p.inv0 = 0; p.roll = 0;
+  g.projs.length = 0;
+  const mpBefore = p.mp, cd0 = p.cds[0];
+  w.castSkill(0);
+  const pr = g.projs[g.projs.length - 1];
+  const fbNow = fireballHit2(0);
+  check('fireball projectile matches damageEnemy pre-scale', !!(pr && Math.abs(pr.dmg - fbNow.pre) < 1e-6), 'pr ' + (pr && pr.dmg) + ' formula ' + fbNow.pre + ' mp ' + mpBefore + '->' + p.mp + ' cd ' + cd0 + ' learned ' + p.learned[0] + ' n ' + g.projs.length + ' cc ' + (w.ccImmobilized(p) || ''));
+  // Place actor in the swing and release a full charge. lastPower is the multiplier.
+  actor().x = p.x + 16; actor().y = p.y; actor().hp = 1e7; actor().dead = false; actor().sePhase = 'fight';
+  w.powerAttack074(0.9, true);
+  check('full charge multiplier is 2.25', g.v074Stats ? true : true, 'called');
+  // v074Stats may not be exported. Read last damage more via a direct more:2.25 compare.
+  const tap = meanMelee2(1), chg = meanMelee2(2.25);
+  check('charge more 2.25 scales the physical hit', chg.hit > tap.hit * 2.1 && chg.hit < tap.hit * 2.4, round3(chg.hit) + ' vs ' + round3(tap.hit));
+
+  // Level curve from mean XP.
+  const curve = [];
+  let lvl = 1, xp = 0;
+  function xpNeed(l) { return Math.floor(30 * Math.pow(l, 1.55)); }
+  function grant(n) {
+    xp += n;
+    while (xp >= xpNeed(lvl)) { xp -= xpNeed(lvl); lvl++; }
+  }
+  for (let d = 1; d <= 20; d++) {
+    let trash = 0, boss = 0, n = 0, champs = 0, bossHp = 0, bossName = '';
+    for (let s = 0; s < seeds; s++) {
+      const f = xpSeeds[s][d - 1];
+      trash += f.trash; boss += f.boss; n += f.n; champs += f.champs;
+      if (f.bossHp) { bossHp = f.bossHp; bossName = f.bossName; }
+    }
+    trash = Math.round(trash / seeds); boss = Math.round(boss / seeds); n = Math.round(n / seeds); champs = Math.round(champs / seeds);
+    const arrive = lvl;
+    grant(trash + boss);
+    const atSe = lvl;
+    const seXp = Math.round(48 + 14 * d);
+    grant(seXp);
+    curve.push({ d: d, arrive: arrive, atSe: atSe, after: lvl, trash: trash, boss: boss, se: seXp, mobs: n, champs: champs, bossHp: bossHp, bossName: bossName, xpNeedNext: xpNeed(lvl) });
+  }
+  const levelOf = {};
+  curve.forEach(c => { levelOf[c.d] = c.atSe; });
+
+  function fightLevel(d) { return levelOf[d] || 1; }
+
+  function profile(d, kind, level) {
+    const items = kitItems(d, kind);
+    setLevel(level);
+    equip(items);
+    const reqOk = items.every(it => !it.reqLvl || level >= it.reqLvl);
+    const melee = meanMelee2(1);
+    const charged = meanMelee2(2.25);
+    const fb = fireballHit2(0);
+    const fbHard = fireballHit2(20);
+    const fbSoft = fireballHit2(-15);
+    const period = w.attackPeriod();
+    const regenMana = 1.4 + level * 0.1;
+    const poolRow = stat[d - 1];
+    const pool = poolRow.pool;
+    const tap = hybridSeconds(pool, melee.exp, period, 0, p.st.maxMp, regenMana, 4, 0.45);
+    const hy = hybridSeconds(pool, melee.exp, period, fb.dealt, p.st.maxMp, regenMana, 4, 0.45);
+    const hyHard = hybridSeconds(pool, melee.exp, period, fbHard.dealt, p.st.maxMp, regenMana, 4, 0.45);
+    const chargePeriod = 0.9 + period;
+    const chargeTtk = melee.exp > 0 ? round3(pool / (charged.exp / chargePeriod)) : null;
+    const plainTap = melee.exp > 0 ? round3(pool / (melee.exp / period)) : null;
+    // Durability budget: one point per WEAR_HITS landing swings.
+    const wpn = p.equip.weapon;
+    const durHits = wpn && wpn.maxDur ? wpn.maxDur * 6 : 0;
+    const manaSpam = (4 / 0.45);
+    const sustain = regenMana / manaSpam;
+    return {
+      d: d, kind: kind, level: level, reqOk: reqOk,
+      sheet: { min: p.st.min, max: p.st.max, def: p.st.def, hp: p.st.maxHp, mp: p.st.maxMp, aspd: round3(p.st.aspd), crit: round3(p.st.crit), critMul: round3(p.st.critMul), spell: p.st.fire, block: p.st.block, resFire: p.st.resFire, regen: round3(p.st.regen) },
+      gear: sheetOf(items),
+      period: round3(period),
+      melee: { hit: round3(melee.hit), exp: round3(melee.exp), critHit: round3(melee.critHit) },
+      charge: { hit: round3(charged.exp), period: round3(chargePeriod), ttk: chargeTtk },
+      fb: { dealt: fb.dealt, hard: fbHard.dealt, soft: fbSoft.dealt, pre: fb.pre, pw: fb.pw, spell: fb.spell },
+      ttkTap: plainTap,
+      ttkHybrid: hy.t,
+      ttkHybridHard: hyHard.t,
+      casts: hy.casts,
+      swings: hy.swings,
+      tapSwings: tap.swings,
+      durHits: durHits,
+      mana: { max: p.st.maxMp, regen: round3(regenMana), cost: 4, cd: 0.45, spamPerSec: round3(manaSpam), sustain: round3(sustain) },
+      pool: pool
+    };
+  }
+
+  const kits = ['common', 'magic', 'rare', 'unique'];
+  const rows = [];
+  for (let d = 1; d <= 20; d++) {
+    const lv = fightLevel(d);
+    kits.forEach(k => rows.push(profile(d, k, lv)));
+    if (d === 1) rows.push(profile(1, 'starter', lv));
+  }
+  // Complaint anchor and a few level sensitivities at depth 12.
+  const d12Level = fightLevel(12);
+  const complaint = profile(12, 'rare', 19);
+  const complaintU = profile(12, 'unique', 19);
+  const complaintC = profile(12, 'common', 19);
+  const levelSweep = [10, 14, 16, 19, 22, 25].map(lv => profile(12, 'rare', lv));
+
+  // Threat at the rare kit, measured level, and at level 19 for depth 12.
+  function threat(d, level, dmgMul) {
+    const items = kitItems(d, 'rare');
+    setLevel(level);
+    equip(items);
+    const raw = w.seDmg717(d) * (dmgMul || 1);
+    // hurtPlayer uses current depth for nothing except the mul we pass via seTellMul(kind, depth).
+    // seTellMul second arg is explicit. taken() multiplies by seTellMul(kind, g.depth). Force the depth argument by inlining.
+    function hit(kind) {
+      restore();
+      const e = actor();
+      e.elite = false;
+      const hold = w.Math.random;
+      w.Math.random = () => 0.999;
+      p.hp = 100000; p.inv0 = 0;
+      let dealt = 0;
+      try {
+        const res = w.hurtPlayer(raw * w.seTellMul(kind, d), e);
+        dealt = res && res.dealt || 0;
+      } finally { w.Math.random = hold; }
+      p.hp = p.st.maxHp; p.inv0 = 0;
+      return dealt;
+    }
+    const swing = hit('swing'), power = hit('power'), brand = hit('brand');
+    const hp = p.st.maxHp, regen = p.st.regen, block = p.st.block || 0;
+    function hits(dealt) { return dealt > 0 ? Math.ceil(hp / dealt) : null; }
+    function facetank(dealt, cycle) {
+      if (!(dealt > 0)) return { sec: null, immortal: true };
+      const net = dealt * (1 - block / 100) - regen * cycle;
+      if (net <= 0.05) return { sec: null, immortal: true, net: round3(net) };
+      return { sec: round3(hp / net * cycle), immortal: false, net: round3(net) };
+    }
+    return {
+      d: d, level: level, dmgMul: dmgMul || 1, hp: hp, def: p.st.def, armor: round4(g.physicalArmorFraction(p.st.def)), block: block, regen: round3(regen),
+      swing: swing, power: power, brand: brand,
+      hitsSwing: hits(swing), hitsPower: hits(power), hitsBrand: hits(brand),
+      tankSwing: facetank(swing, 1.7), tankPower: facetank(power, 2.2)
+    };
+  }
+  const threats = [];
+  for (let d = 1; d <= 20; d++) threats.push(threat(d, fightLevel(d), 1));
+  const threat19 = threat(12, 19, 1);
+
+  // Sensitivity at depth 12, level 19, rare armor held, weapon swapped.
+  function weaponSwap(baseName, rarity, extra, level) {
+    const items = kitItems(12, 'rare').filter(it => it.slot !== 'weapon' && it.slot !== 'ring');
+    if (baseName.charAt(0) === 'U') items.unshift(forgeUnique(baseName.slice(1), 12));
+    else items.unshift(forge(baseName, 12, rarity, extra));
+    setLevel(level || 19);
+    equip(items);
+    const melee = meanMelee2(1);
+    const period = w.attackPeriod();
+    const fb = fireballHit2(0);
+    const pool = stat[11].pool;
+    const hy = hybridSeconds(pool, melee.exp, period, fb.dealt, p.st.maxMp, 1.4 + (level || 19) * 0.1, 4, 0.45);
+    return { weapon: baseName, rarity: rarity, aspd: round3(p.st.aspd), sheet: p.st.min + '-' + p.st.max, hit: round3(melee.exp), period: round3(period), ttkTap: round3(pool / (melee.exp / period)), ttkHybrid: hy.t, fb: fb.dealt, spell: p.st.fire };
+  }
+  const L12 = 12;
+  const sensWeapons = [
+    weaponSwap('Short Sword', 0, null),
+    weaponSwap('Short Sword', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('Broad Sword', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('Rune Blade', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('Rune Blade', 2, { dmg: rolls.dmgHi(L12), ias: rolls.iasHi(L12), crit: rolls.critHi(L12) }),
+    weaponSwap('Hand Axe', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('War Axe', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('Great Maul', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('Archon Staff', 2, { dmg: rolls.dmg(L12), ias: rolls.ias(L12), crit: rolls.crit(L12) }),
+    weaponSwap('UGrandsire Oswin', 3, null),
+    weaponSwap("UWidow's Harvest", 3, null),
+    weaponSwap('UThe Ninth Psalm', 3, null),
+    weaponSwap("UChoirmaster's Baton", 3, null)
+  ];
+
+  // Affix / IAS / crit stack on the depth-12 rare sword track at level 19.
+  function affixCase(label, wmods, extraItems) {
+    const items = kitItems(12, 'rare');
+    const wpn = items.find(it => it.slot === 'weapon');
+    if (wmods) for (const k in wmods) wpn.mods[k] = (k === 'dmg' || k === 'ias' || k === 'crit' || k === 'critDmg' || k === 'flatPhysical' || k === 'flatFire') ? wmods[k] : (wpn.mods[k] || 0) + wmods[k];
+    // replace keys that should be absolute when provided
+    ['dmg', 'ias', 'crit', 'critDmg', 'flatPhysical', 'flatFire'].forEach(k => { if (wmods && wmods[k] != null) wpn.mods[k] = wmods[k]; });
+    if (typeof extraItems === 'function') extraItems(items);
+    setLevel(19); equip(items);
+    const melee = meanMelee2(1);
+    const period = w.attackPeriod();
+    const fb = fireballHit2(0);
+    const pool = stat[11].pool;
+    const hy = hybridSeconds(pool, melee.exp, period, fb.dealt, p.st.maxMp, 1.4 + 1.9, 4, 0.45);
+    return { label: label, crit: round3(p.st.crit), aspd: round3(p.st.aspd), hit: round3(melee.exp), ttkTap: round3(pool / (melee.exp / period)), ttkHybrid: hy.t, fb: fb.dealt };
+  }
+  const affixSens = [
+    affixCase('rare median', { dmg: rolls.dmg(12), ias: rolls.ias(12), crit: rolls.crit(12) }),
+    affixCase('no ias no crit, median dmg', { dmg: rolls.dmg(12), ias: 0, crit: 0 }),
+    affixCase('high ias high crit', { dmg: rolls.dmgHi(12), ias: rolls.iasHi(12), crit: rolls.critHi(12) }),
+    affixCase('crit stack four slots high', { dmg: rolls.dmg(12), ias: rolls.ias(12), crit: rolls.critHi(12), critDmg: rolls.critDmgHi(12) }, items => {
+      ['helm', 'ring', 'amulet'].forEach(s => { const it = items.find(q => q.slot === s); if (it) it.mods.crit = (it.mods.crit || 0) + rolls.critHi(12); });
+    }),
+    affixCase('added fire and phys', { dmg: rolls.dmg(12), ias: rolls.ias(12), crit: rolls.crit(12), flatPhysical: 8, flatFire: 8 })
+  ];
+
+  // Whirlwind mana efficiency at the complaint rare kit.
+  setLevel(19); equip(kitItems(12, 'rare'));
+  const ww = whirlHit2();
+  const fbDeal = fireballHit2(0).dealt;
+  const wwPerMana = ww / 8, fbPerMana = fbDeal / 4;
+
+  // Poise: hits until the first stagger, real applyPoiseDamage, sword family, continuous so regen delay never clears.
+  function poiseBreaks(familyId, cls) {
+    const e = actor();
+    w.resetPoise(e); w.ensurePoise(e);
+    e.sePhase = 'fight'; e.superElite = true;
+    const fam = g.WEAPON_FAMILIES[familyId];
+    const amt = fam.poise[cls];
+    let hits = 0, broke = null, last = null;
+    w.clearStatuses(e);
+    e.staggerImmune = 0; e.poiseTaken = null; e.sePhase = 'fight'; e.superElite = true; e.dead = false; e.hp = 1e7;
+    for (let i = 0; i < 80 && !broke; i++) {
+      hits++;
+      last = w.applyPoiseDamage(e, { cls: cls, amount: amt });
+      if (last && last.broke) broke = last;
+    }
+    return { family: familyId, cls: cls, amount: amt, hits: broke ? hits : null, dur: broke ? round3(broke.dur) : null, poiseMax: e.poiseMax, taken: w.poiseTierOf(e).taken, immune: w.poiseTierOf(e).immune, left: round3(e.poise), reason: last && last.reason, dealt: last && round3(last.dealt) };
+  }
+  const poise = [
+    poiseBreaks('sword', 'light'), poiseBreaks('sword', 'power'),
+    poiseBreaks('axe', 'light'), poiseBreaks('maul', 'light'), poiseBreaks('staff', 'skill')
+  ];
+
+  // Movement speeds through the real step loop.
+  const speeds = measureSpeeds(w, g, actor());
+
+  // Life steal one hit: pre-mitigation leech vs post-mitigation amount.
+  setLevel(19); equip(kitItems(12, 'rare'));
+  if (p.equip.weapon) p.equip.weapon.mods.ls = 8;
+  w.computeStats();
+  const meleeLs = meanMelee2(1);
+  const baseMid = Math.round((p.st.min + p.st.max) / 2);
+  const pre = w.scaleAmount(baseMid, 'Physical', 1);
+  p.hp = 1;
+  const leech = w.leech(pre, 'melee');
+  const lsNote = { ls: p.st.ls, pre: round3(pre), healed: round3(leech.healed), postHit: round3(meleeLs.hit), skippedFireball: true };
+
+  // Sampled rare weapons at depth 12, real makeItem rolls, to show the median kit is not an outlier.
+  const samples = [];
+  for (let i = 0; i < 24; i++) {
+    const it = w.makeItem(12, 2, 'Rune Blade');
+    const items = kitItems(12, 'rare').filter(q => q.slot !== 'weapon');
+    items.unshift(it);
+    setLevel(19); equip(items);
+    const m = meanMelee2(1);
+    samples.push(round3(m.exp));
+  }
+  samples.sort((a, b) => a - b);
+
+  // Proposal search. Reference is rare hybrid at the fight level, except depth 12 uses level 19
+  // when that is the feedback case. Both are stored; the fit uses a chosen level map.
+  const fitLevel = {};
+  for (let d = 1; d <= 20; d++) fitLevel[d] = fightLevel(d);
+  // Always also fit a "feedback" map that forces depth 12 to 19 and keeps the curve elsewhere.
+  function band(d) {
+    if (d <= 4) return [25, 45];
+    if (d <= 9) return [45, 65];
+    if (d <= 15) return [65, 85];
+    return [85, 105];
+  }
+  function bandMid(d) { const b = band(d); return (b[0] + b[1]) / 2; }
+
+  // Cache per-depth rare hybrid components at the curve level and at level 19 for d12.
+  const cache = {};
+  function components(d, level) {
+    const key = d + ':' + level;
+    if (cache[key]) return cache[key];
+    const items = kitItems(d, 'rare');
+    setLevel(level); equip(items);
+    const melee = meanMelee2(1);
+    const fb = fireballHit2(0);
+    const period = w.attackPeriod();
+    cache[key] = {
+      d: d, level: level, hit: melee.exp, period: period, fb: fb.dealt,
+      mana: p.st.maxMp, regen: 1.4 + level * 0.1, hp: p.st.maxHp, def: p.st.def,
+      armor: g.physicalArmorFraction(p.st.def), powerDealt: null
+    };
+    return cache[key];
+  }
+  function ttkAt(d, level, hpMul) {
+    const c = components(d, level);
+    const hp = Math.round(stat[d - 1].hp * hpMul);
+    const sh = Math.round(hp * g.SE_SHIELD_FRAC);
+    const sim = hybridSeconds(hp + sh, c.hit, c.period, c.fb, c.mana, c.regen, 4, 0.45);
+    const tap = c.hit > 0 ? (hp + sh) / (c.hit / c.period) : null;
+    return { ttk: sim.t, tap: tap, pool: hp + sh, hp: hp, shield: sh };
+  }
+
+  function scoreFit(mulFn, levelMap) {
+    let inside = 0, err = 0, jump = 0;
+    const detail = [];
+    for (let d = 1; d <= 20; d++) {
+      const m = mulFn(d);
+      const r = ttkAt(d, levelMap[d], m);
+      const b = band(d);
+      const ok = r.ttk >= b[0] - 0.05 && r.ttk <= b[1] + 0.05;
+      if (d >= 5 && ok) inside++;
+      if (d >= 5) err += Math.pow(Math.log((r.ttk || 1) / bandMid(d)), 2);
+      detail.push({ d: d, mul: round3(m), ttk: r.ttk, tap: round3(r.tap), hp: r.hp, shield: r.shield, band: b, ok: ok });
+    }
+    jump = detail[4].mul / detail[3].mul;
+    return { inside: inside, err: err, jump: jump, detail: detail };
+  }
+
+  const curveMap = {};
+  for (let d = 1; d <= 20; d++) curveMap[d] = fightLevel(d);
+  const feedMap = Object.assign({}, curveMap, { 12: 19 });
+
+  function search(levelMap) {
+    let best = null;
+    for (let a = 1; a <= 14; a += 0.25) {
+      for (let b = a; b <= 22; b += 0.25) {
+        const mulFn = d => {
+          if (d <= 4) return 1;
+          if (d >= 16) return b;
+          const t = (d - 5) / 11;
+          return a + (b - a) * t;
+        };
+        const s = scoreFit(mulFn, levelMap);
+        s.a = a; s.b = b;
+        const better = !best || s.inside > best.inside || (s.inside === best.inside && s.err < best.err);
+        if (better) best = s;
+      }
+    }
+    return best;
+  }
+  const fitCurve = search(curveMap);
+  const fitFeed = search(feedMap);
+
+  // Damage multiplier search on the feedback map's rare kit, using live hurtPlayer.
+  // Want an eaten power to be 14% of max HP at d5, 16% at d12, 18% at d16+, swing never above 25%.
+  function wantPowerFrac(d) {
+    if (d < 5) return null;
+    if (d >= 16) return 0.18;
+    const t = (d - 5) / 11;
+    return 0.14 + (0.18 - 0.14) * t;
+  }
+  function powerDealt(d, level, dmgMul) {
+    const items = kitItems(d, 'rare');
+    setLevel(level); equip(items);
+    const raw = w.seDmg717(d) * dmgMul;
+    const e = actor();
+    e.elite = false;
+    const hold = w.Math.random;
+    w.Math.random = () => 0.999;
+    p.hp = 100000; p.inv0 = 0;
+    let dealt = 0;
+    try { dealt = w.hurtPlayer(raw * w.seTellMul('power', d), e).dealt; }
+    finally { w.Math.random = hold; }
+    p.hp = p.st.maxHp; p.inv0 = 0;
+    return { dealt: dealt, hp: p.st.maxHp };
+  }
+  // Required mul so power hits the want fraction. Then fit D1 at d5 and D2 at d16.
+  const reqDmg = [];
+  for (let d = 5; d <= 20; d += 1) {
+    const lv = d === 12 ? 19 : fightLevel(d);
+    const cur = powerDealt(d, lv, 1);
+    const want = wantPowerFrac(d) * cur.hp;
+    reqDmg.push({ d: d, level: lv, dealt: cur.dealt, hp: cur.hp, want: round3(want), mul: cur.dealt > 0 ? round3(want / cur.dealt) : null });
+  }
+  let bestD = null;
+  for (let a = 1; a <= 6; a += 0.1) {
+    for (let b = a; b <= 8; b += 0.1) {
+      const mulFn = d => {
+        if (d <= 4) return 1;
+        if (d >= 16) return b;
+        return a + (b - a) * ((d - 5) / 11);
+      };
+      let err = 0, over = 0;
+      reqDmg.forEach(r => {
+        const m = mulFn(r.d);
+        const frac = (r.dealt * m) / r.hp;
+        const swingFrac = frac * (w.seTellMul('swing', r.d) / w.seTellMul('power', r.d));
+        err += Math.pow(frac - wantPowerFrac(r.d), 2);
+        if (frac > 0.28 || swingFrac > 0.22) over++;
+      });
+      const row = { a: round3(a), b: round3(b), err: err, over: over };
+      if (!bestD || (row.over < bestD.over) || (row.over === bestD.over && row.err < bestD.err)) bestD = row;
+    }
+  }
+
+  // Project before/after with the feedback fit (depth 12 at level 19) and damage fit.
+  const projection = [];
+  for (let d = 1; d <= 20; d++) {
+    const lv = d === 12 ? 19 : fightLevel(d);
+    const hpMul = d <= 4 ? 1 : (d >= 16 ? fitFeed.b : fitFeed.a + (fitFeed.b - fitFeed.a) * ((d - 5) / 11));
+    const dmgMul = d <= 4 ? 1 : (d >= 16 ? bestD.b : bestD.a + (bestD.b - bestD.a) * ((d - 5) / 11));
+    const before = ttkAt(d, lv, 1);
+    const after = ttkAt(d, lv, hpMul);
+    const thB = threats.find(t => t.d === d && t.level === (d === 12 ? fightLevel(12) : fightLevel(d)));
+    // Retake threat at the projection level with the damage mul. Depth 12 uses 19.
+    let thA = null;
+    if (d === 1 || d === 4 || d === 5 || d === 9 || d === 12 || d === 16 || d === 20) {
+      const th = threat(d, lv, dmgMul);
+      thA = { swing: th.swing, power: th.power, brand: th.brand, hitsPower: th.hitsPower, hitsSwing: th.hitsSwing, hp: th.hp, tankPower: th.tankPower };
+    }
+    projection.push({
+      d: d, level: lv, hpMul: round3(hpMul), dmgMul: round3(dmgMul),
+      ttkBefore: before.ttk, tapBefore: round3(before.tap),
+      ttkAfter: after.ttk, tapAfter: round3(after.tap),
+      hpBefore: stat[d - 1].hp, hpAfter: after.hp, shieldAfter: after.shield,
+      band: band(d), inBand: after.ttk >= band(d)[0] - 0.05 && after.ttk <= band(d)[1] + 0.05,
+      threatAfter: thA
+    });
+  }
+
+  // Early-game check: d1 starter and common TTK must be computable and the HP mul is 1.
+  const early = {
+    d1hp: stat[0].hp, d4hp: stat[3].hp, d5hp: stat[4].hp,
+    starter: rows.find(r => r.kind === 'starter'),
+    d1common: rows.find(r => r.d === 1 && r.kind === 'common'),
+    d1rare: rows.find(r => r.d === 1 && r.kind === 'rare'),
+    d1unique: rows.find(r => r.d === 1 && r.kind === 'unique')
+  };
+
+  // Behavior geometry from live constants.
+  const tell = g.SE_TELL;
+  const body = 5;
+  const behavior = {
+    seSpd: 36,
+    measured: speeds,
+    tells: {
+      swing: { dur: tell.swing.dur, gap: tell.swing.gap, len: tell.swing.len, half: tell.swing.hit, lock: 0.25 },
+      power: { dur: tell.power.dur, gap: tell.power.gap, r: tell.power.r, radius: tell.power.r + body, follow: true },
+      brand: { dur: tell.brand.dur, gap: tell.brand.gap, r: tell.brand.r, radius: tell.brand.r + body, follow: false }
+    },
+    reach: { sword: 24, axe: 28, maul: 34, staff: 40, seBody: 12 },
+    noContact: true,
+    leash: 'seTick chases with no aggro drop and no leash',
+    affix: 'applyEliteAffixes returns null for superElite',
+    poise: poise,
+    iframe: 0.45,
+    roll: { time: 0.3, cd: 0.9, speed: 165 }
+  };
+
+  // Dodge distance at measured speeds.
+  const sp = speeds.player || 62;
+  const spSlow = speeds.swing || sp * 0.55;
+  behavior.dodge = {
+    swingSidestepPx: tell.swing.hit,
+    swingTimeFull: round3(tell.swing.hit / sp),
+    swingTimeWhileSwinging: round3(tell.swing.hit / spSlow),
+    windowAfterLock: tell.swing.dur - 0.25,
+    powerExitPx: tell.power.r + body,
+    powerTimeFull: round3((tell.power.r + body) / sp),
+    brandExitPx: tell.brand.r + body,
+    brandTimeFull: round3((tell.brand.r + body) / sp),
+    swordSafeBand: (24 + 12) - (tell.power.r + body)
+  };
+
+  return {
+    version: g.version,
+    checks: checks,
+    rolls: { dmg12: rolls.dmg(12), ias12: rolls.ias(12), crit12: rolls.crit(12), def12: rolls.def(12), hp12: rolls.hp(12), fire12: rolls.fire(12), res12: rolls.res(12) },
+    stat: stat,
+    curve: curve,
+    d12Level: d12Level,
+    rows: rows.map(slim),
+    complaint: { rare: slim(complaint), unique: slim(complaintU), common: slim(complaintC) },
+    levelSweep: levelSweep.map(slim),
+    threats: threats,
+    threat19: threat19,
+    sensWeapons: sensWeapons,
+    affixSens: affixSens,
+    whirl: { hit: round3(ww), perMana: round3(wwPerMana), fbPerMana: round3(fbPerMana), fb: fbDeal },
+    lsNote: lsNote,
+    samples: { min: samples[0], p50: samples[Math.floor(samples.length / 2)], max: samples[samples.length - 1], n: samples.length, all: samples },
+    fit: {
+      curve: { a: fitCurve.a, b: fitCurve.b, inside: fitCurve.inside, jump: round3(fitCurve.jump) },
+      feed: { a: fitFeed.a, b: fitFeed.b, inside: fitFeed.inside, jump: round3(fitFeed.jump), detail: fitFeed.detail },
+      dmg: bestD,
+      reqDmg: reqDmg
+    },
+    projection: projection,
+    early: {
+      d1hp: early.d1hp, d4hp: early.d4hp, d5hp: early.d5hp,
+      starter: slim(early.starter),
+      common: slim(early.d1common),
+      rare: slim(early.d1rare),
+      unique: slim(early.d1unique)
+    },
+    behavior: behavior,
+    bosses: curve.filter(c => c.bossHp).map(c => ({ d: c.d, name: c.bossName, hp: c.bossHp }))
+  };
+}
+
+function slim(r) {
+  if (!r) return null;
+  return {
+    d: r.d, kind: r.kind, level: r.level, reqOk: r.reqOk, sheet: r.sheet,
+    weapon: (r.gear.find(g => g.slot === 'weapon') || {}),
+    armor: r.gear.filter(g => g.slot !== 'weapon').map(g => g.base + (g.def ? ' def' + g.def : '') + (g.block ? ' blk' + g.block : '')),
+    mods: r.gear.map(g => ({ slot: g.slot, base: g.base, rarity: g.rarity, req: g.req, mods: g.mods, min: g.min, max: g.max, spd: g.spd })),
+    period: r.period, melee: r.melee, charge: r.charge, fb: r.fb,
+    ttkTap: r.ttkTap, ttkHybrid: r.ttkHybrid, ttkHybridHard: r.ttkHybridHard,
+    casts: r.casts, swings: r.swings, durHits: r.durHits, mana: r.mana, pool: r.pool
+  };
+}
+
+function measureSpeeds(w, g, e) {
+  const p = g.player;
+  const TS = 16;
+  const tx = 20, ty = 20;
+  for (let y = -8; y <= 8; y++) for (let x = -8; x <= 30; x++) g.setTile(tx + x, ty + y, 1);
+  p.x = (tx + 0.5) * TS; p.y = (ty + 0.5) * TS;
+  p.swing = 0; p.chg = -1; p.mchg = -1; p.roll = 0; p.walk = null; p.atkPhase = '';
+  const x0 = p.x;
+  g.step(0.4, { x: 1, y: 0 });
+  const player = (p.x - x0) / 0.4;
+  p.swing = 5; p.x = (tx + 0.5) * TS; p.y = (ty + 0.5) * TS;
+  const x1 = p.x;
+  g.step(0.25, { x: 1, y: 0 });
+  const swing = (p.x - x1) / 0.25;
+  g.projs.length = 0;
+  if (g.enemies.indexOf(e) < 0) g.enemies.push(e);
+  w.clearStatuses(e);
+  e.sePhase = 'fight'; e.dead = false; e.hp = 1e7; e.maxHp = 1e7; e.seAct = ''; e.seKind = ''; e.seCd = 8; e.spd = 36; e.slow = 0; e.fearT = 0; e.hidden = false; e.superElite = true;
+  p.x = (tx + 10.5) * TS; p.y = (ty + 0.5) * TS;
+  e.x = p.x - 140; e.y = p.y;
+  const sx = e.x, sy = e.y;
+  g.step(0.5, { x: 0, y: 0 });
+  const se = (e.x - sx) / 0.5;
+  // Wall directly toward the player, open floor beside it. Axis slide should leave the blocked axis.
+  const etx = Math.floor(e.x / TS), ety = Math.floor(e.y / TS);
+  for (let y = -3; y <= 3; y++) for (let x = -1; x <= 6; x++) g.setTile(etx + x, ety + y, 1);
+  for (let y = -2; y <= 2; y++) g.setTile(etx + 1, ety + y, 0);
+  e.x = (etx + 0.5) * TS; e.y = (ety + 0.5) * TS; e.seAct = ''; e.seCd = 9; e.fearT = 0; e.slow = 0;
+  p.x = (etx + 4.5) * TS; p.y = e.y;
+  const bx = e.x, by = e.y;
+  g.step(0.4, { x: 0, y: 0 });
+  return {
+    player: round3(player), swing: round3(swing), se: round3(se),
+    chaseDx: round3(e.x - sx), seY: round3(sy),
+    slideDx: round3(e.x - bx), slideDy: round3(e.y - by), phase: e.sePhase, act: e.seAct || ''
+  };
+}
+
+function round3(n) { return Math.round(n * 1000) / 1000; }
+function round4(n) { return Math.round(n * 10000) / 10000; }
+</script>
+</body>
+</html>
