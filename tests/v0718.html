@@ -95,15 +95,49 @@ function run(w) {
   try { w.damageEnemy(se, se.maxShield + 50, 0, 0, '#fff', true); }
   catch (e) { threw = e && e.stack || String(e); }
   const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
-  const uniq = g.ground.filter(it => it.item && it.item.rarity === 3).length;
+  const gear = g.ground.filter(it => it.item).map(it => it.item);
+  const uniq = gear.filter(it => it.rarity === 3).length;
   const rats = g.ground.filter(it => it.ration).length;
+  const keys = g.ground.filter(it => it.gkey).length;
   check('kill no throw', !threw, threw);
-  check('se loot', gold === 25 && rats >= 1 && uniq === 1, 'g' + gold + ' r' + rats + ' u' + uniq);
+  check('se loot', gold === 25 && rats >= 1 && keys === 1 && gear.length === 1 && gear[0].rarity === 2 && gear[0].lvl === 1 && uniq === 0, 'g' + gold + ' r' + rats + ' rare' + gear.filter(it => it.rarity === 2).length + ' u' + uniq + ' k' + keys);
   check('stairs open', g.seGateAlive717() === false && g.SE717 && g.SE717.dead === true && g.SE717.alive === false);
   w.startClimb();
   check('climb after kill', !!g.climb);
   g.step(0.05, { x: 1, y: 0 });
   check('still steps', g.state === 'play' || g.state === 'dying' || !!g.climb, g.state);
+
+  function sePurse(d, uniqRoll, gkeyRoll) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_morbius', 'fight');
+    e.sePhase = 'fight'; e.hp = 1; e.shield = 0;
+    g.ground.length = 0;
+    w.__seUnique = uniqRoll;
+    w.__seGkey = gkeyRoll;
+    w.damageEnemy(e, 80, 0, 0, '#fff', false);
+    return {
+      gold: g.ground.reduce((n, it) => n + (it.gold || 0), 0),
+      rats: g.ground.filter(it => it.ration).length,
+      keys: g.ground.filter(it => it.gkey).length,
+      items: g.ground.filter(it => it.item).map(it => it.item)
+    };
+  }
+  const d2 = sePurse(2, 0, 0);
+  check('se loot depth 2 stays a rare', g.seUniqueChance(1) === 0 && g.seUniqueChance(2) === 0 && d2.gold === 25 && d2.rats === 1 && d2.keys === 1 && d2.items[0] && d2.items[0].rarity === 2 && d2.items[0].lvl === 2 && g.SE_GKEY_P === 0.065, d2.items[0] && d2.items[0].rarity);
+  const p3 = g.seUniqueChance(3), p4 = g.seUniqueChance(4), p5 = g.seUniqueChance(5);
+  const hit3 = sePurse(3, p3 - 0.001, 1), miss3 = sePurse(3, p3, 1);
+  const hit4 = sePurse(4, p4 - 0.001, 1), miss4 = sePurse(4, p4, 1);
+  check('se loot depth 3 and 4 are a seeded chance', p3 === 0.2 && p4 === 0.35 && p5 === 0.5 && hit3.items[0].rarity === 3 && miss3.items[0].rarity === 2 && hit4.items[0].rarity === 3 && miss4.items[0].rarity === 2 && hit3.gold === 25 && miss4.rats === 1, (hit3.items[0] && hit3.items[0].rarity) + '/' + (miss3.items[0] && miss3.items[0].rarity));
+  let deepBad = '';
+  [10, 15].forEach(d => {
+    [0, 0.5, 0.999].forEach(roll => {
+      const bag = sePurse(d, roll, 1);
+      const it = bag.items[0];
+      if (g.seUniqueChance(d) !== 1 || !it || it.rarity !== 3 || it.lvl !== d || bag.gold !== 25 || bag.rats !== 1) deepBad += d + '@' + roll + ' ';
+    });
+  });
+  check('se loot depth 10 and above is always a unique', !deepBad, deepBad);
 
   g.newGame();
   const dark = g.seSpawn717('se_veilwraith', 'fight');
