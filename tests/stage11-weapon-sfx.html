@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!-- Stage 11: melee swoosh at swing start. Damage, windup, bows, and the four debts stay put. -->
+<html>
+<head><meta charset="utf-8"><title>stage11</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage11sfx" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 320) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.armor = null; p.equip.helm = null; p.equip.boots = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 400; p.st.maxHp = 800; p.st.def = 0; p.st.regen = 0; p.st.fire = 0;
+  p.st.crit = 0; p.st.critDmg = 0; p.st.critMul = 2;
+  p.st.min = 10; p.st.max = 10; p.st.ls = 0; p.st.block = 0; p.st.ms = 1; p.st.aspd = 1;
+  p.st.flat = 0; p.st.inc = 0; p.st.more = 1;
+  p.inv0 = 0; p.roll = 0; p.rollCd = 0; p.rollQ = 0; p.barrier = 0; p.slowT = 0;
+  p.swing = 0; p.atkCd = 0; p.chg = -1; p.mchg = -1; p.bowDown = 0;
+  p.atkPhase = ''; p.atkWind = 0; p.atkKind = ''; p.atkKeepCd = false; p.swingVoiced = false;
+  if (p.atkBuf) p.atkBuf.on = false;
+  p.x = 220; p.y = 180; p.fx = 1; p.fy = 0;
+  p.statusImmune = null; p.freezeImmune = 0; p.staggerImmune = 0;
+  g.clearStatuses(p); g.resetPoise(p); g.ensurePoise(p);
+  w.__hurtSpread = 1; w.__champCrit = 1; w.__critRoll = 1;
+  if (g.clearSkillCrit) g.clearSkillCrit();
+  if (g.setConversionEdges) g.setConversionEdges([]);
+  return p;
+}
+function foe(g, p, x, y) {
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const e = g.spawnEnemy('skel', x, y == null ? p.y : y, false);
+  e.dead = false; e.hp = 500; e.maxHp = 500; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.hmFreeze = true; e.spd = 0; e.mode = ''; e.resists = null; e.r = 4;
+  g.clearStatuses(e); g.resetPoise(e); g.ensurePoise(e);
+  return e;
+}
+function loss(e) { return 500 - e.hp; }
+function wear(g, p, name, aspd) {
+  if (!name) { p.equip.weapon = null; p.st.aspd = aspd || 1; return null; }
+  if (name === 'BOW') {
+    const it = g.equipBow('default');
+    p.st.aspd = aspd || it.spd || 1.05;
+    p.atkCd = 0; p.swing = 0; p.atkPhase = ''; p.atkWind = 0; p.swingVoiced = false;
+    return it;
+  }
+  const it = g.makeItem(1, 0, name);
+  p.equip.weapon = it;
+  p.st.aspd = aspd || it.spd || 1;
+  p.atkCd = 0; p.swing = 0; p.atkPhase = ''; p.atkWind = 0; p.swingVoiced = false;
+  return it;
+}
+function resetLog(g, w) {
+  g.sfxLog.length = 0;
+  w.__swingCueLog = [];
+}
+function count(g, type) { return g.sfxLog.filter(t => t === type).length; }
+function cues(w) { return (w.__swingCueLog || []).slice(); }
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage11src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('swoosh uses the family cue', src.indexOf("sfx('swing', { cue: id })") >= 0 || src.indexOf('sfx(\'swing\', { cue: id })') >= 0, 'playSwingCue');
+  check('meat and whiff no longer start the swoosh', src.indexOf('whiff: () => [[\'cbt_miss_01\'') >= 0 && src.indexOf('return [swingCue()') < 0);
+  check('full charge beep stays', src.indexOf("sfxTone('square', 880, 1320, .09, .025, .01)") >= 0);
+  check('bow release fallback stays unfixed', src.indexOf("if (!cue('player_bow_release')) cue('player_swing_light_01')") >= 0);
+  check('arrow kill-confirm on despawn stays unfixed', src.indexOf("sfxAt('hit', pr.x, pr.y, 420)") >= 0);
+  check('four debts stay open', src.indexOf('lifeDrainWired: false') >= 0 && src.indexOf('crit: 5 + m.crit') >= 0 && src.indexOf("prevented: 'crab'") >= 0);
+
+  g.newGame();
+  let p = calm(g, w);
+  wear(g, p, 'Short Sword', 1);
+  const wind = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  const armed = g.beginAttack('tap', true, 0);
+  check('sword whoosh at arm, before damage', armed === true && count(g, 'swing') === 1 && count(g, 'meat') === 0 && count(g, 'whiff') === 0 && loss(wind) === 0 && g.attackState().phase === 'windup' && p.swing > 0, count(g, 'swing') + ' hp ' + loss(wind) + ' ' + g.attackState().phase);
+  check('sword cue is the light pool', cues(w).join(',') === 'player_swing_light_01', cues(w).join(','));
+  g.step(0.05, { x: 0, y: 0 });
+  check('windup step does not add a second swoosh or a hit', count(g, 'swing') === 1 && loss(wind) === 0 && g.attackState().phase === 'windup', count(g, 'swing') + ' ' + loss(wind) + ' ' + g.attackState().phase);
+  g.step(0.05, { x: 0, y: 0 });
+  check('hit lands once with one impact and no extra swoosh', loss(wind) === 10 && count(g, 'swing') === 1 && count(g, 'meat') === 1 && count(g, 'whiff') === 0 && g.attackState().phase !== 'windup', loss(wind) + ' s ' + count(g, 'swing') + ' m ' + count(g, 'meat'));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const missed = foe(g, p, p.x + 220);
+  resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  g.step(0.05, { x: 0, y: 0 });
+  g.step(0.05, { x: 0, y: 0 });
+  check('a miss plays one swoosh and one miss puff', loss(missed) === 0 && count(g, 'swing') === 1 && count(g, 'whiff') === 1 && count(g, 'meat') === 0, 's ' + count(g, 'swing') + ' w ' + count(g, 'whiff') + ' m ' + count(g, 'meat') + ' hp ' + loss(missed));
+
+  calm(g, w); p = g.player;
+  resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  check('fists use the light pool', cues(w).slice(-1)[0] === 'player_swing_light_01', cues(w).join(','));
+  calm(g, w); p = g.player; wear(g, p, 'Gnarled Staff', 1); resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  check('staff uses the light pool', cues(w).slice(-1)[0] === 'player_swing_light_01', cues(w).join(','));
+  calm(g, w); p = g.player; wear(g, p, 'Hand Axe', 0.9); resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  check('axe uses the heavy pool', cues(w).slice(-1)[0] === 'player_swing_heavy_01' && g.attackState().phase === 'windup' && loss(foe(g, p, p.x + 12)) === 0, cues(w).join(','));
+  calm(g, w); p = g.player; wear(g, p, 'Great Maul', 0.7); resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  check('maul uses the heavy pool', cues(w).slice(-1)[0] === 'player_swing_heavy_01', cues(w).join(','));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const direct = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  w.doAttack(true);
+  check('direct doAttack plays one swoosh and one impact', loss(direct) === 10 && count(g, 'swing') === 1 && count(g, 'meat') === 1 && cues(w).length === 1, loss(direct) + ' s ' + count(g, 'swing') + ' m ' + count(g, 'meat'));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const replaced = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  w.doAttack(true);
+  check('a direct swing during windup does not double the swoosh', loss(replaced) === 10 && count(g, 'swing') === 1 && count(g, 'meat') === 1 && g.attackState().phase !== 'windup', loss(replaced) + ' s ' + count(g, 'swing') + ' m ' + count(g, 'meat'));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const powered = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  const hp0 = powered.hp;
+  w.powerAttack074(0.9, true);
+  const poweredLoss = hp0 - powered.hp;
+  check('full charge is one release whoosh and one impact', poweredLoss > 10 && count(g, 'swing') === 1 && count(g, 'meat') === 1 && count(g, 'whiff') === 0 && cues(w).length === 1 && p.swingDur === 0.3, 'dmg ' + poweredLoss + ' s ' + count(g, 'swing') + ' m ' + count(g, 'meat') + ' dur ' + p.swingDur);
+  const after = powered.hp;
+  g.step(0.05, { x: 0, y: 0 });
+  check('the charged hit does not repeat on the next step', powered.hp === after && count(g, 'swing') === 1 && count(g, 'meat') === 1, powered.hp + ' vs ' + after);
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Hand Axe', 0.9);
+  foe(g, p, p.x + 220);
+  resetLog(g, w);
+  w.powerAttack074(0.5, true);
+  check('a charged miss is one heavy whoosh and one miss puff', count(g, 'swing') === 1 && count(g, 'whiff') === 1 && count(g, 'meat') === 0 && cues(w).join(',') === 'player_swing_heavy_01', 's ' + count(g, 'swing') + ' w ' + count(g, 'whiff') + ' m ' + count(g, 'meat') + ' ' + cues(w).join(','));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const tapped = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  p.chg = 0.2;
+  g.step(0.016, { x: 0, y: 0 });
+  check('a short hold does not whoosh on the release frame', count(g, 'swing') === 0 && loss(tapped) === 0, count(g, 'swing') + ' hp ' + loss(tapped));
+  g.step(0.016, { x: 0, y: 0 });
+  check('the short hold becomes one tap whoosh before damage', count(g, 'swing') === 1 && count(g, 'meat') === 0 && loss(tapped) === 0 && g.attackState().phase === 'windup', count(g, 'swing') + ' ' + g.attackState().phase + ' hp ' + loss(tapped));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const rolled = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  p.rollCd = 0; p.rollQ = 0.25;
+  g.step(0.05, { x: 0, y: 0 });
+  check('a roll clears the voice flag and the windup', loss(rolled) === 0 && p.swingVoiced === false && g.attackState().phase !== 'windup' && count(g, 'swing') === 1, 'flag ' + p.swingVoiced + ' ' + g.attackState().phase + ' hp ' + loss(rolled));
+  p.roll = 0; p.rollQ = 0;
+  w.doAttack(true);
+  check('the next direct swing whooshes once after a roll', loss(rolled) === 10 && count(g, 'swing') === 2 && count(g, 'meat') === 1, loss(rolled) + ' s ' + count(g, 'swing'));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const stunned = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  const stag = g.applyStatus(p, 'stagger', { duration: 0.55 });
+  check('stagger clears the voice flag', stag && stag.ok && p.swingVoiced === false && g.attackState().phase !== 'windup' && loss(stunned) === 0 && g.ccImmobilized(p) === 'stagger', (stag && stag.reason) + ' flag ' + p.swingVoiced + ' ' + g.ccImmobilized(p));
+  g.clearStatuses(p);
+  w.doAttack(true);
+  check('the next direct swing whooshes once after stagger', loss(stunned) === 10 && count(g, 'swing') === 2 && count(g, 'meat') === 1 && p.swingVoiced === false, loss(stunned) + ' s ' + count(g, 'swing'));
+
+  calm(g, w); p = g.player;
+  wear(g, p, 'Short Sword', 1);
+  const deadHit = foe(g, p, p.x + 12);
+  resetLog(g, w);
+  g.beginAttack('tap', true, 0);
+  g.die('the test', 'battle');
+  check('death clears the voice flag and the windup', p.swingVoiced === false && (p.atkPhase || '') === '' && loss(deadHit) === 0, 'flag ' + p.swingVoiced + ' phase ' + p.atkPhase + ' hp ' + loss(deadHit));
+  w.doAttack(true);
+  check('a direct swing after death still whooshes once', count(g, 'swing') === 2 && count(g, 'meat') === 1 && loss(deadHit) === 10, 's ' + count(g, 'swing') + ' m ' + count(g, 'meat') + ' hp ' + loss(deadHit));
+
+  g.newGame();
+  p = calm(g, w);
+  wear(g, p, 'BOW', 1.05);
+  const bowFoe = foe(g, p, p.x + 40);
+  resetLog(g, w);
+  const shot = [];
+  const pushArrow = g.projs.push.bind(g.projs);
+  g.projs.push = function (pr) { if (pr && pr.owner === 'p' && pr.kind === 'arrow') shot.push(pr); return pushArrow(pr); };
+  g.beginAttack('tap', true, 0);
+  check('a bow windup does not whoosh', count(g, 'swing') === 0 && cues(w).length === 0 && g.attackState().phase === 'windup' && loss(bowFoe) === 0, count(g, 'swing') + ' ' + g.attackState().phase);
+  let bowSteps = 0;
+  while (g.attackState().phase === 'windup' && bowSteps < 40) { g.step(0.05, { x: 0, y: 0 }); bowSteps++; }
+  check('the bow still releases an arrow without a swing log', count(g, 'swing') === 0 && shot.length === 1 && loss(bowFoe) === 0, 's ' + count(g, 'swing') + ' shots ' + shot.length + ' hp ' + loss(bowFoe) + ' steps ' + bowSteps + ' phase ' + g.attackState().phase);
+  g.projs.push = pushArrow;
+  resetLog(g, w);
+  const beforeDirect = g.projs.filter(q => q && q.owner === 'p' && q.kind === 'arrow').length;
+  p.atkCd = 0; p.atkPhase = ''; p.swingVoiced = false;
+  w.doAttack(true);
+  const afterDirect = g.projs.filter(q => q && q.owner === 'p' && q.kind === 'arrow').length;
+  check('a direct bow shot does not log a melee swoosh', count(g, 'swing') === 0 && count(g, 'meat') === 0 && afterDirect === beforeDirect + 1, 's ' + count(g, 'swing') + ' m ' + count(g, 'meat') + ' arrows ' + afterDirect);
+}
+</script>
+</body>
+</html>

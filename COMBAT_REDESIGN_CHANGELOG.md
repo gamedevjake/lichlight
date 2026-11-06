@@ -2850,3 +2850,45 @@ A migrated rare gains the base ward only. It does not gain the extra resist line
 - **Status:** Review only. Not live. Pull request #36.
 
 `.github/workflows/pages-publish.yml` is `workflow_dispatch` only. `.github/release-floor.txt` is `19318e31423238c2680423e25ce8f816a91c2450`, the Stage 10 commit that is already the live site. A commit below that floor, including tag `v0.7.18`, cannot be published unless the floor file changes in a reviewed pull request. The steps, the approval gate, and the cutover are in `RELEASE_PROCESS.md`. Gameplay and combat code were not edited.
+
+---
+
+### 2026-11-06 — Stage 11 weapon swing timing (review only)
+
+- **Date:** 2026-11-06.
+- **Stage:** Combat feedback. Jake approved the Stage 11 weapon-SFX audit as a review PR. It is not merged and it is not live.
+- **Base:** `main` at `5bfb9a8` (`Add a manual GitHub Pages publish workflow`).
+- **Version / Commit:** `version.json` was not edited. It is still `0.7.18`, the same string as `const VERSION` in `index.html`. No tag. No deploy. No workflow edit.
+
+#### What changed
+
+A melee swoosh now starts when the visible swing starts.
+
+`armAttack` sets `p.swing`, then calls `playSwingCue()`, which is `sfx('swing', { cue: swingCue() })`. `swingCue` is still the heavy pool for an axe or a maul and the light pool for fists, swords, and staves. `SFX_CUE.swing` stays the light id, so the call passes the cue explicitly. Bows do not call it. `fireBow` is unchanged.
+
+`SFX_CUE.meat` is only the hit, the crit, and the material layer. `SFX_CUE.whiff` is only `cbt_miss_01` at +30 ms. A miss still gets the swoosh, from the arm, and the miss puff only when the hit test misses. An impact plays only when something was in the arc.
+
+A charged release sets `swingVoiced` before `doAttack`, so the damage call does not add a second swoosh or a second impact. `powerAttack074` still assigns the 0.3 s arc, and the one release swoosh is played after that assignment, on the same release frame. The 0.9 s full-charge beep (`sfxTone` square 880→1320, 90 ms) is still there. There is still no charge loop.
+
+`swingVoiced` is cleared by `clearAttackArm` (roll, stagger/stun through `interruptControl`, and death), by the crowd-control and roll abort in `tickAttackSched`, and by the early return in `commitArmed`. A direct `doAttack(true)` with the flag clear still plays one swoosh, after it assigns its own 0.22 s pose and before the hit test. Dying also calls `clearAttackArm`, so an uncommitted windup does not finish after a resurrect. A swing that already reached `commitArmed` has already dealt its damage.
+
+Windup length, period, reach, arc, damage, poise, and hitstop are the same numbers.
+
+#### Left alone
+
+Crab shell versus bite. Uncapped crit chance (`5 + mods.crit`). Curse `lifeDrain` is still not added to `leech` (`lifeDrainWired` stays false). Life steal is still the pre-mitigation number and still skips bows, Fireball, and Frost Nova.
+
+#### Follow-ups (not fixed)
+
+- **Player arrows play the kill sting on every despawn.** `index.html` around the player-arrow branch of projectile death calls `sfxAt('hit', ...)`. `sfxEnt` is unset, so `SFX_CUE.hit` resolves to `cbt_kill_confirm_01` on a hit, a wall, and a timeout. Enemy arrows are the ones that play `cbt_proj_arrow_impact_01`. A later pass should play an impact only when the arrow `struck` something, and leave the kill sting to the death path.
+- **`player_bow_release` is not a real cue.** It is absent from `assets/sfx/sfx.json` and from `assets/sfx/`. `fireBow` tries it and falls back to `player_swing_light_01` for a default Short Bow. Unique bows already play their own cue at arrow spawn. This PR does not move bow audio.
+
+The audit write-up is `STAGE11_WEAPON_SFX_AUDIT.md`.
+
+#### Files
+
+- `index.html` — swoosh trigger, `meat` / `whiff` layers, `swingVoiced` resets.
+- `tests/stage11-weapon-sfx.html` — arm-time swoosh, one impact or one miss puff, family cue, charged release, interrupt reset, bow silence, direct `doAttack`.
+- `STAGE11_WEAPON_SFX_AUDIT.md` — the audit, with an implementation note at the top.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
+- `version.json` was not edited. `.github` was not edited.
