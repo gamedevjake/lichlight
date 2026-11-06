@@ -1,0 +1,88 @@
+---
+name: Publish GitHub Pages
+
+# Manual publish only. This file has no push or pull_request trigger.
+# Dispatch it from main. The ref input is a release tag or a full 40-character
+# commit SHA. The deploy job stays on the github-pages environment, so the
+# required reviewer approves it before any artifact is uploaded.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Release tag or full 40-character commit SHA to publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate publish ref
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.validate.outputs.sha }}
+      version: ${{ steps.validate.outputs.version }}
+      tag: ${{ steps.validate.outputs.tag }}
+    steps:
+      - name: Checkout dispatch ref with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Update origin/main and tags
+        run: |
+          git fetch --force origin main
+          git fetch --force origin '+refs/tags/*:refs/tags/*'
+
+      - name: Validate ref, floor, and site files
+        id: validate
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+        run: .github/scripts/validate-pages-ref.sh
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout dispatch ref with full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
+        with:
+          # false is the default. Keep it explicit so this step only reads the
+          # site configuration and does not call the enable-Pages API.
+          enablement: "false"
+
+      - name: Stage the site tree
+        env:
+          PUBLISH_SHA: ${{ needs.validate.outputs.sha }}
+        run: .github/scripts/stage-pages-artifact.sh
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: _site
+          # Default false drops dotfiles, including the empty .nojekyll the
+          # legacy site serves. .git and .github stay excluded by the action.
+          include-hidden-files: "true"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1
