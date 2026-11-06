@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<!-- Stage 7: skill types, spell power migration, statuses, specializations. Direct hits at 0 resist stay the Stage 6 numbers. -->
+<html>
+<head><meta charset="utf-8"><title>stage7</title></head>
+<body>
+<iframe id="g" src="../index.html?v=stage7" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function calm(g, w) {
+  g.newGame();
+  const p = g.player;
+  p.lvl = 1;
+  if (p.equip) { p.equip.weapon = null; p.equip.shield = null; p.equip.armor = null; p.equip.helm = null; p.equip.boots = null; p.equip.ring = null; p.equip.amulet = null; }
+  p.hp = 400; p.st.maxHp = 800; p.st.def = 0; p.st.regen = 0; p.st.fire = 0; p.st.spell = 0;
+  p.st.crit = 0; p.st.critDmg = 0; p.st.critMul = 2;
+  p.st.min = 10; p.st.max = 10; p.st.ls = 0; p.st.block = 0; p.st.aspd = 1;
+  p.st.flat = p.st.flatPhysical = p.st.flatFire = p.st.flatCold = 0;
+  p.st.inc = p.st.incPhysical = p.st.incFire = p.st.incCold = 0;
+  p.st.more = p.st.morePhysical = p.st.moreFire = p.st.moreCold = 1;
+  p.st.bonusPhysical = p.st.bonusFire = p.st.bonusCold = 0;
+  p.st.resFire = p.st.resCold = p.st.resLightning = p.st.resPoison = p.st.resShadow = 0;
+  p.st.penFire = p.st.penCold = p.st.penLightning = p.st.penPoison = p.st.penShadow = 0;
+  p.st.maxResist = 0;
+  p.mp = 200; p.cds = [0, 0, 0]; p.learned = [true, true, true];
+  if (p.lichTome) p.lichTome.isAcquired = true;
+  g.unlockSpell('fireball'); g.unlockSpell('spin'); g.unlockSpell('frostNova'); g.unlockSpell('hellmouth');
+  g.setSkillSpec(0, 'base'); g.setSkillSpec(1, 'base'); g.setSkillSpec(2, 'base');
+  p.x = 220; p.y = 180; p.fx = 1; p.fy = 0; p.atkCd = 0; p.swing = 0; p.inv0 = 0; p.roll = 0;
+  p.statusImmune = null; p.freezeImmune = 0;
+  g.clearStatuses(p);
+  w.__hurtSpread = 1; w.__critRoll = 1; w.__skillRoll = 0; w.__champCrit = 1;
+  g.clearSkillCrit(); g.setConversionEdges([]);
+  g.projs.length = 0;
+  return p;
+}
+function foe(g, p, x, y) {
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const e = g.spawnEnemy('skel', x, y == null ? p.y : y, false);
+  e.dead = false; e.hp = 500; e.maxHp = 500; e.shield = 0; e.hidden = false; e.downT = 0;
+  e.hmFreeze = true; e.spd = 0; e.r = 4; e.resists = null; e.maxResist = 0; e.slow = 0;
+  e.superElite = false; if (e.T) e.T = Object.assign({}, e.T, { boss: false });
+  g.clearStatuses(e); g.resetPoise(e); g.ensurePoise(e);
+  return e;
+}
+function loss(e) { return 500 - e.hp; }
+function compSum(info) {
+  const out = {};
+  ((info && info.components) || []).forEach(c => { out[c.type] = (out[c.type] || 0) + c.amount; });
+  return out;
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html?v=stage7src');
+  const ver = fetchText('../version.json');
+  check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
+  check('mods.fire is still the spell power key', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0 && src.indexOf('Spell Power') >= 0);
+  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hazards stay on their old paths', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0 && src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0 && src.indexOf("envHurt(d, 'flames'") >= 0);
+  check('no resist affix and no stage 8 table', src.indexOf("k: 'resFire'") < 0 && src.indexOf('ELITE_AFFIX') < 0);
+  check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
+
+  let p = calm(g, w);
+  const am = { id: 's7', slot: 'amulet', name: 'Old Charm', mods: { fire: 6 }, powers: [] };
+  p.equip.amulet = am;
+  w.computeStats();
+  check('spell power alias matches mods.fire', p.st.fire === 6 && p.st.spell === 6 && g.spellPower(p) === 6 && p.st.flatFire === 0 && p.st.bonusFire === 0, JSON.stringify({ fire: p.st.fire, spell: p.st.spell, flat: p.st.flatFire }));
+  check('melee roll ignores spell power', w.rollDmg('melee').d === p.st.min || (p.st.min = 4, p.st.max = 4, w.rollDmg('melee').d === 4));
+  p.st.min = 4; p.st.max = 4; p.st.crit = 0;
+  check('melee damage ignores spell power', w.rollDmg('melee').d === 4, w.rollDmg('melee').d);
+
+  p = calm(g, w);
+  p.lvl = 10; p.st.fire = 20; p.st.spell = 20; p.cds[0] = 0;
+  w.castSkill(0);
+  const fb = g.projs.find(q => q.kind === 'fire');
+  check('fireball magnitude stays 64', fb && Math.abs(fb.dmg - 64) < 1e-9, fb && fb.dmg);
+  const core = foe(g, p, p.x + 40);
+  core.x = fb.x + fb.vx * 0.05; core.y = fb.y; core.r = 8;
+  g.step(0.05, { x: 0, y: 0 });
+  check('fireball is fire and does not leech', loss(core) === 64 && w.__lastDamage.type === 'Fire' && w.__lastLeech.skipped === true && w.__lastLeech.source === 'fireball', loss(core) + ' ' + w.__lastDamage.type);
+  const burn0 = g.getStatus(core, 'burning');
+  check('base fireball burns for no damage', burn0 && burn0.n === 1 && burn0.stacks[0].base === 0 && burn0.dur === 3, JSON.stringify(burn0 && { n: burn0.n, base: burn0.stacks[0].base, dur: burn0.dur }));
+  const hpBurn = core.hp;
+  g.tickStatuses(core, 3.2);
+  check('a zero burn tick does not add damage', core.hp === hpBurn && !g.getStatus(core, 'burning'), core.hp + ' left ' + hpBurn);
+
+  p = calm(g, w);
+  p.lvl = 10; p.st.fire = 20; p.cds[0] = 0; p.st.penFire = 40;
+  w.castSkill(0);
+  const fbP = g.projs.find(q => q.kind === 'fire');
+  const penE = foe(g, p, p.x + 40);
+  penE.x = fbP.x + fbP.vx * 0.05; penE.y = fbP.y; penE.r = 8;
+  penE.resists = { Fire: 90 }; penE.maxResist = 15;
+  g.step(0.05, { x: 0, y: 0 });
+  const penComp = (w.__lastDamage.components || []).filter(c => c.type === 'Fire')[0];
+  check('fireball resist and penetration once', loss(penE) === 32 && penComp && penComp.penHits === 1 && penComp.resistPct === 50, loss(penE) + ' hits ' + (penComp && penComp.penHits) + ' pct ' + (penComp && penComp.resistPct));
+
+  p = calm(g, w);
+  p.lvl = 10; p.st.fire = 20; p.st.crit = 100; p.cds[0] = 0; w.__critRoll = 0;
+  g.setSkillCrit('fireball', { chance: 100, mul: 5 });
+  w.castSkill(0);
+  const fbC = g.projs.find(q => q.kind === 'fire');
+  const critE = foe(g, p, p.x + 40);
+  critE.x = fbC.x + fbC.vx * 0.05; critE.y = fbC.y; critE.r = 8;
+  g.step(0.05, { x: 0, y: 0 });
+  check('fireball does not crit', Math.abs(fbC.dmg - 64) < 1e-9 && loss(critE) === 64, loss(critE));
+  g.clearSkillCrit();
+
+  p = calm(g, w);
+  g.setSkillSpec(0, 'kindling');
+  p.lvl = 10; p.st.fire = 20; p.cds[0] = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  w.castSkill(0);
+  const kin = g.projs.find(q => q.kind === 'fire');
+  kin.vx = 0; kin.vy = 0; kin.life = 0.01;
+  const far = foe(g, p, kin.x + 16, kin.y); far.r = 4;
+  g.step(0.05, { x: 0, y: 0 });
+  check('kindling gives up the splash ring', loss(far) === 0, loss(far));
+  p = calm(g, w);
+  g.setSkillSpec(0, 'kindling');
+  p.lvl = 10; p.st.fire = 20; p.cds[0] = 0;
+  w.castSkill(0);
+  const kin2 = g.projs.find(q => q.kind === 'fire');
+  const near = foe(g, p, p.x);
+  near.x = kin2.x + kin2.vx * 0.05; near.y = kin2.y; near.r = 8;
+  g.step(0.05, { x: 0, y: 0 });
+  const kinBurn = g.getStatus(near, 'burning');
+  check('kindling keeps the hit and adds a burn', loss(near) === 64 && kinBurn && kinBurn.stacks[0].base === 8, loss(near) + ' base ' + (kinBurn && kinBurn.stacks[0].base));
+  near.resists = { Fire: 50 };
+  const beforeDot = near.hp;
+  g.tickStatuses(near, 1);
+  check('kindling burn is fire and resisted once', near.hp === beforeDot - 4 && w.__lastDamage.type === 'Fire' && (w.__lastDamage.tags || []).indexOf('DoT') >= 0 && w.__lastDamage.crit !== true, (beforeDot - near.hp) + ' ' + (w.__lastDamage && w.__lastDamage.type) + ' ' + ((w.__lastDamage && w.__lastDamage.tags) || []).join(','));
+
+  p = calm(g, w);
+  g.setSkillSpec(0, 'scatter');
+  p.lvl = 1; p.st.fire = 0; p.cds[0] = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  w.castSkill(0);
+  const sc = g.projs.find(q => q.kind === 'fire');
+  sc.vx = 0; sc.vy = 0; sc.life = 0.01;
+  const edge = foe(g, p, sc.x + 24, sc.y); edge.r = 4;
+  g.step(0.05, { x: 0, y: 0 });
+  check('scatter reaches past the old ring for less', loss(edge) === 5 && w.__lastDamage.type === 'Fire', loss(edge) + ' dmg ' + (sc && sc.dmg));
+
+  p = calm(g, w);
+  p.lvl = 1; p.st.fire = 0; p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.st.ls = 10; p.hp = 100; p.cds[1] = 0;
+  const spin = foe(g, p, p.x);
+  w.castSkill(1);
+  const parts = compSum(w.__lastDamage);
+  check('whirlwind splits weapon physical and fire rider', loss(spin) === 15 && Math.abs(parts.Physical - 14) < 1e-6 && Math.abs(parts.Fire - 1) < 1e-6 && w.__lastLeech.base === 15, loss(spin) + ' ' + JSON.stringify(parts) + ' leech ' + w.__lastLeech.base);
+  check('base whirlwind does not burn', !g.getStatus(spin, 'burning'));
+  p.st.crit = 100; w.__critRoll = 0; p.mp = 200; p.cds[1] = 0; p.hp = 100;
+  spin.hp = 500; g.clearStatuses(spin);
+  w.castSkill(1);
+  const critParts = compSum(w.__lastDamage);
+  check('whirlwind crit doubles only the weapon roll', loss(spin) === 29 && Math.abs(critParts.Physical - 28) < 1e-6 && Math.abs(critParts.Fire - 1) < 1e-6 && w.__lastLeech.base === 29, loss(spin) + ' ' + JSON.stringify(critParts));
+
+  p = calm(g, w);
+  p.lvl = 10; p.st.fire = 20; p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.st.ls = 10; p.hp = 50; p.cds[1] = 0;
+  const mix = foe(g, p, p.x); mix.resists = { Fire: 50 };
+  w.castSkill(1);
+  const mixParts = compSum(w.__lastDamage);
+  check('whirlwind resist hits the rider once', loss(mix) === 24 && Math.abs(mixParts.Physical - 14) < 1e-6 && Math.abs(mixParts.Fire - 20) < 1e-6 && w.__lastLeech.base === 34 && Math.abs(w.__lastLeech.healed - 3.4) < 1e-6, loss(mix) + ' ' + JSON.stringify(mixParts) + ' ' + JSON.stringify(w.__lastLeech));
+  const wwPoise = w.__lastPoise && w.__lastPoise.dealt;
+  check('whirlwind poise stays heavy', w.__lastPoise && w.__lastPoise.cls === 'heavy' && Math.abs(wwPoise - 34) < 1e-6, wwPoise);
+
+  p = calm(g, w);
+  g.setSkillSpec(1, 'wide');
+  p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.cds[1] = 0;
+  const wide = foe(g, p, p.x + 40); wide.r = 4;
+  w.castSkill(1);
+  check('wide whirlwind hits farther for less', loss(wide) === 12, loss(wide) + ' at ' + Math.hypot(wide.x - p.x, wide.y - p.y));
+  p = calm(g, w);
+  g.setSkillSpec(1, 'keen');
+  p.st.min = 10; p.st.max = 10; p.st.crit = 0; p.cds[1] = 0;
+  const keenFar = foe(g, p, p.x + 30); keenFar.r = 4;
+  w.castSkill(1);
+  check('keen whirlwind gives up reach', loss(keenFar) === 0, loss(keenFar));
+  p.mp = 200; p.cds[1] = 0;
+  const keen = foe(g, p, p.x + 8);
+  w.castSkill(1);
+  check('keen whirlwind keeps the hit and shoves harder', loss(keen) === 15 && Math.abs(keen.kx) > 120, loss(keen) + ' kx ' + keen.kx);
+
+  p = calm(g, w);
+  p.lvl = 1; p.st.fire = 0; p.cds[2] = 0; p.st.ls = 40; p.hp = 50;
+  const nova = foe(g, p, p.x + 10);
+  w.castSkill(2);
+  const ch = g.getStatus(nova, 'chill');
+  check('frost nova is cold and chills without freeze', loss(nova) === 8 && w.__lastDamage.type === 'Cold' && nova.slow === 3.5 && ch && ch.slowPct === 0 && ch.buildup === 34 && !g.getStatus(nova, 'freeze') && w.__lastLeech.skipped === true, loss(nova) + ' build ' + (ch && ch.buildup));
+  check('base chill does not stack on the legacy slow', Math.abs(g.ccMoveMul(nova) - 0.45) < 1e-6, g.ccMoveMul(nova));
+  g.tickStatuses(nova, 3.6);
+  check('one nova cannot freeze before the next cast', !g.getStatus(nova, 'chill') && !g.getStatus(nova, 'freeze') && !(nova.freezeImmune > 0));
+
+  p = calm(g, w);
+  p.lvl = 10; p.st.fire = 20; p.cds[2] = 0;
+  const cold = foe(g, p, p.x + 10); cold.resists = { Cold: 75 };
+  w.castSkill(2);
+  check('frost nova uses cold resist', loss(cold) === 13 && w.__lastDamage.type === 'Cold', loss(cold));
+  p.st.penCold = 25; p.mp = 200; p.cds[2] = 0; cold.hp = 500;
+  w.castSkill(2);
+  check('frost penetration applies once', loss(cold) === 25, loss(cold));
+
+  p = calm(g, w);
+  g.setSkillSpec(2, 'whiteout');
+  p.cds[2] = 0;
+  const ice = foe(g, p, p.x + 10);
+  w.castSkill(2);
+  check('whiteout is smaller and builds faster', g.skillBuild(2).radius === 52 && g.getStatus(ice, 'chill').buildup === 55 && g.getStatus(ice, 'chill').slowPct === 15 && loss(ice) === 8, 'build ' + g.getStatus(ice, 'chill').buildup + ' hp ' + loss(ice));
+  check('whiteout slow stacks under the floor', g.ccMoveMul(ice) > 0.2 && g.ccMoveMul(ice) < 0.45, g.ccMoveMul(ice));
+  p.mp = 200; p.cds[2] = 0;
+  w.castSkill(2);
+  check('second whiteout freezes once', g.getStatus(ice, 'freeze') && g.getStatus(ice, 'freeze').dur === 1.5 && g.getStatus(ice, 'chill').buildup === 0 && g.ccImmobilized(ice) === 'freeze');
+  const freezeDur = g.getStatus(ice, 'freeze').dur;
+  p.mp = 200; p.cds[2] = 0;
+  w.castSkill(2);
+  check('freeze does not refresh', Math.abs(g.getStatus(ice, 'freeze').dur - freezeDur) < 0.05);
+  g.tickStatuses(ice, 1.5);
+  check('freeze ends into a lockout', !g.getStatus(ice, 'freeze') && ice.freezeImmune === 3, ice.freezeImmune);
+  p.mp = 200; p.cds[2] = 0; w.castSkill(2);
+  p.mp = 200; p.cds[2] = 0; w.castSkill(2);
+  check('lockout spends buildup and does not freeze again', !g.getStatus(ice, 'freeze') && ice.freezeImmune > 0, 'imm ' + ice.freezeImmune + ' build ' + (g.getStatus(ice, 'chill') && g.getStatus(ice, 'chill').buildup));
+
+  p = calm(g, w);
+  g.setSkillSpec(2, 'whiteout');
+  const boss = foe(g, p, p.x + 10);
+  boss.T = Object.assign({}, boss.T, { boss: true, label: 'TEST' });
+  boss.B = { pal: ['#fff'], p1: [] };
+  p.cds[2] = 0;
+  w.castSkill(2);
+  p.mp = 200; p.cds[2] = 0;
+  w.castSkill(2);
+  check('bosses take heavy chill and do not freeze', g.getStatus(boss, 'chill').slowPct === 6 && g.getStatus(boss, 'chill').buildup === 0 && !g.getStatus(boss, 'freeze') && boss.slow === 3.5 && g.ccMoveMul(boss) > 0.2, 'pct ' + g.getStatus(boss, 'chill').slowPct + ' mul ' + g.ccMoveMul(boss));
+
+  p = calm(g, w);
+  g.setSkillSpec(2, 'glass');
+  const rim = foe(g, p, p.x + 80); rim.r = 4;
+  p.cds[2] = 0;
+  w.castSkill(2);
+  check('glass nova reaches farther at the same hit', loss(rim) === 8 && g.skillBuild(2).radius === 88 && g.getStatus(rim, 'chill').buildup === 15, loss(rim));
+
+  p = calm(g, w);
+  w.openSkills();
+  const names = Array.prototype.map.call(w.document.querySelectorAll('#skRows button'), b => b.textContent);
+  check('skill panel lists the builds', names.indexOf('Bolt') >= 0 && names.indexOf('Kindling') >= 0 && names.indexOf('Wide') >= 0 && names.indexOf('Whiteout') >= 0 && names.indexOf('KEY 1') >= 0, names.join(','));
+  const kindBtn = Array.prototype.find.call(w.document.querySelectorAll('#skRows button'), b => b.dataset.spec === '0:kindling');
+  kindBtn.click();
+  check('clicking a build saves the choice', g.skillSpecId(0) === 'kindling' && p.skillSpec[0] === 'kindling');
+  w.closeSkills();
+
+  const barBefore = (p.spellBar || []).slice();
+  const learnedBefore = p.learned.slice();
+  p.equip.amulet = { id: 'keep', slot: 'amulet', name: 'Keep', mods: { fire: 4 }, powers: [] };
+  w.computeStats();
+  w.save();
+  const raw = JSON.parse(w.localStorage.getItem('cryptdelve'));
+  check('a chosen build is saved and spell power stays fire', raw && raw.p && raw.p.skillSpec && raw.p.skillSpec[0] === 'kindling' && raw.p.equip.amulet.mods.fire === 4 && raw.p.learned[0] === true, JSON.stringify(raw && raw.p && raw.p.skillSpec));
+  delete raw.p.skillSpec;
+  raw.p.spellBar = ['fireball', 'spin', 'frostNova', 'hellmouth'];
+  w.localStorage.setItem('cryptdelve', JSON.stringify(raw));
+  g.continueGame();
+  const q = g.player;
+  check('an old save without a build loads the base row', q && q.skillSpec.join(',') === 'base,base,base' && q.st.fire === 4 && q.st.spell === 4 && q.learned[0] === true && q.learned[2] === true, (q && q.skillSpec && q.skillSpec.join(',')) + ' fire ' + (q && q.st.fire));
+  check('spell bar assignment survives the load', learnedBefore.length === 3 && barBefore && q.spellBar && q.spellBar.length === 4, (q.spellBar || []).join(','));
+
+  p = calm(g, w);
+  p.st.def = 30; p.st.resFire = 90; p.st.resPoison = 90; p.st.maxResist = 15; p.hp = 400; p.inv0 = 0;
+  const lava = g.resolveDamage(p, { world: true, amount: 12, type: 'Fire', label: 'lava', lethal: false, attacker: 'world' });
+  check('lava stays world damage and skips resist', lava.world === true && lava.dealt === 12 && p.hp === 388, 'dealt ' + lava.dealt + ' hp ' + p.hp);
+  p.hp = 400;
+  g.hazards.push({ x: p.x, y: p.y, r: 12, kind: 'poison', life: 3, max: 3, dmg: 10, label: 'plague', tick: 0 });
+  g.step(0.05, { x: 0, y: 0 });
+  check('poison ground stays physical armor damage', w.__lastDamage && w.__lastDamage.type === 'Physical' && w.__lastDamage.dot === true && w.__lastDamage.world !== true && w.__lastDamage.dealt === 5, (w.__lastDamage && w.__lastDamage.dealt) + ' ' + (w.__lastDamage && w.__lastDamage.type));
+
+  p = calm(g, w);
+  const mage = g.spawnEnemy('mage', p.x + 90, p.y, false);
+  const cultist = w.eShoot(mage, 0, 90, { label: mage.T.label });
+  p.st.def = 0; p.hp = 300; p.inv0 = 0; p.roll = 0; w.__hurtSpread = 1;
+  w.hurtPlayer(20, cultist);
+  const openBolt = w.__lastDamage.dealt;
+  p.st.def = 30; p.hp = 300; p.inv0 = 0; p.roll = 0;
+  w.hurtPlayer(20, cultist);
+  check('cultist bolt is physical and uses armor', cultist && !cultist.dmgType && openBolt === 20 && w.__lastDamage.dealt === 10 && w.__lastDamage.type === 'Physical', openBolt + ' then ' + w.__lastDamage.dealt + ' ' + (w.__lastDamage && w.__lastDamage.type));
+
+  const wisp = g.spawnEnemy('wisp', p.x + 90, p.y, false);
+  const bolt = w.eShoot(wisp, 0, 100, { kind: 'water', label: wisp.T.label });
+  const siren = g.spawnEnemy('siren', p.x + 90, p.y, false);
+  const ring = w.eShoot(siren, 0, 60, { kind: 'water', mul: 0.7 });
+  const ex = g.spawnEnemy('exarch', p.x + 90, p.y, false);
+  const orb = w.eShoot(ex, 0, 45, { kind: 'orb', r: 4, homing: 1.6, life: 4.5 });
+  const seer = g.spawnEnemy('seer', p.x + 90, p.y, false);
+  const snipe = w.eShoot(seer, 0, 280, { kind: 'snipe', r: 2, life: 1.2, mul: 1.2 });
+  const spider = g.spawnEnemy('spider', p.x + 90, p.y, false);
+  const web = w.eShoot(spider, 0, 100, { kind: 'web' });
+  const arch = g.spawnEnemy('archer', p.x + 90, p.y, false);
+  const arrow = w.eShoot(arch, 0, 120, { kind: 'arrow' });
+  p.st.def = 30; p.hp = 300; p.inv0 = 0; p.roll = 0; w.__hurtSpread = 1;
+  w.hurtPlayer(20, snipe);
+  check('caster bolts stay physical until resist gear', !cultist.dmgType && !bolt.dmgType && !ring.dmgType && !orb.dmgType && !snipe.dmgType && !web.dmgType && !arrow.dmgType && w.__lastDamage.type === 'Physical' && w.__lastDamage.dealt === 10, [bolt.dmgType || 'phys', ring.dmgType || 'phys', orb.dmgType || 'phys', snipe.dmgType || 'phys', w.__lastDamage.dealt].join(','));
+
+  const fakeBoss = foe(g, p, p.x + 70);
+  fakeBoss.T = Object.assign({}, fakeBoss.T, { boss: true });
+  const bossBolt = w.eShoot(fakeBoss, 0, 40, { kind: 'boss', dmgType: 'Shadow' });
+  check('boss shots stay physical', bossBolt && !bossBolt.dmgType, bossBolt && bossBolt.dmgType);
+
+  p = calm(g, w);
+  g.startFloor(5, true);
+  p = g.player;
+  p.hp = 400; p.mp = 80; p.st.def = 0; p.inv0 = 0; p.x = p.x || 200; p.y = p.y || 180;
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = -2; y <= 2; y++) for (let x = -1; x <= 8; x++) g.setTile(tx + x, ty + y, 1);
+  g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; } });
+  if (g.SE717) g.SE717.dead = false;
+  const se = g.seSpawn717('se_arachnex', 'fight');
+  se.sePhase = 'fight'; se.x = p.x + 24; se.y = p.y; se.hp = 90; se.shield = 9; se.dead = false;
+  const seBolt = w.eShoot(se, 0, 40, { dmgType: 'Lightning' });
+  check('super elite shots stay physical', seBolt && !seBolt.dmgType, seBolt && seBolt.dmgType);
+  let bossE = g.enemies.find(e => e.T && e.T.boss && e !== se);
+  if (!bossE) bossE = g.spawnBoss(p.x + 48, p.y);
+  bossE.x = p.x + 48; bossE.y = p.y; bossE.dead = false; bossE.hp = 400; bossE.shield = 200; bossE.hidden = false;
+  p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
+  w.castHellmouth();
+  const sinks = p.activeHellSinks || [];
+  check('hellmouth still sinks the super elite and not the boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === bossE));
+  for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
+  check('hellmouth still deletes the super elite', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp);
+
+  const rows = [
+    { label: 'fists', dealt: 2, period: 0.45 },
+    { label: 'sword', dealt: 4, period: 0.45 },
+    { label: 'axe', dealt: 5, period: 0.5 },
+    { label: 'staff', dealt: 5, period: 0.45 },
+    { label: 'maul', dealt: 19, period: 0.643 },
+    { label: 'bow', dealt: 7, period: 0.429 }
+  ];
+  const weapons = [
+    { name: null, spd: 1, pin: 2 },
+    { name: 'Short Sword', spd: 1, pin: 4 },
+    { name: 'Hand Axe', spd: 0.9, pin: 5 },
+    { name: 'Gnarled Staff', spd: 1, pin: 5 },
+    { name: 'Great Maul', spd: 0.7, pin: 19 },
+    { name: 'BOW', spd: 1.05, pin: 7 }
+  ];
+  weapons.forEach((row, i) => {
+    p = calm(g, w);
+    p.st.min = row.pin; p.st.max = row.pin; p.st.crit = 0; p.st.aspd = row.spd; p.st.fire = 0;
+    let dealt = 0;
+    if (row.name === 'BOW') {
+      g.equipBow('default'); p.st.min = row.pin; p.st.max = row.pin; p.st.aspd = row.spd;
+      w.fireBow(p.equip.weapon, true);
+      const ar = g.projs.filter(q => q.kind === 'arrow' && q.owner === 'p').pop();
+      const be = foe(g, p, p.x + 16); be.r = 8;
+      if (ar) { ar.x = be.x; ar.y = be.y; ar.life = 0.2; }
+      g.step(0.05, { x: 0, y: 0 });
+      dealt = loss(be);
+    } else {
+      if (row.name) p.equip.weapon = g.makeItem(1, 0, row.name);
+      p.st.min = row.pin; p.st.max = row.pin; p.st.aspd = row.spd;
+      const e = foe(g, p, p.x + 12);
+      w.doAttack(true);
+      dealt = loss(e);
+    }
+    const expect = rows[i];
+    const sec80 = Math.round(Math.ceil(80 / dealt) * expect.period * 1000) / 1000;
+    check(expect.label + ' time to kill unchanged', dealt === expect.dealt && Math.abs(sec80 - Math.round(Math.ceil(80 / expect.dealt) * expect.period * 1000) / 1000) < 1e-6, dealt + ' sec ' + sec80);
+  });
+
+  function skillHit(setup, idx, resist) {
+    p = calm(g, w);
+    setup(p);
+    p.cds[idx] = 0; p.mp = 200;
+    g.projs.length = 0;
+    if (idx === 0) {
+      w.castSkill(0);
+      const shot = g.projs.find(q => q.kind === 'fire');
+      const e = foe(g, p, p.x + 30);
+      if (shot) { e.x = shot.x + shot.vx * 0.05; e.y = shot.y; e.r = 8; }
+      if (resist) { e.resists = resist; e.maxResist = 15; }
+      g.step(0.05, { x: 0, y: 0 });
+      return loss(e);
+    }
+    const e = foe(g, p, idx === 2 ? p.x + 10 : p.x);
+    if (resist) { e.resists = resist; e.maxResist = 15; }
+    w.castSkill(idx);
+    return loss(e);
+  }
+  const ttk = [
+    ['fireball L1', skillHit(p => { p.lvl = 1; p.st.fire = 0; }, 0), 11],
+    ['fireball L10', skillHit(p => { p.lvl = 10; p.st.fire = 0; }, 0), 36],
+    ['fireball L10 power 20', skillHit(p => { p.lvl = 10; p.st.fire = 20; }, 0), 64],
+    ['whirlwind pin 10', skillHit(p => { p.st.min = 10; p.st.max = 10; p.st.crit = 0; }, 1), 15],
+    ['whirlwind crit', skillHit(p => { p.st.min = 10; p.st.max = 10; p.st.crit = 100; w.__critRoll = 0; }, 1), 29],
+    ['frost L1', skillHit(p => { p.lvl = 1; p.st.fire = 0; }, 2), 8],
+    ['frost L10 power 20', skillHit(p => { p.lvl = 10; p.st.fire = 20; }, 2), 50],
+    ['fireball against fire resist', skillHit(p => { p.lvl = 10; p.st.fire = 20; }, 0, { Fire: 90 }), 6],
+    ['frost against cold resist', skillHit(p => { p.lvl = 1; p.st.fire = 0; }, 2, { Cold: 90 }), 1]
+  ];
+  ttk.forEach(row => check(row[0] + ' direct hit', row[1] === row[2], row[1]));
+  check('crit chance stays uncapped', (p = calm(g, w), p.st.crit = 250, g.critChance('melee') === 250));
+  check('curse life drain stays unwired', g.curseHooks(p).lifeDrainWired === false);
+}
+</script>
+</body>
+</html>
