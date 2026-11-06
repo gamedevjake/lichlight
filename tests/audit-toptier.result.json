@@ -2,6 +2,239 @@
   "version": "0.7.18",
   "commitNote": "live index.html functions",
   "error": "",
+  "progression": {
+    "xpGate": {
+      "onlyFirst": {
+        "lvl": 2,
+        "xp": 32,
+        "need": 87
+      },
+      "both": {
+        "lvl": 3,
+        "xp": 21,
+        "need": 164
+      },
+      "seXp1": 62,
+      "seXp2": 76
+    },
+    "trials": 240,
+    "life": {
+      "min": 70,
+      "p50": 74,
+      "p90": 91,
+      "p99": 102,
+      "max": 111
+    },
+    "reach190": 0,
+    "reach198": 0,
+    "level3": {
+      "min": 80,
+      "p50": 101,
+      "max": 155
+    },
+    "hist": {
+      "70": 136,
+      "80": 56,
+      "90": 40,
+      "100": 7,
+      "110": 1
+    },
+    "best": {
+      "maxHp": 111,
+      "dmg": "7-12",
+      "detail": [
+        {
+          "slot": "weapon",
+          "src": "keyed-chest",
+          "name": "Lucid Broad Sword of the Whale",
+          "base": "Broad Sword",
+          "lvl": 2,
+          "rar": 1,
+          "req": 1,
+          "hp": 10,
+          "def": 0,
+          "min": 6,
+          "max": 11
+        },
+        {
+          "slot": "armor",
+          "src": "keyed-chest",
+          "name": "Hale Leather Armor",
+          "base": "Leather Armor",
+          "lvl": 2,
+          "rar": 1,
+          "req": 1,
+          "hp": 0,
+          "def": 3,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "helm",
+          "src": "super-elite",
+          "name": "Lanternjaw",
+          "base": "Helm",
+          "lvl": 1,
+          "rar": 3,
+          "req": 2,
+          "hp": 21,
+          "def": 4,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "amulet",
+          "src": "keyed-chest",
+          "name": "Bone Pendant",
+          "base": "Bone Pendant",
+          "lvl": 3,
+          "rar": 0,
+          "req": 1,
+          "hp": 10,
+          "def": 0,
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "sumHp": 41,
+      "level3": 143,
+      "sources": {
+        "keyed-chest": 3,
+        "super-elite": 1,
+        "placed": 1,
+        "secret-chest": 1
+      },
+      "wearable": 4,
+      "blocked": 2
+    },
+    "p99build": {
+      "maxHp": 102,
+      "dmg": "8-12",
+      "detail": [
+        {
+          "slot": "weapon",
+          "src": "keyed-chest",
+          "name": "Short Sword",
+          "base": "Short Sword",
+          "lvl": 2,
+          "rar": 0,
+          "req": 1,
+          "hp": 0,
+          "def": 0,
+          "min": 2,
+          "max": 6
+        },
+        {
+          "slot": "ring",
+          "src": "super-elite",
+          "name": "Bloodbound Signet",
+          "base": "Ring",
+          "lvl": 1,
+          "rar": 3,
+          "req": 2,
+          "hp": 21,
+          "def": 0,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "armor",
+          "src": "keyed-chest",
+          "name": "Sturdy Leather Armor of the Vigil",
+          "base": "Leather Armor",
+          "lvl": 3,
+          "rar": 1,
+          "req": 1,
+          "hp": 11,
+          "def": 4,
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "sumHp": 32,
+      "level3": 112,
+      "sources": {
+        "keyed-chest": 2,
+        "super-elite": 1,
+        "placed": 1,
+        "secret-chest": 1
+      },
+      "wearable": 3,
+      "blocked": 2
+    },
+    "medianBuild": {
+      "maxHp": 74,
+      "dmg": "4-8",
+      "detail": [
+        {
+          "slot": "weapon",
+          "src": "keyed-chest",
+          "name": "Gnarled Staff",
+          "base": "Gnarled Staff",
+          "lvl": 2,
+          "rar": 0,
+          "req": 1,
+          "hp": 0,
+          "def": 0,
+          "min": 3,
+          "max": 7
+        },
+        {
+          "slot": "boots",
+          "src": "keyed-chest",
+          "name": "Greaves",
+          "base": "Greaves",
+          "lvl": 3,
+          "rar": 0,
+          "req": 1,
+          "hp": 0,
+          "def": 5,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "ring",
+          "src": "keyed-chest",
+          "name": "Ring",
+          "base": "Ring",
+          "lvl": 3,
+          "rar": 0,
+          "req": 1,
+          "hp": 4,
+          "def": 0,
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "sumHp": 4,
+      "level3": 112,
+      "sources": {
+        "keyed-chest": 4,
+        "super-elite": 1,
+        "placed": 1,
+        "champion": 2
+      },
+      "wearable": 7,
+      "blocked": 1
+    },
+    "bonePendant": {
+      "samples": 80,
+      "stackedAboveImplicit": 18,
+      "highest": 27
+    },
+    "lonePendant": {
+      "mod": 26,
+      "maxHp": 106,
+      "extra": 10
+    },
+    "shopOnEarlyFloors": false,
+    "notes": [
+      "Shop is placed only on boss floors. Depths 1-2 have no Hollow Pedlar.",
+      "Descending requires the depth-1 Super Elite. Its 62 xp reaches level 2. The depth-2 Super Elite is another 76 xp and reaches level 3.",
+      "Secret gilt chests use item level depth+2 and are included. At depth 2 that is item level 4, which required level blocks at level 2.",
+      "Keyed chests are included at the live 50% item gate. Placed ground gear (sealed rooms, vaults, islands) is taken from the generated floor."
+    ]
+  },
   "hp198": {
     "uiNaked": {
       "levelLine": "LEVEL 2   DEPTH 1",
@@ -475,7 +708,7 @@
       "afterCast": 79,
       "afterKill": 82,
       "lvlBefore": 2,
-      "lvlAfter": 2,
+      "lvlAfter": 3,
       "xpAfter": 7,
       "eyeMana": 53,
       "eyeOnKill": [
@@ -758,29 +991,31 @@
         "min": 70,
         "p50": 70,
         "p90": 91,
-        "max": 96
+        "max": 101
       },
-      "defP50": 0,
+      "defP50": 15,
       "sampleMax": {
-        "hp": 96,
-        "def": 9,
+        "hp": 101,
+        "def": 15,
+        "min": 8,
+        "max": 13,
+        "aspd": 1.05,
+        "gear": [
+          "Cruel Short Bow of the Whale r1",
+          "Tam's Coffin Lid r3",
+          "Warded Helm r1"
+        ]
+      },
+      "sampleP50": {
+        "hp": 70,
+        "def": 15,
         "min": 2,
         "max": 5,
         "aspd": 1,
         "gear": [
           "Rusty Sword",
-          "Tam's Coffin Lid r3",
-          "Ring"
-        ]
-      },
-      "sampleP50": {
-        "hp": 70,
-        "def": 0,
-        "min": 10,
-        "max": 14,
-        "aspd": 1.21,
-        "gear": [
-          "Grandsire Oswin r3"
+          "Helm",
+          "Ratcatcher's Coat r3"
         ]
       }
     },
@@ -789,7 +1024,7 @@
       "naked": 70,
       "needPlusLife": 128,
       "measuredMaxFromEarlyUniques": 144,
-      "monteCarloMax": 96
+      "monteCarloMax": 101
     }
   },
   "incoming": [
@@ -2062,7 +2297,7 @@
           }
         },
         "sword-rare-dmg": {
-          "name": "Wraith Coil",
+          "name": "Grave Vow",
           "avg": 6,
           "min": 4,
           "max": 7,
@@ -2187,7 +2422,7 @@
           }
         },
         "sword-rare-dmg": {
-          "name": "Wraith Coil",
+          "name": "Grave Vow",
           "avg": 6,
           "min": 4,
           "max": 7,
@@ -2312,7 +2547,7 @@
           }
         },
         "sword-rare-dmg": {
-          "name": "Wraith Coil",
+          "name": "Grave Vow",
           "avg": 6,
           "min": 4,
           "max": 7,
@@ -2437,7 +2672,7 @@
           }
         },
         "sword-rare-dmg": {
-          "name": "Wraith Coil",
+          "name": "Grave Vow",
           "avg": 6,
           "min": 4,
           "max": 7,
@@ -2562,7 +2797,7 @@
           }
         },
         "sword-rare-dmg": {
-          "name": "Wraith Coil",
+          "name": "Grave Vow",
           "avg": 6,
           "min": 4,
           "max": 7,
@@ -3853,29 +4088,29 @@
     },
     {
       "id": "sword-rare-haste",
-      "name": "Dread Mark",
+      "name": "Shadow Cry",
       "rarity": 2,
       "sheet": {
-        "min": 3,
-        "max": 6,
-        "aspd": 1.11,
-        "period": 0.405,
-        "windup": 0.073,
+        "min": 4,
+        "max": 7,
+        "aspd": 1.12,
+        "period": 0.402,
+        "windup": 0.072,
         "family": "sword",
-        "crit": 8,
+        "crit": 5,
         "ls": 0
       },
-      "avg": 5,
+      "avg": 6,
       "rows": [
         {
           "depth": 1,
           "se": {
             "hp": 56,
             "shield": 6,
-            "hits": 13,
-            "sec": 5.3,
-            "minHits": 21,
-            "maxHits": 11
+            "hits": 11,
+            "sec": 4.4,
+            "minHits": 16,
+            "maxHits": 9
           },
           "boss": null
         },
@@ -3884,10 +4119,10 @@
           "se": {
             "hp": 77,
             "shield": 8,
-            "hits": 17,
-            "sec": 6.9,
-            "minHits": 29,
-            "maxHits": 15
+            "hits": 15,
+            "sec": 6,
+            "minHits": 22,
+            "maxHits": 13
           },
           "boss": null
         },
@@ -3896,10 +4131,10 @@
           "se": {
             "hp": 98,
             "shield": 10,
-            "hits": 22,
-            "sec": 8.9,
-            "minHits": 36,
-            "maxHits": 18
+            "hits": 18,
+            "sec": 7.2,
+            "minHits": 27,
+            "maxHits": 16
           },
           "boss": null
         },
@@ -3908,10 +4143,10 @@
           "se": {
             "hp": 120,
             "shield": 12,
-            "hits": 27,
-            "sec": 10.9,
-            "minHits": 44,
-            "maxHits": 22
+            "hits": 22,
+            "sec": 8.8,
+            "minHits": 33,
+            "maxHits": 19
           },
           "boss": null
         },
@@ -3920,24 +4155,24 @@
           "se": {
             "hp": 141,
             "shield": 14,
-            "hits": 31,
-            "sec": 12.6,
-            "minHits": 52,
-            "maxHits": 26
+            "hits": 26,
+            "sec": 10.5,
+            "minHits": 39,
+            "maxHits": 23
           },
           "boss": {
             "name": "live",
             "hp": 840,
             "shield": 210,
-            "hits": 210,
-            "sec": 85.1
+            "hits": 175,
+            "sec": 70.4
           }
         }
       ]
     },
     {
       "id": "sword-rare-dmg",
-      "name": "Wraith Coil",
+      "name": "Grave Vow",
       "rarity": 2,
       "sheet": {
         "min": 4,
@@ -3946,7 +4181,7 @@
         "period": 0.45,
         "windup": 0.081,
         "family": "sword",
-        "crit": 12,
+        "crit": 5,
         "ls": 0
       },
       "avg": 6,
@@ -4024,7 +4259,7 @@
     "summary": {
       "iasSumsOnce": true,
       "critOnce": true,
-      "critRatio": 2.5,
+      "critRatio": 1.83,
       "leechBeforeArmor": true,
       "bowSkipsLeech": true,
       "familyDoesNotChangeDamage": true
@@ -4040,13 +4275,13 @@
       "baseNo": 12,
       "rolledNo": 12,
       "dealtNo": 12,
-      "baseYes": 15,
+      "baseYes": 11,
       "mul": 2,
-      "rolledYes": 30,
-      "dealtYes": 30,
-      "ratio": 2.5,
+      "rolledYes": 22,
+      "dealtYes": 22,
+      "ratio": 1.83,
       "liveAppliesOnce": true,
-      "pendingOnTop": 60
+      "pendingOnTop": 44
     },
     "leech": {
       "ls": 6,
@@ -4060,7 +4295,7 @@
     },
     "bowLeech": {
       "source": "bow",
-      "base": 9,
+      "base": 6,
       "pct": 0,
       "healed": 0,
       "skipped": true
@@ -4164,15 +4399,26 @@
     ],
     "bossUniqueDepth1": [
       {
-        "name": "Tam's Copper",
+        "name": "Hellmouth Strider",
         "lvl": 1,
         "req": 2,
-        "min": 0,
-        "max": 0,
+        "min": 4,
+        "max": 10,
         "hp": 0,
-        "dmg": 0,
+        "dmg": 4,
         "ias": 0,
-        "base": "Ring"
+        "base": "Short Bow"
+      },
+      {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
       },
       {
         "name": "Tam's Coffin Lid",
@@ -4186,35 +4432,35 @@
         "base": "Wooden Buckler"
       },
       {
-        "name": "Wind Walkers",
+        "name": "Tam's Copper",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
         "hp": 0,
         "dmg": 0,
-        "ias": 11,
-        "base": "Boots"
-      },
-      {
-        "name": "Hellmouth Strider",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 4,
         "ias": 0,
-        "base": "Short Bow"
+        "base": "Ring"
       },
       {
-        "name": "Bloodbound Signet",
+        "name": "Tam's Copper",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
-        "hp": 21,
-        "dmg": 5,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Tam's Copper",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
         "ias": 0,
         "base": "Ring"
       },
@@ -4230,6 +4476,83 @@
         "base": "Cap"
       },
       {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Bloodbound Signet",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Wind Walkers",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Boots"
+      },
+      {
+        "name": "Ratcatcher's Coat",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Leather Armor"
+      },
+      {
         "name": "Wind Walkers",
         "lvl": 1,
         "req": 2,
@@ -4252,15 +4575,15 @@
         "base": "Wooden Buckler"
       },
       {
-        "name": "Ratcatcher's Coat",
+        "name": "Bloodbound Signet",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
-        "hp": 0,
-        "dmg": 0,
+        "hp": 21,
+        "dmg": 5,
         "ias": 0,
-        "base": "Leather Armor"
+        "base": "Ring"
       },
       {
         "name": "Gravedigger's Due",
@@ -4285,37 +4608,26 @@
         "base": "Short Sword"
       },
       {
-        "name": "Scream of the Banshee",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 5,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Bloodbound Signet",
+        "name": "Eye of the Choir",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
-        "hp": 21,
-        "dmg": 5,
+        "hp": 0,
+        "dmg": 4,
         "ias": 0,
         "base": "Ring"
       },
       {
-        "name": "Fool's Motley",
+        "name": "Rootwake",
         "lvl": 1,
         "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
+        "min": 4,
+        "max": 8,
+        "hp": 16,
         "dmg": 0,
-        "ias": 11,
-        "base": "Cap"
+        "ias": 0,
+        "base": "Gnarled Staff"
       },
       {
         "name": "Tam's Copper",
@@ -4329,6 +4641,17 @@
         "base": "Ring"
       },
       {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
         "name": "Wind Walkers",
         "lvl": 1,
         "req": 2,
@@ -4338,17 +4661,6 @@
         "dmg": 0,
         "ias": 11,
         "base": "Boots"
-      },
-      {
-        "name": "Eye of the Choir",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 4,
-        "ias": 0,
-        "base": "Ring"
       },
       {
         "name": "Tam's Lantern Bead",
@@ -4373,59 +4685,26 @@
         "base": "Short Bow"
       },
       {
-        "name": "Tam's Coffin Lid",
+        "name": "Fool's Motley",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
-        "hp": 21,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Wooden Buckler"
-      },
-      {
-        "name": "Tam's Coffin Lid",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 21,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Wooden Buckler"
-      },
-      {
-        "name": "Gravedigger's Due",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
         "hp": 0,
-        "dmg": 7,
-        "ias": 0,
-        "base": "Hand Axe"
+        "dmg": 0,
+        "ias": 11,
+        "base": "Cap"
       },
       {
-        "name": "Bloodbound Signet",
+        "name": "Tam's Lantern Bead",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
-        "hp": 21,
-        "dmg": 5,
-        "ias": 0,
-        "base": "Ring"
-      },
-      {
-        "name": "Rootwake",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 8,
-        "hp": 16,
+        "hp": 11,
         "dmg": 0,
         "ias": 0,
-        "base": "Gnarled Staff"
+        "base": "Copper Charm"
       },
       {
         "name": "Scream of the Banshee",
@@ -4439,51 +4718,7 @@
         "base": "Short Bow"
       },
       {
-        "name": "Eye of the Choir",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 4,
-        "ias": 0,
-        "base": "Ring"
-      },
-      {
-        "name": "Scream of the Banshee",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 5,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Scream of the Banshee",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 5,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Tam's Copper",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Ring"
-      },
-      {
-        "name": "Tam's Coffin Lid",
+        "name": "Lanternjaw",
         "lvl": 1,
         "req": 2,
         "min": 0,
@@ -4491,7 +4726,7 @@
         "hp": 21,
         "dmg": 0,
         "ias": 0,
-        "base": "Wooden Buckler"
+        "base": "Helm"
       }
     ]
   },

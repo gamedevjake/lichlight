@@ -934,6 +934,109 @@ function runAudit() {
     w.damageEnemy(rat, 50, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, skill: 'fireball' });
     const mpAfterKill = p.mp;
 
+    // Full depth-1 then depth-2 container clear. One Super Elite only: the second one's xp
+    // pushes a fresh character to level 3, and the first one is what opens the stairs.
+    function xpAfter(gains) {
+      let lvl = 1, xp = 0;
+      gains.forEach(n => { xp += n; while (xp >= w.xpNeed(lvl)) { xp -= w.xpNeed(lvl); lvl++; } });
+      return { lvl: lvl, xp: xp, need: w.xpNeed(lvl) };
+    }
+    const seXp1 = Math.round(48 + 14 * 1), seXp2 = Math.round(48 + 14 * 2);
+    const xpGate = { onlyFirst: xpAfter([seXp1]), both: xpAfter([seXp1, seXp2]), seXp1: seXp1, seXp2: seXp2 };
+    function take(list, it, src) { if (it && it.slot) list.push({ it: it, src: src }); }
+    function harvest(d) {
+      p.lvl = 2;
+      p.found = [];
+      g.startFloor(d, false);
+      const list = [];
+      (g.ground || []).forEach(gnd => { if (gnd && gnd.item) take(list, gnd.item, 'placed'); });
+      (g.chests || []).forEach(c => {
+        if (!c || c.free) return;
+        if (Math.random() < 0.5) take(list, w.chestLoot(d), 'keyed-chest');
+      });
+      (g.enemies || []).forEach(e => {
+        if (e && e.elite && !(e.T && e.T.boss) && Math.random() < 0.1) take(list, w.makeItem(d, 0), 'champion');
+      });
+      if (d >= 2 && Math.random() < 0.55) take(list, w.makeItem(d + 2, Math.random() < 0.2 ? 3 : 2), 'secret-chest');
+      if (d === 1) take(list, w.bossUnique(1), 'super-elite');
+      return list;
+    }
+    function wearBest(list, reqMax, lvl) {
+      p.lvl = lvl;
+      const pick = {};
+      list.forEach(row => {
+        const it = row.it;
+        if (!it || (it.reqLvl || 1) > reqMax) return;
+        const hp = (it.mods && it.mods.hp) || 0;
+        const prev = pick[it.slot];
+        if (!prev || hp > prev.hp || (hp === prev.hp && (it.def || 0) > (prev.it.def || 0))) pick[it.slot] = { it: it, src: row.src, hp: hp };
+      });
+      const items = Object.keys(pick).map(k => pick[k].it);
+      const sheet = wear(items);
+      const detail = Object.keys(pick).map(k => ({
+        slot: k, src: pick[k].src, name: pick[k].it.name, base: pick[k].it.base, lvl: pick[k].it.lvl,
+        rar: pick[k].it.rarity, req: pick[k].it.reqLvl, hp: pick[k].hp, def: pick[k].it.def || 0,
+        min: pick[k].it.min || 0, max: pick[k].it.max || 0
+      }));
+      return { maxHp: sheet.hp, dmg: sheet.min + '-' + sheet.max, detail: detail, sumHp: detail.reduce((s, r) => s + r.hp, 0) };
+    }
+    const runs = [];
+    let pendantHi = 0, pendantStacked = 0, pendantN = 0;
+    for (let i = 0; i < 80; i++) {
+      const it = w.makeItem(3, 2, 'Bone Pendant');
+      pendantN++;
+      const hp = (it.mods && it.mods.hp) || 0;
+      if (hp > pendantHi) pendantHi = hp;
+      if (hp > 10) pendantStacked++;
+    }
+    const N = 240;
+    for (let n = 0; n < N; n++) {
+      const bag = harvest(1).concat(harvest(2));
+      const built = wearBest(bag, 2, 2);
+      const withSecond = bag.concat([{ it: w.bossUnique(2), src: 'super-elite-2' }]);
+      const at3 = wearBest(withSecond, 3, 3);
+      built.level3 = at3.maxHp;
+      built.sources = {};
+      bag.forEach(row => { built.sources[row.src] = (built.sources[row.src] || 0) + 1; });
+      built.wearable = bag.filter(row => row.it && (row.it.reqLvl || 1) <= 2).length;
+      built.blocked = bag.length - built.wearable;
+      runs.push(built);
+    }
+    runs.sort((a, b) => a.maxHp - b.maxHp);
+    const at = q => runs[Math.min(runs.length - 1, Math.floor(q * (runs.length - 1)))];
+    const ge = (hp) => runs.filter(r => r.maxHp >= hp).length;
+    const lifeHist = {};
+    runs.forEach(r => { const b = Math.floor(r.maxHp / 10) * 10; lifeHist[b] = (lifeHist[b] || 0) + 1; });
+    // One item counted once: equip it, maxHp must be 70 + its life mod.
+    const lone = w.makeItem(3, 2, 'Bone Pendant');
+    for (let i = 0; i < 40 && !((lone.mods && lone.mods.hp) > 10); i++) {
+      const again = w.makeItem(3, 2, 'Bone Pendant');
+      if ((again.mods && again.mods.hp) > 10) { lone.mods = again.mods; lone.base = again.base; lone.name = again.name; lone.lvl = again.lvl; lone.reqLvl = again.reqLvl; }
+    }
+    const loneSheet = wear([lone]);
+    const loneHp = (lone.mods && lone.mods.hp) || 0;
+
+    out.progression = {
+      xpGate: xpGate,
+      trials: N,
+      life: { min: runs[0].maxHp, p50: at(0.5).maxHp, p90: at(0.9).maxHp, p99: at(0.99).maxHp, max: runs[runs.length - 1].maxHp },
+      reach190: ge(190), reach198: ge(198),
+      level3: { min: Math.min.apply(null, runs.map(r => r.level3)), p50: runs.slice().sort((a, b) => a.level3 - b.level3)[Math.floor(runs.length / 2)].level3, max: Math.max.apply(null, runs.map(r => r.level3)) },
+      hist: lifeHist,
+      best: runs[runs.length - 1],
+      p99build: at(0.99),
+      medianBuild: at(0.5),
+      bonePendant: { samples: pendantN, stackedAboveImplicit: pendantStacked, highest: pendantHi },
+      lonePendant: { mod: loneHp, maxHp: loneSheet.hp, extra: loneSheet.hp - 70 - loneHp },
+      shopOnEarlyFloors: false,
+      notes: [
+        'Shop is placed only on boss floors. Depths 1-2 have no Hollow Pedlar.',
+        'Descending requires the depth-1 Super Elite. Its 62 xp reaches level 2. The depth-2 Super Elite is another 76 xp and reaches level 3.',
+        'Secret gilt chests use item level depth+2 and are included. At depth 2 that is item level 4, which required level blocks at level 2.',
+        'Keyed chests are included at the live 50% item gate. Placed ground gear (sealed rooms, vaults, islands) is taken from the generated floor.'
+      ]
+    };
+
     out.hp198 = {
       uiNaked: uiNaked,
       formula: '50 + level*10 + sum(mods.hp)',

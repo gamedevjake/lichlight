@@ -8,7 +8,7 @@ Re-run with `node tests/audit-toptier.mjs`. It loads `index.html` in headless Ch
 
 Early Super Elites feel harmless because their hits are small and their life total dies before the heavy tell matters. Mitigation is not the cause. A level 2 character with the starter armor still takes almost the full hit. The first boss already occupies the damage band the Super Elite heavy should occupy, which matches "the boss was fun."
 
-A level 2 life total with no gear is **70**. A depth-1 clear sits at 70 median and about 100 at the top of 200 trials. **198 is a real `maxHp`**, and it is the near-ceiling +life kit below, not a playtest buff and not a HUD that adds shield or ward. The heavy-hit tune stays aimed at 70 life. A 198-life kit takes 11 powers of 19 to die, which is what that much +life is for.
+A level 2 life total with no gear is **70**. A full loot of depths 1 and 2, with the one Super Elite a level 2 character is allowed to kill, lands at **74 median, 91 at p90, 102 at p99, 111 at the max** of 240 generated floors. **198 did not occur.** It is 87 life past that max. The heavy-hit tune stays on this 74–111 band.
 
 ## Level 2 player
 
@@ -57,21 +57,37 @@ The number on screen is current life, and current life is clamped to `maxHp`. It
 
 God mode sets `isInvincible` and `shiftT = 1e9`, and fills hunger, thirst, and rest. It writes life only when life is already below 1, and then it writes `maxHp`. Heal assigns `hp = maxHp` and `mp = maxMp`. Depth and the dev sword call `computeStats()`. None of them add a life mod. Stage 10 affixes are not in this build.
 
-`maxHp = 50 + 20 + sum(mods.hp)` at level 2, so 198 means **+128 life from gear**. That is legal. A level 2 character can wear item level 3 rares (required level 1 while `L <= 3`) and the low-base uniques through item level 3 (required level 2). The best piece in each slot, built with the live `calcReqLvl` and then equipped:
+`maxHp = 50 + 20 + sum(mods.hp)` at level 2, so 198 means **+128 life from gear**. Hand-building the single best legal piece for every slot and equipping them does return **207**. The floors do not hand you that set.
 
-| Slot | Piece | Item level | +life | Required level |
-| --- | --- | ---: | ---: | ---: |
-| Weapon | Rootwake | 2 | 17 | 2 |
-| Shield | Tam's Coffin Lid | 3 | 23 | 2 |
-| Helm | Lanternjaw | 3 | 23 | 2 |
-| Armor | Leather Armor, max life roll | 3 | 17 | 1 |
-| Boots | Boots, max life roll | 3 | 17 | 1 |
-| Ring | Bloodbound Signet | 3 | 23 | 2 |
-| Amulet | Copper Charm, max life roll | 3 | 17 | 1 |
+A fresh character who clears both early floors for real was run 240 times. Each trial generated the floor, took every placed item (sealed rooms, vaults, islands), opened every keyed chest at the live 50% item gate, rolled champion whites, rolled the depth-2 gilt secret chest at its 55% / 20% unique rate, and added the depth-1 Super Elite unique. Anything with required level above 2 stayed in the bag. Best life per slot was equipped. There is no percent-life mod, no socket, and no set bonus. One Bone Pendant whose mod was 20 produced max life 90, which is 70 + 20 with nothing left over, so `computeStats` does not count a life mod twice.
 
-`computeStats` on that set returned **life 207** (70 + 137). Hollowmere Mail and the deeper +life uniques require level 3 or more, so they are not in the set. Forty-eight depth-1 shop uniques (`rollShopUnique`) produced none that were both wearable at level 2 and a +life item. 198 is nine life under this ceiling: the same slots, a few rolls off the cap (item level 2 copies of those three uniques are +22, and a rare life roll tops out at 17). It is the character's real max, shown as `LIFE 198/198` if they actually wore it.
+| | Life |
+| --- | ---: |
+| Minimum | 70 |
+| Median | 74 |
+| p90 | 91 |
+| p99 | 102 |
+| Maximum | 111 |
+| Runs at 190 or 198 | 0 of 240 |
 
-A first-floor clear does not get there. One unique and one chest stayed at 70–96. Reaching ~198 takes the near-max +life piece in every slot. The threat numbers below stay on the 70-life character those clears actually are.
+The best single run was 111: Lanternjaw +21 from the Super Elite, a white Bone Pendant +10, a magic broad sword +10 life, and a magic armor with no life. That is +41, not +128.
+
+What the earlier one-chest trial missed, and what still does not reach 198:
+
+| Source | On depths 1–2? | What it adds |
+| --- | --- | --- |
+| Super Elite `bossUnique(depth)` | Yes, and the stairs are locked until it dies | One unique. Item level equals the depth. The life uniques that fit at level 2 are about +21. |
+| Keyed chests | 1–3 a floor, half of them drop gear while level ≤ 2 | Item level depth+1. Depth 2 is item level 3. |
+| Sealed rooms, vaults, islands | Placed on the floor | Same chest table, or one step higher. |
+| Gilt secret chest | Depth ≥ 2, 55% of floors | `makeItem(depth+2)`, 20% unique. Depth 2 is item level 4. Required level is 3 or 4, so a level 2 character cannot wear it. |
+| Hollow Pedlar | Boss floors only. `placeShop` returns immediately when the depth is not a boss depth. | Not on floors 1–2. The earlier shop sample was a source this play never meets. |
+| Second Super Elite | The kill is legal. Staying level 2 is not. | Depth-1 elite is 62 xp and reaches level 2 with 32/87. Depth-2 elite is 76 xp. 32+76 crosses 87. Both elites end at **level 3** with 21 xp left. |
+
+Killing the second elite and then wearing everything of required level ≤ 3, including that unique, was in the same 240 runs. Life at level 3 was **80 minimum, 101 median, 155 maximum**. Hollowmere Mail is about +44 and requires level 3, so it arrives on the kill that leaves level 2. 155 is still 43 short of 198.
+
+Required level is enforced. `equipFrom` and the empty-slot auto-equip both call `canWear`. The best level-2 run had a generated piece it was not allowed to put on. Save and load run `computeStats` once from the items. No second copy of a mod is added.
+
+The number 198 at character level 2 is not a drop path in this build. Two readings fit an honest run that never opened the dev menu. The satchel stamps **LV** and the item's level on the gear card, separate from **LEVEL** on the character line, so a level-2 item can sit next to a much higher life total. Character level 14 is base life 190 (`50 + 14*10`). One small life roll makes 198, and that is an ordinary mid-dungeon total, not an early one. The early band to tune against is **74–111**.
 
 ## Incoming damage, depths 1–5
 
@@ -248,7 +264,7 @@ The dealt numbers below were passed through `hurtPlayer` at DEF 0. Hits-to-kill 
 | 4 | 19 → **22** (4 → 4) | 9 → **15** (8 → 5) | 18 | 120 → **133** | 12 → 13 |
 | 5 | 21 → **21** (4) | 11 → **14** (7 → 5) | 17 | 141 → **141** | 14 → 14 |
 
-Depth-1 power at 19 is one point under Murk's hop (20). Four clean failures kill a naked level 2. On the measured depth-1 clear (about 70–100 life) that is 4–6 failures. On the 207-life ceiling kit it is 11, which is the kit doing its job. Swing damage does not move, so the basic sidestep stays a 6.
+Depth-1 power at 19 is one point under Murk's hop (20). Four clean failures kill a naked level 2. On the measured depth-1 clear (about 70–100 life) that is 4–6 failures. On a hand-built 207-life set that the floors do not drop, it is 11. Swing damage does not move, so the basic sidestep stays a 6.
 
 ### Time to kill, and whether a power tell finishes
 
@@ -301,6 +317,37 @@ Gold (25), the ration, and the 6.5% gate key stay on every Super Elite. A missed
 | 10+ | **100%** | — | 100% on boss floors | — | — |
 
 Chance of no Super Elite unique before the depth-5 boss is `0.80 * 0.65 = 0.52`. Chance the boss is the first unique at all, counting the depth-5 Super Elite's own 50%, is `0.80 * 0.65 * 0.50 = 0.26`. The boss is the first drop that cannot miss. The two floors before it are allowed to spike, and together they average 0.55 uniques. From depth 6 the Super Elite is a unique most of the time, and from depth 10 it is a unique every time, so the gate stays a reward after the player already has the boss drop.
+
+## Early life against the approved heavies
+
+Power 19 and brand 13, Super Elite life 80 at depth 1. Hits-to-kill use the measured level-2 band, not the 198 report.
+
+| Life | Where it comes from | Powers of 19 to die | Brands of 13 to die |
+| ---: | --- | ---: | ---: |
+| 70 | No gear | 4 | 6 |
+| 74 | Median full clear of floors 1–2 | 4 | 6 |
+| 91 | p90 | 5 | 7 |
+| 102 | p99 | 6 | 8 |
+| 111 | Best of 240 clears | 6 | 9 |
+| 198 | Not produced at level 2 | 11 | 16 |
+
+A median clear's weapon in these runs is a common or magic sword around 4–8 damage. Against 80 life and an 8 shield that is about 15 hits and about 7 seconds, and the power tell has several seconds left after half life. The best clear's broad sword was 6–11 and still finished inside about 5 seconds. Raising the heavies again to threaten 198 life would make the character these floors actually create die in two hits. The 19 / 13 / 80 package already does that job for 74–111 life.
+
+## Loot corrections
+
+These are the changes that match the drops. They are not more enemy damage.
+
+| Change | Now | Proposed |
+| --- | --- | --- |
+| Super Elite unique, depths 1–2 | 100% via `bossUnique` | **0%.** Guaranteed rare (`makeItem(depth, 2)`). Gold, ration, and the 6.5% gate key stay. |
+| Super Elite unique, depths 3, 4, 5 | 100% | **20%, 35%, 50%**, otherwise the same rare. Depth-5 boss stays the first 100% unique. |
+| Super Elite unique, depths 6–9 / 10+ | 100% | **70% / 100%** |
+| Required level for magic and rare | Any item level ≤ 3 is required level 1, so a depth-2 chest (item level 3) is wearable at level 1 | Whites keep that shortcut. Magic and rare use the existing formula. An item level 3 rare then requires level 3. |
+| Gilt secret chest before depth 5 | `makeItem(depth+2)`, 20% unique. Depth 2 rolls item level 4. | `makeItem(depth+1, 2)`, rare only, until depth 5. From depth 5, 20% unique at item level `depth+1`. |
+
+No life mod is counted twice, and required level is already checked on equip. The Bone Pendant's +10 implicit does add to a life affix when one rolls: sampled rares reached **+27**, and `computeStats` added that 20-point example once (life 90). That piece is rare and, under the required-level change above, a rare pendant of item level 3 waits until level 3. A white pendant is still +10 and still wearable.
+
+After the depth 1–2 unique is removed, the best sampled clear loses its +21 Lanternjaw and falls from 111 into the 90s. The median, which usually did not roll a life unique, stays near 74. Power 19 remains a four-to-six hit mistake on that band.
 
 ## Fireball mana
 
