@@ -1017,6 +1017,14 @@ That tag is `29c81bb825c98816606e75c80985305becf5a0c8`. It is the Stage 6 squash
 
 Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 8 (enemy resist tables and elite affixes). Do not redesign boss or Super Elite attacks. Do not change Hellmouth.
 
+#### Adjustment before merge — caster bolts stay Physical
+
+Jake approved the player skills, the builds, the status hooks, and the save migration. He asked for one revert before merge. Cultist, Lich Wisp, Drowned Siren, Choir Exarch, and Drowned Seer shots are Physical again. A 20-point bolt into DEF 30 deals 10, the armor curve, not 20.
+
+The reason is that an elemental bolt skips armor, and no loot grants elemental resist yet. Those five shots were the only incoming attacks this stage had retyped. Player Fireball, Frost Nova, and the Whirlwind split are unchanged.
+
+The intended mapping stays the Stage 2 proposal: cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning. Turning it on is a Stage 10 task, after resist-granting equipment can drop. Stage 8 must not activate it. Boss and Super Elite shots were already Physical and stay that way.
+
 ---
 
 ## Combat System Reference
@@ -1032,7 +1040,7 @@ Implemented now, on top of Stage 6. A base-row hit with 0 resist is still the St
 - Scale, conversion, resist, and penetration still run once, inside `resolveDamage`. A splash `more` in `(0, 1)` still scales damage and skill poise once.
 - Base Fireball applies Burning with base 0. Kindling sets the base to `max(1, round(pw * 0.2))` and drops the outer ring. Base Frost Nova applies Chill with 0% extra slow and 34 buildup, and still sets `e.slow = 3.5`. Whiteout can freeze a normal enemy on the second cast, then the freeze lockout blocks another freeze. Bosses and Super Elites do not build freeze.
 - Builds are `player.skillSpec`, three ids, default `base`. Missing or unknown ids load as base. The spell bar is a different array.
-- Cultist bolts are Shadow, wisp bolts are Lightning, siren rings are Cold, exarch orbs are Shadow, and seer snipes are Lightning, unless the shooter is a boss or a Super Elite. Those stay Physical.
+- Cultist, wisp, siren, exarch, and seer shots are Physical again. Their Stage 2 elements wait for Stage 10, when resist gear exists. Stage 8 must not turn them on. Boss and Super Elite shots stay Physical.
 - `envHurt` stays a world packet and skips resist. Poison ground stays Physical.
 
 ### Stage 6 implemented architecture
@@ -1883,6 +1891,25 @@ Legacy name movement against the checkpoint, besides those renames:
 No other legacy failure name was added. `v075`, `v079`, `v0710`, `v0713`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18. Stage 8 was not started.
 
 Time-to-kill, pinned, spread 1, is the table in the Stage 7 history. Weapon rows match Stage 6 on both sides. Base skill rows match at 0 resist. The resist rows are the only direct-hit changes.
+
+### Stage 7 caster-bolt adjustment results
+
+Re-run after the five caster shots were put back to Physical. Same harness, same checkpoint tag `combat-redesign-pre-stage7` / `29c81bb`. Player skill rows were not changed. `tests/stage7-skills.html` is 70/0. The new checks are `cultist bolt is physical and uses armor` (20 into DEF 30 deals 10) and `caster bolts stay physical until resist gear`. `caster elements stay deferred` locks the source: those call sites do not pass a damage type, and the comment says Stage 8 must not turn them on.
+
+| Run | Legacy 21 | Stage 1 | Stage 2 | Stage 3 | Stage 4 | Stage 5 | Stage 6 | Stage 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Checkpoint, before Stage 7 | 810 passed, 97 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | not present |
+| After the bolt revert | 804 passed, 103 failed | 71/0 | 73/0 | 58/0 | 75/0 | 78/0 | 47/0 | 70/0 |
+
+Stages 1–6 stayed green. Their renamed checks are the same list as the first Stage 7 pass, and every one passed. No earlier-stage assertion had to move for this revert. Those suites never locked the caster types.
+
+Legacy name movement against the checkpoint:
+
+- `v0714`: 40/1 → 33/8 on the sequential pass. The seven footer and tab names failed (`footer sort`, `footer mark seen`, `footer drop all`, `footer equip`, `footer drop`, `footer close`, `tab hitboxes match art`). `version` remains. Two re-runs were 40/1 with only `version`. Layout flake.
+- `v076`: cleared `b3 damage no snap` (47/1 → 48/0). Two re-runs stayed 48/0. The checkpoint miss is the snap flake. This revert does not touch spike damage.
+- `v0711`: stayed 42/6 on the sequential pass, including `trash in the maw`. Two re-runs were 42/5 and did not emit that line. The five stable names remained (`version`, `hundred gold`, `tome icon`, `stats scroll`, `stats canvas kept`). Emission flake.
+
+`v075`, `v0781`, `v079`, `v0710`, `v0713`, `v07152`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18. Stage 8 was not started.
 
 ---
 

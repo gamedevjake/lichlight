@@ -2943,6 +2943,8 @@ function eShoot(e, a, spd, o = {}) {
   if (n >= MAX_EPROJ) return null;
   const pr = Object.assign({ x: e.x, y: e.y - 2, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, r: 3, dmg: e.dmg * (o.mul || 1), owner: 'e', kind: 'bolt', life: 3, label: e.T.label, from: e }, o);
   // Boss and Super Elite shots stay Physical. Stage 9 owns those patterns.
+  // Caster elements (cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning)
+  // stay off until Stage 10, when resist gear exists. Stage 8 must not turn them on.
   if (!e || e.superElite || (e.T && e.T.boss) || DMG_TYPES.indexOf(pr.dmgType) < 0) delete pr.dmgType;
   projs.push(pr); return pr;
 }
@@ -2983,7 +2985,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
     case 'bat': { const w = Math.sin(e.anim * 6) * .9; moveDir(e, ax - ay * w, ay + ax * w, spd, dt); break; }
     case 'rat': if (e.mode === 'flee') { e.t -= dt; moveDir(e, -ax + ay * .5, -ay - ax * .5, spd * 1.1, dt); if (e.t <= 0) e.mode = ''; } else if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); break;
     case 'kite': keepRange(e, ax, ay, d, 50, 90, spd, dt);
-      if (e.cd <= 0 && d < 150 && see) { e.cd = rand(1.6, 2.6); eShoot(e, angTo(e, p), 90, { label: T.label, dmgType: 'Shadow' }); } break;
+      if (e.cd <= 0 && d < 150 && see) { e.cd = rand(1.6, 2.6); eShoot(e, angTo(e, p), 90, { label: T.label }); } break;
     case 'eel':
       if (e.mode === 'under') { e.hidden = true; e.t -= dt; moveDir(e, ax, ay, spd * 1.3, dt); if (Math.random() < .3) parts.push({ x: e.x + rand(-4, 4), y: e.y + 3, vx: 0, vy: -8, life: .3, col: '#48a8a0' });
         if ((d < 26 || e.t <= 0) && e.cd <= 0) { e.mode = 'rise'; e.t = .55; tele({ x: e.x, y: e.y, r: 14, dur: .55, col: '#48a8a0' }); } }
@@ -3001,7 +3003,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
       moveDir(e, -ay, ax, spd * .6, dt);
       if (e.cd <= 0 && e.mode !== 'blink') { e.cd = rand(2.2, 3); e.mode = 'blink'; const s = freeNear(p.x, p.y, 45, 70);
         tele({ x: s.x, y: s.y, r: 7, dur: .5, col: '#60c0ff', onDone: () => { if (e.hp <= 0) return; burst(e.x, e.y, '#b0f0f0', 8, 40); e.x = s.x; e.y = s.y; e.mode = '';
-          later(.35, () => { if (e.hp > 0 && state === 'play') eShoot(e, angTo(e, player), 100, { kind: 'water', label: T.label, dmgType: 'Lightning' }); }); } }); }
+          later(.35, () => { if (e.hp > 0 && state === 'play') eShoot(e, angTo(e, player), 100, { kind: 'water', label: T.label }); }); } }); }
       break;
     case 'guard': { const ta = Math.atan2(ay, ax); let da = ((ta - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI; e.fa += clamp(da, -2.2 * dt, 2.2 * dt);
       if (d > e.r + p.r + 1) moveDir(e, Math.cos(e.fa), Math.sin(e.fa), spd, dt); break; }
@@ -3044,16 +3046,16 @@ function mobAI(e, dt, d, ax, ay, spd) {
       if (e.cd <= 0 && d < 42) { e.cd = 3.2; e.mode = 'slam'; vocEffort(e); tele({ x: e.x, y: e.y, r: 36, dur: .85, col: '#ff4040', onDone: () => { e.mode = ''; if (e.hp > 0) blast(e.x, e.y, 36, e.dmg * 1.3, T.label, { col: '#e8e0c8', tr: .35, from: e }); } }); }
       break;
     case 'siren': keepRange(e, ax, ay, d, 60, 110, spd, dt);
-      if (e.cd <= 0 && d < 160 && see) { e.cd = rand(3, 3.8); e.glow = .4; later(.4, () => { if (e.hp > 0 && state === 'play') ring(e, 10, 60, Math.random() * 6, { kind: 'water', mul: .7, dmgType: 'Cold' }); }); } break;
+      if (e.cd <= 0 && d < 160 && see) { e.cd = rand(3, 3.8); e.glow = .4; later(.4, () => { if (e.hp > 0 && state === 'play') ring(e, 10, 60, Math.random() * 6, { kind: 'water', mul: .7 }); }); } break;
     case 'exarch': keepRange(e, ax, ay, d, 70, 120, spd, dt);
-      if (e.cd <= 0 && d < 180 && see) { e.cd = rand(2.8, 3.6); eShoot(e, angTo(e, p), 45, { kind: 'orb', r: 4, homing: 1.6, life: 4.5, dmgType: 'Shadow' }); } break;
+      if (e.cd <= 0 && d < 180 && see) { e.cd = rand(2.8, 3.6); eShoot(e, angTo(e, p), 45, { kind: 'orb', r: 4, homing: 1.6, life: 4.5 }); } break;
     case 'crab': e.t -= dt;
       if (e.mode === 'open') { if (e.t <= 0) { e.mode = 'shell'; e.t = 2.6; } }
       else { e.mode = 'shell'; if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); if (e.t <= 0) { e.mode = 'open'; e.t = 1.6; } }
       break;
     case 'seer': keepRange(e, ax, ay, d, 90, 150, spd, dt);
       if (e.cd <= 0 && d < 200 && see && e.mode !== 'aim') { e.cd = rand(3.4, 4.2); e.mode = 'aim';
-        lineTele(e, .9, 2, 220, true, T2 => { e.mode = ''; if (e.hp > 0 && state === 'play') eShoot(e, T2.a, 280, { kind: 'snipe', r: 2, life: 1.2, mul: 1.2, dmgType: 'Lightning' }); }); }
+        lineTele(e, .9, 2, 220, true, T2 => { e.mode = ''; if (e.hp > 0 && state === 'play') eShoot(e, T2.a, 280, { kind: 'snipe', r: 2, life: 1.2, mul: 1.2 }); }); }
       break;
   }
 }

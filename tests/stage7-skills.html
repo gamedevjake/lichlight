@@ -76,6 +76,7 @@ function run(w) {
   check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
   check('hazards stay on their old paths', src.indexOf('world: true, amount: d, type: \'Physical\'') >= 0 && src.indexOf("h.kind === 'poison'") >= 0 && src.indexOf('hurtPlayer(Math.max(1, h.dmg)') >= 0 && src.indexOf("envHurt(d, 'flames'") >= 0);
   check('no resist affix and no stage 8 table', src.indexOf("k: 'resFire'") < 0 && src.indexOf('ELITE_AFFIX') < 0);
+  check('caster elements stay deferred', src.indexOf("dmgType: 'Shadow'") < 0 && src.indexOf("dmgType: 'Lightning'") < 0 && src.indexOf("dmgType: 'Cold'") < 0 && src.indexOf('Stage 8 must not') >= 0);
 
   let p = calm(g, w);
   const am = { id: 's7', slot: 'amulet', name: 'Old Charm', mods: { fire: 6 }, powers: [] };
@@ -290,27 +291,29 @@ function run(w) {
 
   p = calm(g, w);
   const mage = g.spawnEnemy('mage', p.x + 90, p.y, false);
-  const shadow = w.eShoot(mage, 0, 90, { dmgType: 'Shadow' });
-  p.st.def = 30; p.hp = 300; p.inv0 = 0; p.st.resShadow = 0;
-  w.hurtPlayer(20, shadow);
-  const shadowDealt = w.__lastDamage.dealt;
-  p.hp = 300; p.inv0 = 0; p.st.resShadow = 90; p.st.maxResist = 15;
-  w.hurtPlayer(20, shadow);
-  check('cultist bolt is shadow and skips armor', shadow && shadow.dmgType === 'Shadow' && shadowDealt === 20 && w.__lastDamage.dealt === 2 && w.__lastDamage.type === 'Shadow', shadowDealt + ' then ' + w.__lastDamage.dealt);
+  const cultist = w.eShoot(mage, 0, 90, { label: mage.T.label });
+  p.st.def = 0; p.hp = 300; p.inv0 = 0; p.roll = 0; w.__hurtSpread = 1;
+  w.hurtPlayer(20, cultist);
+  const openBolt = w.__lastDamage.dealt;
+  p.st.def = 30; p.hp = 300; p.inv0 = 0; p.roll = 0;
+  w.hurtPlayer(20, cultist);
+  check('cultist bolt is physical and uses armor', cultist && !cultist.dmgType && openBolt === 20 && w.__lastDamage.dealt === 10 && w.__lastDamage.type === 'Physical', openBolt + ' then ' + w.__lastDamage.dealt + ' ' + (w.__lastDamage && w.__lastDamage.type));
 
   const wisp = g.spawnEnemy('wisp', p.x + 90, p.y, false);
-  const bolt = w.eShoot(wisp, 0, 100, { kind: 'water', dmgType: 'Lightning' });
+  const bolt = w.eShoot(wisp, 0, 100, { kind: 'water', label: wisp.T.label });
   const siren = g.spawnEnemy('siren', p.x + 90, p.y, false);
-  const ring = w.eShoot(siren, 0, 60, { kind: 'water', dmgType: 'Cold' });
+  const ring = w.eShoot(siren, 0, 60, { kind: 'water', mul: 0.7 });
   const ex = g.spawnEnemy('exarch', p.x + 90, p.y, false);
-  const orb = w.eShoot(ex, 0, 45, { kind: 'orb', dmgType: 'Shadow' });
+  const orb = w.eShoot(ex, 0, 45, { kind: 'orb', r: 4, homing: 1.6, life: 4.5 });
   const seer = g.spawnEnemy('seer', p.x + 90, p.y, false);
-  const snipe = w.eShoot(seer, 0, 280, { kind: 'snipe', dmgType: 'Lightning' });
+  const snipe = w.eShoot(seer, 0, 280, { kind: 'snipe', r: 2, life: 1.2, mul: 1.2 });
   const spider = g.spawnEnemy('spider', p.x + 90, p.y, false);
   const web = w.eShoot(spider, 0, 100, { kind: 'web' });
   const arch = g.spawnEnemy('archer', p.x + 90, p.y, false);
   const arrow = w.eShoot(arch, 0, 120, { kind: 'arrow' });
-  check('non-boss bolts use the stage 2 map', bolt.dmgType === 'Lightning' && ring.dmgType === 'Cold' && orb.dmgType === 'Shadow' && snipe.dmgType === 'Lightning' && !web.dmgType && !arrow.dmgType, [bolt.dmgType, ring.dmgType, orb.dmgType, snipe.dmgType, web.dmgType || 'phys', arrow.dmgType || 'phys'].join(','));
+  p.st.def = 30; p.hp = 300; p.inv0 = 0; p.roll = 0; w.__hurtSpread = 1;
+  w.hurtPlayer(20, snipe);
+  check('caster bolts stay physical until resist gear', !cultist.dmgType && !bolt.dmgType && !ring.dmgType && !orb.dmgType && !snipe.dmgType && !web.dmgType && !arrow.dmgType && w.__lastDamage.type === 'Physical' && w.__lastDamage.dealt === 10, [bolt.dmgType || 'phys', ring.dmgType || 'phys', orb.dmgType || 'phys', snipe.dmgType || 'phys', w.__lastDamage.dealt].join(','));
 
   const fakeBoss = foe(g, p, p.x + 70);
   fakeBoss.T = Object.assign({}, fakeBoss.T, { boss: true });

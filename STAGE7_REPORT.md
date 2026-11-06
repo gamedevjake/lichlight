@@ -78,21 +78,21 @@ Fire and poison hazards stay what they were.
 
 ## Enemy attacks
 
-Applied, and only when the shooter is not a boss and not a Super Elite:
+Not applied. These five stay Physical until Stage 10:
 
 | Attack | Type |
 | --- | --- |
-| Pale Choir Cultist bolt | Shadow |
-| Lich Wisp bolt | Lightning |
-| Drowned Siren ring | Cold |
-| Choir Exarch orb | Shadow |
-| Drowned Seer snipe | Lightning |
+| Pale Choir Cultist bolt | Physical until Stage 10. The proposal is Shadow |
+| Lich Wisp bolt | Physical until Stage 10. The proposal is Lightning |
+| Drowned Siren ring | Physical until Stage 10. The proposal is Cold |
+| Choir Exarch orb | Physical until Stage 10. The proposal is Shadow |
+| Drowned Seer snipe | Physical until Stage 10. The proposal is Lightning |
 
 `eShoot` deletes a requested type on a boss or a Super Elite, so their patterns stay Physical even if a caller asks.
 
 Left Physical on purpose: contact, charges, bone arrows, spider webs, eel / ghoul / golem / bloater blasts, poison ground, traps, every boss pattern, and every Super Elite swing. Stage 9 owns bosses and Super Elites. Stage 8 owns resist tables and elite affixes. Neither was started.
 
-A 20-point cultist bolt into DEF 30 used to deal 10. It now deals 20 at 0 Shadow resist, and 2 at 90 Shadow resist. That is more damage taken by an armored player with no Shadow resist. It is the resist model, not a skill buff. No loot rolls the resist yet.
+A 20-point cultist bolt into DEF 30 deals 10. DEF 0 deals 20. That is the armor curve. The element in the table is the proposal, not the live type.
 
 ## Time to kill
 
@@ -160,3 +160,28 @@ No other new failure name. `v075`, `v079`, `v0710`, `v0713`, `v0717`, and `v0718
 - A version bump, a GitHub Pages deploy, or a merge.
 
 Stage 8 and a live ship both wait for Jake.
+
+## Adjustment before merge
+
+Jake approved the player skills, the builds, the statuses, and the save migration. He asked to put the five caster shots back to Physical before merge. An elemental bolt skips armor, and nothing a player can find grants elemental resist, so a 20-point bolt into DEF 30 had gone from 10 to 20.
+
+Cultist, Lich Wisp, Drowned Siren, Choir Exarch, and Drowned Seer shots are Physical again. `tests/stage7-skills.html` expects that: the cultist bolt has no damage type, DEF 0 deals 20, and DEF 30 deals 10. The other four caster shots, plus webs and bone arrows, also have no damage type. Boss and Super Elite shots still strip a type if a caller passes one.
+
+The mapping that waits is cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning. That activation is Stage 10, when resist-granting equipment exists. Stage 8 must not turn it on. Fireball, Frost Nova, the Whirlwind split, and every build are unchanged.
+
+Re-run against tag `combat-redesign-pre-stage7`, after this revert only:
+
+| Run | Legacy 21 | Stages 1–6 | Stage 7 |
+| --- | --- | --- | --- |
+| Checkpoint | 810 passed, 97 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0 | not present |
+| After the revert | 804 passed, 103 failed | same, all green | 70/0 |
+
+Stage 1–6 names did not move for this revert. The Stage 7 file replaced `cultist bolt is shadow and skips armor` with `cultist bolt is physical and uses armor`, and `non-boss bolts use the stage 2 map` with `caster bolts stay physical until resist gear`. It added `caster elements stay deferred`. Those three are the bolt adjustment. The other 67 Stage 7 names are the approved skill checks, and they passed.
+
+Legacy name movement against the checkpoint:
+
+- `v0714`: 40/1 → 33/8 on the sequential pass, the seven footer and tab names. Two re-runs were 40/1 with only `version`. Layout flake.
+- `v076`: cleared `b3 damage no snap`. Two re-runs stayed 48/0. Snap flake. Spike damage was not retuned.
+- `v0711`: stayed 42/6 on the sequential pass, including `trash in the maw`. Two re-runs were 42/5 and did not emit that line. The five stable names stayed. Emission flake.
+
+`v075`, `v0781`, `v079`, `v0710`, `v0713`, `v07152`, `v0717`, and `v0718` did not move. `version.json` is still 0.7.18.
