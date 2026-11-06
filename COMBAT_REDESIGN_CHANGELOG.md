@@ -1226,7 +1226,7 @@ The shell/bite mismatch stays OPEN technical debt. It is not a Stage 8 fix.
 
 - **Date:** 2026-11-06.
 - **Stage:** Stage 9 — Boss and Super Elite combat redesign.
-- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Implementation commit recorded in `STAGE9_REPORT.md`. Rollback tag `combat-redesign-pre-stage9` points at `1fb0f155ca794750167f143182869222bdfab790` (Stage 8 squash on main, PR #31). Do not move it. Older rollback tags were not moved.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Implementation commit `3c6cfac75ad1339dae3f4b0fa6d4213c8a4e916e`. Rollback tag `combat-redesign-pre-stage9` points at `1fb0f155ca794750167f143182869222bdfab790` (Stage 8 squash on main, PR #31). Do not move it. Older rollback tags were not moved.
 - **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 10 has not been started.
 - **Objective:** Stop Hellmouth from deleting a Super Elite, and give bosses and Super Elites phased, telegraphed fights that use the poise, status, shield, and intro rules already in the game. Do not inflate HP. Do not multiply every hit. Do not make a build unable to clear a fight.
 
