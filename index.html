@@ -1524,20 +1524,42 @@ for (const u of UNIQUES) if (!u.powers && UNIQUE_POWERS_V1[u.name]) u.powers = U
 const RARE_A = ['Doom', 'Grim', 'Blood', 'Storm', 'Bone', 'Dread', 'Rune', 'Shadow', 'Wraith', 'Ghoul', 'Pale', 'Hollow', 'Crypt', 'Ashen', 'Carrion', 'Grave', 'Mourn', 'Rot', 'Vigil', 'Sorrow'];
 const RARE_B = ['Bite', 'Song', 'Ward', 'Shell', 'Mark', 'Coil', 'Visage', 'Spiral', 'Cry', 'Brand', 'Hymn', 'Shroud', 'Knell', 'Fang', 'Vow', 'Lament', 'Toll', 'Grasp', 'Wake', 'Psalm'];
 let itemId = 1;
-// Required level (D2-like). Normal/magic/rare: from item level L (= floor found; chests +1, bosses +2).
-// L <= 3 (floors 1-2) is always level 1; above that white = 60% of (L-1), magic = 70% + 1, rare = 80% + 2.
+// Required level (D2-like). Item level L is the floor found (chests +1, bosses +2).
+// Whites with L <= 3 stay required level 1. Magic and rare use the full formula at every L,
+// so an item level 3 rare requires level 3 (floor(0.8*(3-1))+2) and an item level 3 magic requires level 2.
+// Above that, white = 60% of (L-1), magic = 70% + 1, rare = 80% + 2.
 // Uniques: fixed per unique, scaled to the dropping boss's floor F = L-2: 75% of F plus a per-unique bonus (1 + base tier / 3).
+// Migration (REQ_POLICY): items already in a save keep their stored requirement. See stampReq.
 const REQ_MULT = [.6, .7, .8], REQ_ADD = [0, 1, 2];
+const REQ_POLICY = 'grandfather-owned';
 function uniqueReqBonus(name) { const u = UNIQUES.find(u => u.name === name), b = u && BASES.find(b => b.name === u.base); return 1 + Math.floor(((b && b.lvl) || 1) / 3); }
-function calcReqLvl(it) {
+function calcReqLvlAt(it, legacy) {
   const L = Math.max(1, Math.floor(+it.lvl || 1));
   if (it.rarity === 3) return Math.max(1, Math.round(Math.max(1, L - 2) * .75) + uniqueReqBonus(it.name));
-  if (L <= 3) return 1;
-  const r = clamp(it.rarity | 0, 0, 2); return Math.max(1, Math.floor(REQ_MULT[r] * (L - 1)) + REQ_ADD[r]);
+  const r = clamp(it.rarity | 0, 0, 2);
+  if ((legacy || r === 0) && L <= 3) return 1;
+  return Math.max(1, Math.floor(REQ_MULT[r] * (L - 1)) + REQ_ADD[r]);
+}
+function calcReqLvl(it) { return calcReqLvlAt(it, false); }
+function calcReqLvlLegacy(it) { return calcReqLvlAt(it, true); }
+// Grandfather: equipped, backpack, and saved-floor items keep the requirement they were generated with.
+// A missing reqLvl (saves from before the field) gets the old L<=3 shortcut, not the new magic/rare rule.
+// New drops stamp reqSrc 'drop' and use calcReqLvl. Equip checks the stored number. Load never strips a slot.
+function stampReq(it) {
+  if (!it || typeof it !== 'object') return it;
+  if (it.reqSrc === 'drop' && Number.isFinite(+it.reqLvl)) return it;
+  if (!Number.isFinite(+it.reqLvl)) { it.reqLvl = calcReqLvlLegacy(it); it.reqSrc = 'grandfather'; return it; }
+  if (!it.reqSrc) it.reqSrc = 'grandfather';
+  return it;
+}
+function grandfatherWorldItems() {
+  const touch = it => stampReq(it);
+  if (typeof ground !== 'undefined' && Array.isArray(ground)) for (const g of ground) if (g && g.item) touch(g.item);
+  if (typeof chests !== 'undefined' && Array.isArray(chests)) for (const c of chests) if (c && c.item) touch(c.item);
 }
 function reqOf(it) { if (!it) return 1; if (!Number.isFinite(it.reqLvl)) it.reqLvl = calcReqLvl(it); return it.reqLvl; }
 function canWear(it) { return !it || !player || player.lvl >= reqOf(it); }
-function makeItem(L, forceRarity, baseName) { const it = makeItem0(L, forceRarity, baseName); it.reqLvl = calcReqLvl(it); setFullDur(it); return it; }
+function makeItem(L, forceRarity, baseName) { const it = makeItem0(L, forceRarity, baseName); it.reqLvl = calcReqLvl(it); it.reqSrc = 'drop'; setFullDur(it); return it; }
 // ---- durability (D2-style): weapons + armor pieces (not rings). Broken (0) items give no stats but stay in the bag for repair.
 const DUR_SLOT = { weapon: 30, armor: 40, helm: 30, boots: 26, shield: 44, amulet: 22 }, DUR_RAR = [1, 1.15, 1.3, 1.7];
 const WEAR_HITS = 6;      // a weapon loses 1 durability per this many swings that land
@@ -3766,6 +3788,7 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   v072Restore(G.v072); /* v0.7.2: biome, levers / platforms, secret rooms (older saves: biome from depth) */
   v073Restore(G.v073); // v0.7.3: prism hall, dark portal, gilt chests, ambience bed
   v075Restore(G.v075); // v0.7.5: spiked hallway gaps
+  grandfatherWorldItems(); // early-balance: floor loot already generated keeps its requirement
   projs = []; parts = []; texts = []; effects = []; teles = []; hazards = []; timers = []; vfx6 = []; introBoss = null; talkBoss = null;
   if (Number.isFinite(w.time)) time = w.time;
   setVineGrid(); mapVer++; polyCache.clear();
@@ -3793,11 +3816,11 @@ function continueGame() {
     player.inv = (inv0.length > n ? items : inv0).concat(new Array(n).fill(null)).slice(0, n); }
   for (const k of SLOTS) player.equip[k] = player.equip[k] || null;
   const fixItem = it => { if (!it || typeof it !== 'object') return null; if (!it.mods || typeof it.mods !== 'object') it.mods = {};
-    if (it.rarity === 3 && !it.lore) { const u = UNIQUES.find(u => u.name === it.name); if (u) it.lore = u.lore; } if (!ICONS[it.icon]) it.icon = 'ring'; if (!Number.isFinite(it.reqLvl)) it.reqLvl = calcReqLvl(it);
+    if (it.rarity === 3 && !it.lore) { const u = UNIQUES.find(u => u.name === it.name); if (u) it.lore = u.lore; } if (!ICONS[it.icon]) it.icon = 'ring'; stampReq(it);
     if (it.powers !== undefined) { it.powers = cleanPowers(it.powers); if (!it.powers.length) delete it.powers; }
     if (it.rarity === 3 && !it.powers) { const u = UNIQUES.find(u => u.name === it.name && u.powers); if (u) it.powers = cleanPowers(u.powers); } // v0.5.0: batch-1 uniques gain their signature powers
     if (it.slot === 'shield') { const b = BASES.find(b => b.name === it.base); if (!Number.isFinite(it.block)) it.block = b ? b.block + (it.rarity === 3 ? 3 : 0) : 8; }
-    if (hasDur(it)) { if (!Number.isFinite(it.maxDur) || it.maxDur <= 0) setFullDur(it); else it.dur = clamp(Number.isFinite(it.dur) ? Math.round(it.dur) : it.maxDur, 1, it.maxDur); } return it; }; // old saves: compute reqLvl (equipped gear stays equipped)
+    if (hasDur(it)) { if (!Number.isFinite(it.maxDur) || it.maxDur <= 0) setFullDur(it); else it.dur = clamp(Number.isFinite(it.dur) ? Math.round(it.dur) : it.maxDur, 1, it.maxDur); } return it; }; // old saves: keep stored reqLvl (REQ_POLICY grandfather-owned). Never unequip.
   player.inv = player.inv.map(fixItem); for (const k of SLOTS) player.equip[k] = fixItem(player.equip[k]);
   // older saves have no found-list: seed it from uniques the player is carrying
   player.keys = Math.max(0, Math.floor(+player.keys || 0)); // old saves: 0 keys
@@ -4973,7 +4996,7 @@ function regularDrops(e, d) {
   else if ((r -= DROP.white) < 0) { if (!gate || Math.random() < LOOT_GATE.white) white(); } // v0.6.0 early loot gate
 }
 function bossUnique(L) { // prefers unfound + depth-appropriate (pickUnique); widens the level window if nothing is eligible yet
-  for (let k = 0; k <= 60; k += 3) { const it = makeItem(L + k, 3); if (it.rarity === 3) { if (k) { it.lvl = L; it.reqLvl = calcReqLvl(it); } return it; } }
+  for (let k = 0; k <= 60; k += 3) { const it = makeItem(L + k, 3); if (it.rarity === 3) { if (k) { it.lvl = L; it.reqLvl = calcReqLvl(it); it.reqSrc = 'drop'; } return it; } }
   return makeItem(L, 2);
 }
 function killEnemy(e) {
@@ -8977,9 +9000,18 @@ function drawSqueezeV072() { const p = player, a = pitAct, f = squeezeFrame(a); 
   if (img) ctx.drawImage(img, X, Y); else { const WS = wardSprites(p), im = WS.a.r; ctx.save(); ctx.globalAlpha = .7; ctx.drawImage(im, X, Y); ctx.restore(); } }
 function drawSqueezeDust() { const a = pitAct; if (!a || a.kind !== 'squeeze' || a.dust < 0) return; const i = Math.floor(a.dust * SQ_FPS); if (i > 3) return; const im = ART['squeeze_dust_0' + (i + 1)]; if (!im) return;
   ctx.drawImage(im, a.g.tx * TS, a.g.ty * TS + 6); }
+function giltGear(d) {
+  // Secret gilt chest. Before depth 5: rare only, item level depth+1 (was depth+2 and 20% unique).
+  // From depth 5 the 20% unique is back, still at item level depth+1 (the audit's level, not the old depth+2).
+  d = Math.max(1, d | 0);
+  const L = d + 1;
+  if (d < 5) return makeItem(L, 2);
+  const roll = (typeof window.__giltUnique === 'number') ? window.__giltUnique : Math.random();
+  return makeItem(L, roll < 0.20 ? 3 : 2);
+}
 function openSecretChest(c) { if (c.open) return; c.open = 1; v072Stats.secretChests++; const x = (c.tx + .5) * TS, y = (c.ty + .5) * TS; sfx('chest'); burst(x, y - 4, '#ffe080', 14, 40);
   if (c.prism) { if (goldKept()) { const piles = [irand(20, 35), irand(11, 20), irand(7, 13)]; piles.forEach((n, i) => dropAt(ground, x + (i - 1) * 8, y + 8, { gold: n * depth })); flashMsg('The chest is packed with gold.', '#e8c840'); } else flashMsg('The chest opens. No coin this time.', '#c8b8a0'); return; }
-  dropAt(ground, x, y + 10, { item: makeItem(depth + 2, Math.random() < .2 ? 3 : 2) }); if (goldKept()) dropAt(ground, x - 9, y + 12, { gold: irand(13, 23) * depth }); if (Math.random() < .5) dropAt(ground, x + 9, y + 12, { pot: 'rp' });
+  dropAt(ground, x, y + 10, { item: giltGear(depth) }); if (goldKept()) dropAt(ground, x - 9, y + 12, { gold: irand(13, 23) * depth }); if (Math.random() < .5) dropAt(ground, x + 9, y + 12, { pot: 'rp' });
   flashMsg('A gilt chest... something rare inside!', '#ffe080'); }
 // ---------- §7 fire pits ----------
 function firepitFlameAt(x, y) { for (const f of V71.firepits) { const F = FIREPIT_FLAME[f.n] || FIREPIT_FLAME[2], X = f.tx * TS, Y = f.ty * TS, fy = y + 2; if (x >= X + F.x0 && x <= X + F.x1 && fy >= Y + F.y0 && fy <= Y + F.y1) return f; } return null; }
@@ -14467,11 +14499,22 @@ function seTauntLine717(id) {
   const pool = [row.taunt].concat(SE_TAUNT_SHARED);
   return pool[Math.floor(Math.random() * pool.length)];
 }
-function seMaxHp717(d) {
-  d = d || depth || 1;
+function seEarlyFade(d) {
+  d = Math.max(1, Math.floor(+d || 1));
+  return Math.max(0, 1 - (d - 1) / 4); // 1 at depth 1, 0 at depth 5 and every floor after
+}
+function seBaseHp717(d) {
+  d = Math.max(1, Math.floor(+d || 1));
   const base = Math.round(18 + 7 * (d - 1));
   const champ = Math.round(base * 2.2);
-  return Math.round(champ * 1.4); // 1.4× champion, inside the 1.2–1.6 band, under a floor boss
+  return Math.round(champ * 1.4); // pre-tune body: 1.4× champion. Depth 5+ stays on this number.
+}
+function seMaxHp717(d) {
+  d = d || depth || 1;
+  const cur = seBaseHp717(d);
+  const fade = seEarlyFade(d);
+  if (!(fade > 0)) return cur; // depth 5+ life is the current formula, exactly
+  return Math.round(cur * (1 + (80 / 56 - 1) * fade)); // depth 1 is 80, then the bump fades out
 }
 function seDmg717(d) {
   d = d || depth || 1;
@@ -14634,13 +14677,25 @@ function seSpawnVfx717(id, x, y, face) {
   seVfx717.push({ id: id, x: x, y: y, face: face || 1, t: 0, ms: kit.ms, frames: kit.frames });
 }
 // Swing sidestep, power circle, and brand are the three Super Elite tells.
-// mul is the old powerup ratio (1.7) or a smaller brand. It is not a phase-wide damage buff.
+// The mul on each row is the depth-5+ ratio (swing 1, power 1.7, brand 0.85). It is not a phase-wide buff.
+// Depths 1-4 scale power and brand in seTellMul. Depth 5+ uses these muls exactly, including brand 0.85.
 // A 0.2 move floor still walks out of power and brand. The swing locks after 0.25s so the lane can be left.
 const SE_TELL = {
   swing: { dur: 1.0, gap: 0.7, w: 16, len: 52, hit: 8, mul: 1, act: 'attack', col: '#ff4040' },
   power: { dur: 1.3, gap: 0.9, r: 10, mul: 1.7, act: 'powerup', col: '#ff8040' },
   brand: { dur: 1.15, gap: 0.75, r: 8, mul: 0.85, act: 'attack', col: '#c080ff' }
 };
+function seTellMul(kind, d) {
+  const row = SE_TELL[kind];
+  if (!row) return 1;
+  const fade = seEarlyFade(d == null ? (depth || 1) : d);
+  if (kind === 'power') return row.mul + 1.3 * fade; // 1.7 + 1.3*fade; depth 5+ stays 1.7
+  if (kind === 'brand') {
+    if (!(fade > 0)) return row.mul; // depth 5+ stays 0.85. The audit's fade-0 brand of 1.15 is not used.
+    return 1.15 + 0.85 * fade;
+  }
+  return row.mul;
+}
 function seFightPhase(e) {
   if (!e || !(e.maxHp > 0)) return 1;
   const f = e.hp / e.maxHp;
@@ -14680,7 +14735,7 @@ function seResolveTell(e, kind, spec) {
   if (typeof cueAt === 'function') cueAt(cueId, e.x, e.y, 320, kind === 'power' ? 1 : 0.85);
   const info = seRoster717(e.seId);
   seSpawnVfx717(kind === 'power' ? info.powerupVfx : info.attackVfx, e.x + (e.face || 1) * 16, e.y - 10, e.face || 1);
-  if (hit) hurtPlayer(e.dmg * row.mul, e);
+  if (hit) hurtPlayer(e.dmg * seTellMul(kind, depth), e);
   e.seAct = ''; e.seKind = ''; e.seCd = row.gap;
   return hit ? 1 : 0;
 }
@@ -14751,6 +14806,22 @@ function seTick717(dt) {
   }
 }
 function seSafe718(fn) { try { fn(); } catch (_) {} }
+function seUniqueChance(d) {
+  d = Math.max(1, d | 0);
+  if (d <= 2) return 0;
+  if (d === 3) return 0.20;
+  if (d === 4) return 0.35;
+  if (d === 5) return 0.50;
+  if (d <= 9) return 0.70;
+  return 1;
+}
+function seRollGear(d) {
+  d = Math.max(1, d | 0);
+  const p = seUniqueChance(d);
+  const roll = (typeof window.__seUnique === 'number') ? window.__seUnique : Math.random();
+  if (p > 0 && roll < p) return bossUnique(d);
+  return makeItem(d, 2); // a miss, and depths 1-2, are a rare. Gold, the ration, and the gate key are separate.
+}
 function seLoot717(e) {
   seMarkDead717(e);
   const x = e.x, y = e.y, name = (e && e.name) || 'The Super Elite', face = (e && e.face) || 1, id = e && e.seId, r = (e && e.r) || 12;
@@ -14760,7 +14831,7 @@ function seLoot717(e) {
   seSafe718(() => dropAt(ground, x - 8, y + 8, { gold: 25 }));
   seSafe718(() => dropAt(ground, x + 10, y + 6, { ration: 1 }));
   seSafe718(() => {
-    const it = bossUnique(Math.max(1, depth || 1));
+    const it = seRollGear(Math.max(1, depth || 1));
     dropAt(ground, x, y - 6, { item: it });
     if (it && it.rarity === 3 && typeof uniqueDropFx === 'function') uniqueDropFx(x, y - 6);
   });
@@ -14948,7 +15019,8 @@ if (window.game) {
     addFoeText: addFoeText, targetedEnemy717: targetedEnemy717, noteTarget717: noteTarget717, activeSuper717: activeSuper717, enemyHpShown717: enemyHpShown717,
     drawFloater716: drawFloater716, drawBigMap: drawBigMap, drawBossBar: drawBossBar,
     SE_ROSTER: SE_ROSTER, SE_IDS: SE_IDS, SE_SHIELD_IDS: SE_SHIELD_IDS, SE_SHIELD_FRAC: SE_SHIELD_FRAC, SE_GKEY_P: SE_GKEY_P,
-    sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seLoot717: seLoot717, seSnap717: seSnap717,
+    sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seBaseHp717: seBaseHp717, seEarlyFade: seEarlyFade, seTellMul: seTellMul, seUniqueChance: seUniqueChance, seRollGear: seRollGear, seLoot717: seLoot717, seSnap717: seSnap717,
+    giltGear: giltGear, calcReqLvl: calcReqLvl, calcReqLvlLegacy: calcReqLvlLegacy, stampReq: stampReq, REQ_POLICY: REQ_POLICY,
     seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, seRecover717: seRecover717, seMarkDead717: seMarkDead717,
     loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,
     crispCtx: crispCtx, uiEff718: uiEff718, textPix718: textPix718, syncTextLayer718: syncTextLayer718,

@@ -136,10 +136,11 @@ function run(w) {
   se.hp = 1; se.shield = 0;
   w.damageEnemy(se, 20, 0, 0, '#fff', false);
   const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
-  const uniq = g.ground.filter(it => it.item && it.item.rarity === 3);
+  const gear = g.ground.filter(it => it.item).map(it => it.item);
+  const uniq = gear.filter(it => it.rarity === 3);
   const rats = g.ground.filter(it => it.ration);
   const keys = g.ground.filter(it => it.gkey);
-  check('se loot', gold === 25 && rats.length >= 1 && uniq.length === 1 && keys.length === 1, 'g' + gold + ' r' + rats.length + ' u' + uniq.length + ' k' + keys.length);
+  check('se loot', gold === 25 && rats.length >= 1 && keys.length === 1 && gear.length === 1 && gear[0].rarity === 2 && gear[0].lvl === 1 && uniq.length === 0, 'g' + gold + ' r' + rats.length + ' rare' + gear.filter(it => it.rarity === 2).length + ' u' + uniq.length + ' k' + keys.length);
   check('se dead unlocks', g.seGateAlive717() === false && !(g.SE717 && g.SE717.alive));
   w.startClimb();
   check('climb after se', !!g.climb);
@@ -149,6 +150,37 @@ function run(w) {
   const cues = ['enm_se_drop_01','enm_se_laugh_01','enm_se_laugh_02','enm_se_laugh_03','enm_se_taunt_done_01','enm_se_attack_01','enm_se_attack_08','enm_se_death_01','enm_se_death_02','meta_se_victory_01','meta_se_victory_02'];
   check('se cues', cues.every(id => fetchStatus('../assets/sfx/' + id + '.wav') === 200 && fetchText('../assets/sfx/sfx.json').indexOf('"' + id + '"') >= 0));
   check('no boss laugh for se', src.indexOf('enm_se_laugh_01') >= 0 && src.indexOf("cue('enm_boss_laugh_") < 0);
+
+  function sePurse(d, uniqRoll, gkeyRoll) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_morbius', 'fight');
+    e.sePhase = 'fight'; e.hp = 1; e.shield = 0;
+    g.ground.length = 0;
+    w.__seUnique = uniqRoll;
+    w.__seGkey = gkeyRoll;
+    w.damageEnemy(e, 80, 0, 0, '#fff', false);
+    return {
+      gold: g.ground.reduce((n, it) => n + (it.gold || 0), 0),
+      rats: g.ground.filter(it => it.ration).length,
+      keys: g.ground.filter(it => it.gkey).length,
+      items: g.ground.filter(it => it.item).map(it => it.item)
+    };
+  }
+  const d2hit = sePurse(2, 0, 0), d2miss = sePurse(2, 0.99, 1);
+  check('se loot depth 2 stays a rare', g.seUniqueChance(2) === 0 && d2hit.gold === 25 && d2hit.rats === 1 && d2hit.keys === 1 && d2hit.items.length === 1 && d2hit.items[0].rarity === 2 && d2hit.items[0].lvl === 2 && d2miss.items[0].rarity === 2 && d2miss.keys === 0 && g.SE_GKEY_P === 0.065, d2hit.items[0] && d2hit.items[0].rarity);
+  const p3 = g.seUniqueChance(3);
+  const d3hit = sePurse(3, p3 - 0.001, 1), d3miss = sePurse(3, p3, 1);
+  check('se loot depth 3 is a seeded chance', p3 === 0.2 && d3hit.items[0].rarity === 3 && d3hit.items[0].lvl === 3 && d3miss.items[0].rarity === 2 && d3miss.items[0].lvl === 3 && d3hit.gold === 25 && d3hit.rats === 1, (d3hit.items[0] && d3hit.items[0].rarity) + '/' + (d3miss.items[0] && d3miss.items[0].rarity));
+  let deepBad = '';
+  [10, 12].forEach(d => {
+    [0, 0.5, 0.999].forEach(roll => {
+      const bag = sePurse(d, roll, 1);
+      const it = bag.items[0];
+      if (g.seUniqueChance(d) !== 1 || !it || it.rarity !== 3 || it.lvl !== d || bag.gold !== 25 || bag.rats !== 1) deepBad += d + '@' + roll + ' ';
+    });
+  });
+  check('se loot depth 10 and above is always a unique', !deepBad, deepBad);
 
   g.settings.hitText = true; g.settings.enemyHp = true;
   if (w.saveSettings) w.saveSettings();

@@ -295,8 +295,16 @@ function run(w) {
   g.seBeginTell(lane, 'power');
   const pow = g.teles.find(t => t.seTell === 'power');
   check('power circle radius is the hit radius', pow && pow.match === true && Math.abs(pow.r - (g.SE_TELL.power.r + p.r)) < 1e-6, pow && pow.r);
+  // fade is 1 at depth 1 and 0 at depth 5. Power is 1.7 + 1.3*fade. Depth 1 must out-hit the depth-5 ratio.
+  const fadeOf = d => Math.max(0, 1 - (d - 1) / 4);
+  const mul1 = g.SE_TELL.power.mul + 1.3 * fadeOf(1);
+  const mul5 = g.SE_TELL.power.mul + 1.3 * fadeOf(5);
+  p.st.def = 0; p.st.block = 0; w.__hurtSpread = 1; w.__champCrit = 1;
+  check('depth 1 power ratio is above the depth 5 ratio', g.depth === 1 && Math.abs(g.seEarlyFade(1) - fadeOf(1)) < 1e-9 && Math.abs(g.seEarlyFade(5) - fadeOf(5)) < 1e-9 && Math.abs(g.seTellMul('power', 1) - mul1) < 1e-9 && Math.abs(g.seTellMul('power', 5) - mul5) < 1e-9 && mul1 > mul5 && Math.abs(mul5 - 1.7) < 1e-9, mul1 + ' vs ' + mul5);
+  const dealt = Math.max(1, Math.round(lane.dmg * g.seTellMul('power', g.depth)));
+  const depth5Dealt = Math.max(1, Math.round(lane.dmg * mul5));
   p.x = lane.x + pow.r; p.y = lane.y; p.hp = 400; p.inv0 = 0;
-  check('standing on the power outline is hit', g.seResolveTell(lane, 'power', pow) === 1 && p.hp === 366, p.hp);
+  check('standing on the power outline is hit', g.seResolveTell(lane, 'power', pow) === 1 && p.hp === 400 - dealt && dealt > depth5Dealt, p.hp + ' dealt ' + dealt + ' d5eq ' + depth5Dealt);
   lane.seAct = ''; g.teles.length = 0; p.hp = 400; p.inv0 = 0;
   g.seBeginTell(lane, 'power');
   const powOut = g.teles.find(t => t.seTell === 'power');

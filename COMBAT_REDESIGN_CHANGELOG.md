@@ -2346,3 +2346,85 @@ Stage 8 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and
 Stage 9 is IMPLEMENTED, not VERIFIED, on a later branch. The paragraph above is the Stage 8 gate and was not rewritten. This PR is the Stage 9 review. It is not merged and it is not live. `version.json` is still 0.7.18.
 
 **Wait for Jake's approval before Stage 10.** Stage 10 is loot and the five caster elements. It must not start from this branch. Stage 9 did not add resist loot, did not retype those shots, and did not change the crab bite.
+
+---
+
+### 2026-11-06 — Early-game balance: Super Elite depths 1–4 and the early unique
+
+- **Date:** 2026-11-06.
+- **Stage:** Not a combat-redesign stage. Jake-approved early balance, after Stage 9 merged on `main` at `a492023`. Stage 10 (PR #33) was not edited.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Rollback tag `balance-pre-early-se-loot` points at `a492023a5a442bce8404837648567626b58a51e1`. Do not move it.
+- **Status:** IMPLEMENTED, not VERIFIED. This entry does not mark Stage 9 VERIFIED and does not start Stage 10.
+- **Objective:** Make early Super Elite heavies matter, stop handing a unique to the first two floors, and make magic and rare required level follow the existing formula. Depth 5 and deeper combat stays on the live numbers.
+
+#### What changed
+
+`fade(d) = max(0, 1 - (d - 1) / 4)`. It is 1 at depth 1 and 0 at depth 5 and every floor after.
+
+- Power multiplier `1.7 + 1.3 * fade`. Depth 5+ stays ×1.7, which is still `SE_TELL.power.mul`.
+- Brand multiplier `1.15 + 0.85 * fade` while fade is above 0. At fade 0 the brand stays ×0.85. The audit's depth-5 brand of 14 is not applied. Jake kept depth 5+ combat exactly as it is, so depth 5 brand stays 11.
+- Swing multiplier stays 1. Tell durations, lock, lane width, and radii are unchanged.
+- Life is `round(currentLife * (1 + (80/56 - 1) * fade))` while fade is above 0, and the current formula when fade is 0. Depth 1 is 80, depth 2 is 102, depth 3 is 119, depth 4 is 133, depth 5 is 141. Shield stays 10% of that life.
+- Super Elite unique chance: depths 1–2 are 0% (guaranteed rare), depth 3 is 20%, depth 4 is 35%, depth 5 is 50%, depths 6–9 are 70%, depth 10+ is 100%. A miss is `makeItem(depth, 2)`. Gold 25, the ration, and the 6.5% gate key are unchanged. Bosses still call `bossUnique` and stay a guaranteed unique. The depth-5 boss is the first drop that cannot miss.
+- Magic and rare required level use the normal formula at every item level. An item level 3 rare requires level 3. An item level 3 magic requires level 2 (`floor(0.7 * 2) + 1`). Whites with item level 3 or below still require level 1. Uniques are unchanged.
+- Gilt secret chest before depth 5 is a rare at item level `depth + 1`. From depth 5 the 20% unique returns, still at item level `depth + 1` (the audit's level, not the old `depth + 2`). Prism gilt chests stay gold. The gold roll and the repair-potion coin-flip are unchanged.
+- Migration policy `grandfather-owned`: a save keeps a stored `reqLvl`. A saved item with no `reqLvl` is stamped with the old rule (`calcReqLvlLegacy`) and `reqSrc: 'grandfather'`. Load does not delete or unequip. Equip checks the stored number, so a grandfathered piece can be taken off and put back on. `makeItem` stamps `reqSrc: 'drop'` and the new formula. That requirement applies the next time someone tries to equip the new drop.
+
+Hellmouth, boss pools, boss pattern multipliers, trash contact, sword timing, and the tell dodge are not part of this change.
+
+#### Files
+
+- `index.html` — the formulas, the loot rolls, and the save migration.
+- `tests/early-balance.html`, `tests/early-balance.mjs` — the new harness.
+- `EARLY_BALANCE_REPORT.md` — before and after.
+- `version.json` was not edited. GitHub Pages was not deployed.
+
+The Stage 9 history above was not rewritten. The three harness lines that still lock the old depth-1 power and the old guaranteed Super Elite unique are listed in the report. They are the new failure names. They are not flakes.
+
+---
+
+### 2026-11-06 — Early-balance pre-merge verification
+
+- **Date:** 2026-11-06.
+- **Stage:** Same balance branch. Jake gave conditional approval of PR #35 at `1341087` and asked for these checks before any merge. PR #35 and PR #33 were not merged. `version.json` was not edited. Nothing was deployed.
+- **Version / Commit:** Still v0.7.18. Tag `balance-pre-early-se-loot` on origin is `a492023a5a442bce8404837648567626b58a51e1`.
+
+#### Harness updates
+
+The three outdated assertions now check the approved rule.
+
+- `tests/stage9-bosses.html` `standing on the power outline is hit` is on depth 1. Expected damage is `round(actorDmg × (1.7 + 1.3 × fade(1)))`, and that dealt hit must be greater than the same actor at the depth-5 ratio `1.7`. A center outside the outline still deals 0. A new check, `depth 1 power ratio is above the depth 5 ratio`, locks fade 1 versus fade 0.
+- `tests/v0717.html` and `tests/v0718.html` `se loot`: the depth-1 kill is a rare of item level 1, with 25 gold, a ration, and the gate key when `__seGkey` is 0. Seeded kills then cover depth 2 (rare at roll 0 and at 0.99), depth 3 (unique just under 20%, rare at exactly 20%), and depth 10+ (unique at 0, 0.5, and 0.999). `v0718` also seeds depth 4 at 35%.
+
+#### Results against `a492023`
+
+`tests/early-balance.html` 50/0, including the grandfather save. Stages 1–8 match the baseline counts exactly (71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0). Stage 9 is 77/0 here and 76/0 on the tag. The extra pass is the new ratio check. `v0717` fails only `version` on both sides (50/1 here, 47/1 on the tag). `v0718` is 23/0 here and 20/0 on the tag.
+
+No stable failure name exists on this branch that is absent from `a492023`. The names that moved between the two sequential passes are the known floor and layout flakes: `v0714` footer set (also 3 of 4 extra runs on the tag), `v0711` `trash in the maw` (emitted on the tag, not on this floor), and one `v077` `f2 brazier` (1 of 7 branch runs, 0 of 7 tag runs; braziers and interact range are not in this diff).
+
+`f4 skins rotate` in `tests/v075.html` is the intermittent UI check. `__prismForce` plus `startFloor` at 7, 14, 21, and 28 expects skins A–D from `prismSkin075`. The miss is a depth with no prism at all. `placePrism` returns false when no room, and the carved-hall fallback, can host the sockets. One of eight tag runs failed it (`{"7":"A","21":"C","28":"D"}`). It also failed once on this branch before this verification (`{"14":"B","21":"C","28":"D"}`). The skin formula is not random. Placement is. This diff does not edit it.
+
+Magic and rare required levels differ on purpose. Magic is `floor(0.70 × (L − 1)) + 1`. Rare is `floor(0.80 × (L − 1)) + 2`. Item level 3 is level 2 for magic and level 3 for rare. Whites at item level 3 or below stay at 1. The formulas are written in `EARLY_BALANCE_REPORT.md`.
+
+`git diff a492023` does not touch `manaCost`, boss spawning, boss multipliers, `seDmg717`, or the `SE_TELL` constants. Depth 5+ life, power, and brand stay on those constants because fade is 0. PR #33's Stage 10 files and its `makeItem0` / resolver / shop-mod edits are not in this diff.
+
+#### `f2 brazier` is known test debt
+
+The assertion in `tests/v077.html` is:
+
+```javascript
+pp.torches = 2; pp.torchT = 0;
+let litB = false;
+if (g.braziers.length) {
+  const b = g.braziers[0]; b.lit = 1;
+  pp.x = b.x; pp.y = b.y;
+  litB = w.interactables().some(o => o.ref === b && o.label === 'LIGHT TORCH') && w.nearestInteract().label === 'LIGHT TORCH';
+}
+check('f2 brazier', litB);
+```
+
+`placeLights` skips the start room unless `Math.random()` is 0, and skips every other room when `Math.random() > 0.35`. A floor can place no brazier, and then `litB` stays false. When a brazier does exist, `interactables` offers `LIGHT TORCH` only while that brazier is lit and the torch is not already full. `nearestInteract` ranks a chest, door, or shop above that flame (tier 3 versus tier 1). If the winner is not already `LIGHT TORCH`, and the torch is out with a spare in the pack, `nearestInteract` returns `LIGHT SPARE` instead.
+
+A mulberry seed installed immediately before `startFloor(3)` was swept for seeds 1 through 240 on `a492023` and on this branch. Both runs used 15115 `Math.random` calls on seed 1. Both failed the same 12 seeds: seed 29 is `no-brazier`; seeds 38, 66, 99, 109, 111, 144, 157 and four others are `nearest-not-torch`, with `nearestInteract` returning `LIGHT SPARE` because a locked chest, an open chest, or a lever is inside its radius. A hand-built floor agrees on both commits: no brazier fails, one isolated lit brazier passes with `LIGHT TORCH`, and the same brazier 8px from an open chest fails because the nearest label becomes `LIGHT SPARE`.
+
+`placeLights`, `interactables`, `nearestInteract`, and `brazierLit` are not in this diff. The new `Math.random` calls are inside `giltGear` and `seRollGear`, which run when a gilt chest is opened or a Super Elite dies, not while `startFloor` places braziers. This path does not shift spawn order. It is not a gameplay regression. It is a pre-existing nondeterministic test.
