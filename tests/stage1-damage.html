@@ -174,7 +174,7 @@ function run(w) {
 
   check('pit still direct', src.indexOf('function endFall() { const p = player, dmg = Math.ceil(p.st.maxHp * PIT_DMG), before = p.hp; p.hp = Math.max(1, p.hp - dmg);') >= 0);
   check('blood door still direct', src.indexOf('p.hp -= cost; addText(p.x, p.y - 12, \'-\' + cost, \'#ff3030\');') >= 0);
-  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('fireball keeps spell tags', src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0 && src.indexOf('legacySkillPower') >= 0);
   check('melee and bow tags', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Ranged', 'Projectile', 'Direct']") >= 0);
 
@@ -325,13 +325,13 @@ function run(w) {
   p.mp = 80; p.lichTome.isAcquired = true; g.unlockSpell('hellmouth');
   w.castHellmouth();
   const sinks = p.activeHellSinks || [];
-  check('hellmouth sinks se not boss', sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss), 'n ' + sinks.length);
-  check('hellmouth vuln is boss only', (boss.mawVuln || 0) >= 3 && !(se.mawVuln > 0), 'boss ' + boss.mawVuln + ' se ' + se.mawVuln);
+  check('hellmouth does not sink a gate encounter', !sinks.some(s => s.enemyRef === se) && !sinks.some(s => s.enemyRef === boss), 'n ' + sinks.length);
+  check('hellmouth marks the boss and the super elite', (boss.mawVuln || 0) >= 3 && (se.mawVuln || 0) >= 3, 'boss ' + boss.mawVuln + ' se ' + se.mawVuln);
   const sh0 = boss.shield;
   w.damageEnemy(boss, 100, 0, 0, '#fff', false);
   check('marked boss takes 110', boss.shield === sh0 - 110 && boss.hp === 400, 'sh ' + boss.shield);
   for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
-  check('hellmouth still deletes se', se.dead === true || se.hp <= 0 || g.enemies.indexOf(se) < 0, 'hp ' + se.hp + ' dead ' + se.dead);
+  check('hellmouth does not delete the super elite', se.dead !== true && se.hp === 90 && se.shield === 7 && g.enemies.indexOf(se) >= 0, 'hp ' + se.hp + ' sh ' + se.shield);
   check('boss survives hellmouth', boss.hp === 400 && boss.dead !== true, boss.hp);
 
   boot();

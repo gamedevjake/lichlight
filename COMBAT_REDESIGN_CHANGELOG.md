@@ -15,9 +15,9 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 - **Original version:** v0.7.18.
 - **Original source commit:** `25253a5586470e466f99f2122c4579ac69a666b1`.
 - **Redesign start date:** 2026-11-05.
-- **Current implementation stage:** Stage 8 — Enemy resistances and elite affixes. IMPLEMENTED, not VERIFIED.
-- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`), and Stage 7 PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`). Stages 0–7 stay IMPLEMENTED (not marked VERIFIED here). Stage 8 is IMPLEMENTED and waiting for Jake. Stages 9–13 are NOT STARTED. Do not begin Stage 9 until Jake approves Stage 8.
-- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). `combat-redesign-pre-stage7` → `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). `combat-redesign-pre-stage8` → `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). Do not move these tags.
+- **Current implementation stage:** Stage 9 — Boss and Super Elite combat redesign. IMPLEMENTED, not VERIFIED.
+- **Overall project status:** IN PROGRESS. Jake merged Stage 0 PR #23, Stage 1 PR #24, Stage 2 PR #25 (`6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4`), Stage 3 PR #26 (`57f085c76907a83f8650ca339b19188b467e82b6`), Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`), Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`), Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`), Stage 7 PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`), and Stage 8 PR #31 (`1fb0f155ca794750167f143182869222bdfab790`). Stages 0–8 stay IMPLEMENTED (not marked VERIFIED here). Stage 9 is IMPLEMENTED and waiting for Jake. Stages 10–13 are NOT STARTED. Do not begin Stage 10 until Jake approves Stage 9.
+- **Rollback tags:** `combat-redesign-pre-stage1` → `26e917f413531466aceed0577819110aa5e6dd17` (Stage 0 squash). `combat-redesign-pre-stage2` → `92edf84d106fec7a076d436348ac83da35e174fb` (Stage 1 squash on main, PR #24). `combat-redesign-pre-stage3` → `6be0fbedfedf1a512b3a8b6b6dfceb21d3233ce4` (Stage 2 squash on main, PR #25). `combat-redesign-pre-stage4` → `57f085c76907a83f8650ca339b19188b467e82b6` (Stage 3 squash on main, PR #26). `combat-redesign-pre-stage5` → `d4fbc3c6904c0ddbc96b6d2b6825514e2420b896` (Stage 4 squash on main, PR #27). `combat-redesign-pre-stage6` → `6eecf2439525da17acf9479688de185d4b8a6749` (Stage 5 squash on main, PR #28). `combat-redesign-pre-stage7` → `29c81bb825c98816606e75c80985305becf5a0c8` (Stage 6 squash on main, PR #29). `combat-redesign-pre-stage8` → `20906ade92233c9a7831c0a0c90a4ab90f898851` (Stage 7 squash on main, PR #30). `combat-redesign-pre-stage9` → `1fb0f155ca794750167f143182869222bdfab790` (Stage 8 squash on main, PR #31). Do not move these tags.
 
 ---
 
@@ -34,13 +34,13 @@ Source of truth is `index.html` on that commit (single-file game, 12,941 lines).
 | 6 | Weapon identity and attack responsiveness | IMPLEMENTED |
 | 7 | Skill system and build specialization | IMPLEMENTED |
 | 8 | Enemy resistances and elite affixes | IMPLEMENTED |
-| 9 | Boss and Super Elite redesign | NOT STARTED |
+| 9 | Boss and Super Elite redesign | IMPLEMENTED |
 | 10 | Equipment, loot, and build-changing affixes | NOT STARTED |
 | 11 | Combat feedback and presentation | NOT STARTED |
 | 12 | Character sheet and tooltip accuracy | NOT STARTED |
 | 13 | Balance, performance, and final verification | NOT STARTED |
 
-Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`) and this log does not mark it VERIFIED. Stage 8 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 8 did; the counts are in those entries.
+Status meanings: NOT STARTED, IN PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED. Stage 0 stays IMPLEMENTED, not VERIFIED. Stage 1 is IMPLEMENTED, not VERIFIED. Jake merged Stage 1 PR #24 and GO'd Stage 2. Stage 2 is IMPLEMENTED, not VERIFIED. Jake merged Stage 2 PR #25 and GO'd Stage 3. Stage 3 is IMPLEMENTED, not VERIFIED. Jake merged Stage 3 PR #26 and GO'd Stage 4. Stage 4 is IMPLEMENTED, not VERIFIED. Jake merged Stage 4 PR #27 (`d4fbc3c6904c0ddbc96b6d2b6825514e2420b896`) and GO'd Stage 5. Stage 5 is IMPLEMENTED, not VERIFIED. Jake merged Stage 5 PR #28 (`6eecf2439525da17acf9479688de185d4b8a6749`) and GO'd Stage 6. Stage 6 is IMPLEMENTED, not VERIFIED. Jake merged Stage 6 PR #29 (`29c81bb825c98816606e75c80985305becf5a0c8`). Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9a7831c0a0c90a4ab90f898851`) and this log does not mark it VERIFIED. Stage 8 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #31 (`1fb0f155ca794750167f143182869222bdfab790`). Stage 9 is IMPLEMENTED, not VERIFIED. Jake reviews before any stage is marked VERIFIED. The Stage 0 entry did not run the harness. Stages 1 through 9 did; the counts are in those entries.
 
 ---
 
@@ -1222,9 +1222,180 @@ The shell/bite mismatch stays OPEN technical debt. It is not a Stage 8 fix.
 
 ---
 
+### 2026-11-06 — Stage 9: Boss and Super Elite Combat Redesign
+
+- **Date:** 2026-11-06.
+- **Stage:** Stage 9 — Boss and Super Elite combat redesign.
+- **Version / Commit:** Gameplay version left at v0.7.18 (`version.json` unchanged). Implementation commit `3c6cfac75ad1339dae3f4b0fa6d4213c8a4e916e`. Rollback tag `combat-redesign-pre-stage9` points at `1fb0f155ca794750167f143182869222bdfab790` (Stage 8 squash on main, PR #31). Do not move it. Older rollback tags were not moved.
+- **Status:** IMPLEMENTED. Not VERIFIED. Jake reviews. This PR is not merged and is not live. Stage 10 has not been started.
+- **Objective:** Stop Hellmouth from deleting a Super Elite, and give bosses and Super Elites phased, telegraphed fights that use the poise, status, shield, and intro rules already in the game. Do not inflate HP. Do not multiply every hit. Do not make a build unable to clear a fight.
+
+#### Hellmouth, before and after
+
+Before, `castHellmouth` treated every actor with `T.boss` false as trash. A Super Elite sets `T.boss` false on purpose. The maw froze it, and at frame 90 `killEnemy` removed it. That skipped the shield, the drop and taunt immunity, and the stair lock. A scripted sink finished in 1.55s at every depth (31 steps of 0.05s). A boss was only marked: `mawVuln` for 3s, then the existing ×1.10.
+
+After, `heavyEncounter` is a boss or a Super Elite. Trash still sinks and still dies, which is the pack clear. A gate encounter is not pushed into `activeHellSinks`, is not frozen, and is not passed to `killEnemy`. It receives the same 3s mark. A Super Elite that is already in `fight` also loses shield and poise:
+
+```
+bite = shield > 0 ? clamp(round(shield * 0.25), 1, shield) : 0
+```
+
+The bite is not a damage packet. It does not crit, leech, or touch HP. Drop and taunt refuse it, and `resolveEnemyDamage` still returns `prevented: 'super-elite'` for any real hit during those phases. The poise spend is one skill-class hit (14, then the Super Elite taken multiplier 0.30, so 4.2). That does not break a full 360 bar. A later `tickHellmouth` that finds a gate actor in a sink releases it and refreshes the mark. It does not bite a second time and it does not delete.
+
+The ×1.10 is still one multiply, after resist, guard, and ram armor. A 4-point sword still rounds to 4, so the mark alone does not speed a light sword. A 40-point hit becomes 44. A 100-point hit becomes 110. Hellmouth stays useful because the shield bite repeats every cast (the skill cooldown is still 6s) until the ward is gone, and the mark speeds any hit large enough to round up. It is no longer a stair-lock bypass.
+
+#### Boss and Super Elite mechanics
+
+HP formulas are the Stage 8 formulas. `BOSS_HP_MUL` is still 1.75. `BOSS_SHIELD_FRAC` is still 0.25. `seMaxHp717` is still the synthetic champion ×1.4. Contact damage and the pattern multipliers (slam ×1.15, hop and nova ×1.1, charge contact ×1.3, Super Elite power ×1.7) were not given a phase factor. `enr` is still 1.25 in phase 2 and 1.4 in phase 3, and it still scales move speed and how fast `patCd` falls. It does not scale `e.dmg`.
+
+Phase 2 starts when HP is under half of `maxHp`. Phase 3, on a boss with `B.p3`, starts under a quarter. Those are the ticks already drawn on the boss bar. The shield is burned first and is not part of the fraction. Crossing a line sets `phaseBeat` to 0.7s, and the next pattern waits that long. A pattern already showing its tell is allowed to finish.
+
+`bossIntro` is still 2.8s and still blocks poise, not HP. It now also refuses to start a pattern, so the awaken banner is a cease-fire. Standing inside the body can still take contact.
+
+Super Elite phases use the same HP fractions, computed by `seFightPhase`. They do not change HP or contact damage.
+
+| Phase | HP left | What they do |
+| --- | --- | --- |
+| 1 | above half | A swing, after the swing tell. |
+| 2 | half or less | The same swing, and every third action is the power smash. |
+| 3 | a quarter or less | Swing, power, and a brand, in that order. The bar draws the quarter tick because `B.p3` is set on the Super Elite. |
+
+Freeze immunity and `HEAVY_CHILL` (0.4) are unchanged. A 50% chill request on a boss or a Super Elite is still 20% slow, and freeze still returns `immune`. The chill aura now multiplies `seMoveMul`. Fear no longer gets walked back in the same frame: `seTick717` drops an uncommitted tell and does not chase while `fearT` is up. Stagger still clears `seAct` and any telegraph whose `src` is that actor. Boss circle tells now set `src`, so a stagger removes a committed ring, nova, slam, or hop the way Stage 5 already removed a beam.
+
+#### Resist profiles
+
+Each boss and each Super Elite has a five-element row. Each row sums to 0. Nothing is outside −20..+20. There is no `All` key. Physical is not in the row, so a sword's time to kill did not move. The worst Fire row on a boss is +10 (dealt 90). The worst on a Super Elite is +20 (dealt 80). Every element is negative on at least one boss and one Super Elite, so a one-element caster has a fight they are faster at. Affixes are still not rolled onto these actors. A save without a bag receives the row from the boss name or the Super Elite id. A saved bag is kept.
+
+#### Telegraph table
+
+A damaging tell is a circle or a line that already existed in the game. Nothing new is allocated per frame. A tell is created when the action starts.
+
+| Attack | Windup | What you do |
+| --- | --- | --- |
+| Boss ring | 0.55s circle on the body | Step off the boss before the bullets. Was 0.40s with the same ring. |
+| Boss spiral | 0.60s circle, then the spin | The first shot waits out the circle. The spin is the ongoing tell. Bullet speed stays 72. |
+| Boss spread | 0.85s lines, lock after 0.30s | The fan used to appear at 0.30s with no line. Sidestep a locked lane. A second volley is 0.50s later. |
+| Boss charge | 0.75s line | Unchanged length. The line locks. The charge is the committed direction. A wall still stuns the boss. |
+| Boss slam | 0.90s circle, radius 26, snapshot | Unchanged. The circle does not follow you. Walk out. |
+| Boss hop | 0.85s circle, radius 28, snapshot | Unchanged landing. Phase 2 used to fire a ring on the landing frame. That ring now waits 0.45s behind its own circle. |
+| Boss nova | 1.15s circle, radius 58, follows | Unchanged. Leave the ring. A roll covers most of it. This radius was already the large tell. |
+| Boss beam | 1.00s lines, lock at 0.55s | Unchanged. |
+| Boss teleport | 0.75s marker, then 0.55s ring tell | The ring used to fire on the arrival frame. You can leave the marker, then leave the ring. |
+| Boss lob | 1.00s lob marker | Unchanged. The bomb does not chase. |
+| Boss summon | 0.80s rune | Not a damage tell. The minion is the existing summon. |
+| Super Elite swing | 1.00s line, width 8, lock after 0.25s | Sidestep. The hit is the locked lane, within 8px. At the 0.2 move floor, 0.75s of locked time covers that 8px. Damage is `e.dmg`. |
+| Super Elite power | 1.30s circle, radius 10, follows the body | Only phase 2 and 3. Leave the circle. Damage is `e.dmg * 1.7`, the old powerup ratio, and only if you are still inside. At the 0.2 floor, 1.30s covers radius 10 plus the player's 5px radius. |
+| Super Elite brand | 1.15s circle, radius 8, snapshot | Only phase 3. It does not follow. Damage is `e.dmg * 0.85`. At the 0.2 floor, 1.15s covers radius 8 plus 5px. |
+
+Gaps after a Super Elite action are 0.70s (swing), 0.90s (power), and 0.75s (brand). None of these root, freeze, or refresh a lock. Boss pattern cooldown is still `rand(1.2, 1.8)` after the tell, faster in phase 2 and 3 by the existing 1.5 cast rate, and held for 0.7s on a phase line.
+
+Boss and Super Elite projectiles stay Physical. Giving them an element would skip armor, and resist gear is Stage 10. The five caster shots stay Physical for the same reason.
+
+#### Time to kill and survival
+
+Checkpoint is tag `combat-redesign-pre-stage9`. Spread 1, crit off, mana ignored. Physical is a 4-point sword every 0.45s. Fire is a 64-point Fireball every 0.45s (level 10, spell power 20). Mixed is a high Whirlwind, 14 Physical plus 20 Fire, every 1.6s. Hellmouth-using is that sword, plus a cast at 0s and every 6s. Before, the mark did not change a 4-point hit, so boss Hellmouth time equalled the sword. Super Elite Hellmouth time was the 1.55s delete. After, the bite removes shield on that cadence and the sword still deals 4. Pools and contact damage matched the tag on all 20 bosses. Survival is how many of that actor's own contact hits remove 60 player HP. It matched on every boss and every Super Elite, at DEF 0 and DEF 30, because contact damage was not changed. Nova (×1.1) and charge (×1.3) survival are the same integers as the tag for the same reason.
+
+| Boss | Pool | Sword | Fire before → after | Mixed before → after | Maw before → after | Contact hits DEF 0/30 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mother Murk | 840+210 | 118.35 | 7.65 → 7.65 | 49.6 → 49.6 | 118.35 → 108.45 | 4/7 |
+| The Gnawer King | 1365+341 | 192.15 | 12.15 → 10.35 | 81.6 → 72 | 192.15 → 173.25 | 2/4 |
+| The Drowned Bell | 1890+473 | 265.95 | 16.65 → 15.3 | 112 → 105.6 | 265.95 → 236.7 | 2/3 |
+| Sister Vey | 2415+604 | 339.75 | 21.6 → 19.8 | 142.4 → 134.4 | 339.75 → 299.25 | 2/3 |
+| Old Tam | 2940+735 | 413.55 | 26.1 → 23.85 | 174.4 → 164.8 | 413.55 → 361.35 | 1/2 |
+| The Silkmother | 3465+866 | 487.35 | 30.6 → 25.65 | 204.8 → 182.4 | 487.35 → 423 | 1/2 |
+| Sir Calder | 3990+998 | 561.15 | 35.1 → 32.4 | 235.2 → 222.4 | 561.15 → 484.65 | 1/2 |
+| Lady Merrow | 4515+1129 | 634.95 | 40.05 → 36.45 | 265.6 → 251.2 | 634.95 → 545.85 | 1/2 |
+| Deepcoil | 5040+1260 | 708.75 | 44.55 → 46.8 | 297.6 → 305.6 | 708.75 → 607.05 | 1/2 |
+| Choirmaster Aurel | 5565+1391 | 782.55 | 49.05 → 54 | 328 → 348.8 | 782.55 → 667.8 | 1/1 |
+| The Ossuary Colossus | 7917+1979 | 1113.3 | 69.75 → 76.95 | 467.2 → 496 | 1113.3 → 939.15 | 1/1 |
+| Abbot Morcant | 6615+1654 | 930.6 | 58.5 → 53.55 | 390.4 → 368 | 930.6 → 788.85 | 1/1 |
+| Captain Brannoc | 8568+2142 | 1205.1 | 75.6 → 79.2 | 504 → 520 | 1205.1 → 1013.4 | 1/1 |
+| Queen Lirael | 7665+1916 | 1078.2 | 67.5 → 64.35 | 451.2 → 438.4 | 1078.2 → 909.9 | 1/1 |
+| Motley | 8190+2048 | 1152 | 72 → 66.15 | 483.2 → 456 | 1152 → 970.2 | 1/1 |
+| The Ninth Eye | 8715+2179 | 1225.8 | 76.95 → 76.95 | 513.6 → 513.6 | 1225.8 → 1030.5 | 1/1 |
+| The Penitent Host | 9240+2310 | 1299.6 | 81.45 → 70.65 | 544 → 500.8 | 1299.6 → 1090.8 | 1/1 |
+| The Ninth Psalm | 9765+2441 | 1373.4 | 85.95 → 82.35 | 574.4 → 558.4 | 1373.4 → 1150.65 | 1/1 |
+| The Crown-Wraith | 10290+2573 | 1447.2 | 90.45 → 82.8 | 606.4 → 572.8 | 1447.2 → 1210.95 | 1/1 |
+| Oswin, the Bone King | 17304+4326 | 2433.6 | 152.1 → 139.05 | 1019.2 → 961.6 | 2433.6 → 2010.15 | 1/1 |
+
+The slowest Fire change is the Colossus, 69.75s to 76.95s, about ×1.10, from Fire +10. The fastest is the Silkmother, 30.6s to 25.65s, from Fire −20. A sword is the same number on every row. Nobody's Fireball time left the fight.
+
+Super Elites share one pool per depth. Depth 10 is 249 HP and a 25 shield. Sword time is 31.05s before and after. Contact survival is 4 hits at DEF 0 and 6 at DEF 30. The power smash, if you stand in the new circle, is 2 and 4. Hellmouth before was 1.55s. Hellmouth after is 29.70s. Depth 1 sword is 7.20s and Hellmouth after is 6.30s. Depth 100 sword is 271.35s and Hellmouth after is 260.55s. Fire at depth 10 ranges from 1.80s (Fire −15 or −20) to 2.70s (Magmafiend and Ember-Fiend, Fire +20). At depth 100 that +20 row is 21.60s against the unresisted 17.10s. That is the worst Super Elite elemental case, and it still dies.
+
+#### Tests
+
+Headless Chrome, system Google Chrome, SwiftShader, cache disabled. Baseline is the tag, 29 files, 1346 passed, 94 failed. After, one sequential pass, stages 1–9 plus the same 21 legacy files.
+
+| Run | Legacy 21 | Stages 1–8 | Stage 9 |
+| --- | --- | --- | --- |
+| Before, tag `combat-redesign-pre-stage9` | 810 passed, 94 failed | 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0 | not present |
+| After, sequential pass | 803 passed, 101 failed | same counts, all green, with the renames below | 41/0 |
+| After the `v0714` re-run returned to 40/1 | 810 passed, 94 failed | same | 41/0 |
+
+`tests/stage9-bosses.html` is 41/0. It locks the Hellmouth split, the shield bite, the intro refusal, boss phase and the 0.7s beat, boss tell durations, Super Elite phase kinds, swing sidestep, power ×1.7 only inside the circle, a brand that does not follow, freeze immunity, heavy chill, the aura, fear cancelling a tell, stagger removing a tell, the uninflated pools, a +20 Fire hit staying finite, the crab predicate, and a save of shield, mark, phase, and the resist row.
+
+The sequential legacy pass moved only `v0714` (40/1 → 33/8, the seven footer and tab names). Re-runs:
+
+- `v0714`: the first re-run stayed 33/8. The next was 40/1 with only `version`. Layout flake.
+- `v0711`: sequential pass stayed 42/5 with the five stable names. A re-run was 43/5 with those same five names. An extra pass was emitted. Emission flake.
+- `v076`: stayed 48/0 on the pass and the re-run.
+- `v07152`: sequential pass stayed 36/1 with only `version`. A re-run was 34/3 (`tab hits follow scale`, `slot hit follows scale`). The next was 36/1. Layout flake.
+- `v075`: stayed 59/1, only `f3 multi select`, on the pass and the re-run.
+
+No other failure name was added. `version.json` is still 0.7.18.
+
+Renamed earlier-stage checks, because this stage owns the behavior they were locking:
+
+- Stages 1–8: `hellmouth split unchanged` → `hellmouth refuses a heavy encounter`. The split is no longer "boss versus everyone else."
+- Stages 1–4: `hellmouth sinks se not boss` → `hellmouth does not sink a gate encounter`.
+- Stages 1–2: `hellmouth vuln is boss only` → `hellmouth marks the boss and the super elite`.
+- Stages 1–4: `hellmouth still deletes se` → `hellmouth does not delete the super elite`.
+- Stage 7 and 8: `hellmouth still sinks the super elite and not the boss` → `hellmouth does not sink a gate encounter`, and `hellmouth still deletes the super elite` → `hellmouth does not delete the super elite`.
+- Stage 5: `super elite frost slow stays 0.5 and still ignores the aura` → `super elite frost slow stays 0.5`. The 0.5 frost factor is unchanged. The aura is no longer ignored.
+- Stage 8: `bosses are not given a resist profile` → `boss profile is not an affix`. `an unprofiled boss still takes the full hit` → `mother murk still takes a full fire hit` (her Fire row is 0). `super elites are not given a resist profile` → `super elite profile is not an affix`.
+
+#### Known issues
+
+Crab shell versus bite stays OPEN. Contact is still `!(ai === 'crab' && mode === 'open')`, and a shelled crab still returns `prevented: 'crab'`. Crit chance is still uncapped. Curse `lifeDrain` is still not wired into `leech`. Life steal is still the pre-mitigation number and still skips bows, Fireball, and Frost Nova. The five caster shots stay Physical until Stage 10. Loot was not changed. `mods.fire` is still spell power.
+
+#### Rollback
+
+```
+git checkout combat-redesign-pre-stage9
+```
+
+That tag is `1fb0f155ca794750167f143182869222bdfab790`. Do not move it.
+
+#### Next steps
+
+Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 10. Do not turn on caster elements. Do not add resist loot.
+
+### 2026-11-06 — Stage 9 pre-merge checks
+
+Jake approved Stage 9 in principle and asked for these checks before merge. They were run on this branch. The PR was not merged. `version.json` was not changed. Stage 10 was not started.
+
+The checks found two real mismatches, and both were fixed before the suite was accepted.
+
+1. **A tell could be smaller than the hit.** Circle blasts used a radius `R` on an isometric ellipse while `blast` hit `R + player radius`. The Super Elite swing drew a band 8px wide and hit anything within 8px of the center line. Spread bolts traveled past the 160px line, and a charge traveled 234px down a 200px line. Dangerous boss and Super Elite tells now store the hit radius or the hit width on the telegraph itself. `match` draws that circle as a circle. A blast still uses its old radius, and the outline is that radius plus the body, which is the distance `blast` already used. Spread bolts die at the end of the lane. The charge line is as long as the charge and as wide as contact.
+2. **A canceled pattern could still go off.** Stagger removed the live telegraph and left the `later` callbacks that spawned the next slam or the next spread volley. `later` now keeps the actor, and stagger or a cleared tell drops those callbacks. A tell's `onDone` also refuses a staggered actor, so a canceled windup does not deal damage on a later frame.
+
+The 25% shield bite already stopped at the remaining shield. It now also clamps the result at 0. It still does not write HP.
+
+| Check | Result |
+| --- | --- |
+| Movement at the 20% floor, recovery, stagger, and overlapping tells | PASS. A chilled, slowed player on the move floor walks out of the power circle before it lands. The next Super Elite tell waits out its gap. A second tell does not stack. Stagger deletes the swing, and the hit does not arrive later. |
+| Telegraph geometry and canceled damage | PASS. The swing stripe, power circle, and slam circle match the hit distance, including the edge and one step outside it. A slam does not hurt during the windup. A staggered spread does not fire its later volleys. |
+| Hellmouth versus intro, shield, death, and stairs | PASS. Six casts during drop leave HP and shield unchanged, damage is still `prevented: 'super-elite'`, and the stairs stay shut. A save and reload keeps that intro. After the fight starts, bites empty the shield and leave HP alone. A real kill opens the stairs. A later cast does not revive the body. A saved death stays dead. |
+| Shield bite sign and HP | PASS. Starting shields 1, 2, 3, 9, and 25 all end at 0. None go negative. HP stays 90. |
+| Resist rows once, Physical unchanged | PASS. 100 Physical into Mother Murk is 100. 100 Poison into her Poison 20 row is 80, with `penHits` 1. 100 Physical into Magmafiend is 100. 100 Fire into its Fire 20 row is 80, with `penHits` 1. |
+
+`tests/stage9-bosses.html` is 76/0 after these checks. Stages 1–8 stayed 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0. Against the pre-stage9 tag, the only legacy failure-name movement was the known flakes: `v0711` emitted one extra pass and a re-run returned to 42/5 with the same five names; `v0714` was 40/1 on the full pass and 33/8 on a re-run (footer and tab names); `v07152` was 34/3 then 36/1 with only `version`; `v076` stayed 48/0; `v075` stayed 59/1 with only `f3 multi select`. No new failure name.
+
+---
+
 ## Combat System Reference
 
-The Stage 7 block is what the game does now. The Stage 6 block is the weapon model under it. The Stage 5 block is the poise model under that. The Stage 4 block is the status model. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those numbers still follow when the target has no resist and the skill build is the base row. Planned work for later stages stays marked as planned.
+The Stage 9 entry is the boss, Super Elite, and Hellmouth layer. The Stage 8 block is the enemy resist and affix layer under it. The Stage 7 block is the skill layer. The Stage 6 block is the weapon model under it. The Stage 5 block is the poise model under that. The Stage 4 block is the status model. The Stage 3 block is the crit and scale model. The Stage 2 block is the resist model. The Stage 1 block is the architecture under all of them. The rest of this section is the v0.7.18 baseline those numbers still follow when the target has no resist and the skill build is the base row. Planned work for later stages stays marked as planned.
 
 ### Stage 7 implemented architecture
 
@@ -1819,7 +1990,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 
 ### CRITICAL
 
-- **Hellmouth deletes Super Elites.** `T.boss` is false, so they take the trash sink and `killEnemy`, skipping shield, taunt immunity, and the stair gate. Stage 9. OPEN. Stage 1 did not change this. `tests/stage1-damage.html` asserts the current sink-and-delete. See D7.
+- **Hellmouth deletes Super Elites.** RESOLVED in Stage 9. `heavyEncounter` covers a boss or a Super Elite. Trash still sinks and dies. A gate encounter is marked for 3s at the existing ×1.10 and is not deleted. A Super Elite in the fight phase also loses `round(25%)` of its current shield (never HP) and one skill-class poise hit. Drop and taunt still refuse the bite and still ignore damage. See the Stage 9 history entry.
 
 ### HIGH
 
@@ -1839,12 +2010,12 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Pixel character sheet shows crit chance and not the multiplier.** The text stats line shows `Crit N% xM`. Stage 12. OPEN.
 - **Spectral Clone is 4s of combat immunity**, not only a decoy. Environment still hurts. Stage 7 did not change it. OPEN.
 - **Ethereal Shield is invisible on the sheet** and does nothing to lava, acid, burn, hunger, pits, or blood doors. Stage 12. OPEN.
-- **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. Stage 9. OPEN. Stage 8 did not touch Super Elite movement.
+- **Chill aura does not slow Super Elite chase**, and fear is applied and then opposed by `seTick717` in the same frame. RESOLVED in Stage 9. `seMoveMul` now multiplies the aura the same way `ccMoveMul` does. `HEAVY_CHILL` and freeze immunity are unchanged. While `fearT` is up, `seTick717` does not chase and it drops a tell that has not landed.
 - **Crab bites while shelled and does not contact-tick while open.** OPEN. The shell still returns `prevented: 'crab'` before any damage, and the contact test is still `!(ai === 'crab' && mode === 'open')`, so a shelled crab bites and an open crab does not. Jake rejected an unrequested flip of that bite before Stage 8 merged. The crab resist profile stays. A later stage may retune the bite only with an explicit ask.
 - **Floor of 1** after defense makes guard-front (×0.15) and ram armor (×0.40) chip instead of stopping a small hit, and makes thorns at least 1. Stage 2. OPEN.
-- **Enrage does not add boss damage.** Phase 2/3 move faster and cast faster. Stage 9. OPEN.
-- **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. Stage 9. OPEN.
-- **Super Elite body is a fixed synthetic champion**, not 1.4× the strongest monster on the floor. A depth-10 champion golem is about 532 HP against the Super Elite's 249. The Super Elite's job is the stair lock and the immune intro. Stage 9. OPEN.
+- **Enrage does not add boss damage.** RESOLVED in Stage 9 by keeping it that way. Phase 2 and 3 still add patterns and the existing `enr` speed (1.25, then 1.4). They do not multiply hit damage. A new pattern waits out `phaseBeat` (0.7s).
+- **Boss "half HP" is half the HP bar after a 25% shield** that was sized from the already ×1.75 pool. RESOLVED in Stage 9 as the readable rule. The bar's midpoint tick is phase 2. The quarter tick, where `B.p3` is set, is phase 3. The shield is the opening ward and is not folded into that fraction. HP and the shield fraction were not changed.
+- **Super Elite body is a fixed synthetic champion**, not 1.4× the strongest monster on the floor. KEPT in Stage 9. `seMaxHp717` is still `round(round((18+7*(d-1))*2.2)*1.4)`. A depth-10 body is still 249 HP and a 25 shield. The fight's difficulty is the tell, the phase, and the stair lock. HP was not raised to match a champion golem.
 - **Durability comment and `isBroken` are stale.** Items shatter at 0. Load clamps 0 up to 1. Stage 10–12 if tooltips ever repeat the comment. OPEN.
 - **Bow charge used to play a power-attack telegraph and fire a normal arrow.** Stage 6 stopped the input path from entering the melee charge. A draw does not apply the power multiplier. The arrow is still `rollDmg('bow')`.
 - **Melee damage from the attack input used to land before the swing.** Stage 6 puts the hit at the end of a windup that is a fraction of the existing cooldown. A direct `doAttack` call still resolves immediately. Super Elite and enemy projectiles still hit on their own later frame.
@@ -1858,7 +2029,7 @@ Severity is about how badly it will mislead a later stage or a player, not about
 - **Thorns require `src` to be the enemy object.** Beams and blasts pass a projectile-like source and do not thorn. Stage 10. OPEN.
 - **`itemLines` says Fast/Normal/Slow while the satchel card says `n/S`.** Stage 12. OPEN.
 - **Shift and Clone timers, barrier, legacy burn, and cooldowns do not persist** across load. Enemy HP and shields do, because they ride the floor snapshot. Stage 4 saves the engine status bag and the freeze lockout when they are present, and omits them when they are empty. Legacy `p.burn` still does not persist, and world restore still clears `slowT`. OPEN for the legacy fields. The engine bag is the Stage 4 save.
-- **Hellmouth vulnerability is ×1.10 for 3s and only on `T.boss`.** Super Elites never receive the mark. They get deleted instead. Stage 9. OPEN.
+- **Hellmouth vulnerability is ×1.10 for 3s and only on `T.boss`.** RESOLVED in Stage 9. Super Elites receive the same 3s mark. The ×1.10 is still one multiply after resist, ram armor, and guard. A 4-point sword hit still rounds to 4. A 40-point hit becomes 44. A 100-point hit becomes 110.
 
 ---
 
@@ -2171,3 +2342,7 @@ Stage 7 is IMPLEMENTED, not VERIFIED. Jake merged it as PR #30 (`20906ade92233c9
 Stage 8 is IMPLEMENTED, not VERIFIED. The PR is for review. It is not merged and it is not live. `version.json` is still 0.7.18.
 
 **Wait for Jake's approval before Stage 9.** Stage 9 is bosses, Super Elites, and the Hellmouth deletion. It must not start from this branch. Stage 8 did not redesign those attacks, did not change Hellmouth's deletion, and did not turn on the five caster elements.
+
+Stage 9 is IMPLEMENTED, not VERIFIED, on a later branch. The paragraph above is the Stage 8 gate and was not rewritten. This PR is the Stage 9 review. It is not merged and it is not live. `version.json` is still 0.7.18.
+
+**Wait for Jake's approval before Stage 10.** Stage 10 is loot and the five caster elements. It must not start from this branch. Stage 9 did not add resist loot, did not retype those shots, and did not change the crab bite.

@@ -74,7 +74,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
-  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('callers stay physical', src.indexOf("tags: ['Melee', 'Direct']") >= 0 && src.indexOf("tags: ['Ranged', 'Projectile', 'Direct']") >= 0 && src.indexOf("tags: ['Spell', 'Projectile', 'AoE']") >= 0);
   check('slow floor stays 0.2', g.MIN_MOVE_MUL === 0.2, g.MIN_MOVE_MUL);
   check('hitstop is capped', g.HITSTOP_CAP === 0.06 && g.ATK_BUF === 0.16, g.HITSTOP_CAP + ' buf ' + g.ATK_BUF);

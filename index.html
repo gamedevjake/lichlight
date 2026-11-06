@@ -2832,7 +2832,8 @@ function bossForDepth(d) { if (d < 5 || d % 5) return null; const k = d / 5 - 1;
 // ===== Stage 8: enemy resistance identities and elite affixes =====
 // Content resists use the Stage 2 clamp (soft 75, hard 90, penetration, negative vulnerability).
 // Nothing here adds a universal All resist. Physical still skips elemental resist.
-// Bosses and Super Elites are not given a profile and are not given affixes. Stage 9 owns them.
+// Bosses and Super Elites get a Stage 9 profile (BOSS_RESIST / SE_RESIST), not an affix.
+// Values stay inside -20..+20 and each profile sums to 0. Physical still skips the bag.
 // The five caster shots stay Physical. Stage 8 must not turn them on.
 // Elite affixes change what a champion does. They do not multiply HP or contact damage.
 // A champion below depth 4 is unchanged. Depth 4-11 rolls one affix. Depth 12+ rolls two,
@@ -2908,6 +2909,63 @@ function resistProfile(type) {
   if (!src) return null;
   return { Fire: src.Fire, Cold: src.Cold, Lightning: src.Lightning, Poison: src.Poison, Shadow: src.Shadow };
 }
+// Stage 9 profiles. Each row sums to 0 and stays inside -20..+20, under the Stage 2 cap.
+// A +20 row is dealt 80. A -20 row is dealt 120. Physical is not in the row, so a sword is unchanged.
+// No element is positive on every boss, and every element is negative on at least one.
+const BOSS_RESIST = {
+  'MOTHER MURK':            { Fire: 0, Cold: -10, Lightning: -10, Poison: 20, Shadow: 0 },
+  'THE GNAWER KING':        { Fire: -20, Cold: 0, Lightning: 0, Poison: 20, Shadow: 0 },
+  'THE DROWNED BELL':       { Fire: -10, Cold: 20, Lightning: -10, Poison: 0, Shadow: 0 },
+  'SISTER VEY':             { Fire: -10, Cold: 0, Lightning: 0, Poison: -10, Shadow: 20 },
+  'OLD TAM':                { Fire: -10, Cold: 10, Lightning: -10, Poison: 10, Shadow: 0 },
+  'THE SILKMOTHER':         { Fire: -20, Cold: 0, Lightning: 0, Poison: 20, Shadow: 0 },
+  'SIR CALDER':             { Fire: -10, Cold: 10, Lightning: -10, Poison: 0, Shadow: 10 },
+  'LADY MERROW':            { Fire: -10, Cold: 0, Lightning: -10, Poison: 0, Shadow: 20 },
+  'DEEPCOIL':               { Fire: 5, Cold: 15, Lightning: -20, Poison: 0, Shadow: 0 },
+  'CHOIRMASTER AUREL':      { Fire: 10, Cold: -10, Lightning: -15, Poison: 0, Shadow: 15 },
+  'THE OSSUARY COLOSSUS':   { Fire: 10, Cold: 10, Lightning: -20, Poison: 0, Shadow: 0 },
+  'ABBOT MORCANT':          { Fire: -10, Cold: 0, Lightning: -10, Poison: 20, Shadow: 0 },
+  'CAPTAIN BRANNOC':        { Fire: 5, Cold: 10, Lightning: -20, Poison: 5, Shadow: 0 },
+  'QUEEN LIRAEL':           { Fire: -5, Cold: 20, Lightning: -15, Poison: 0, Shadow: 0 },
+  'MOTLEY':                 { Fire: -10, Cold: -10, Lightning: 0, Poison: 0, Shadow: 20 },
+  'THE NINTH EYE':          { Fire: 0, Cold: 0, Lightning: 15, Poison: 0, Shadow: -15 },
+  'THE PENITENT HOST':      { Fire: -15, Cold: 5, Lightning: -5, Poison: 0, Shadow: 15 },
+  'THE NINTH PSALM':        { Fire: -5, Cold: 15, Lightning: -15, Poison: 0, Shadow: 5 },
+  'THE CROWN-WRAITH':       { Fire: -10, Cold: 0, Lightning: -10, Poison: 0, Shadow: 20 },
+  'OSWIN, THE BONE KING':   { Fire: -10, Cold: 15, Lightning: -15, Poison: 10, Shadow: 0 }
+};
+const SE_RESIST = {
+  se_pale_shade: { Fire: -15, Cold: 0, Lightning: 0, Poison: 0, Shadow: 15 },
+  se_veilwraith: { Fire: -15, Cold: 0, Lightning: 0, Poison: 0, Shadow: 15 },
+  se_bonewarden: { Fire: -15, Cold: 15, Lightning: 0, Poison: 0, Shadow: 0 },
+  se_morbius: { Fire: -15, Cold: 15, Lightning: 0, Poison: 0, Shadow: 0 },
+  se_corpse_stalker: { Fire: -15, Cold: 15, Lightning: 0, Poison: 0, Shadow: 0 },
+  se_arachnex: { Fire: 0, Cold: 0, Lightning: -15, Poison: 15, Shadow: 0 },
+  se_vorag: { Fire: 0, Cold: 0, Lightning: -15, Poison: 15, Shadow: 0 },
+  se_nyx: { Fire: 0, Cold: -15, Lightning: 0, Poison: 15, Shadow: 0 },
+  se_magmafiend: { Fire: 20, Cold: -20, Lightning: 0, Poison: 0, Shadow: 0 },
+  se_ember_fiend: { Fire: 20, Cold: -20, Lightning: 0, Poison: 0, Shadow: 0 },
+  se_ymir: { Fire: -20, Cold: 20, Lightning: 0, Poison: 0, Shadow: 0 },
+  se_graveguard: { Fire: 0, Cold: 20, Lightning: -10, Poison: 0, Shadow: -10 },
+  se_roderick: { Fire: 0, Cold: 10, Lightning: -20, Poison: 0, Shadow: 10 },
+  se_ironbound: { Fire: 10, Cold: 10, Lightning: -20, Poison: 0, Shadow: 0 },
+  se_golgoth: { Fire: 10, Cold: 10, Lightning: -20, Poison: 0, Shadow: 0 },
+  se_archon: { Fire: -5, Cold: 0, Lightning: -10, Poison: 0, Shadow: 15 },
+  se_thanatos: { Fire: -5, Cold: 0, Lightning: -10, Poison: 0, Shadow: 15 },
+  se_xalkor: { Fire: -5, Cold: 0, Lightning: 0, Poison: -10, Shadow: 15 },
+  se_overseer: { Fire: -5, Cold: 0, Lightning: -10, Poison: 0, Shadow: 15 },
+  se_blight_weaver: { Fire: -10, Cold: 0, Lightning: -10, Poison: 20, Shadow: 0 }
+};
+function copyResist(src) {
+  if (!src) return null;
+  return { Fire: src.Fire || 0, Cold: src.Cold || 0, Lightning: src.Lightning || 0, Poison: src.Poison || 0, Shadow: src.Shadow || 0 };
+}
+function bossResist(e) {
+  const name = (e && e.B && e.B.n) || (e && e.name) || '';
+  const base = String(name).replace(/ \+\d+$/, '');
+  return copyResist(BOSS_RESIST[base]);
+}
+function seResist(id) { return copyResist(SE_RESIST[id]); }
 function resistTag(res) {
   if (!res) return '';
   let hiN = -1e9, loN = 1e9, hiK = '', loK = '';
@@ -2921,7 +2979,17 @@ function resistTag(res) {
   return hi && lo ? hi + '  ' + lo : (hi || lo);
 }
 function resistSanitize(e) {
-  if (!e || e.superElite || (e.T && (e.T.boss || e.T.superElite))) return;
+  if (!e) return;
+  if (e.superElite || (e.T && (e.T.boss || e.T.superElite))) {
+    if (e.affix) e.affix = null;
+    if (e.resists && typeof e.resists === 'object') {
+      if (!e.resistTag) e.resistTag = resistTag(e.resists);
+      return;
+    }
+    const row = e.superElite ? seResist(e.seId) : bossResist(e);
+    if (row) { e.resists = row; e.resistTag = resistTag(row); }
+    return;
+  }
   if (e.resists && typeof e.resists === 'object') {
     if (!e.resistTag) e.resistTag = resistTag(e.resists);
     return;
@@ -3145,6 +3213,8 @@ function spawnBoss(x, y) {
   const e = { id: ++entId, type: 'boss', T, B, x, y, r: B.r, hp, maxHp: hp, shield: maxShield, maxShield, dmg: (8 + 2.2 * (d - 1)) * Math.pow(1.25, cycle) * dmgBump(d, true), spd: B.spd, elite: false, state: 'idle',
     wx: 0, wy: 0, wt: 0, atkCd: 1, flash: 0, slow: 0, kx: 0, ky: 0, face: 1, cd: 0, anim: 0, t: 0, mode: '', busy: 0, patCd: 1.2, phase: 1, enr: 1, z: 0,
     pool: B.p1.slice(), last: '', spiralT: 0, xp: Math.round((150 + 40 * d) * cm), name, cycle };
+  const row = bossResist(e);
+  if (row) { e.resists = row; e.resistTag = resistTag(row); }
   enemies.push(e); ensurePoise(e); return e;
 }
 let entId = 0;
@@ -3217,7 +3287,17 @@ function shakeOffset() { // trauma^2 with smooth noise; decays in update()
   const t = time * 32;
   return { x: s * (Math.sin(t * 1.13) * .6 + Math.sin(t * 2.71 + 1.7) * .4), y: s * (Math.sin(t * 1.37 + 4.1) * .6 + Math.sin(t * 2.29 + .3) * .4) };
 }
-function later(t, fn) { timers.push({ t, fn }); }
+function later(t, fn, src) { timers.push({ t, fn, src: src || null }); }
+function bodyR() { return player && player.r || 5; }
+function clearActorWindup(ent) {
+  if (!ent) return;
+  if (typeof teles !== 'undefined' && teles) {
+    for (let i = teles.length - 1; i >= 0; i--) if (teles[i] && teles[i].src === ent) teles.splice(i, 1);
+  }
+  if (typeof timers !== 'undefined' && timers) {
+    for (let i = timers.length - 1; i >= 0; i--) if (timers[i] && timers[i].src === ent) timers.splice(i, 1);
+  }
+}
 function tele(o) { const T = Object.assign({ t: 0, kind: 'circle', r: 16, w: 8, len: 140, col: '#ff3030' }, o); teles.push(T); return T; }
 function blast(x, y, r, dmg, label, opt = {}) {
   const p = player; effects.push({ kind: 'boom', x, y, t: 0, dur: .3, r, col: opt.col });
@@ -3233,7 +3313,7 @@ function eShoot(e, a, spd, o = {}) {
   let n = 0; for (const q of projs) if (q.owner === 'e') n++;
   if (n >= MAX_EPROJ) return null;
   const pr = Object.assign({ x: e.x, y: e.y - 2, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, r: 3, dmg: e.dmg * (o.mul || 1), owner: 'e', kind: 'bolt', life: 3, label: e.T.label, from: e }, o);
-  // Boss and Super Elite shots stay Physical. Stage 9 owns those patterns.
+  // Boss and Super Elite shots stay Physical. Typing them would skip armor, and resist gear is Stage 10.
   // Caster elements (cultist Shadow, wisp Lightning, siren Cold, exarch Shadow, seer Lightning)
   // stay off until Stage 10, when resist gear exists. Stage 8 must not turn them on.
   if (!e || e.superElite || (e.T && e.T.boss) || DMG_TYPES.indexOf(pr.dmgType) < 0) delete pr.dmgType;
@@ -3356,13 +3436,17 @@ function lob(e, x, y, r, dur, dmg, haz) {
 }
 
 // ---------- boss AI ----------
+// Tell lengths are the windup before damage. None of these multiply e.dmg by a phase factor.
+// Phase 2 and 3 still only add patterns and the existing enr speed. phaseBeat holds the next cast.
+const BOSS_TELL = { ring: 0.55, spiral: 0.6, spread: 0.85, charge: 0.75, slam: 0.9, hop: 0.85, nova: 1.15, beam: 1.0, teleport: 0.75, teleportRing: 0.55, lob: 1.0, phaseBeat: 0.7, hopRing: 0.45 };
+const BOSS_PHASE_HP = { two: 0.5, three: 0.25 };
 function bossPick(e) { const pool = e.pool.filter(q => q !== e.last); return pick(pool.length ? pool : e.pool); }
 function bossAI(e, dt, d, ax, ay) {
   const p = tomeSeek(), B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * ccMoveMul(e);
   if (ccImmobilized(e)) return;
-  // phase changes
-  if (e.phase === 1 && e.hp < e.maxHp * .5) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('enrage'); }
-  if (e.phase === 2 && B.p3 && e.hp < e.maxHp * .25) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
+  // Half and quarter are the HP bar ticks, not half of shield+HP. The shield is the opening ward.
+  if (e.phase === 1 && e.hp < e.maxHp * BOSS_PHASE_HP.two) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); e.phaseBeat = BOSS_TELL.phaseBeat; flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('enrage'); }
+  if (e.phase === 2 && B.p3 && e.hp < e.maxHp * BOSS_PHASE_HP.three) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); e.phaseBeat = BOSS_TELL.phaseBeat; flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
   if (e.busy > 0) { e.busy -= dt;
     if (e.mode === 'charge') { const bx = e.x, by = e.y; moveEnt(e, e.cx * 260 * dt, e.cy * 260 * dt); if (Math.random() < .7) parts.push({ x: e.x + rand(-6, 6), y: e.y + 8, vx: rand(-15, 15), vy: -8, life: .35, col: '#a8a088' });
       if (Math.hypot(e.x - bx, e.y - by) < 260 * dt * .5) { e.mode = 'stun'; e.busy = 1; addTrauma(.3); burst(e.x, e.y, '#e8e0c8', 16, 80); addFoeText(e.x, e.y - 20, 'STUNNED', '#ffe040'); } }
@@ -3374,34 +3458,43 @@ function bossAI(e, dt, d, ax, ay) {
   // movement between patterns
   if (B.melee) { if (d > e.r + p.r + 1) moveEnt(e, ax * spd * dt, ay * spd * dt); }
   else { const want = d < 70 ? -1 : d > 115 ? 1 : 0; moveEnt(e, (want ? ax * want : -ay * .5) * spd * dt, (want ? ay * want : ax * .5) * spd * dt); }
+  // Awaken is a cease-fire on patterns. Contact still hurts if you stand in the body. HP is not immune.
+  if (bossIntro > 0 && introBoss === e) return;
+  if (e.phaseBeat > 0) { const beat = e.phaseBeat; e.phaseBeat = 0; if (e.patCd < beat) e.patCd = beat; }
   e.patCd -= dt * (P2 ? 1.5 : 1);
   if (e.patCd > 0) return;
   const pat = bossPick(e); e.last = pat; e.patCd = rand(1.2, 1.8); e.mode = pat === 'charge' ? 'aimc' : pat;
   bossVoice(e, (B.p1 && pat === B.p1[0]) || (B.p2 && pat === B.p2[0]) ? 'sig' : 'atk');
   const dm = e.dmg;
   switch (pat) {
-    case 'ring': e.busy = .7; tele({ x: e.x, y: e.y, r: e.r + 6, dur: .4, follow: e, col: '#ff8040', onDone: () => { if (e.hp > 0) ring(e, P2 ? 18 : 14, 72, Math.random() * 6.28, { kind: 'boss', mul: .7, life: 3.5 }); } }); break;
-    case 'spiral': e.busy = 2.2; e.spiralT = .3; e.sa = Math.random() * 6.28; break;
-    case 'spread': e.busy = 1.1; for (let v = 0; v < 2; v++) later(.3 + v * .45, () => { if (e.hp <= 0 || state !== 'play') return; const a = angTo(e, player), n = P2 ? 7 : 5; for (let k = 0; k < n; k++) eShoot(e, a + (k - (n - 1) / 2) * .2, 105, { kind: 'boss', mul: .7 }); }); break;
-    case 'charge': e.busy = 9; lineTele(e, .75, e.r * 2, 200, true, T2 => { if (e.hp <= 0) return; e.mode = 'charge'; e.busy = .9; e.cx = Math.cos(T2.a); e.cy = Math.sin(T2.a); }); break;
-    case 'slam': { const n = P2 ? 3 : 1; e.busy = .9 + (n - 1) * .4 + .2;
-      for (let k = 0; k < n; k++) later(k * .4, () => { if (e.hp <= 0 || state !== 'play') return; const x = player.x, y = player.y; tele({ x, y, r: 26, dur: .9, col: '#ff3030', onDone: () => blast(x, y, 26, dm * 1.15, e.name, { col: '#e8e0c8', tr: .5, from: e }) }); }); break; }
-    case 'hop': { const x = p.x, y = p.y; e.busy = .85; e.hopDur = .85; e.hx = x; e.hy = y;
-      tele({ x, y, r: 28, dur: .85, col: '#ff3030', onDone: () => { if (e.hp <= 0) return; const s = solidAt(x, y) ? { x: e.x, y: e.y } : { x, y }; e.x = s.x; e.y = s.y;
-        blast(e.x, e.y, 28, dm * 1.1, e.name, { col: '#58b048', tr: .45, from: e }); if (P2) ring(e, 8, 60, 0, { kind: 'boss', mul: .6 }); } }); break; }
-    case 'nova': e.busy = 1.3; tele({ x: e.x, y: e.y, r: 58, dur: 1.15, follow: e, col: '#ff3030', onDone: () => { if (e.hp > 0) blast(e.x, e.y, 58, dm * 1.1, e.name, { col: '#80c0ff', tr: .5, from: e }); } }); break;
+    case 'ring': e.busy = .8; tele({ x: e.x, y: e.y, r: e.r + 6, dur: BOSS_TELL.ring, follow: e, col: '#ff8040', src: e, onDone: () => { if (e.hp > 0) ring(e, P2 ? 18 : 14, 72, Math.random() * 6.28, { kind: 'boss', mul: .7, life: 3.5 }); } }); break;
+    case 'spiral': e.busy = 2.6; e.spiralT = BOSS_TELL.spiral; e.sa = Math.random() * 6.28; tele({ x: e.x, y: e.y, r: e.r + 10, dur: BOSS_TELL.spiral, follow: e, col: '#ff8040', src: e }); break;
+    case 'spread': {
+      const volleys = 2, boltR = 3, reach = 160, lane = (boltR + bodyR()) * 2;
+      e.busy = BOSS_TELL.spread + volleys * 0.5 + 0.15;
+      for (let v = 0; v < volleys; v++) later(v * 0.5, () => { if (e.hp <= 0 || state !== 'play' || ccImmobilized(e)) return; const a = angTo(e, player), n = P2 ? 7 : 5; for (let k = 0; k < n; k++) { const off = (k - (n - 1) / 2) * .2; tele({ kind: 'line', x: e.x, y: e.y, w: lane, len: reach, dur: BOSS_TELL.spread, a: a + off, off, col: '#ff8040', src: e, lockAt: 0.3, match: true, onDone: T2 => { if (e.hp <= 0 || state !== 'play' || ccImmobilized(e)) return; eShoot(e, T2.a, 105, { kind: 'boss', mul: .7, y: e.y, r: boltR, life: reach / 105 }); } }); } }, e);
+      break;
+    }
+    case 'charge': e.busy = 9; lineTele(e, BOSS_TELL.charge, (e.r + bodyR() + 3) * 2, 260 * 0.9, true, T2 => { if (e.hp <= 0 || ccImmobilized(e)) return; e.mode = 'charge'; e.busy = .9; e.cx = Math.cos(T2.a); e.cy = Math.sin(T2.a); }); break;
+    case 'slam': { const n = P2 ? 3 : 1, blastR = 26; e.busy = BOSS_TELL.slam + (n - 1) * .4 + .2;
+      for (let k = 0; k < n; k++) later(k * .4, () => { if (e.hp <= 0 || state !== 'play' || ccImmobilized(e)) return; const x = player.x, y = player.y; tele({ x, y, r: blastR + bodyR(), dur: BOSS_TELL.slam, col: '#ff3030', src: e, match: true, onDone: () => { if (ccImmobilized(e)) return; blast(x, y, blastR, dm * 1.15, e.name, { col: '#e8e0c8', tr: .5, from: e }); } }); }, e); break; }
+    case 'hop': { const x = p.x, y = p.y, blastR = 28; e.busy = BOSS_TELL.hop; e.hopDur = BOSS_TELL.hop; e.hx = x; e.hy = y;
+      tele({ x, y, r: blastR + bodyR(), dur: BOSS_TELL.hop, col: '#ff3030', src: e, match: true, onDone: () => { if (e.hp <= 0 || ccImmobilized(e)) return; const s = solidAt(x, y) ? { x: e.x, y: e.y } : { x, y }; e.x = s.x; e.y = s.y;
+        blast(e.x, e.y, blastR, dm * 1.1, e.name, { col: '#58b048', tr: .45, from: e });
+        if (P2) tele({ x: e.x, y: e.y, r: e.r + 8, dur: BOSS_TELL.hopRing, follow: e, col: '#ff8040', src: e, match: true, onDone: () => { if (e.hp > 0 && !ccImmobilized(e)) ring(e, 8, 60, 0, { kind: 'boss', mul: .6 }); } }); } }); break; }
+    case 'nova': { const blastR = 58; e.busy = 1.3; tele({ x: e.x, y: e.y, r: blastR + bodyR(), dur: BOSS_TELL.nova, follow: e, col: '#ff3030', src: e, match: true, onDone: () => { if (e.hp > 0 && !ccImmobilized(e)) blast(e.x, e.y, blastR, dm * 1.1, e.name, { col: '#80c0ff', tr: .5, from: e }); } }); break; }
     case 'summon': e.busy = 1; summonAt(e, B.minion || 'skel', P2 ? 3 : 2, 6); e.glow = .8; break;
-    case 'teleport': { const s = freeNear(p.x, p.y, 60, 95); e.busy = 1.1;
-      tele({ x: s.x, y: s.y, r: e.r, dur: .75, col: '#c060ff', onDone: () => { if (e.hp <= 0) return; burst(e.x, e.y, '#c060ff', 14, 60); e.x = s.x; e.y = s.y; e.hidden = false; burst(e.x, e.y, '#c060ff', 14, 60);
-        ring(e, P2 ? 12 : 10, 65, Math.random() * 6, { kind: 'boss', mul: .6 }); } });
+    case 'teleport': { const s = freeNear(p.x, p.y, 60, 95); e.busy = 1.6;
+      tele({ x: s.x, y: s.y, r: e.r, dur: BOSS_TELL.teleport, col: '#c060ff', src: e, onDone: () => { if (e.hp <= 0) return; burst(e.x, e.y, '#c060ff', 14, 60); e.x = s.x; e.y = s.y; e.hidden = false; burst(e.x, e.y, '#c060ff', 14, 60);
+        tele({ x: e.x, y: e.y, r: e.r + 8, dur: BOSS_TELL.teleportRing, follow: e, col: '#ff8040', src: e, onDone: () => { if (e.hp > 0) ring(e, P2 ? 12 : 10, 65, Math.random() * 6, { kind: 'boss', mul: .6 }); } }); } });
       later(.2, () => { if (e.mode === 'teleport') e.hidden = true; }); break; }
-    case 'lob': { const n = P2 ? 6 : 4; e.busy = 1.2; for (let k = 0; k < n; k++) { const s = k === 0 ? { x: p.x, y: p.y } : freeNear(p.x, p.y, 10, 55); lob(e, s.x, s.y, 16, 1.0 + k * .08, dm * .9, B.lobHaz || 'poison'); } break; }
-    case 'beam': { const n = P2 ? 5 : 3, base = angTo(e, p); e.busy = 1.4;
+    case 'lob': { const n = P2 ? 6 : 4, blastR = 16; e.busy = 1.2; for (let k = 0; k < n; k++) { const s = k === 0 ? { x: p.x, y: p.y } : freeNear(p.x, p.y, 10, 55); tele({ x: s.x, y: s.y, r: blastR + bodyR(), dur: BOSS_TELL.lob + k * .08, col: '#ff8040', src: e, match: true, lob: { sx: e.x, sy: e.y - 6 }, onDone: () => { if (e.hp <= 0 || ccImmobilized(e)) return; blast(s.x, s.y, blastR, dm * .9, e.name, { col: '#a0e040', tr: .08, from: e }); hazard(s.x, s.y, blastR * .9, B.lobHaz || 'poison', (B.lobHaz || 'poison') === 'poison' ? 3 : 4, dm * .9 * .15, e.name); } }); } break; }
+    case 'beam': { const n = P2 ? 5 : 3, base = angTo(e, p), half = 6 + bodyR(); e.busy = 1.4;
       for (let k = 0; k < n; k++) { const off = (k - (n - 1) / 2) * .45;
-        tele({ kind: 'line', x: e.x, y: e.y, w: 8, len: 220, dur: 1.0, a: base + off, off, col: '#ff40ff', src: e, lockAt: .55, track: true, onDone: T2 => {
-          if (e.hp <= 0) return; const x2 = e.x + Math.cos(T2.a) * 220, y2 = e.y + Math.sin(T2.a) * 220;
+        tele({ kind: 'line', x: e.x, y: e.y, w: half * 2, len: 220, dur: BOSS_TELL.beam, a: base + off, off, col: '#ff40ff', src: e, lockAt: .55, track: true, match: true, onDone: T2 => {
+          if (e.hp <= 0 || ccImmobilized(e)) return; const x2 = e.x + Math.cos(T2.a) * T2.len, y2 = e.y + Math.sin(T2.a) * T2.len;
           effects.push({ kind: 'beam', x: e.x, y: e.y, x2, y2, t: 0, dur: .3, col: '#ff80ff', w: 4 }); addTrauma(.12);
-          if (segDist(player.x, player.y, e.x, e.y, x2, y2) < 6 + player.r) hurtPlayer(dm, { x: e.x, y: e.y, label: e.name, from: e }); } }); }
+          if (segDist(player.x, player.y, e.x, e.y, x2, y2) <= T2.w / 2) hurtPlayer(dm, { x: e.x, y: e.y, label: e.name, from: e }); } }); }
       break; }
   }
 }
@@ -3500,8 +3593,9 @@ function drawTeles() {
     const X = Math.round(T.x), Y = Math.round(T.y);
     if (T.lob) { const lx = T.lob.sx + (T.x - T.lob.sx) * k, ly = T.lob.sy + (T.y - T.lob.sy) * k - Math.sin(k * Math.PI) * 34;
       ctx.fillStyle = '#100810'; ctx.fillRect(Math.round(lx) - 2, Math.round(ly) - 2, 5, 5); ctx.fillStyle = '#a0e040'; ctx.fillRect(Math.round(lx) - 1, Math.round(ly) - 1, 3, 3); }
-    ctx.globalAlpha = .12 + k * .22; ctx.fillStyle = T.col; ctx.beginPath(); ctx.ellipse(X, Y, T.r * k, T.r * k * .7, 0, 0, 6.29); ctx.fill();
-    ctx.globalAlpha = blink ? 1 : .75; ctx.strokeStyle = T.col; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(X + .5, Y + .5, T.r, T.r * .7, 0, 0, 6.29); ctx.stroke();
+    const ry = T.match ? 1 : .7;
+    ctx.globalAlpha = .12 + k * .22; ctx.fillStyle = T.col; ctx.beginPath(); ctx.ellipse(X, Y, T.r * k, T.r * k * ry, 0, 0, 6.29); ctx.fill();
+    ctx.globalAlpha = blink ? 1 : .75; ctx.strokeStyle = T.col; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(X + .5, Y + .5, T.r, T.r * ry, 0, 0, 6.29); ctx.stroke();
     if (T.rune) { ctx.fillStyle = '#e0a0ff'; for (let i = 0; i < 4; i++) { const an = time * 3 + i * 1.57; ctx.fillRect(Math.round(X + Math.cos(an) * T.r), Math.round(Y + Math.sin(an) * T.r * .7), 2, 2); } }
     ctx.globalAlpha = 1;
   }
@@ -5607,6 +5701,9 @@ function seMoveMul(ent) {
   const st = statusMoveMul(ent);
   if (st === 0) return 0;
   let m = (ent && ent.slow > 0 ? 0.5 : 1) * st;
+  // Stage 9: the chill aura slows a Super Elite the same way it slows everyone else.
+  // HEAVY_CHILL still cuts an engine chill. Freeze stays immune inside statusHeavy.
+  if (ent && ent.auraT > time) m *= 1 - (ent.auraPct || 0) / 100;
   if (m < MIN_MOVE_MUL) return MIN_MOVE_MUL;
   return m;
 }
@@ -5633,9 +5730,7 @@ function interruptControl(ent) {
   if (ent.seAct) ent.seAct = '';
   if (ent.ai && ent.ai.state === 'CHARGING') ent.ai.state = 'CHASE';
   if (ent.patCd != null && ent.patCd < 0.35) ent.patCd = 0.35;
-  if (typeof teles !== 'undefined' && teles && teles.length) {
-    for (let i = teles.length - 1; i >= 0; i--) if (teles[i] && teles[i].src === ent) teles.splice(i, 1);
-  }
+  clearActorWindup(ent);
 }
 function poiseClassOf(meta) {
   if (!meta || meta.isDot) return 'none';
@@ -9951,18 +10046,46 @@ function mawTargets() {
   }
   return out;
 }
+// A gate encounter owns the floor. Hellmouth must not remove it, its shield, or the stair lock.
+function heavyEncounter(e) {
+  return !!(e && (e.superElite || (e.T && (e.T.boss || e.T.superElite))));
+}
+const HM_MARK = 3, HM_BITE = 0.25;
+function hellmouthMark(e) {
+  if (!e) return;
+  e.hmFreeze = false;
+  e.mawVuln = Math.max(e.mawVuln || 0, HM_MARK);
+  addFoeText(e.x, e.y - 16, 'MAW', '#ff7040');
+}
+// Shield only. Never HP. Intro (drop / taunt) refuses the bite. The ×1.10 mark is separate.
+function hellmouthBite(e) {
+  if (!e || !e.superElite || e.sePhase !== 'fight' || e.dead || e.hp <= 0) return 0;
+  const sh = e.shield || 0;
+  let bite = 0;
+  if (sh > 0) {
+    bite = Math.round(sh * HM_BITE);
+    if (bite < 1) bite = 1;
+    if (bite > sh) bite = sh;
+    e.shield -= bite;
+    if (e.shield < 0) e.shield = 0;
+    addFoeText(e.x, e.y - 10, bite, '#ff7040');
+  }
+  applyPoiseDamage(e, { cls: 'skill', amount: POISE_CLASS_DMG.skill });
+  return bite;
+}
 function castHellmouth() {
   const p = player, hits = mawTargets();
   cue('player_hellmouth_cast_01');
   if (!hits.length) { flashMsg('The maw finds no one in sight.', '#ff7040'); return; }
-  const bosses = hits.filter(e => e.T && e.T.boss), trash = hits.filter(e => !(e.T && e.T.boss));
+  const heavy = [], trash = [];
+  for (let i = 0; i < hits.length; i++) (heavyEncounter(hits[i]) ? heavy : trash).push(hits[i]);
   cue('player_hellmouth_open_01');
   for (const e of trash) {
     e.hmFreeze = true;
     p.activeHellSinks.push({ enemyRef: e, frame: 0, state: 'opening', x: e.x, y: e.y, killed: false });
   }
-  for (const e of bosses) { e.hmFreeze = false; e.mawVuln = Math.max(e.mawVuln || 0, 3); }
-  if (bosses.length && !trash.length) flashMsg('The maw cannot swallow a boss. Wounds open wider.', '#ff7040');
+  for (const e of heavy) { hellmouthMark(e); if (e.superElite) hellmouthBite(e); }
+  if (heavy.length && !trash.length) flashMsg('The maw cannot swallow what holds the gate. Wounds open wider.', '#ff7040');
 }
 function castAdvanced(i) {
   const p = player, S = TOME_ADV[i];
@@ -10017,7 +10140,7 @@ function tickHellmouth(dt) {
     const s = p.activeHellSinks[i];
     s.frame += step;
     const e = s.enemyRef;
-    if (e && e.T && e.T.boss) { e.hmFreeze = false; e.mawVuln = Math.max(e.mawVuln || 0, 3); p.activeHellSinks.splice(i, 1); continue; }
+    if (heavyEncounter(e)) { hellmouthMark(e); p.activeHellSinks.splice(i, 1); continue; }
     if (s.frame <= 30) {
       s.state = 'opening';
       if (e && !e.dead) { e.hmFreeze = true; e.x = s.x; e.y = s.y; }
@@ -14447,13 +14570,15 @@ function seSpawn717(id, phase) {
   const an = (row.family === 'float' || row.family === 'spirit') ? 'float' : 'biped';
   const T = { superElite: true, boss: false, label: row.name, n: row.name, r: 12, spd: 36, aggro: 200, an: an, ai: 'se', noContact: true, S: null };
   const e = {
-    id: ++entId, type: row.id, seId: row.id, superElite: true, T: T, B: { p3: false }, name: row.name,
+    id: ++entId, type: row.id, seId: row.id, superElite: true, T: T, B: { p3: true }, name: row.name,
     x: spot.x, y: spot.y, r: 12, hp: hp, maxHp: hp, shield: maxShield, maxShield: maxShield, shieldFx: sh,
     dmg: seDmg717(depth), spd: 36, elite: false, state: 'chase',
     wx: 0, wy: 0, wt: 0, atkCd: 2, flash: 0, slow: 0, kx: 0, ky: 0, face: player && player.x < spot.x ? -1 : 1,
     cd: 1, anim: 0, t: 0, mode: '', xp: Math.round((48 + 14 * depth)),
-    sePhase: phase || 'drop', seT: 0, seAct: '', seActT: 0, seHit: false, seCd: 0.8, seUnlocked: phase === 'fight', z: phase === 'drop' ? 78 : 0
+    sePhase: phase || 'drop', seT: 0, seAct: '', seActT: 0, seHit: false, seCd: phase === 'fight' ? 0.6 : 0.8, seUnlocked: phase === 'fight', seStep: 0, seKind: '', seAim: 0, seMx: 0, seMy: 0, z: phase === 'drop' ? 78 : 0
   };
+  const prof = seResist(row.id);
+  if (prof) { e.resists = prof; e.resistTag = resistTag(prof); }
   enemies.push(e); ensurePoise(e);
   if (!SE717) SE717 = { id: row.id, alive: true, dead: false, shieldFx: sh, depth: depth };
   SE717.id = row.id; SE717.alive = true; SE717.dead = false; SE717.spawned = true; SE717.introduced = true; SE717.shieldFx = sh;
@@ -14480,7 +14605,7 @@ function seBeginTaunt717(e) {
 }
 function seUnlock717(e) {
   if (e.seUnlocked) return;
-  e.seUnlocked = true; e.sePhase = 'fight'; e.state = 'chase'; e.seAct = ''; e.seCd = 0.45;
+  e.seUnlocked = true; e.sePhase = 'fight'; e.state = 'chase'; e.seAct = ''; e.seCd = 0.6;
   if (typeof cue === 'function') cue('enm_se_taunt_done_01'); // damage unlocks the same frame this cue fires
 }
 function seClip717(id) { return SE_CLIP[id] || null; }
@@ -14508,6 +14633,69 @@ function seSpawnVfx717(id, x, y, face) {
   if (!kit) return;
   seVfx717.push({ id: id, x: x, y: y, face: face || 1, t: 0, ms: kit.ms, frames: kit.frames });
 }
+// Swing sidestep, power circle, and brand are the three Super Elite tells.
+// mul is the old powerup ratio (1.7) or a smaller brand. It is not a phase-wide damage buff.
+// A 0.2 move floor still walks out of power and brand. The swing locks after 0.25s so the lane can be left.
+const SE_TELL = {
+  swing: { dur: 1.0, gap: 0.7, w: 16, len: 52, hit: 8, mul: 1, act: 'attack', col: '#ff4040' },
+  power: { dur: 1.3, gap: 0.9, r: 10, mul: 1.7, act: 'powerup', col: '#ff8040' },
+  brand: { dur: 1.15, gap: 0.75, r: 8, mul: 0.85, act: 'attack', col: '#c080ff' }
+};
+function seFightPhase(e) {
+  if (!e || !(e.maxHp > 0)) return 1;
+  const f = e.hp / e.maxHp;
+  if (f <= 0.25) return 3;
+  if (f <= 0.5) return 2;
+  return 1;
+}
+function seNextKind(e) {
+  const phase = seFightPhase(e), step = e && e.seStep | 0;
+  if (phase >= 3) return ['swing', 'power', 'brand'][step % 3];
+  if (phase === 2) return step % 3 === 2 ? 'power' : 'swing';
+  return 'swing';
+}
+function seClearTell(e) {
+  if (!e) return;
+  clearActorWindup(e);
+  e.seAct = ''; e.seKind = '';
+}
+function seResolveTell(e, kind, spec) {
+  const row = SE_TELL[kind];
+  if (!row || !e || e.dead || e.hp <= 0 || e.sePhase !== 'fight' || state !== 'play' || !player) return 0;
+  if (ccImmobilized(e) || e.fearT > 0) { e.seAct = ''; e.seKind = ''; e.seCd = row.gap; return 0; }
+  let hit = false;
+  if (kind === 'swing') {
+    const a = spec && Number.isFinite(+spec.a) ? +spec.a : (e.seAim || 0);
+    const len = spec && spec.len > 0 ? spec.len : row.len;
+    const half = spec && spec.w > 0 ? spec.w / 2 : row.hit;
+    const x1 = spec && Number.isFinite(+spec.x) ? spec.x : e.x, y1 = spec && Number.isFinite(+spec.y) ? spec.y : e.y;
+    hit = segDist(player.x, player.y, x1, y1, x1 + Math.cos(a) * len, y1 + Math.sin(a) * len) <= half;
+  } else if (kind === 'power' || kind === 'brand') {
+    const cx = spec && Number.isFinite(+spec.x) ? spec.x : (kind === 'power' ? e.x : e.seMx);
+    const cy = spec && Number.isFinite(+spec.y) ? spec.y : (kind === 'power' ? e.y : e.seMy);
+    const rad = spec && spec.r > 0 ? spec.r : row.r + bodyR();
+    hit = Math.hypot(player.x - cx, player.y - cy) <= rad;
+  }
+  const cueId = SE_ATK_CUE[e.seId] || 'enm_se_attack_01';
+  if (typeof cueAt === 'function') cueAt(cueId, e.x, e.y, 320, kind === 'power' ? 1 : 0.85);
+  const info = seRoster717(e.seId);
+  seSpawnVfx717(kind === 'power' ? info.powerupVfx : info.attackVfx, e.x + (e.face || 1) * 16, e.y - 10, e.face || 1);
+  if (hit) hurtPlayer(e.dmg * row.mul, e);
+  e.seAct = ''; e.seKind = ''; e.seCd = row.gap;
+  return hit ? 1 : 0;
+}
+function seBeginTell(e, kind) {
+  const row = SE_TELL[kind];
+  if (!row || !e || !player || e.seAct) return false;
+  e.seAim = Math.atan2(player.y - e.y, player.x - e.x);
+  e.seMx = player.x; e.seMy = player.y;
+  e.seAct = row.act; e.seActT = 0; e.seHit = true; e.seKind = kind;
+  e.seStep = ((e.seStep | 0) + 1) % 6;
+  if (kind === 'swing') tele({ kind: 'line', x: e.x, y: e.y, w: row.w, len: row.len, dur: row.dur, a: e.seAim, col: row.col, src: e, lockAt: 0.25, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'swing', T2) });
+  else if (kind === 'power') tele({ kind: 'circle', x: e.x, y: e.y, r: row.r + bodyR(), dur: row.dur, follow: e, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'power', T2) });
+  else tele({ kind: 'circle', x: player.x, y: player.y, r: row.r + bodyR(), dur: row.dur, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'brand', T2) });
+  return true;
+}
 function seTick717(dt) {
   seRecover717();
   seTryIntro717();
@@ -14529,7 +14717,9 @@ function seTick717(dt) {
       continue;
     }
     if (e.sePhase !== 'fight' || !player) continue;
-    if (ccImmobilized(e)) { e.seAct = ''; e._seMoved = false; continue; }
+    // Fear already moved them this frame. Do not chase back over it, and drop a tell that has not landed.
+    if (e.fearT > 0) { if (e.seAct) seClearTell(e); e._seMoved = false; continue; }
+    if (ccImmobilized(e)) { if (e.seAct) seClearTell(e); e._seMoved = false; continue; }
     const dx = player.x - e.x, dy = player.y - e.y, dd = Math.hypot(dx, dy) || 1;
     const reach = e.r + player.r + 8;
     if (!e.seAct && dd > reach) {
@@ -14538,31 +14728,13 @@ function seTick717(dt) {
       moveEnt(e, dx / dd * sp * dt, dy / dd * sp * dt);
       e._seMoved = Math.hypot(e.x - ox, e.y - oy) > 0.2;
     } else e._seMoved = false;
-    if (e.seAct) {
-      e.seActT += dt;
-      const pack = seClip717(e.seId);
-      const spec = pack && pack[e.seAct];
-      const ms = spec ? spec.ms : (e.seAct === 'powerup' ? 100 : 95);
-      const frames = spec ? spec.frames.length : (e.seAct === 'powerup' ? 6 : 4);
-      const frame = Math.floor(e.seActT * 1000 / ms);
-      const hitF = e.seAct === 'powerup' ? 3 : 2;
-      if (!e.seHit && frame >= hitF) {
-        e.seHit = true;
-        const cueId = SE_ATK_CUE[e.seId] || 'enm_se_attack_01';
-        if (typeof cueAt === 'function') cueAt(cueId, e.x, e.y, 320, e.seAct === 'powerup' ? 1 : 0.85);
-        const row = seRoster717(e.seId);
-        const fx = e.seAct === 'powerup' ? row.powerupVfx : row.attackVfx;
-        const fxX = e.x + e.face * 16, fxY = e.y - 10;
-        seSpawnVfx717(fx, fxX, fxY, e.face);
-        if (dd < reach + 18) hurtPlayer(e.dmg * (e.seAct === 'powerup' ? 1.7 : 1), e);
-      }
-      if (e.seActT >= frames * ms / 1000) e.seAct = '';
-    } else {
+    if (e.seAct) e.seActT += dt;
+    else {
       e.seCd -= dt;
-      if (e.seCd <= 0 && dd < reach + 10) {
-        e.seAct = Math.random() < 0.22 ? 'powerup' : 'attack';
-        e.seActT = 0; e.seHit = false;
-        e.seCd = e.seAct === 'powerup' ? 3.6 : 1.25;
+      if (e.seCd <= 0) {
+        const kind = seNextKind(e);
+        if (dd < (kind === 'brand' ? 160 : reach + 36)) seBeginTell(e, kind);
+        else e.seCd = 0;
       }
     }
   }
@@ -14802,6 +14974,9 @@ if (window.game) {
     setSkillCrit: setSkillCrit, getSkillCrit: getSkillCrit, clearSkillCrit: clearSkillCrit,
     SKILL_BUILD: SKILL_BUILD, skillBuild: skillBuild, skillSpecId: skillSpecId, setSkillSpec: setSkillSpec, spellPower: spellPower, skillSpecSanitize: skillSpecSanitize,
     ENEMY_RESIST: ENEMY_RESIST, ELITE_AFFIX: ELITE_AFFIX, AFFIX_BY_ID: AFFIX_BY_ID, RESIST_ELEMS: RESIST_ELEMS,
+    BOSS_RESIST: BOSS_RESIST, SE_RESIST: SE_RESIST, BOSS_TELL: BOSS_TELL, BOSS_PHASE_HP: BOSS_PHASE_HP, SE_TELL: SE_TELL,
+    HM_MARK: HM_MARK, HM_BITE: HM_BITE, heavyEncounter: heavyEncounter, hellmouthMark: hellmouthMark, hellmouthBite: hellmouthBite,
+    bossResist: bossResist, seResist: seResist, seFightPhase: seFightPhase, seNextKind: seNextKind, seBeginTell: seBeginTell, seResolveTell: seResolveTell, seClearTell: seClearTell,
     AFFIX_MIN_DEPTH: AFFIX_MIN_DEPTH, AFFIX_PAIR_DEPTH: AFFIX_PAIR_DEPTH, AFFIX_GUARD_MUL: AFFIX_GUARD_MUL, AFFIX_GUARD_GAP: AFFIX_GUARD_GAP,
     AFFIX_PHASE_TELL: AFFIX_PHASE_TELL, AFFIX_PHASE_GAP: AFFIX_PHASE_GAP, AFFIX_VOL_HP: AFFIX_VOL_HP, AFFIX_VOL_TELL: AFFIX_VOL_TELL, AFFIX_VOL_R: AFFIX_VOL_R,
     AFFIX_MARK_TELL: AFFIX_MARK_TELL, AFFIX_BRAND_R: AFFIX_BRAND_R, AFFIX_RIME_R: AFFIX_RIME_R, AFFIX_RIME_SLOW: AFFIX_RIME_SLOW, AFFIX_WEB_GAP: AFFIX_WEB_GAP,

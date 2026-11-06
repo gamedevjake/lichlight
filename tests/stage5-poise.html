@@ -63,7 +63,7 @@ function run(w) {
   const ver = fetchText('../version.json');
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('mods.fire still spell power', src.indexOf('legacySkillPower') >= 0 && src.indexOf('const pw = p.st.fire + p.lvl * 2') >= 0);
-  check('hellmouth split unchanged', src.indexOf('hits.filter(e => e.T && e.T.boss)') >= 0 && src.indexOf('!(e.T && e.T.boss)') >= 0);
+  check('hellmouth refuses a heavy encounter', src.indexOf('function heavyEncounter') >= 0 && src.indexOf('function hellmouthBite') >= 0);
   check('frost nova sets slow and chill', src.indexOf('e.slow = 3.5') >= 0 && src.indexOf("applyStatus(e, 'chill'") >= 0);
   const castBody = src.split('function castSkill(i)')[1].split('const PCOL')[0];
   check('cast keeps legacy slow and routes chill', castBody.indexOf('e.slow = 3.5') >= 0 && castBody.indexOf('chillFromNova') >= 0 && castBody.indexOf('applyStatus') < 0);
@@ -296,7 +296,7 @@ function run(w) {
   g.clearStatuses(boss);
   check('boss frost slow stays 0.5', Math.abs(g.ccMoveMul(boss) - 0.5) < 1e-6, g.ccMoveMul(boss));
   se.slow = 3; g.clearStatuses(se); se.staggerImmune = 0;
-  check('super elite frost slow stays 0.5 and still ignores the aura', Math.abs(g.seMoveMul(se) - 0.5) < 1e-6, g.seMoveMul(se));
+  check('super elite frost slow stays 0.5', Math.abs(g.seMoveMul(se) - 0.5) < 1e-6, g.seMoveMul(se));
   p.slowT = 3; g.clearStatuses(p); g.resetPoise(p); g.ensurePoise(p);
   check('player brine slow stays 0.6', Math.abs(g.ccMoveMul(p) - 0.6) < 1e-6, g.ccMoveMul(p));
   g.applyStatus(p, 'chill', { slowPct: 60, buildup: 0 });
