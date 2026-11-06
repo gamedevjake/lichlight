@@ -55,6 +55,51 @@ try {
   await page.waitForFunction(() => window.game && window.game.version && typeof window.newGame === 'function', { timeout: 30000 });
   const result = await page.evaluate(runAudit);
   result.pageErrors = errors.slice(0, 8);
+  const pt = await browser.newPage();
+  pt.setDefaultTimeout(60000);
+  const ptErrors = [];
+  pt.on('pageerror', err => ptErrors.push(String(err && err.message || err).slice(0, 300)));
+  await pt.goto(origin + '/playtest.html?nosfx=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await pt.waitForFunction(() => window.__PT && window.__PT.ready, { timeout: 45000 });
+  result.playtestUi = await pt.evaluate(async () => {
+    const snap0 = window.__PT.newRun();
+    const frame = document.getElementById('ptGame');
+    const w = frame.contentWindow;
+    const g = w.game;
+    const p = g.player;
+    p.lvl = 2;
+    w.computeStats();
+    p.hp = p.st.maxHp;
+    p.mp = p.st.maxMp;
+    if (typeof w.syncDesk === 'function') w.syncDesk();
+    if (typeof w.updateTouchHUD === 'function') w.updateTouchHUD();
+    if (typeof w.syncDesk === 'function') w.syncDesk();
+    const globe = w.document.querySelector('#deskHud .dh-globe.hp b');
+    const heart = w.document.getElementById('nHP');
+    const god = window.__PT.setGod(true);
+    const heal = window.__PT.heal();
+    const depth = window.__PT.setDepth(4);
+    const sword = window.__PT.equip('sword');
+    function read() {
+      const q = g.player;
+      return { lvl: q.lvl, hp: q.hp, maxHp: q.st.maxHp, mp: q.mp, maxMp: q.st.maxMp, invincible: !!q.isInvincible, shiftT: q.shiftT || 0 };
+    }
+    return {
+      boot: { hp: snap0.hp, maxHp: snap0.maxHp, depth: snap0.depth, version: snap0.version, god: snap0.god },
+      level2: read(),
+      globeText: globe ? globe.textContent : '',
+      heartText: heart ? heart.textContent : '',
+      heartIsPotionCount: !!(heart && heart.textContent === String(p.hpPot)),
+      potionCount: p.hpPot,
+      afterGod: { hp: god.hp, maxHp: god.maxHp, god: god.god, invincible: !!g.player.isInvincible },
+      afterHeal: { hp: heal.hp, maxHp: heal.maxHp },
+      afterDepth4: { depth: depth.depth, hp: depth.hp, maxHp: depth.maxHp, lvl: g.player.lvl },
+      afterDevSword: { hp: sword.hp, maxHp: sword.maxHp, weapon: sword.weapon, lvl: g.player.lvl, min: g.player.st.min, max: g.player.st.max },
+      errors: []
+    };
+  });
+  result.playtestUi.errors = ptErrors.slice(0, 5);
+  await pt.close();
   const out = path.join(root, 'tests', 'audit-toptier.result.json');
   fs.writeFileSync(out, JSON.stringify(result, null, 2));
   console.log('wrote ' + out);
@@ -654,8 +699,8 @@ function runAudit() {
 
     // Proposed numbers are measured through hurtPlayer. Nothing in index.html changes.
     // Power and brand gain an early weight that is gone by depth 5. Swing stays.
-    // The HP factor fades the same way: 2.8x champion at depth 1, back to today's 1.4x at depth 5.
-    // Depth 5 power is already in the boss-hop band, so that floor does not get a second HP bump.
+    // Life is a separate, smaller bump: depth 1 goes 56 -> 80, fading to today's life at depth 5.
+    // 112 was the previous draft. Jake kept the heavy-damage increases and cut that life bump.
     function earlyFade(d) { return Math.max(0, 1 - (d - 1) / 4); }
     wear([]);
     const proposal = [];
@@ -665,9 +710,10 @@ function runAudit() {
       const brandMul = Math.round((1.15 + 0.85 * f) * 1000) / 1000;
       const baseHp = Math.round(18 + 7 * (s.depth - 1));
       const champ = Math.round(baseHp * 2.2);
-      const hpFactor = Math.round((1.4 + 1.4 * f) * 1000) / 1000;
       const hpNow = Math.round(champ * 1.4);
-      const hpNew = Math.round(champ * hpFactor);
+      // 80/56 at depth 1, fading with the same early weight, exact at depth 5.
+      const hpNew = s.depth === 5 ? hpNow : Math.round(hpNow * (1 + (80 / 56 - 1) * f));
+      const hpFactor = Math.round((hpNew / hpNow) * 1000) / 1000;
       const shNow = Math.round(hpNow * 0.1);
       const shNew = Math.round(hpNew * 0.1);
       const src = { T: { superElite: true, label: 'Bonewarden' }, superElite: true, label: 'Bonewarden' };
@@ -678,32 +724,236 @@ function runAudit() {
         const hit = dealt(raw, src);
         return { attack: id, mul: mul, raw: Math.round(raw * 1000) / 1000, before: cur.dealt, after: hit.dealt, htkBefore: cur.htk, htkAfter: htk(hit.dealt, 70) };
       });
-      const rusty = ttk.find(t => t.id === 'rusty');
-      const grandW = ttk.find(t => t.id === 'sword-grandsire');
+      const weaponsHere = ['rusty', 'sword-common', 'sword-rare-dmg', 'sword-grandsire'].map(id => ttk.find(t => t.id === id)).filter(Boolean);
       function clock(hp, sh, dmg, period) {
-        let h = hp, sld = sh, hits = 0, time = 0;
+        let h = hp, sld = sh, hits = 0, time = 0, tPhase = null;
         while (h > 0 && hits < 8000) {
           let left = dmg;
           const abs = Math.min(sld, left);
           sld -= abs; left -= abs; h -= left; hits++; time += period;
+          if (tPhase == null && h <= hp * 0.5) tPhase = time;
         }
-        return { hits: hits, sec: Math.round(time * 10) / 10 };
+        const window = tPhase == null ? 0 : time - tPhase;
+        return {
+          hits: hits, sec: Math.round(time * 10) / 10,
+          phase2: tPhase == null ? null : Math.round(tPhase * 10) / 10,
+          window: Math.round(window * 10) / 10,
+          powerLands: window + 1e-6 >= 1.3
+        };
       }
+      const fights = {};
+      weaponsHere.forEach(wp => {
+        fights[wp.id] = {
+          name: wp.name, avg: wp.avg, min: wp.sheet.min, max: wp.sheet.max, period: wp.sheet.period,
+          avgFight: clock(hpNew, shNew, wp.avg, wp.sheet.period),
+          maxFight: clock(hpNew, shNew, wp.sheet.max, wp.sheet.period)
+        };
+      });
       proposal.push({
         depth: s.depth, fade: Math.round(f * 1000) / 1000, hpFactor: hpFactor,
         hpBefore: hpNow, hpAfter: hpNew, shieldBefore: shNow, shieldAfter: shNew,
         hpMatchesLive: hpNow === s.hp,
         attacks: rows,
-        rusty: {
-          before: rusty.rows.find(r => r.depth === s.depth).se,
-          after: clock(hpNew, shNew, rusty.avg, rusty.sheet.period)
-        },
-        grandsire: {
-          before: grandW.rows.find(r => r.depth === s.depth).se,
-          after: clock(hpNew, shNew, grandW.avg, grandW.sheet.period)
-        }
+        fights: fights
       });
     }
+
+    // --- 198 life: what a level 2 character can actually reach, and what the UI prints ---
+    p.lvl = 2;
+    wear([]);
+    // calm() parks life at 8000 so hit probes cannot kill the run. The UI reads p.hp, so put it back on the real max first.
+    p.hp = p.st.maxHp;
+    p.mp = p.st.maxMp;
+    const uiNaked = {
+      levelLine: 'LEVEL ' + p.lvl + '   DEPTH ' + g.depth,
+      lifeLine: 'LIFE ' + Math.ceil(p.hp) + '/' + p.st.maxHp,
+      manaLine: 'MANA ' + Math.floor(p.mp) + '/' + p.st.maxMp,
+      globeNumber: String(Math.ceil(p.hp)),
+      touchHeartNumber: p.hpPot,
+      touchHeartIsPotionCount: true,
+      barrier: p.barrier || 0,
+      maxHp: p.st.maxHp,
+      hp: p.hp
+    };
+    const hpCeilingNames = ["Rootwake", "Lanternjaw", "Bloodbound Signet", "Tam's Coffin Lid", "Tam's Lantern Bead", "Hollowmere Mail", "The Last Bastion", "Mother Merrow's Locket", "Grandsire Oswin"];
+    const uniqRows = [];
+    hpCeilingNames.forEach(name => {
+      for (let L = 1; L <= 4; L++) {
+        const it = findUnique(L, name);
+        if (!it) { uniqRows.push({ name: name, L: L, missing: true }); continue; }
+        uniqRows.push({ name: it.name, slot: it.slot, L: L, req: it.reqLvl, hp: it.mods.hp || 0, wearable: it.reqLvl <= 2 });
+      }
+    });
+    function rareAt(baseName, L, hp) {
+      const it = w.makeItem(L, 0, baseName);
+      it.rarity = 2; it.lvl = L; it.mods = { hp: hp }; it.reqLvl = w.calcReqLvl(it);
+      return it;
+    }
+    const rareBases = [
+      ['Short Sword', 'weapon'], ['Leather Armor', 'armor'], ['Cap', 'helm'], ['Boots', 'boots'],
+      ['Ring', 'ring'], ['Copper Charm', 'amulet'], ['Wooden Buckler', 'shield']
+    ];
+    const rareRows = [];
+    rareBases.forEach(pair => {
+      for (let L = 1; L <= 5; L++) {
+        const hp = 8 + 3 * L;
+        const it = rareAt(pair[0], L, hp);
+        rareRows.push({ base: pair[0], slot: it.slot, L: L, req: it.reqLvl, hp: hp, wearable: it.reqLvl <= 2 });
+      }
+    });
+    const shopRows = [];
+    if (g.depth !== 1) g.startFloor(1, false);
+    p.lvl = 2;
+    ['ring', 'shield', 'helm', 'armor', 'amulet', 'weapon'].forEach(slot => {
+      for (let n = 0; n < 8; n++) {
+        const it = w.rollShopUnique({ slot: slot, tier: slot === 'amulet' ? 3 : 2, price: 120 });
+        shopRows.push({ slot: slot, name: it.name, lvl: it.lvl, req: it.reqLvl, hp: (it.mods && it.mods.hp) || 0, wearable: it.reqLvl <= 2 });
+      }
+    });
+    const best = {};
+    uniqRows.forEach(row => {
+      if (!row.wearable || !(row.hp > 0)) return;
+      const prev = best[row.slot];
+      if (!prev || row.hp > prev.hp) best[row.slot] = { kind: 'unique', name: row.name, L: row.L, hp: row.hp, req: row.req };
+    });
+    rareRows.forEach(row => {
+      if (!row.wearable) return;
+      const prev = best[row.slot];
+      if (!prev || row.hp > prev.hp) best[row.slot] = { kind: 'rare-max', name: row.base, L: row.L, hp: row.hp, req: row.req };
+    });
+    const shopBest = {};
+    shopRows.forEach(row => {
+      if (!row.wearable || !(row.hp > 0)) return;
+      const prev = shopBest[row.slot];
+      if (!prev || row.hp > prev.hp) shopBest[row.slot] = row;
+    });
+    const kitItems = [];
+    Object.keys(best).forEach(slot => {
+      const b = best[slot];
+      if (b.kind === 'unique') kitItems.push(findUnique(b.L, b.name));
+      else kitItems.push(rareAt(b.name, b.L, b.hp));
+    });
+    const ceilingSheet = wear(kitItems.filter(Boolean));
+    const gearHp = SLOTS.reduce((sum, slot) => sum + ((p.equip[slot] && p.equip[slot].mods && p.equip[slot].mods.hp) || 0), 0);
+    // Playtest actions, same functions the dev menu calls. None of them add a life mod.
+    const beforeDepth = { lvl: p.lvl, maxHp: p.st.maxHp };
+    g.startFloor(8, true);
+    p.lvl = 2;
+    w.computeStats();
+    const afterDepth = { depth: g.depth, lvl: p.lvl, maxHp: p.st.maxHp, hp: p.hp };
+    p.hp = p.st.maxHp;
+    const afterHeal = { hp: p.hp, maxHp: p.st.maxHp };
+    p.isInvincible = true; p.shiftT = 1e9;
+    if (p.hp < 1) p.hp = p.st.maxHp;
+    const afterGod = { hp: p.hp, maxHp: p.st.maxHp, invincible: !!p.isInvincible };
+    wear([]);
+    p.lvl = 2;
+    w.computeStats();
+    const devWeapon = w.makeItem(1, 0, 'Short Sword');
+    devWeapon.reqLvl = 1;
+    p.equip.weapon = devWeapon;
+    w.computeStats();
+    const afterDevSword = { lvl: p.lvl, maxHp: p.st.maxHp, min: p.st.min, max: p.st.max };
+
+    // --- Fireball mana ---
+    function unlockFireball() {
+      const t = w.ensureTome(p);
+      t.isAcquired = true;
+      t.offered = true;
+      if (!t.spells.fireball) t.spells.fireball = { isUnlocked: true };
+      t.spells.fireball.isUnlocked = true;
+      p.learned = p.learned || [false, false, false];
+      p.learned[0] = true;
+      if (!Array.isArray(p.cds) || p.cds.length < 7) p.cds = [0, 0, 0, 0, 0, 0, 0];
+      p.cds[0] = 0;
+    }
+    function spamFireball(seconds, opt) {
+      opt = opt || {};
+      g.enemies.splice(0, g.enemies.length);
+      unlockFireball();
+      p.lvl = 2;
+      p.thirst = opt.thirst == null ? 100 : opt.thirst;
+      p.fatigue = opt.fatigue == null ? 100 : opt.fatigue;
+      p.hunger = 100;
+      w.computeStats();
+      p.isInvincible = true;
+      p.hp = p.st.maxHp;
+      p.mp = p.st.maxMp;
+      p.cds[0] = 0;
+      const start = p.mp;
+      const cost = w.manaCost(g.SKILLS[0]);
+      let casts = 0, spent = 0;
+      const dt = 0.05;
+      const n = Math.round(seconds / dt);
+      const trace = [];
+      for (let i = 0; i < n; i++) {
+        const before = p.mp;
+        w.castSkill(0);
+        const delta = Math.round((before - p.mp) * 1000) / 1000;
+        if (delta > 0) { casts++; spent += delta; }
+        g.step(dt, { x: 0, y: 0 });
+        if (p.cds[0] < 0) p.cds[0] = 0;
+        if (i % 20 === 19) trace.push({ t: Math.round((i + 1) * dt * 10) / 10, mp: Math.round(p.mp * 10) / 10, casts: casts });
+      }
+      const regen = 1.4 + 2 * 0.1;
+      const expected = start - spent + regen * seconds;
+      return {
+        start: start, end: Math.round(p.mp * 10) / 10, max: p.st.maxMp, casts: casts, spent: spent,
+        sheetCost: g.SKILLS[0].mana, charged: cost, cd: g.SKILLS[0].cd,
+        regenPerSec: regen, trace: trace,
+        expectedEnd: Math.round(Math.min(p.st.maxMp, Math.max(0, expected)) * 10) / 10,
+        matchesRegenPlusCost: Math.abs(p.mp - Math.min(p.st.maxMp, Math.max(0, expected))) < 1.5
+      };
+    }
+    wear([]);
+    const manaNaked = spamFireball(8);
+    const eye = findUnique(1, 'Eye of the Choir');
+    if (eye) wear([eye]); else wear([]);
+    const manaEye = spamFireball(8);
+    wear([]);
+    p.thirst = 0; p.fatigue = 0;
+    const costDry = w.manaCost(g.SKILLS[0]);
+    p.thirst = 100; p.fatigue = 0;
+    const costTired = w.manaCost(g.SKILLS[0]);
+    p.thirst = 0; p.fatigue = 100;
+    const costParched = w.manaCost(g.SKILLS[0]);
+    p.thirst = 100; p.fatigue = 100;
+    // A kill refunds onKillMana once. It does not refund the cast.
+    wear(eye ? [eye] : []);
+    unlockFireball();
+    p.lvl = 2;
+    p.xp = 0;
+    w.computeStats();
+    p.mp = p.st.maxMp;
+    const mpBeforeCast = p.mp;
+    const lvlBefore = p.lvl;
+    w.castSkill(0);
+    const mpAfterCast = p.mp;
+    const rat = w.spawnEnemy('rat', p.x + 30, p.y, false);
+    rat.hp = 1; rat.maxHp = 1;
+    w.damageEnemy(rat, 50, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, skill: 'fireball' });
+    const mpAfterKill = p.mp;
+
+    out.hp198 = {
+      uiNaked: uiNaked,
+      formula: '50 + level*10 + sum(mods.hp)',
+      level2Base: 70,
+      needFor198: 128,
+      ceilingGear: best,
+      ceilingSheet: { hp: ceilingSheet.hp, def: ceilingSheet.def, gear: ceilingSheet.gear, gearHp: gearHp },
+      shopBestWearable: shopBest,
+      uniqSample: uniqRows.filter(r => r.L === 1 || r.L === 3),
+      rareReq: rareRows.filter(r => r.L === 3 || r.L === 4),
+      playtestActions: { beforeDepth: beforeDepth, afterDepth8Refill: afterDepth, afterHeal: afterHeal, afterGod: afterGod, afterDevSword: afterDevSword }
+    };
+    out.mana = {
+      naked8s: manaNaked,
+      eye8s: manaEye,
+      costParched: costParched,
+      costTired: costTired,
+      costBothEmpty: costDry,
+      castThenKill: { before: mpBeforeCast, afterCast: mpAfterCast, afterKill: mpAfterKill, lvlBefore: lvlBefore, lvlAfter: p.lvl, xpAfter: p.xp, eyeMana: eye && eye.mods.mp, eyeOnKill: eye && eye.powers }
+    };
 
     out.player = {
       xp: xp, movedPxPerSec: moved, naked: naked, kits: {

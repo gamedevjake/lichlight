@@ -2,6 +2,490 @@
   "version": "0.7.18",
   "commitNote": "live index.html functions",
   "error": "",
+  "hp198": {
+    "uiNaked": {
+      "levelLine": "LEVEL 2   DEPTH 1",
+      "lifeLine": "LIFE 70/70",
+      "manaLine": "MANA 30/30",
+      "globeNumber": "70",
+      "touchHeartNumber": 3,
+      "touchHeartIsPotionCount": true,
+      "barrier": 0,
+      "maxHp": 70,
+      "hp": 70
+    },
+    "formula": "50 + level*10 + sum(mods.hp)",
+    "level2Base": 70,
+    "needFor198": 128,
+    "ceilingGear": {
+      "weapon": {
+        "kind": "unique",
+        "name": "Rootwake",
+        "L": 2,
+        "hp": 17,
+        "req": 2
+      },
+      "helm": {
+        "kind": "unique",
+        "name": "Lanternjaw",
+        "L": 3,
+        "hp": 23,
+        "req": 2
+      },
+      "ring": {
+        "kind": "unique",
+        "name": "Bloodbound Signet",
+        "L": 3,
+        "hp": 23,
+        "req": 2
+      },
+      "shield": {
+        "kind": "unique",
+        "name": "Tam's Coffin Lid",
+        "L": 3,
+        "hp": 23,
+        "req": 2
+      },
+      "amulet": {
+        "kind": "rare-max",
+        "name": "Copper Charm",
+        "L": 3,
+        "hp": 17,
+        "req": 1
+      },
+      "armor": {
+        "kind": "rare-max",
+        "name": "Leather Armor",
+        "L": 3,
+        "hp": 17,
+        "req": 1
+      },
+      "boots": {
+        "kind": "rare-max",
+        "name": "Boots",
+        "L": 3,
+        "hp": 17,
+        "req": 1
+      }
+    },
+    "ceilingSheet": {
+      "hp": 207,
+      "def": 30,
+      "gear": [
+        "Rootwake r3",
+        "Tam's Coffin Lid r3",
+        "Lanternjaw r3",
+        "Leather Armor r2",
+        "Boots r2",
+        "Bloodbound Signet r3",
+        "Copper Charm r2"
+      ],
+      "gearHp": 137
+    },
+    "shopBestWearable": {},
+    "uniqSample": [
+      {
+        "name": "Rootwake",
+        "slot": "weapon",
+        "L": 1,
+        "req": 2,
+        "hp": 16,
+        "wearable": true
+      },
+      {
+        "name": "Rootwake",
+        "slot": "weapon",
+        "L": 3,
+        "req": 2,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "name": "Lanternjaw",
+        "slot": "helm",
+        "L": 1,
+        "req": 2,
+        "hp": 21,
+        "wearable": true
+      },
+      {
+        "name": "Lanternjaw",
+        "slot": "helm",
+        "L": 3,
+        "req": 2,
+        "hp": 23,
+        "wearable": true
+      },
+      {
+        "name": "Bloodbound Signet",
+        "slot": "ring",
+        "L": 1,
+        "req": 2,
+        "hp": 21,
+        "wearable": true
+      },
+      {
+        "name": "Bloodbound Signet",
+        "slot": "ring",
+        "L": 3,
+        "req": 2,
+        "hp": 23,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "slot": "shield",
+        "L": 1,
+        "req": 2,
+        "hp": 21,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "slot": "shield",
+        "L": 3,
+        "req": 2,
+        "hp": 23,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "slot": "amulet",
+        "L": 1,
+        "req": 2,
+        "hp": 11,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "slot": "amulet",
+        "L": 3,
+        "req": 2,
+        "hp": 12,
+        "wearable": true
+      },
+      {
+        "name": "Hollowmere Mail",
+        "L": 1,
+        "missing": true
+      },
+      {
+        "name": "Hollowmere Mail",
+        "slot": "armor",
+        "L": 3,
+        "req": 3,
+        "hp": 46,
+        "wearable": false
+      },
+      {
+        "name": "The Last Bastion",
+        "L": 1,
+        "missing": true
+      },
+      {
+        "name": "The Last Bastion",
+        "L": 3,
+        "missing": true
+      },
+      {
+        "name": "Mother Merrow's Locket",
+        "L": 1,
+        "missing": true
+      },
+      {
+        "name": "Mother Merrow's Locket",
+        "L": 3,
+        "missing": true
+      },
+      {
+        "name": "Grandsire Oswin",
+        "slot": "weapon",
+        "L": 1,
+        "req": 2,
+        "hp": 0,
+        "wearable": true
+      },
+      {
+        "name": "Grandsire Oswin",
+        "slot": "weapon",
+        "L": 3,
+        "req": 2,
+        "hp": 0,
+        "wearable": true
+      }
+    ],
+    "rareReq": [
+      {
+        "base": "Short Sword",
+        "slot": "weapon",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Short Sword",
+        "slot": "weapon",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Leather Armor",
+        "slot": "armor",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Leather Armor",
+        "slot": "armor",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Cap",
+        "slot": "helm",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Cap",
+        "slot": "helm",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Boots",
+        "slot": "boots",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Boots",
+        "slot": "boots",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Ring",
+        "slot": "ring",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Ring",
+        "slot": "ring",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Copper Charm",
+        "slot": "amulet",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Copper Charm",
+        "slot": "amulet",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Wooden Buckler",
+        "slot": "shield",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Wooden Buckler",
+        "slot": "shield",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      }
+    ],
+    "playtestActions": {
+      "beforeDepth": {
+        "lvl": 2,
+        "maxHp": 207
+      },
+      "afterDepth8Refill": {
+        "depth": 8,
+        "lvl": 2,
+        "maxHp": 207,
+        "hp": 207
+      },
+      "afterHeal": {
+        "hp": 207,
+        "maxHp": 207
+      },
+      "afterGod": {
+        "hp": 207,
+        "maxHp": 207,
+        "invincible": true
+      },
+      "afterDevSword": {
+        "lvl": 2,
+        "maxHp": 70,
+        "min": 3,
+        "max": 6
+      }
+    }
+  },
+  "mana": {
+    "naked8s": {
+      "start": 30,
+      "end": 2.8,
+      "max": 30,
+      "casts": 10,
+      "spent": 40,
+      "sheetCost": 4,
+      "charged": 4,
+      "cd": 0.45,
+      "regenPerSec": 1.5999999999999999,
+      "trace": [
+        {
+          "t": 1,
+          "mp": 23.6,
+          "casts": 2
+        },
+        {
+          "t": 2,
+          "mp": 17.2,
+          "casts": 4
+        },
+        {
+          "t": 3,
+          "mp": 10.8,
+          "casts": 6
+        },
+        {
+          "t": 4,
+          "mp": 4.4,
+          "casts": 8
+        },
+        {
+          "t": 5,
+          "mp": 2,
+          "casts": 9
+        },
+        {
+          "t": 6,
+          "mp": 3.6,
+          "casts": 9
+        },
+        {
+          "t": 7,
+          "mp": 1.2,
+          "casts": 10
+        },
+        {
+          "t": 8,
+          "mp": 2.8,
+          "casts": 10
+        }
+      ],
+      "expectedEnd": 2.8,
+      "matchesRegenPlusCost": true
+    },
+    "eye8s": {
+      "start": 83,
+      "end": 31.8,
+      "max": 83,
+      "casts": 16,
+      "spent": 64,
+      "sheetCost": 4,
+      "charged": 4,
+      "cd": 0.45,
+      "regenPerSec": 1.5999999999999999,
+      "trace": [
+        {
+          "t": 1,
+          "mp": 76.6,
+          "casts": 2
+        },
+        {
+          "t": 2,
+          "mp": 70.2,
+          "casts": 4
+        },
+        {
+          "t": 3,
+          "mp": 63.8,
+          "casts": 6
+        },
+        {
+          "t": 4,
+          "mp": 57.4,
+          "casts": 8
+        },
+        {
+          "t": 5,
+          "mp": 51,
+          "casts": 10
+        },
+        {
+          "t": 6,
+          "mp": 44.6,
+          "casts": 12
+        },
+        {
+          "t": 7,
+          "mp": 38.2,
+          "casts": 14
+        },
+        {
+          "t": 8,
+          "mp": 31.8,
+          "casts": 16
+        }
+      ],
+      "expectedEnd": 31.8,
+      "matchesRegenPlusCost": true
+    },
+    "costParched": 7,
+    "costTired": 8,
+    "costBothEmpty": 11,
+    "castThenKill": {
+      "before": 83,
+      "afterCast": 79,
+      "afterKill": 82,
+      "lvlBefore": 2,
+      "lvlAfter": 2,
+      "xpAfter": 7,
+      "eyeMana": 53,
+      "eyeOnKill": [
+        {
+          "t": "onKillMana",
+          "amt": 3
+        }
+      ]
+    }
+  },
   "player": {
     "xp": {
       "to2": 30,
@@ -274,29 +758,29 @@
         "min": 70,
         "p50": 70,
         "p90": 91,
-        "max": 104
+        "max": 96
       },
       "defP50": 0,
       "sampleMax": {
-        "hp": 104,
-        "def": 14,
+        "hp": 96,
+        "def": 9,
         "min": 2,
         "max": 5,
         "aspd": 1,
         "gear": [
           "Rusty Sword",
-          "Lanternjaw r3",
-          "Stalwart Leather Armor of Embers r1"
+          "Tam's Coffin Lid r3",
+          "Ring"
         ]
       },
       "sampleP50": {
         "hp": 70,
         "def": 0,
-        "min": 12,
-        "max": 18,
-        "aspd": 0.9,
+        "min": 10,
+        "max": 14,
+        "aspd": 1.21,
         "gear": [
-          "Gravedigger's Due r3"
+          "Grandsire Oswin r3"
         ]
       }
     },
@@ -305,7 +789,7 @@
       "naked": 70,
       "needPlusLife": 128,
       "measuredMaxFromEarlyUniques": 144,
-      "monteCarloMax": 104
+      "monteCarloMax": 96
     }
   },
   "incoming": [
@@ -1499,11 +1983,11 @@
     {
       "depth": 1,
       "fade": 1,
-      "hpFactor": 2.8,
+      "hpFactor": 1.429,
       "hpBefore": 56,
-      "hpAfter": 112,
+      "hpAfter": 80,
       "shieldBefore": 6,
-      "shieldAfter": 11,
+      "shieldAfter": 8,
       "hpMatchesLive": true,
       "attacks": [
         {
@@ -1534,43 +2018,101 @@
           "htkAfter": 6
         }
       ],
-      "rusty": {
-        "before": {
-          "hp": 56,
-          "shield": 6,
-          "hits": 16,
-          "sec": 7.2,
-          "minHits": 31,
-          "maxHits": 13
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 22,
+            "sec": 9.9,
+            "phase2": 5.4,
+            "window": 4.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 18,
+            "sec": 8.1,
+            "phase2": 4.5,
+            "window": 3.6,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 31,
-          "sec": 13.9
-        }
-      },
-      "grandsire": {
-        "before": {
-          "hp": 56,
-          "shield": 6,
-          "hits": 6,
-          "sec": 2.2,
-          "minHits": 7,
-          "maxHits": 5
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 18,
+            "sec": 8.1,
+            "phase2": 4.5,
+            "window": 3.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 15,
+            "sec": 6.8,
+            "phase2": 3.6,
+            "window": 3.2,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 11,
-          "sec": 4.1
+        "sword-rare-dmg": {
+          "name": "Wraith Coil",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 15,
+            "sec": 6.8,
+            "phase2": 3.6,
+            "window": 3.2,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 13,
+            "sec": 5.9,
+            "phase2": 3.2,
+            "window": 2.7,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 8,
+            "sec": 3,
+            "phase2": 1.5,
+            "window": 1.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 7,
+            "sec": 2.6,
+            "phase2": 1.5,
+            "window": 1.1,
+            "powerLands": false
+          }
         }
       }
     },
     {
       "depth": 2,
       "fade": 0.75,
-      "hpFactor": 2.45,
+      "hpFactor": 1.325,
       "hpBefore": 77,
-      "hpAfter": 135,
+      "hpAfter": 102,
       "shieldBefore": 8,
-      "shieldAfter": 14,
+      "shieldAfter": 10,
       "hpMatchesLive": true,
       "attacks": [
         {
@@ -1601,43 +2143,101 @@
           "htkAfter": 5
         }
       ],
-      "rusty": {
-        "before": {
-          "hp": 77,
-          "shield": 8,
-          "hits": 22,
-          "sec": 9.9,
-          "minHits": 43,
-          "maxHits": 17
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 28,
+            "sec": 12.6,
+            "phase2": 7.2,
+            "window": 5.4,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 23,
+            "sec": 10.3,
+            "phase2": 5.9,
+            "window": 4.5,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 38,
-          "sec": 17.1
-        }
-      },
-      "grandsire": {
-        "before": {
-          "hp": 77,
-          "shield": 8,
-          "hits": 8,
-          "sec": 3,
-          "minHits": 9,
-          "maxHits": 7
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 23,
+            "sec": 10.3,
+            "phase2": 5.9,
+            "window": 4.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 19,
+            "sec": 8.6,
+            "phase2": 5,
+            "window": 3.6,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 13,
-          "sec": 4.8
+        "sword-rare-dmg": {
+          "name": "Wraith Coil",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 19,
+            "sec": 8.6,
+            "phase2": 5,
+            "window": 3.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 16,
+            "sec": 7.2,
+            "phase2": 4.1,
+            "window": 3.2,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 10,
+            "sec": 3.7,
+            "phase2": 2.2,
+            "window": 1.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 8,
+            "sec": 3,
+            "phase2": 1.9,
+            "window": 1.1,
+            "powerLands": false
+          }
         }
       }
     },
     {
       "depth": 3,
       "fade": 0.5,
-      "hpFactor": 2.1,
+      "hpFactor": 1.214,
       "hpBefore": 98,
-      "hpAfter": 147,
+      "hpAfter": 119,
       "shieldBefore": 10,
-      "shieldAfter": 15,
+      "shieldAfter": 12,
       "hpMatchesLive": true,
       "attacks": [
         {
@@ -1668,43 +2268,101 @@
           "htkAfter": 5
         }
       ],
-      "rusty": {
-        "before": {
-          "hp": 98,
-          "shield": 10,
-          "hits": 27,
-          "sec": 12.1,
-          "minHits": 54,
-          "maxHits": 22
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 33,
+            "sec": 14.8,
+            "phase2": 8.1,
+            "window": 6.7,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 27,
+            "sec": 12.1,
+            "phase2": 6.8,
+            "window": 5.4,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 41,
-          "sec": 18.4
-        }
-      },
-      "grandsire": {
-        "before": {
-          "hp": 98,
-          "shield": 10,
-          "hits": 9,
-          "sec": 3.3,
-          "minHits": 11,
-          "maxHits": 8
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 27,
+            "sec": 12.1,
+            "phase2": 6.8,
+            "window": 5.4,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 22,
+            "sec": 9.9,
+            "phase2": 5.4,
+            "window": 4.5,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 14,
-          "sec": 5.2
+        "sword-rare-dmg": {
+          "name": "Wraith Coil",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 22,
+            "sec": 9.9,
+            "phase2": 5.4,
+            "window": 4.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 19,
+            "sec": 8.6,
+            "phase2": 5,
+            "window": 3.6,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 11,
+            "sec": 4.1,
+            "phase2": 2.2,
+            "window": 1.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 10,
+            "sec": 3.7,
+            "phase2": 2.2,
+            "window": 1.5,
+            "powerLands": true
+          }
         }
       }
     },
     {
       "depth": 4,
       "fade": 0.25,
-      "hpFactor": 1.75,
+      "hpFactor": 1.108,
       "hpBefore": 120,
-      "hpAfter": 151,
+      "hpAfter": 133,
       "shieldBefore": 12,
-      "shieldAfter": 15,
+      "shieldAfter": 13,
       "hpMatchesLive": true,
       "attacks": [
         {
@@ -1735,39 +2393,97 @@
           "htkAfter": 5
         }
       ],
-      "rusty": {
-        "before": {
-          "hp": 120,
-          "shield": 12,
-          "hits": 33,
-          "sec": 14.8,
-          "minHits": 66,
-          "maxHits": 27
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 37,
+            "sec": 16.6,
+            "phase2": 9,
+            "window": 7.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 30,
+            "sec": 13.5,
+            "phase2": 7.2,
+            "window": 6.3,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 42,
-          "sec": 18.9
-        }
-      },
-      "grandsire": {
-        "before": {
-          "hp": 120,
-          "shield": 12,
-          "hits": 11,
-          "sec": 4.1,
-          "minHits": 14,
-          "maxHits": 10
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 30,
+            "sec": 13.5,
+            "phase2": 7.2,
+            "window": 6.3,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 25,
+            "sec": 11.2,
+            "phase2": 6.3,
+            "window": 4.9,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 14,
-          "sec": 5.2
+        "sword-rare-dmg": {
+          "name": "Wraith Coil",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 25,
+            "sec": 11.2,
+            "phase2": 6.3,
+            "window": 4.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 21,
+            "sec": 9.5,
+            "phase2": 5.4,
+            "window": 4,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 13,
+            "sec": 4.8,
+            "phase2": 2.6,
+            "window": 2.2,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 11,
+            "sec": 4.1,
+            "phase2": 2.2,
+            "window": 1.9,
+            "powerLands": true
+          }
         }
       }
     },
     {
       "depth": 5,
       "fade": 0,
-      "hpFactor": 1.4,
+      "hpFactor": 1,
       "hpBefore": 141,
       "hpAfter": 141,
       "shieldBefore": 14,
@@ -1802,32 +2518,90 @@
           "htkAfter": 5
         }
       ],
-      "rusty": {
-        "before": {
-          "hp": 141,
-          "shield": 14,
-          "hits": 39,
-          "sec": 17.5,
-          "minHits": 78,
-          "maxHits": 31
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 39,
+            "sec": 17.5,
+            "phase2": 9.9,
+            "window": 7.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 31,
+            "sec": 13.9,
+            "phase2": 7.7,
+            "window": 6.3,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 39,
-          "sec": 17.5
-        }
-      },
-      "grandsire": {
-        "before": {
-          "hp": 141,
-          "shield": 14,
-          "hits": 13,
-          "sec": 4.8,
-          "minHits": 16,
-          "maxHits": 12
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 31,
+            "sec": 13.9,
+            "phase2": 7.7,
+            "window": 6.3,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 26,
+            "sec": 11.7,
+            "phase2": 6.8,
+            "window": 4.9,
+            "powerLands": true
+          }
         },
-        "after": {
-          "hits": 13,
-          "sec": 4.8
+        "sword-rare-dmg": {
+          "name": "Wraith Coil",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 26,
+            "sec": 11.7,
+            "phase2": 6.8,
+            "window": 4.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 23,
+            "sec": 10.3,
+            "phase2": 5.9,
+            "window": 4.5,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 13,
+            "sec": 4.8,
+            "phase2": 3,
+            "window": 1.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 12,
+            "sec": 4.5,
+            "phase2": 2.6,
+            "window": 1.9,
+            "powerLands": true
+          }
         }
       }
     }
@@ -3079,16 +3853,16 @@
     },
     {
       "id": "sword-rare-haste",
-      "name": "Doom Spiral",
+      "name": "Dread Mark",
       "rarity": 2,
       "sheet": {
         "min": 3,
         "max": 6,
-        "aspd": 1.06,
-        "period": 0.425,
-        "windup": 0.076,
+        "aspd": 1.11,
+        "period": 0.405,
+        "windup": 0.073,
         "family": "sword",
-        "crit": 12,
+        "crit": 8,
         "ls": 0
       },
       "avg": 5,
@@ -3099,7 +3873,7 @@
             "hp": 56,
             "shield": 6,
             "hits": 13,
-            "sec": 5.5,
+            "sec": 5.3,
             "minHits": 21,
             "maxHits": 11
           },
@@ -3111,7 +3885,7 @@
             "hp": 77,
             "shield": 8,
             "hits": 17,
-            "sec": 7.2,
+            "sec": 6.9,
             "minHits": 29,
             "maxHits": 15
           },
@@ -3123,7 +3897,7 @@
             "hp": 98,
             "shield": 10,
             "hits": 22,
-            "sec": 9.4,
+            "sec": 8.9,
             "minHits": 36,
             "maxHits": 18
           },
@@ -3135,7 +3909,7 @@
             "hp": 120,
             "shield": 12,
             "hits": 27,
-            "sec": 11.5,
+            "sec": 10.9,
             "minHits": 44,
             "maxHits": 22
           },
@@ -3147,7 +3921,7 @@
             "hp": 141,
             "shield": 14,
             "hits": 31,
-            "sec": 13.2,
+            "sec": 12.6,
             "minHits": 52,
             "maxHits": 26
           },
@@ -3156,36 +3930,36 @@
             "hp": 840,
             "shield": 210,
             "hits": 210,
-            "sec": 89.2
+            "sec": 85.1
           }
         }
       ]
     },
     {
       "id": "sword-rare-dmg",
-      "name": "Doom Shell",
+      "name": "Wraith Coil",
       "rarity": 2,
       "sheet": {
-        "min": 5,
-        "max": 8,
+        "min": 4,
+        "max": 7,
         "aspd": 1,
         "period": 0.45,
         "windup": 0.081,
         "family": "sword",
-        "crit": 5,
-        "ls": 2
+        "crit": 12,
+        "ls": 0
       },
-      "avg": 7,
+      "avg": 6,
       "rows": [
         {
           "depth": 1,
           "se": {
             "hp": 56,
             "shield": 6,
-            "hits": 9,
-            "sec": 4.1,
-            "minHits": 13,
-            "maxHits": 8
+            "hits": 11,
+            "sec": 5,
+            "minHits": 16,
+            "maxHits": 9
           },
           "boss": null
         },
@@ -3194,10 +3968,10 @@
           "se": {
             "hp": 77,
             "shield": 8,
-            "hits": 13,
-            "sec": 5.9,
-            "minHits": 17,
-            "maxHits": 11
+            "hits": 15,
+            "sec": 6.8,
+            "minHits": 22,
+            "maxHits": 13
           },
           "boss": null
         },
@@ -3206,10 +3980,10 @@
           "se": {
             "hp": 98,
             "shield": 10,
-            "hits": 16,
-            "sec": 7.2,
-            "minHits": 22,
-            "maxHits": 14
+            "hits": 18,
+            "sec": 8.1,
+            "minHits": 27,
+            "maxHits": 16
           },
           "boss": null
         },
@@ -3218,10 +3992,10 @@
           "se": {
             "hp": 120,
             "shield": 12,
-            "hits": 19,
-            "sec": 8.6,
-            "minHits": 27,
-            "maxHits": 17
+            "hits": 22,
+            "sec": 9.9,
+            "minHits": 33,
+            "maxHits": 19
           },
           "boss": null
         },
@@ -3230,17 +4004,17 @@
           "se": {
             "hp": 141,
             "shield": 14,
-            "hits": 23,
-            "sec": 10.3,
-            "minHits": 31,
-            "maxHits": 20
+            "hits": 26,
+            "sec": 11.7,
+            "minHits": 39,
+            "maxHits": 23
           },
           "boss": {
             "name": "live",
             "hp": 840,
             "shield": 210,
-            "hits": 150,
-            "sec": 67.5
+            "hits": 175,
+            "sec": 78.8
           }
         }
       ]
@@ -3250,7 +4024,7 @@
     "summary": {
       "iasSumsOnce": true,
       "critOnce": true,
-      "critRatio": 1.69,
+      "critRatio": 2.5,
       "leechBeforeArmor": true,
       "bowSkipsLeech": true,
       "familyDoesNotChangeDamage": true
@@ -3263,23 +4037,23 @@
       "sumOnce": true
     },
     "crit": {
-      "baseNo": 13,
-      "rolledNo": 13,
-      "dealtNo": 13,
-      "baseYes": 11,
+      "baseNo": 12,
+      "rolledNo": 12,
+      "dealtNo": 12,
+      "baseYes": 15,
       "mul": 2,
-      "rolledYes": 22,
-      "dealtYes": 22,
-      "ratio": 1.69,
+      "rolledYes": 30,
+      "dealtYes": 30,
+      "ratio": 2.5,
       "liveAppliesOnce": true,
-      "pendingOnTop": 44
+      "pendingOnTop": 60
     },
     "leech": {
       "ls": 6,
-      "rolled": 12,
-      "leechBase": 12,
-      "healed": 0.72,
-      "ramDealt": 5,
+      "rolled": 14,
+      "leechBase": 14,
+      "healed": 0.84,
+      "ramDealt": 6,
       "ramArmor": 0.4,
       "healedOnFullRoll": true,
       "ramTookLess": true
@@ -3390,94 +4164,6 @@
     ],
     "bossUniqueDepth1": [
       {
-        "name": "Fool's Motley",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 0,
-        "ias": 11,
-        "base": "Cap"
-      },
-      {
-        "name": "Rootwake",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 8,
-        "hp": 16,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Gnarled Staff"
-      },
-      {
-        "name": "Wind Walkers",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 0,
-        "ias": 11,
-        "base": "Boots"
-      },
-      {
-        "name": "Hellmouth Strider",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 4,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Hellmouth Strider",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 4,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Spine of the First Lich",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 6,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Scream of the Banshee",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 10,
-        "hp": 0,
-        "dmg": 5,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Rootwake",
-        "lvl": 1,
-        "req": 2,
-        "min": 4,
-        "max": 8,
-        "hp": 16,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Gnarled Staff"
-      },
-      {
         "name": "Tam's Copper",
         "lvl": 1,
         "req": 2,
@@ -3500,81 +4186,26 @@
         "base": "Wooden Buckler"
       },
       {
-        "name": "Rootwake",
+        "name": "Wind Walkers",
         "lvl": 1,
         "req": 2,
-        "min": 4,
-        "max": 8,
-        "hp": 16,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Gnarled Staff"
-      },
-      {
-        "name": "Grandsire Oswin",
-        "lvl": 1,
-        "req": 2,
-        "min": 3,
-        "max": 7,
+        "min": 0,
+        "max": 0,
         "hp": 0,
-        "dmg": 6,
-        "ias": 21,
-        "base": "Short Sword"
+        "dmg": 0,
+        "ias": 11,
+        "base": "Boots"
       },
       {
-        "name": "Scream of the Banshee",
+        "name": "Hellmouth Strider",
         "lvl": 1,
         "req": 2,
         "min": 4,
         "max": 10,
         "hp": 0,
-        "dmg": 5,
-        "ias": 0,
-        "base": "Short Bow"
-      },
-      {
-        "name": "Fool's Motley",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 0,
-        "ias": 11,
-        "base": "Cap"
-      },
-      {
-        "name": "Eye of the Choir",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
         "dmg": 4,
         "ias": 0,
-        "base": "Ring"
-      },
-      {
-        "name": "Grandsire Oswin",
-        "lvl": 1,
-        "req": 2,
-        "min": 3,
-        "max": 7,
-        "hp": 0,
-        "dmg": 6,
-        "ias": 21,
-        "base": "Short Sword"
-      },
-      {
-        "name": "Fool's Motley",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 0,
-        "dmg": 0,
-        "ias": 11,
-        "base": "Cap"
+        "base": "Short Bow"
       },
       {
         "name": "Bloodbound Signet",
@@ -3597,17 +4228,6 @@
         "dmg": 0,
         "ias": 11,
         "base": "Cap"
-      },
-      {
-        "name": "Grandsire Oswin",
-        "lvl": 1,
-        "req": 2,
-        "min": 3,
-        "max": 7,
-        "hp": 0,
-        "dmg": 6,
-        "ias": 21,
-        "base": "Short Sword"
       },
       {
         "name": "Wind Walkers",
@@ -3621,6 +4241,17 @@
         "base": "Boots"
       },
       {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
         "name": "Ratcatcher's Coat",
         "lvl": 1,
         "req": 2,
@@ -3632,37 +4263,37 @@
         "base": "Leather Armor"
       },
       {
-        "name": "Tam's Lantern Bead",
+        "name": "Gravedigger's Due",
         "lvl": 1,
         "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 11,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Copper Charm"
-      },
-      {
-        "name": "Lanternjaw",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
-        "hp": 21,
-        "dmg": 0,
-        "ias": 0,
-        "base": "Helm"
-      },
-      {
-        "name": "Fool's Motley",
-        "lvl": 1,
-        "req": 2,
-        "min": 0,
-        "max": 0,
+        "min": 4,
+        "max": 10,
         "hp": 0,
-        "dmg": 0,
-        "ias": 11,
-        "base": "Cap"
+        "dmg": 7,
+        "ias": 0,
+        "base": "Hand Axe"
+      },
+      {
+        "name": "Grandsire Oswin",
+        "lvl": 1,
+        "req": 2,
+        "min": 3,
+        "max": 7,
+        "hp": 0,
+        "dmg": 6,
+        "ias": 21,
+        "base": "Short Sword"
+      },
+      {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
       },
       {
         "name": "Bloodbound Signet",
@@ -3676,6 +4307,105 @@
         "base": "Ring"
       },
       {
+        "name": "Fool's Motley",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Cap"
+      },
+      {
+        "name": "Tam's Copper",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Wind Walkers",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Boots"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 11,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Copper Charm"
+      },
+      {
+        "name": "Spine of the First Lich",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 6,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
+        "name": "Gravedigger's Due",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 7,
+        "ias": 0,
+        "base": "Hand Axe"
+      },
+      {
         "name": "Bloodbound Signet",
         "lvl": 1,
         "req": 2,
@@ -3683,6 +4413,39 @@
         "max": 0,
         "hp": 21,
         "dmg": 5,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Rootwake",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 8,
+        "hp": 16,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Gnarled Staff"
+      },
+      {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
         "ias": 0,
         "base": "Ring"
       },
@@ -3698,7 +4461,18 @@
         "base": "Short Bow"
       },
       {
-        "name": "Ratcatcher's Coat",
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Tam's Copper",
         "lvl": 1,
         "req": 2,
         "min": 0,
@@ -3706,18 +4480,18 @@
         "hp": 0,
         "dmg": 0,
         "ias": 0,
-        "base": "Leather Armor"
+        "base": "Ring"
       },
       {
-        "name": "Tam's Lantern Bead",
+        "name": "Tam's Coffin Lid",
         "lvl": 1,
         "req": 2,
         "min": 0,
         "max": 0,
-        "hp": 11,
+        "hp": 21,
         "dmg": 0,
         "ias": 0,
-        "base": "Copper Charm"
+        "base": "Wooden Buckler"
       }
     ]
   },
@@ -3799,5 +4573,52 @@
     "critMulBase": 2,
     "lifeDrainWired": false
   },
-  "pageErrors": []
+  "pageErrors": [],
+  "playtestUi": {
+    "boot": {
+      "hp": 60,
+      "maxHp": 60,
+      "depth": 1,
+      "version": "0.7.18",
+      "god": false
+    },
+    "level2": {
+      "lvl": 2,
+      "hp": 70,
+      "maxHp": 70,
+      "mp": 30,
+      "maxMp": 30,
+      "invincible": true,
+      "shiftT": 1000000000
+    },
+    "globeText": "70",
+    "heartText": "0",
+    "heartIsPotionCount": false,
+    "potionCount": 3,
+    "afterGod": {
+      "hp": 70,
+      "maxHp": 70,
+      "god": true,
+      "invincible": true
+    },
+    "afterHeal": {
+      "hp": 70,
+      "maxHp": 70
+    },
+    "afterDepth4": {
+      "depth": 4,
+      "hp": 70,
+      "maxHp": 70,
+      "lvl": 2
+    },
+    "afterDevSword": {
+      "hp": 70,
+      "maxHp": 70,
+      "weapon": "sword",
+      "lvl": 2,
+      "min": 3,
+      "max": 6
+    },
+    "errors": []
+  }
 }
