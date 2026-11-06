@@ -2847,6 +2847,6 @@ A migrated rare gains the base ward only. It does not gain the extra resist line
 - **Date:** 2026-11-06.
 - **Stage:** Not a combat stage. A manual Pages workflow for review. It was not dispatched. Pages `build_type` was not changed. Stage 11 was not started.
 - **Version / Commit:** `version.json` was not edited. It is still `0.7.18`, the same string as `const VERSION` in `index.html`. No new tag.
-- **Status:** Review only. Not live.
+- **Status:** Review only. Not live. Pull request #36.
 
 `.github/workflows/pages-publish.yml` is `workflow_dispatch` only. `.github/release-floor.txt` is `19318e31423238c2680423e25ce8f816a91c2450`, the Stage 10 commit that is already the live site. A commit below that floor, including tag `v0.7.18`, cannot be published unless the floor file changes in a reviewed pull request. The steps, the approval gate, and the cutover are in `RELEASE_PROCESS.md`. Gameplay and combat code were not edited.
