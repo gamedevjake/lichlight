@@ -3287,7 +3287,17 @@ function shakeOffset() { // trauma^2 with smooth noise; decays in update()
   const t = time * 32;
   return { x: s * (Math.sin(t * 1.13) * .6 + Math.sin(t * 2.71 + 1.7) * .4), y: s * (Math.sin(t * 1.37 + 4.1) * .6 + Math.sin(t * 2.29 + .3) * .4) };
 }
-function later(t, fn) { timers.push({ t, fn }); }
+function later(t, fn, src) { timers.push({ t, fn, src: src || null }); }
+function bodyR() { return player && player.r || 5; }
+function clearActorWindup(ent) {
+  if (!ent) return;
+  if (typeof teles !== 'undefined' && teles) {
+    for (let i = teles.length - 1; i >= 0; i--) if (teles[i] && teles[i].src === ent) teles.splice(i, 1);
+  }
+  if (typeof timers !== 'undefined' && timers) {
+    for (let i = timers.length - 1; i >= 0; i--) if (timers[i] && timers[i].src === ent) timers.splice(i, 1);
+  }
+}
 function tele(o) { const T = Object.assign({ t: 0, kind: 'circle', r: 16, w: 8, len: 140, col: '#ff3030' }, o); teles.push(T); return T; }
 function blast(x, y, r, dmg, label, opt = {}) {
   const p = player; effects.push({ kind: 'boom', x, y, t: 0, dur: .3, r, col: opt.col });
@@ -3460,30 +3470,31 @@ function bossAI(e, dt, d, ax, ay) {
     case 'ring': e.busy = .8; tele({ x: e.x, y: e.y, r: e.r + 6, dur: BOSS_TELL.ring, follow: e, col: '#ff8040', src: e, onDone: () => { if (e.hp > 0) ring(e, P2 ? 18 : 14, 72, Math.random() * 6.28, { kind: 'boss', mul: .7, life: 3.5 }); } }); break;
     case 'spiral': e.busy = 2.6; e.spiralT = BOSS_TELL.spiral; e.sa = Math.random() * 6.28; tele({ x: e.x, y: e.y, r: e.r + 10, dur: BOSS_TELL.spiral, follow: e, col: '#ff8040', src: e }); break;
     case 'spread': {
-      const volleys = 2; e.busy = BOSS_TELL.spread + volleys * 0.5 + 0.15;
-      for (let v = 0; v < volleys; v++) later(v * 0.5, () => { if (e.hp <= 0 || state !== 'play') return; const a = angTo(e, player), n = P2 ? 7 : 5; for (let k = 0; k < n; k++) { const off = (k - (n - 1) / 2) * .2; tele({ kind: 'line', x: e.x, y: e.y, w: 6, len: 160, dur: BOSS_TELL.spread, a: a + off, off, col: '#ff8040', src: e, lockAt: 0.3, onDone: T2 => { if (e.hp <= 0 || state !== 'play') return; eShoot(e, T2.a, 105, { kind: 'boss', mul: .7 }); } }); } });
+      const volleys = 2, boltR = 3, reach = 160, lane = (boltR + bodyR()) * 2;
+      e.busy = BOSS_TELL.spread + volleys * 0.5 + 0.15;
+      for (let v = 0; v < volleys; v++) later(v * 0.5, () => { if (e.hp <= 0 || state !== 'play' || ccImmobilized(e)) return; const a = angTo(e, player), n = P2 ? 7 : 5; for (let k = 0; k < n; k++) { const off = (k - (n - 1) / 2) * .2; tele({ kind: 'line', x: e.x, y: e.y, w: lane, len: reach, dur: BOSS_TELL.spread, a: a + off, off, col: '#ff8040', src: e, lockAt: 0.3, match: true, onDone: T2 => { if (e.hp <= 0 || state !== 'play' || ccImmobilized(e)) return; eShoot(e, T2.a, 105, { kind: 'boss', mul: .7, y: e.y, r: boltR, life: reach / 105 }); } }); } }, e);
       break;
     }
-    case 'charge': e.busy = 9; lineTele(e, BOSS_TELL.charge, e.r * 2, 200, true, T2 => { if (e.hp <= 0) return; e.mode = 'charge'; e.busy = .9; e.cx = Math.cos(T2.a); e.cy = Math.sin(T2.a); }); break;
-    case 'slam': { const n = P2 ? 3 : 1; e.busy = BOSS_TELL.slam + (n - 1) * .4 + .2;
-      for (let k = 0; k < n; k++) later(k * .4, () => { if (e.hp <= 0 || state !== 'play') return; const x = player.x, y = player.y; tele({ x, y, r: 26, dur: BOSS_TELL.slam, col: '#ff3030', src: e, onDone: () => blast(x, y, 26, dm * 1.15, e.name, { col: '#e8e0c8', tr: .5, from: e }) }); }); break; }
-    case 'hop': { const x = p.x, y = p.y; e.busy = BOSS_TELL.hop; e.hopDur = BOSS_TELL.hop; e.hx = x; e.hy = y;
-      tele({ x, y, r: 28, dur: BOSS_TELL.hop, col: '#ff3030', src: e, onDone: () => { if (e.hp <= 0) return; const s = solidAt(x, y) ? { x: e.x, y: e.y } : { x, y }; e.x = s.x; e.y = s.y;
-        blast(e.x, e.y, 28, dm * 1.1, e.name, { col: '#58b048', tr: .45, from: e });
-        if (P2) tele({ x: e.x, y: e.y, r: e.r + 8, dur: BOSS_TELL.hopRing, follow: e, col: '#ff8040', src: e, onDone: () => { if (e.hp > 0) ring(e, 8, 60, 0, { kind: 'boss', mul: .6 }); } }); } }); break; }
-    case 'nova': e.busy = 1.3; tele({ x: e.x, y: e.y, r: 58, dur: BOSS_TELL.nova, follow: e, col: '#ff3030', src: e, onDone: () => { if (e.hp > 0) blast(e.x, e.y, 58, dm * 1.1, e.name, { col: '#80c0ff', tr: .5, from: e }); } }); break;
+    case 'charge': e.busy = 9; lineTele(e, BOSS_TELL.charge, (e.r + bodyR() + 3) * 2, 260 * 0.9, true, T2 => { if (e.hp <= 0 || ccImmobilized(e)) return; e.mode = 'charge'; e.busy = .9; e.cx = Math.cos(T2.a); e.cy = Math.sin(T2.a); }); break;
+    case 'slam': { const n = P2 ? 3 : 1, blastR = 26; e.busy = BOSS_TELL.slam + (n - 1) * .4 + .2;
+      for (let k = 0; k < n; k++) later(k * .4, () => { if (e.hp <= 0 || state !== 'play' || ccImmobilized(e)) return; const x = player.x, y = player.y; tele({ x, y, r: blastR + bodyR(), dur: BOSS_TELL.slam, col: '#ff3030', src: e, match: true, onDone: () => { if (ccImmobilized(e)) return; blast(x, y, blastR, dm * 1.15, e.name, { col: '#e8e0c8', tr: .5, from: e }); } }); }, e); break; }
+    case 'hop': { const x = p.x, y = p.y, blastR = 28; e.busy = BOSS_TELL.hop; e.hopDur = BOSS_TELL.hop; e.hx = x; e.hy = y;
+      tele({ x, y, r: blastR + bodyR(), dur: BOSS_TELL.hop, col: '#ff3030', src: e, match: true, onDone: () => { if (e.hp <= 0 || ccImmobilized(e)) return; const s = solidAt(x, y) ? { x: e.x, y: e.y } : { x, y }; e.x = s.x; e.y = s.y;
+        blast(e.x, e.y, blastR, dm * 1.1, e.name, { col: '#58b048', tr: .45, from: e });
+        if (P2) tele({ x: e.x, y: e.y, r: e.r + 8, dur: BOSS_TELL.hopRing, follow: e, col: '#ff8040', src: e, match: true, onDone: () => { if (e.hp > 0 && !ccImmobilized(e)) ring(e, 8, 60, 0, { kind: 'boss', mul: .6 }); } }); } }); break; }
+    case 'nova': { const blastR = 58; e.busy = 1.3; tele({ x: e.x, y: e.y, r: blastR + bodyR(), dur: BOSS_TELL.nova, follow: e, col: '#ff3030', src: e, match: true, onDone: () => { if (e.hp > 0 && !ccImmobilized(e)) blast(e.x, e.y, blastR, dm * 1.1, e.name, { col: '#80c0ff', tr: .5, from: e }); } }); break; }
     case 'summon': e.busy = 1; summonAt(e, B.minion || 'skel', P2 ? 3 : 2, 6); e.glow = .8; break;
     case 'teleport': { const s = freeNear(p.x, p.y, 60, 95); e.busy = 1.6;
       tele({ x: s.x, y: s.y, r: e.r, dur: BOSS_TELL.teleport, col: '#c060ff', src: e, onDone: () => { if (e.hp <= 0) return; burst(e.x, e.y, '#c060ff', 14, 60); e.x = s.x; e.y = s.y; e.hidden = false; burst(e.x, e.y, '#c060ff', 14, 60);
         tele({ x: e.x, y: e.y, r: e.r + 8, dur: BOSS_TELL.teleportRing, follow: e, col: '#ff8040', src: e, onDone: () => { if (e.hp > 0) ring(e, P2 ? 12 : 10, 65, Math.random() * 6, { kind: 'boss', mul: .6 }); } }); } });
       later(.2, () => { if (e.mode === 'teleport') e.hidden = true; }); break; }
-    case 'lob': { const n = P2 ? 6 : 4; e.busy = 1.2; for (let k = 0; k < n; k++) { const s = k === 0 ? { x: p.x, y: p.y } : freeNear(p.x, p.y, 10, 55); lob(e, s.x, s.y, 16, BOSS_TELL.lob + k * .08, dm * .9, B.lobHaz || 'poison'); } break; }
-    case 'beam': { const n = P2 ? 5 : 3, base = angTo(e, p); e.busy = 1.4;
+    case 'lob': { const n = P2 ? 6 : 4, blastR = 16; e.busy = 1.2; for (let k = 0; k < n; k++) { const s = k === 0 ? { x: p.x, y: p.y } : freeNear(p.x, p.y, 10, 55); tele({ x: s.x, y: s.y, r: blastR + bodyR(), dur: BOSS_TELL.lob + k * .08, col: '#ff8040', src: e, match: true, lob: { sx: e.x, sy: e.y - 6 }, onDone: () => { if (e.hp <= 0 || ccImmobilized(e)) return; blast(s.x, s.y, blastR, dm * .9, e.name, { col: '#a0e040', tr: .08, from: e }); hazard(s.x, s.y, blastR * .9, B.lobHaz || 'poison', (B.lobHaz || 'poison') === 'poison' ? 3 : 4, dm * .9 * .15, e.name); } }); } break; }
+    case 'beam': { const n = P2 ? 5 : 3, base = angTo(e, p), half = 6 + bodyR(); e.busy = 1.4;
       for (let k = 0; k < n; k++) { const off = (k - (n - 1) / 2) * .45;
-        tele({ kind: 'line', x: e.x, y: e.y, w: 8, len: 220, dur: BOSS_TELL.beam, a: base + off, off, col: '#ff40ff', src: e, lockAt: .55, track: true, onDone: T2 => {
-          if (e.hp <= 0) return; const x2 = e.x + Math.cos(T2.a) * 220, y2 = e.y + Math.sin(T2.a) * 220;
+        tele({ kind: 'line', x: e.x, y: e.y, w: half * 2, len: 220, dur: BOSS_TELL.beam, a: base + off, off, col: '#ff40ff', src: e, lockAt: .55, track: true, match: true, onDone: T2 => {
+          if (e.hp <= 0 || ccImmobilized(e)) return; const x2 = e.x + Math.cos(T2.a) * T2.len, y2 = e.y + Math.sin(T2.a) * T2.len;
           effects.push({ kind: 'beam', x: e.x, y: e.y, x2, y2, t: 0, dur: .3, col: '#ff80ff', w: 4 }); addTrauma(.12);
-          if (segDist(player.x, player.y, e.x, e.y, x2, y2) < 6 + player.r) hurtPlayer(dm, { x: e.x, y: e.y, label: e.name, from: e }); } }); }
+          if (segDist(player.x, player.y, e.x, e.y, x2, y2) <= T2.w / 2) hurtPlayer(dm, { x: e.x, y: e.y, label: e.name, from: e }); } }); }
       break; }
   }
 }
@@ -3582,8 +3593,9 @@ function drawTeles() {
     const X = Math.round(T.x), Y = Math.round(T.y);
     if (T.lob) { const lx = T.lob.sx + (T.x - T.lob.sx) * k, ly = T.lob.sy + (T.y - T.lob.sy) * k - Math.sin(k * Math.PI) * 34;
       ctx.fillStyle = '#100810'; ctx.fillRect(Math.round(lx) - 2, Math.round(ly) - 2, 5, 5); ctx.fillStyle = '#a0e040'; ctx.fillRect(Math.round(lx) - 1, Math.round(ly) - 1, 3, 3); }
-    ctx.globalAlpha = .12 + k * .22; ctx.fillStyle = T.col; ctx.beginPath(); ctx.ellipse(X, Y, T.r * k, T.r * k * .7, 0, 0, 6.29); ctx.fill();
-    ctx.globalAlpha = blink ? 1 : .75; ctx.strokeStyle = T.col; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(X + .5, Y + .5, T.r, T.r * .7, 0, 0, 6.29); ctx.stroke();
+    const ry = T.match ? 1 : .7;
+    ctx.globalAlpha = .12 + k * .22; ctx.fillStyle = T.col; ctx.beginPath(); ctx.ellipse(X, Y, T.r * k, T.r * k * ry, 0, 0, 6.29); ctx.fill();
+    ctx.globalAlpha = blink ? 1 : .75; ctx.strokeStyle = T.col; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(X + .5, Y + .5, T.r, T.r * ry, 0, 0, 6.29); ctx.stroke();
     if (T.rune) { ctx.fillStyle = '#e0a0ff'; for (let i = 0; i < 4; i++) { const an = time * 3 + i * 1.57; ctx.fillRect(Math.round(X + Math.cos(an) * T.r), Math.round(Y + Math.sin(an) * T.r * .7), 2, 2); } }
     ctx.globalAlpha = 1;
   }
@@ -5718,9 +5730,7 @@ function interruptControl(ent) {
   if (ent.seAct) ent.seAct = '';
   if (ent.ai && ent.ai.state === 'CHARGING') ent.ai.state = 'CHASE';
   if (ent.patCd != null && ent.patCd < 0.35) ent.patCd = 0.35;
-  if (typeof teles !== 'undefined' && teles && teles.length) {
-    for (let i = teles.length - 1; i >= 0; i--) if (teles[i] && teles[i].src === ent) teles.splice(i, 1);
-  }
+  clearActorWindup(ent);
 }
 function poiseClassOf(meta) {
   if (!meta || meta.isDot) return 'none';
@@ -10057,6 +10067,7 @@ function hellmouthBite(e) {
     if (bite < 1) bite = 1;
     if (bite > sh) bite = sh;
     e.shield -= bite;
+    if (e.shield < 0) e.shield = 0;
     addFoeText(e.x, e.y - 10, bite, '#ff7040');
   }
   applyPoiseDamage(e, { cls: 'skill', amount: POISE_CLASS_DMG.skill });
@@ -14626,7 +14637,7 @@ function seSpawnVfx717(id, x, y, face) {
 // mul is the old powerup ratio (1.7) or a smaller brand. It is not a phase-wide damage buff.
 // A 0.2 move floor still walks out of power and brand. The swing locks after 0.25s so the lane can be left.
 const SE_TELL = {
-  swing: { dur: 1.0, gap: 0.7, w: 8, len: 52, hit: 8, mul: 1, act: 'attack', col: '#ff4040' },
+  swing: { dur: 1.0, gap: 0.7, w: 16, len: 52, hit: 8, mul: 1, act: 'attack', col: '#ff4040' },
   power: { dur: 1.3, gap: 0.9, r: 10, mul: 1.7, act: 'powerup', col: '#ff8040' },
   brand: { dur: 1.15, gap: 0.75, r: 8, mul: 0.85, act: 'attack', col: '#c080ff' }
 };
@@ -14645,9 +14656,7 @@ function seNextKind(e) {
 }
 function seClearTell(e) {
   if (!e) return;
-  if (typeof teles !== 'undefined' && teles) {
-    for (let i = teles.length - 1; i >= 0; i--) if (teles[i] && teles[i].src === e && teles[i].seTell) teles.splice(i, 1);
-  }
+  clearActorWindup(e);
   e.seAct = ''; e.seKind = '';
 }
 function seResolveTell(e, kind, spec) {
@@ -14657,10 +14666,16 @@ function seResolveTell(e, kind, spec) {
   let hit = false;
   if (kind === 'swing') {
     const a = spec && Number.isFinite(+spec.a) ? +spec.a : (e.seAim || 0);
-    const x2 = e.x + Math.cos(a) * row.len, y2 = e.y + Math.sin(a) * row.len;
-    hit = segDist(player.x, player.y, e.x, e.y, x2, y2) < row.hit;
-  } else if (kind === 'power') hit = Math.hypot(player.x - e.x, player.y - e.y) < row.r + (player.r || 5);
-  else hit = Math.hypot(player.x - (e.seMx || 0), player.y - (e.seMy || 0)) < row.r + (player.r || 5);
+    const len = spec && spec.len > 0 ? spec.len : row.len;
+    const half = spec && spec.w > 0 ? spec.w / 2 : row.hit;
+    const x1 = spec && Number.isFinite(+spec.x) ? spec.x : e.x, y1 = spec && Number.isFinite(+spec.y) ? spec.y : e.y;
+    hit = segDist(player.x, player.y, x1, y1, x1 + Math.cos(a) * len, y1 + Math.sin(a) * len) <= half;
+  } else if (kind === 'power' || kind === 'brand') {
+    const cx = spec && Number.isFinite(+spec.x) ? spec.x : (kind === 'power' ? e.x : e.seMx);
+    const cy = spec && Number.isFinite(+spec.y) ? spec.y : (kind === 'power' ? e.y : e.seMy);
+    const rad = spec && spec.r > 0 ? spec.r : row.r + bodyR();
+    hit = Math.hypot(player.x - cx, player.y - cy) <= rad;
+  }
   const cueId = SE_ATK_CUE[e.seId] || 'enm_se_attack_01';
   if (typeof cueAt === 'function') cueAt(cueId, e.x, e.y, 320, kind === 'power' ? 1 : 0.85);
   const info = seRoster717(e.seId);
@@ -14676,9 +14691,9 @@ function seBeginTell(e, kind) {
   e.seMx = player.x; e.seMy = player.y;
   e.seAct = row.act; e.seActT = 0; e.seHit = true; e.seKind = kind;
   e.seStep = ((e.seStep | 0) + 1) % 6;
-  if (kind === 'swing') tele({ kind: 'line', x: e.x, y: e.y, w: row.w, len: row.len, dur: row.dur, a: e.seAim, col: row.col, src: e, lockAt: 0.25, seTell: kind, onDone: T2 => seResolveTell(e, 'swing', T2) });
-  else if (kind === 'power') tele({ kind: 'circle', x: e.x, y: e.y, r: row.r, dur: row.dur, follow: e, col: row.col, src: e, seTell: kind, onDone: T2 => seResolveTell(e, 'power', T2) });
-  else tele({ kind: 'circle', x: player.x, y: player.y, r: row.r, dur: row.dur, col: row.col, src: e, seTell: kind, onDone: T2 => seResolveTell(e, 'brand', T2) });
+  if (kind === 'swing') tele({ kind: 'line', x: e.x, y: e.y, w: row.w, len: row.len, dur: row.dur, a: e.seAim, col: row.col, src: e, lockAt: 0.25, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'swing', T2) });
+  else if (kind === 'power') tele({ kind: 'circle', x: e.x, y: e.y, r: row.r + bodyR(), dur: row.dur, follow: e, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'power', T2) });
+  else tele({ kind: 'circle', x: player.x, y: player.y, r: row.r + bodyR(), dur: row.dur, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'brand', T2) });
   return true;
 }
 function seTick717(dt) {

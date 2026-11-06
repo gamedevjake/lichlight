@@ -1370,6 +1370,27 @@ That tag is `1fb0f155ca794750167f143182869222bdfab790`. Do not move it.
 
 Wait for Jake. Do not merge this PR. Do not deploy. Do not start Stage 10. Do not turn on caster elements. Do not add resist loot.
 
+### 2026-11-06 — Stage 9 pre-merge checks
+
+Jake approved Stage 9 in principle and asked for these checks before merge. They were run on this branch. The PR was not merged. `version.json` was not changed. Stage 10 was not started.
+
+The checks found two real mismatches, and both were fixed before the suite was accepted.
+
+1. **A tell could be smaller than the hit.** Circle blasts used a radius `R` on an isometric ellipse while `blast` hit `R + player radius`. The Super Elite swing drew a band 8px wide and hit anything within 8px of the center line. Spread bolts traveled past the 160px line, and a charge traveled 234px down a 200px line. Dangerous boss and Super Elite tells now store the hit radius or the hit width on the telegraph itself. `match` draws that circle as a circle. A blast still uses its old radius, and the outline is that radius plus the body, which is the distance `blast` already used. Spread bolts die at the end of the lane. The charge line is as long as the charge and as wide as contact.
+2. **A canceled pattern could still go off.** Stagger removed the live telegraph and left the `later` callbacks that spawned the next slam or the next spread volley. `later` now keeps the actor, and stagger or a cleared tell drops those callbacks. A tell's `onDone` also refuses a staggered actor, so a canceled windup does not deal damage on a later frame.
+
+The 25% shield bite already stopped at the remaining shield. It now also clamps the result at 0. It still does not write HP.
+
+| Check | Result |
+| --- | --- |
+| Movement at the 20% floor, recovery, stagger, and overlapping tells | PASS. A chilled, slowed player on the move floor walks out of the power circle before it lands. The next Super Elite tell waits out its gap. A second tell does not stack. Stagger deletes the swing, and the hit does not arrive later. |
+| Telegraph geometry and canceled damage | PASS. The swing stripe, power circle, and slam circle match the hit distance, including the edge and one step outside it. A slam does not hurt during the windup. A staggered spread does not fire its later volleys. |
+| Hellmouth versus intro, shield, death, and stairs | PASS. Six casts during drop leave HP and shield unchanged, damage is still `prevented: 'super-elite'`, and the stairs stay shut. A save and reload keeps that intro. After the fight starts, bites empty the shield and leave HP alone. A real kill opens the stairs. A later cast does not revive the body. A saved death stays dead. |
+| Shield bite sign and HP | PASS. Starting shields 1, 2, 3, 9, and 25 all end at 0. None go negative. HP stays 90. |
+| Resist rows once, Physical unchanged | PASS. 100 Physical into Mother Murk is 100. 100 Poison into her Poison 20 row is 80, with `penHits` 1. 100 Physical into Magmafiend is 100. 100 Fire into its Fire 20 row is 80, with `penHits` 1. |
+
+`tests/stage9-bosses.html` is 76/0 after these checks. Stages 1–8 stayed 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0. Against the pre-stage9 tag, the only legacy failure-name movement was the known flakes: `v0711` emitted one extra pass and a re-run returned to 42/5 with the same five names; `v0714` was 40/1 on the full pass and 33/8 on a re-run (footer and tab names); `v07152` was 34/3 then 36/1 with only `version`; `v076` stayed 48/0; `v075` stayed 59/1 with only `f3 multi select`. No new failure name.
+
 ---
 
 ## Combat System Reference
