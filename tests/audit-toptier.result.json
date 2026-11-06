@@ -1,0 +1,4859 @@
+{
+  "version": "0.7.18",
+  "commitNote": "live index.html functions",
+  "error": "",
+  "progression": {
+    "xpGate": {
+      "onlyFirst": {
+        "lvl": 2,
+        "xp": 32,
+        "need": 87
+      },
+      "both": {
+        "lvl": 3,
+        "xp": 21,
+        "need": 164
+      },
+      "seXp1": 62,
+      "seXp2": 76
+    },
+    "trials": 240,
+    "life": {
+      "min": 70,
+      "p50": 74,
+      "p90": 91,
+      "p99": 102,
+      "max": 111
+    },
+    "reach190": 0,
+    "reach198": 0,
+    "level3": {
+      "min": 80,
+      "p50": 101,
+      "max": 155
+    },
+    "hist": {
+      "70": 136,
+      "80": 56,
+      "90": 40,
+      "100": 7,
+      "110": 1
+    },
+    "best": {
+      "maxHp": 111,
+      "dmg": "7-12",
+      "detail": [
+        {
+          "slot": "weapon",
+          "src": "keyed-chest",
+          "name": "Lucid Broad Sword of the Whale",
+          "base": "Broad Sword",
+          "lvl": 2,
+          "rar": 1,
+          "req": 1,
+          "hp": 10,
+          "def": 0,
+          "min": 6,
+          "max": 11
+        },
+        {
+          "slot": "armor",
+          "src": "keyed-chest",
+          "name": "Hale Leather Armor",
+          "base": "Leather Armor",
+          "lvl": 2,
+          "rar": 1,
+          "req": 1,
+          "hp": 0,
+          "def": 3,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "helm",
+          "src": "super-elite",
+          "name": "Lanternjaw",
+          "base": "Helm",
+          "lvl": 1,
+          "rar": 3,
+          "req": 2,
+          "hp": 21,
+          "def": 4,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "amulet",
+          "src": "keyed-chest",
+          "name": "Bone Pendant",
+          "base": "Bone Pendant",
+          "lvl": 3,
+          "rar": 0,
+          "req": 1,
+          "hp": 10,
+          "def": 0,
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "sumHp": 41,
+      "level3": 143,
+      "sources": {
+        "keyed-chest": 3,
+        "super-elite": 1,
+        "placed": 1,
+        "secret-chest": 1
+      },
+      "wearable": 4,
+      "blocked": 2
+    },
+    "p99build": {
+      "maxHp": 102,
+      "dmg": "8-12",
+      "detail": [
+        {
+          "slot": "weapon",
+          "src": "keyed-chest",
+          "name": "Short Sword",
+          "base": "Short Sword",
+          "lvl": 2,
+          "rar": 0,
+          "req": 1,
+          "hp": 0,
+          "def": 0,
+          "min": 2,
+          "max": 6
+        },
+        {
+          "slot": "ring",
+          "src": "super-elite",
+          "name": "Bloodbound Signet",
+          "base": "Ring",
+          "lvl": 1,
+          "rar": 3,
+          "req": 2,
+          "hp": 21,
+          "def": 0,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "armor",
+          "src": "keyed-chest",
+          "name": "Sturdy Leather Armor of the Vigil",
+          "base": "Leather Armor",
+          "lvl": 3,
+          "rar": 1,
+          "req": 1,
+          "hp": 11,
+          "def": 4,
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "sumHp": 32,
+      "level3": 112,
+      "sources": {
+        "keyed-chest": 2,
+        "super-elite": 1,
+        "placed": 1,
+        "secret-chest": 1
+      },
+      "wearable": 3,
+      "blocked": 2
+    },
+    "medianBuild": {
+      "maxHp": 74,
+      "dmg": "4-8",
+      "detail": [
+        {
+          "slot": "weapon",
+          "src": "keyed-chest",
+          "name": "Gnarled Staff",
+          "base": "Gnarled Staff",
+          "lvl": 2,
+          "rar": 0,
+          "req": 1,
+          "hp": 0,
+          "def": 0,
+          "min": 3,
+          "max": 7
+        },
+        {
+          "slot": "boots",
+          "src": "keyed-chest",
+          "name": "Greaves",
+          "base": "Greaves",
+          "lvl": 3,
+          "rar": 0,
+          "req": 1,
+          "hp": 0,
+          "def": 5,
+          "min": 0,
+          "max": 0
+        },
+        {
+          "slot": "ring",
+          "src": "keyed-chest",
+          "name": "Ring",
+          "base": "Ring",
+          "lvl": 3,
+          "rar": 0,
+          "req": 1,
+          "hp": 4,
+          "def": 0,
+          "min": 0,
+          "max": 0
+        }
+      ],
+      "sumHp": 4,
+      "level3": 112,
+      "sources": {
+        "keyed-chest": 4,
+        "super-elite": 1,
+        "placed": 1,
+        "champion": 2
+      },
+      "wearable": 7,
+      "blocked": 1
+    },
+    "bonePendant": {
+      "samples": 80,
+      "stackedAboveImplicit": 18,
+      "highest": 27
+    },
+    "lonePendant": {
+      "mod": 26,
+      "maxHp": 106,
+      "extra": 10
+    },
+    "shopOnEarlyFloors": false,
+    "notes": [
+      "Shop is placed only on boss floors. Depths 1-2 have no Hollow Pedlar.",
+      "Descending requires the depth-1 Super Elite. Its 62 xp reaches level 2. The depth-2 Super Elite is another 76 xp and reaches level 3.",
+      "Secret gilt chests use item level depth+2 and are included. At depth 2 that is item level 4, which required level blocks at level 2.",
+      "Keyed chests are included at the live 50% item gate. Placed ground gear (sealed rooms, vaults, islands) is taken from the generated floor."
+    ]
+  },
+  "hp198": {
+    "uiNaked": {
+      "levelLine": "LEVEL 2   DEPTH 1",
+      "lifeLine": "LIFE 70/70",
+      "manaLine": "MANA 30/30",
+      "globeNumber": "70",
+      "touchHeartNumber": 3,
+      "touchHeartIsPotionCount": true,
+      "barrier": 0,
+      "maxHp": 70,
+      "hp": 70
+    },
+    "formula": "50 + level*10 + sum(mods.hp)",
+    "level2Base": 70,
+    "needFor198": 128,
+    "ceilingGear": {
+      "weapon": {
+        "kind": "unique",
+        "name": "Rootwake",
+        "L": 2,
+        "hp": 17,
+        "req": 2
+      },
+      "helm": {
+        "kind": "unique",
+        "name": "Lanternjaw",
+        "L": 3,
+        "hp": 23,
+        "req": 2
+      },
+      "ring": {
+        "kind": "unique",
+        "name": "Bloodbound Signet",
+        "L": 3,
+        "hp": 23,
+        "req": 2
+      },
+      "shield": {
+        "kind": "unique",
+        "name": "Tam's Coffin Lid",
+        "L": 3,
+        "hp": 23,
+        "req": 2
+      },
+      "amulet": {
+        "kind": "rare-max",
+        "name": "Copper Charm",
+        "L": 3,
+        "hp": 17,
+        "req": 1
+      },
+      "armor": {
+        "kind": "rare-max",
+        "name": "Leather Armor",
+        "L": 3,
+        "hp": 17,
+        "req": 1
+      },
+      "boots": {
+        "kind": "rare-max",
+        "name": "Boots",
+        "L": 3,
+        "hp": 17,
+        "req": 1
+      }
+    },
+    "ceilingSheet": {
+      "hp": 207,
+      "def": 30,
+      "gear": [
+        "Rootwake r3",
+        "Tam's Coffin Lid r3",
+        "Lanternjaw r3",
+        "Leather Armor r2",
+        "Boots r2",
+        "Bloodbound Signet r3",
+        "Copper Charm r2"
+      ],
+      "gearHp": 137
+    },
+    "shopBestWearable": {},
+    "uniqSample": [
+      {
+        "name": "Rootwake",
+        "slot": "weapon",
+        "L": 1,
+        "req": 2,
+        "hp": 16,
+        "wearable": true
+      },
+      {
+        "name": "Rootwake",
+        "slot": "weapon",
+        "L": 3,
+        "req": 2,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "name": "Lanternjaw",
+        "slot": "helm",
+        "L": 1,
+        "req": 2,
+        "hp": 21,
+        "wearable": true
+      },
+      {
+        "name": "Lanternjaw",
+        "slot": "helm",
+        "L": 3,
+        "req": 2,
+        "hp": 23,
+        "wearable": true
+      },
+      {
+        "name": "Bloodbound Signet",
+        "slot": "ring",
+        "L": 1,
+        "req": 2,
+        "hp": 21,
+        "wearable": true
+      },
+      {
+        "name": "Bloodbound Signet",
+        "slot": "ring",
+        "L": 3,
+        "req": 2,
+        "hp": 23,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "slot": "shield",
+        "L": 1,
+        "req": 2,
+        "hp": 21,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "slot": "shield",
+        "L": 3,
+        "req": 2,
+        "hp": 23,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "slot": "amulet",
+        "L": 1,
+        "req": 2,
+        "hp": 11,
+        "wearable": true
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "slot": "amulet",
+        "L": 3,
+        "req": 2,
+        "hp": 12,
+        "wearable": true
+      },
+      {
+        "name": "Hollowmere Mail",
+        "L": 1,
+        "missing": true
+      },
+      {
+        "name": "Hollowmere Mail",
+        "slot": "armor",
+        "L": 3,
+        "req": 3,
+        "hp": 46,
+        "wearable": false
+      },
+      {
+        "name": "The Last Bastion",
+        "L": 1,
+        "missing": true
+      },
+      {
+        "name": "The Last Bastion",
+        "L": 3,
+        "missing": true
+      },
+      {
+        "name": "Mother Merrow's Locket",
+        "L": 1,
+        "missing": true
+      },
+      {
+        "name": "Mother Merrow's Locket",
+        "L": 3,
+        "missing": true
+      },
+      {
+        "name": "Grandsire Oswin",
+        "slot": "weapon",
+        "L": 1,
+        "req": 2,
+        "hp": 0,
+        "wearable": true
+      },
+      {
+        "name": "Grandsire Oswin",
+        "slot": "weapon",
+        "L": 3,
+        "req": 2,
+        "hp": 0,
+        "wearable": true
+      }
+    ],
+    "rareReq": [
+      {
+        "base": "Short Sword",
+        "slot": "weapon",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Short Sword",
+        "slot": "weapon",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Leather Armor",
+        "slot": "armor",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Leather Armor",
+        "slot": "armor",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Cap",
+        "slot": "helm",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Cap",
+        "slot": "helm",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Boots",
+        "slot": "boots",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Boots",
+        "slot": "boots",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Ring",
+        "slot": "ring",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Ring",
+        "slot": "ring",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Copper Charm",
+        "slot": "amulet",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Copper Charm",
+        "slot": "amulet",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      },
+      {
+        "base": "Wooden Buckler",
+        "slot": "shield",
+        "L": 3,
+        "req": 1,
+        "hp": 17,
+        "wearable": true
+      },
+      {
+        "base": "Wooden Buckler",
+        "slot": "shield",
+        "L": 4,
+        "req": 4,
+        "hp": 20,
+        "wearable": false
+      }
+    ],
+    "playtestActions": {
+      "beforeDepth": {
+        "lvl": 2,
+        "maxHp": 207
+      },
+      "afterDepth8Refill": {
+        "depth": 8,
+        "lvl": 2,
+        "maxHp": 207,
+        "hp": 207
+      },
+      "afterHeal": {
+        "hp": 207,
+        "maxHp": 207
+      },
+      "afterGod": {
+        "hp": 207,
+        "maxHp": 207,
+        "invincible": true
+      },
+      "afterDevSword": {
+        "lvl": 2,
+        "maxHp": 70,
+        "min": 3,
+        "max": 6
+      }
+    }
+  },
+  "mana": {
+    "naked8s": {
+      "start": 30,
+      "end": 2.8,
+      "max": 30,
+      "casts": 10,
+      "spent": 40,
+      "sheetCost": 4,
+      "charged": 4,
+      "cd": 0.45,
+      "regenPerSec": 1.5999999999999999,
+      "trace": [
+        {
+          "t": 1,
+          "mp": 23.6,
+          "casts": 2
+        },
+        {
+          "t": 2,
+          "mp": 17.2,
+          "casts": 4
+        },
+        {
+          "t": 3,
+          "mp": 10.8,
+          "casts": 6
+        },
+        {
+          "t": 4,
+          "mp": 4.4,
+          "casts": 8
+        },
+        {
+          "t": 5,
+          "mp": 2,
+          "casts": 9
+        },
+        {
+          "t": 6,
+          "mp": 3.6,
+          "casts": 9
+        },
+        {
+          "t": 7,
+          "mp": 1.2,
+          "casts": 10
+        },
+        {
+          "t": 8,
+          "mp": 2.8,
+          "casts": 10
+        }
+      ],
+      "expectedEnd": 2.8,
+      "matchesRegenPlusCost": true
+    },
+    "eye8s": {
+      "start": 83,
+      "end": 31.8,
+      "max": 83,
+      "casts": 16,
+      "spent": 64,
+      "sheetCost": 4,
+      "charged": 4,
+      "cd": 0.45,
+      "regenPerSec": 1.5999999999999999,
+      "trace": [
+        {
+          "t": 1,
+          "mp": 76.6,
+          "casts": 2
+        },
+        {
+          "t": 2,
+          "mp": 70.2,
+          "casts": 4
+        },
+        {
+          "t": 3,
+          "mp": 63.8,
+          "casts": 6
+        },
+        {
+          "t": 4,
+          "mp": 57.4,
+          "casts": 8
+        },
+        {
+          "t": 5,
+          "mp": 51,
+          "casts": 10
+        },
+        {
+          "t": 6,
+          "mp": 44.6,
+          "casts": 12
+        },
+        {
+          "t": 7,
+          "mp": 38.2,
+          "casts": 14
+        },
+        {
+          "t": 8,
+          "mp": 31.8,
+          "casts": 16
+        }
+      ],
+      "expectedEnd": 31.8,
+      "matchesRegenPlusCost": true
+    },
+    "costParched": 7,
+    "costTired": 8,
+    "costBothEmpty": 11,
+    "castThenKill": {
+      "before": 83,
+      "afterCast": 79,
+      "afterKill": 82,
+      "lvlBefore": 2,
+      "lvlAfter": 3,
+      "xpAfter": 7,
+      "eyeMana": 53,
+      "eyeOnKill": [
+        {
+          "t": "onKillMana",
+          "amt": 3
+        }
+      ]
+    }
+  },
+  "player": {
+    "xp": {
+      "to2": 30,
+      "to3": 87,
+      "to4": 164
+    },
+    "movedPxPerSec": 62,
+    "naked": {
+      "lvl": 2,
+      "hp": 70,
+      "def": 0,
+      "block": 0,
+      "armorFrac": 0,
+      "resFire": 0,
+      "resCold": 0,
+      "resLightning": 0,
+      "resPoison": 0,
+      "resShadow": 0,
+      "min": 2,
+      "max": 4,
+      "aspd": 1,
+      "period": 0.45,
+      "windup": 0.054,
+      "family": "fist",
+      "crit": 5,
+      "critMul": 2,
+      "ls": 0,
+      "fire": 0,
+      "regen": 0.5,
+      "ms": 1,
+      "gear": []
+    },
+    "kits": {
+      "rusty": {
+        "lvl": 2,
+        "hp": 70,
+        "def": 0,
+        "block": 0,
+        "armorFrac": 0,
+        "resFire": 0,
+        "resCold": 0,
+        "resLightning": 0,
+        "resPoison": 0,
+        "resShadow": 0,
+        "min": 2,
+        "max": 5,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.081,
+        "family": "sword",
+        "crit": 5,
+        "critMul": 2,
+        "ls": 0,
+        "fire": 0,
+        "regen": 0.5,
+        "ms": 1,
+        "gear": [
+          "Rusty Sword"
+        ]
+      },
+      "sword": {
+        "lvl": 2,
+        "hp": 70,
+        "def": 0,
+        "block": 0,
+        "armorFrac": 0,
+        "resFire": 0,
+        "resCold": 0,
+        "resLightning": 0,
+        "resPoison": 0,
+        "resShadow": 0,
+        "min": 3,
+        "max": 6,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.081,
+        "family": "sword",
+        "crit": 5,
+        "critMul": 2,
+        "ls": 0,
+        "fire": 0,
+        "regen": 0.5,
+        "ms": 1,
+        "gear": [
+          "Short Sword"
+        ]
+      },
+      "bow": {
+        "lvl": 2,
+        "hp": 70,
+        "def": 0,
+        "block": 0,
+        "armorFrac": 0,
+        "resFire": 0,
+        "resCold": 0,
+        "resLightning": 0,
+        "resPoison": 0,
+        "resShadow": 0,
+        "min": 4,
+        "max": 9,
+        "aspd": 1.05,
+        "period": 0.429,
+        "windup": 0.086,
+        "family": "bow",
+        "crit": 5,
+        "critMul": 2,
+        "ls": 0,
+        "fire": 0,
+        "regen": 0.5,
+        "ms": 1,
+        "gear": [
+          "Short Bow"
+        ]
+      },
+      "axe": {
+        "lvl": 2,
+        "hp": 70,
+        "def": 0,
+        "block": 0,
+        "armorFrac": 0,
+        "resFire": 0,
+        "resCold": 0,
+        "resLightning": 0,
+        "resPoison": 0,
+        "resShadow": 0,
+        "min": 4,
+        "max": 8,
+        "aspd": 0.9,
+        "period": 0.5,
+        "windup": 0.14,
+        "family": "axe",
+        "crit": 5,
+        "critMul": 2,
+        "ls": 0,
+        "fire": 0,
+        "regen": 0.5,
+        "ms": 1,
+        "gear": [
+          "Hand Axe"
+        ]
+      },
+      "armorOnly": {
+        "lvl": 2,
+        "hp": 70,
+        "def": 7,
+        "block": 8,
+        "armorFrac": 0.189,
+        "resFire": 0,
+        "resCold": 0,
+        "resLightning": 0,
+        "resPoison": 0,
+        "resShadow": 0,
+        "min": 2,
+        "max": 5,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.081,
+        "family": "sword",
+        "crit": 5,
+        "critMul": 2,
+        "ls": 0,
+        "fire": 0,
+        "regen": 0.5,
+        "ms": 1,
+        "gear": [
+          "Rusty Sword",
+          "Wooden Buckler",
+          "Cap",
+          "Leather Armor",
+          "Boots"
+        ]
+      },
+      "allEarlyHpUniques": {
+        "lvl": 2,
+        "hp": 144,
+        "def": 20,
+        "block": 11,
+        "armorFrac": 0.4,
+        "resFire": 0,
+        "resCold": 0,
+        "resLightning": 0,
+        "resPoison": 0,
+        "resShadow": 0,
+        "min": 15,
+        "max": 19,
+        "aspd": 1.21,
+        "period": 0.372,
+        "windup": 0.067,
+        "family": "sword",
+        "crit": 5,
+        "critMul": 2,
+        "ls": 14,
+        "fire": 0,
+        "regen": 1.5,
+        "ms": 1.08,
+        "gear": [
+          "Grandsire Oswin r3",
+          "Tam's Coffin Lid r3",
+          "Lanternjaw r3",
+          "Bloodbound Signet r3",
+          "Tam's Lantern Bead r3"
+        ]
+      }
+    },
+    "earlyHpUniqueStats": [
+      {
+        "name": "Rootwake",
+        "slot": "weapon",
+        "req": 2,
+        "hp": 16,
+        "def": 0,
+        "dmg": 0,
+        "ias": 0,
+        "min": 4,
+        "max": 8,
+        "spd": 1
+      },
+      {
+        "name": "Lanternjaw",
+        "slot": "helm",
+        "req": 2,
+        "hp": 21,
+        "def": 11,
+        "dmg": 0,
+        "ias": 0
+      },
+      {
+        "name": "Bloodbound Signet",
+        "slot": "ring",
+        "req": 2,
+        "hp": 21,
+        "def": 0,
+        "dmg": 5,
+        "ias": 0
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "slot": "amulet",
+        "req": 2,
+        "hp": 11,
+        "def": 0,
+        "dmg": 0,
+        "ias": 0
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "slot": "shield",
+        "req": 2,
+        "hp": 21,
+        "def": 9,
+        "dmg": 0,
+        "ias": 0
+      },
+      {
+        "name": "Grandsire Oswin",
+        "slot": "weapon",
+        "req": 2,
+        "hp": 0,
+        "def": 0,
+        "dmg": 6,
+        "ias": 21,
+        "min": 3,
+        "max": 7,
+        "spd": 1
+      }
+    ],
+    "loot": {
+      "n": 200,
+      "hp": {
+        "min": 70,
+        "p50": 70,
+        "p90": 91,
+        "max": 101
+      },
+      "defP50": 15,
+      "sampleMax": {
+        "hp": 101,
+        "def": 15,
+        "min": 8,
+        "max": 13,
+        "aspd": 1.05,
+        "gear": [
+          "Cruel Short Bow of the Whale r1",
+          "Tam's Coffin Lid r3",
+          "Warded Helm r1"
+        ]
+      },
+      "sampleP50": {
+        "hp": 70,
+        "def": 15,
+        "min": 2,
+        "max": 5,
+        "aspd": 1,
+        "gear": [
+          "Rusty Sword",
+          "Helm",
+          "Ratcatcher's Coat r3"
+        ]
+      }
+    },
+    "reported198": {
+      "formula": "maxHp = 50 + level*10 + sum(mods.hp)",
+      "naked": 70,
+      "needPlusLife": 128,
+      "measuredMaxFromEarlyUniques": 144,
+      "monteCarloMax": 101
+    }
+  },
+  "incoming": [
+    {
+      "depth": 1,
+      "rows": [
+        {
+          "type": "slime",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 3.75,
+          "formulaMatch": true,
+          "enemyHp": 12,
+          "naked": {
+            "dealt": 4,
+            "htk": 18,
+            "sec": 19.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 3,
+            "htk": 24,
+            "sec": 26.4
+          }
+        },
+        {
+          "type": "slime",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 5.25,
+          "formulaMatch": true,
+          "enemyHp": 26,
+          "naked": {
+            "dealt": 5,
+            "htk": 14,
+            "sec": 15.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 4,
+            "htk": 18,
+            "sec": 19.8
+          }
+        },
+        {
+          "type": "bat",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 2.5,
+          "formulaMatch": true,
+          "enemyHp": 6,
+          "naked": {
+            "dealt": 3,
+            "htk": 24,
+            "sec": 26.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 2,
+            "htk": 35,
+            "sec": 38.5
+          }
+        },
+        {
+          "type": "bat",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 3.5,
+          "formulaMatch": true,
+          "enemyHp": 13,
+          "naked": {
+            "dealt": 4,
+            "htk": 18,
+            "sec": 19.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 3,
+            "htk": 24,
+            "sec": 26.4
+          }
+        },
+        {
+          "type": "rat",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "bite, then flee 0.8s",
+          "raw": 2.5,
+          "formulaMatch": true,
+          "enemyHp": 5,
+          "naked": {
+            "dealt": 3,
+            "htk": 24,
+            "sec": 26.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 2,
+            "htk": 35,
+            "sec": 38.5
+          }
+        },
+        {
+          "type": "rat",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "bite, then flee 0.8s",
+          "raw": 3.5,
+          "formulaMatch": true,
+          "enemyHp": 11,
+          "naked": {
+            "dealt": 4,
+            "htk": 18,
+            "sec": 19.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 3,
+            "htk": 24,
+            "sec": 26.4
+          }
+        }
+      ]
+    },
+    {
+      "depth": 2,
+      "rows": [
+        {
+          "type": "slime",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 4.932,
+          "formulaMatch": true,
+          "enemyHp": 16,
+          "naked": {
+            "dealt": 5,
+            "htk": 14,
+            "sec": 15.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 4,
+            "htk": 18,
+            "sec": 19.8
+          }
+        },
+        {
+          "type": "slime",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 6.905,
+          "formulaMatch": true,
+          "enemyHp": 35,
+          "naked": {
+            "dealt": 7,
+            "htk": 10,
+            "sec": 11,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 6,
+            "htk": 12,
+            "sec": 13.2
+          }
+        },
+        {
+          "type": "skel",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 8.015,
+          "formulaMatch": true,
+          "enemyHp": 26,
+          "naked": {
+            "dealt": 8,
+            "htk": 9,
+            "sec": 9.9,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 6,
+            "htk": 12,
+            "sec": 13.2
+          }
+        },
+        {
+          "type": "skel",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 11.22,
+          "formulaMatch": true,
+          "enemyHp": 57,
+          "naked": {
+            "dealt": 11,
+            "htk": 7,
+            "sec": 7.7,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 9,
+            "htk": 8,
+            "sec": 8.8
+          }
+        },
+        {
+          "type": "ooze",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 6.412,
+          "formulaMatch": true,
+          "enemyHp": 33,
+          "naked": {
+            "dealt": 6,
+            "htk": 12,
+            "sec": 13.2,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 5,
+            "htk": 14,
+            "sec": 15.4
+          }
+        },
+        {
+          "type": "ooze",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 8.976,
+          "formulaMatch": true,
+          "enemyHp": 73,
+          "naked": {
+            "dealt": 9,
+            "htk": 8,
+            "sec": 8.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 7,
+            "htk": 10,
+            "sec": 11
+          }
+        }
+      ]
+    },
+    {
+      "depth": 3,
+      "rows": [
+        {
+          "type": "mage",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 8.512,
+          "formulaMatch": true,
+          "enemyHp": 22,
+          "naked": {
+            "dealt": 9,
+            "htk": 8,
+            "sec": 8.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 7,
+            "htk": 10,
+            "sec": 11
+          }
+        },
+        {
+          "type": "mage",
+          "elite": false,
+          "attack": "bolt",
+          "tell": 0,
+          "cd": 2.1,
+          "note": "hex bolt, no windup",
+          "raw": 8.512,
+          "formulaMatch": true,
+          "enemyHp": 22,
+          "naked": {
+            "dealt": 9,
+            "htk": 8,
+            "sec": 16.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 7,
+            "htk": 10,
+            "sec": 21
+          }
+        },
+        {
+          "type": "mage",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 11.917,
+          "formulaMatch": true,
+          "enemyHp": 48,
+          "naked": {
+            "dealt": 12,
+            "htk": 6,
+            "sec": 6.6,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 10,
+            "htk": 7,
+            "sec": 7.7
+          }
+        },
+        {
+          "type": "mage",
+          "elite": true,
+          "attack": "bolt",
+          "tell": 0,
+          "cd": 2.1,
+          "note": "hex bolt, no windup",
+          "raw": 11.917,
+          "formulaMatch": true,
+          "enemyHp": 48,
+          "naked": {
+            "dealt": 12,
+            "htk": 6,
+            "sec": 12.6,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 10,
+            "htk": 7,
+            "sec": 14.7
+          }
+        },
+        {
+          "type": "eel",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "while surfaced",
+          "raw": 11.187,
+          "formulaMatch": true,
+          "enemyHp": 28,
+          "naked": {
+            "dealt": 11,
+            "htk": 7,
+            "sec": 7.7,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 9,
+            "htk": 8,
+            "sec": 8.8
+          }
+        },
+        {
+          "type": "eel",
+          "elite": false,
+          "attack": "erupt",
+          "tell": 0.55,
+          "cd": 1.2,
+          "note": "burrow blast r14",
+          "raw": 11.187,
+          "formulaMatch": true,
+          "enemyHp": 28,
+          "naked": {
+            "dealt": 11,
+            "htk": 7,
+            "sec": 8.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 9,
+            "htk": 8,
+            "sec": 9.6
+          }
+        },
+        {
+          "type": "eel",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "while surfaced",
+          "raw": 15.662,
+          "formulaMatch": true,
+          "enemyHp": 62,
+          "naked": {
+            "dealt": 16,
+            "htk": 5,
+            "sec": 5.5,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 13,
+            "htk": 6,
+            "sec": 6.6
+          }
+        },
+        {
+          "type": "eel",
+          "elite": true,
+          "attack": "erupt",
+          "tell": 0.55,
+          "cd": 1.2,
+          "note": "burrow blast r14",
+          "raw": 15.662,
+          "formulaMatch": true,
+          "enemyHp": 62,
+          "naked": {
+            "dealt": 16,
+            "htk": 5,
+            "sec": 6,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 13,
+            "htk": 6,
+            "sec": 7.2
+          }
+        },
+        {
+          "type": "skel",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 9.728,
+          "formulaMatch": true,
+          "enemyHp": 32,
+          "naked": {
+            "dealt": 10,
+            "htk": 7,
+            "sec": 7.7,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 8,
+            "htk": 9,
+            "sec": 9.9
+          }
+        },
+        {
+          "type": "skel",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 13.619,
+          "formulaMatch": true,
+          "enemyHp": 70,
+          "naked": {
+            "dealt": 14,
+            "htk": 5,
+            "sec": 5.5,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 11,
+            "htk": 7,
+            "sec": 7.7
+          }
+        }
+      ]
+    },
+    {
+      "depth": 4,
+      "rows": [
+        {
+          "type": "drowned",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "brine puddle slows, 0 damage",
+          "raw": 12.949,
+          "formulaMatch": true,
+          "enemyHp": 61,
+          "naked": {
+            "dealt": 13,
+            "htk": 6,
+            "sec": 6.6,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 10,
+            "htk": 7,
+            "sec": 7.7
+          }
+        },
+        {
+          "type": "drowned",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "brine puddle slows, 0 damage",
+          "raw": 18.129,
+          "formulaMatch": true,
+          "enemyHp": 134,
+          "naked": {
+            "dealt": 18,
+            "htk": 4,
+            "sec": 4.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 15,
+            "htk": 5,
+            "sec": 5.5
+          }
+        },
+        {
+          "type": "bomber",
+          "elite": false,
+          "attack": "blast",
+          "tell": 0.9,
+          "cd": 0,
+          "note": "fuse then r30; no contact. poison tick 0.15 of blast every 0.5s",
+          "raw": 18.704,
+          "formulaMatch": true,
+          "enemyHp": 28,
+          "naked": {
+            "dealt": 19,
+            "htk": 4,
+            "sec": null,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 15,
+            "htk": 5,
+            "sec": null
+          }
+        },
+        {
+          "type": "bomber",
+          "elite": true,
+          "attack": "blast",
+          "tell": 0.9,
+          "cd": 0,
+          "note": "fuse then r30; no contact. poison tick 0.15 of blast every 0.5s",
+          "raw": 26.186,
+          "formulaMatch": true,
+          "enemyHp": 62,
+          "naked": {
+            "dealt": 26,
+            "htk": 3,
+            "sec": null,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 21,
+            "htk": 4,
+            "sec": null
+          }
+        },
+        {
+          "type": "zombie",
+          "elite": false,
+          "attack": "swing",
+          "tell": 0.6,
+          "cd": 1.7,
+          "note": "walker heavy. recovery 0.55s. no contact",
+          "raw": 16.067,
+          "formulaMatch": true,
+          "enemyHp": 54,
+          "naked": {
+            "dealt": 16,
+            "htk": 5,
+            "sec": 8.5,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 13,
+            "htk": 6,
+            "sec": 10.2
+          }
+        },
+        {
+          "type": "zombie",
+          "elite": true,
+          "attack": "swing",
+          "tell": 0.6,
+          "cd": 1.7,
+          "note": "walker heavy. recovery 0.55s. no contact",
+          "raw": 22.493,
+          "formulaMatch": true,
+          "enemyHp": 119,
+          "naked": {
+            "dealt": 22,
+            "htk": 4,
+            "sec": 6.8,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 18,
+            "htk": 4,
+            "sec": 6.8
+          }
+        },
+        {
+          "type": "skel",
+          "elite": true,
+          "attack": "volatile",
+          "tell": 0.7,
+          "cd": 0,
+          "note": "cap 30% max HP",
+          "raw": 7,
+          "enemyHp": 84,
+          "naked": {
+            "dealt": 7,
+            "htk": 10
+          },
+          "starterArmor": {}
+        },
+        {
+          "type": "skel",
+          "elite": true,
+          "attack": "brand",
+          "tell": 0.85,
+          "cd": 0,
+          "note": "cap 22% max HP, circle stays",
+          "raw": 6,
+          "enemyHp": 84,
+          "naked": {
+            "dealt": 6,
+            "htk": 12
+          },
+          "starterArmor": {}
+        }
+      ]
+    },
+    {
+      "depth": 5,
+      "rows": [
+        {
+          "type": "archer",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 10.874,
+          "formulaMatch": true,
+          "enemyHp": 34,
+          "naked": {
+            "dealt": 11,
+            "htk": 7,
+            "sec": 7.7,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 9,
+            "htk": 8,
+            "sec": 8.8
+          }
+        },
+        {
+          "type": "archer",
+          "elite": false,
+          "attack": "arrow",
+          "tell": 0,
+          "cd": 2.4,
+          "note": "3 arrows",
+          "raw": 8.699,
+          "formulaMatch": true,
+          "enemyHp": 34,
+          "naked": {
+            "dealt": 9,
+            "htk": 8,
+            "sec": 19.2,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 7,
+            "htk": 10,
+            "sec": 24
+          }
+        },
+        {
+          "type": "archer",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "body contact",
+          "raw": 15.224,
+          "formulaMatch": true,
+          "enemyHp": 75,
+          "naked": {
+            "dealt": 15,
+            "htk": 5,
+            "sec": 5.5,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 12,
+            "htk": 6,
+            "sec": 6.6
+          }
+        },
+        {
+          "type": "archer",
+          "elite": true,
+          "attack": "arrow",
+          "tell": 0,
+          "cd": 2.4,
+          "note": "3 arrows",
+          "raw": 12.179,
+          "formulaMatch": true,
+          "enemyHp": 75,
+          "naked": {
+            "dealt": 12,
+            "htk": 6,
+            "sec": 14.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 10,
+            "htk": 7,
+            "sec": 16.8
+          }
+        },
+        {
+          "type": "wisp",
+          "elite": false,
+          "attack": "shot",
+          "tell": 0.5,
+          "cd": 2.6,
+          "note": "blink 0.5s then bolt. no contact",
+          "raw": 10.874,
+          "formulaMatch": true,
+          "enemyHp": 26,
+          "naked": {
+            "dealt": 11,
+            "htk": 7,
+            "sec": 18.2,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 9,
+            "htk": 8,
+            "sec": 20.8
+          }
+        },
+        {
+          "type": "wisp",
+          "elite": true,
+          "attack": "shot",
+          "tell": 0.5,
+          "cd": 2.6,
+          "note": "blink 0.5s then bolt. no contact",
+          "raw": 15.224,
+          "formulaMatch": true,
+          "enemyHp": 57,
+          "naked": {
+            "dealt": 15,
+            "htk": 5,
+            "sec": 13,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 12,
+            "htk": 6,
+            "sec": 15.6
+          }
+        },
+        {
+          "type": "drowned",
+          "elite": false,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "brine puddle slows, 0 damage",
+          "raw": 14.657,
+          "formulaMatch": true,
+          "enemyHp": 70,
+          "naked": {
+            "dealt": 15,
+            "htk": 5,
+            "sec": 5.5,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 12,
+            "htk": 6,
+            "sec": 6.6
+          }
+        },
+        {
+          "type": "drowned",
+          "elite": true,
+          "attack": "contact",
+          "tell": 0,
+          "cd": 1.1,
+          "note": "brine puddle slows, 0 damage",
+          "raw": 20.52,
+          "formulaMatch": true,
+          "enemyHp": 154,
+          "naked": {
+            "dealt": 21,
+            "htk": 4,
+            "sec": 4.4,
+            "prevented": ""
+          },
+          "starterArmor": {
+            "def": 7,
+            "dealt": 17,
+            "htk": 5,
+            "sec": 5.5
+          }
+        },
+        {
+          "type": "skel",
+          "elite": true,
+          "attack": "volatile",
+          "tell": 0.7,
+          "cd": 0,
+          "note": "cap 30% max HP",
+          "raw": 8,
+          "enemyHp": 97,
+          "naked": {
+            "dealt": 8,
+            "htk": 9
+          },
+          "starterArmor": {}
+        },
+        {
+          "type": "skel",
+          "elite": true,
+          "attack": "brand",
+          "tell": 0.85,
+          "cd": 0,
+          "note": "cap 22% max HP, circle stays",
+          "raw": 6,
+          "enemyHp": 97,
+          "naked": {
+            "dealt": 6,
+            "htk": 12
+          },
+          "starterArmor": {}
+        }
+      ]
+    }
+  ],
+  "se": [
+    {
+      "depth": 1,
+      "name": "Bonewarden",
+      "dmg": 6.44,
+      "hp": 56,
+      "shield": 6,
+      "xp": 62,
+      "attacks": [
+        {
+          "attack": "swing",
+          "raw": 6.44,
+          "tell": 1,
+          "gap": 0.7,
+          "cycle": 1.7,
+          "dealt": 6,
+          "htk": 12,
+          "armorDealt": 5,
+          "armorHtk": 14,
+          "armorDef": 7,
+          "secIfStand": 20.4,
+          "resolveIn": 1,
+          "dealtIn": 6,
+          "resolveOut": 0,
+          "dealtOut": 0
+        },
+        {
+          "attack": "power",
+          "raw": 10.948,
+          "tell": 1.3,
+          "gap": 0.9,
+          "cycle": 2.2,
+          "dealt": 11,
+          "htk": 7,
+          "armorDealt": 9,
+          "armorHtk": 8,
+          "armorDef": 7,
+          "secIfStand": 15.4
+        },
+        {
+          "attack": "brand",
+          "raw": 5.474,
+          "tell": 1.15,
+          "gap": 0.75,
+          "cycle": 1.9,
+          "dealt": 5,
+          "htk": 14,
+          "armorDealt": 4,
+          "armorHtk": 18,
+          "armorDef": 7,
+          "secIfStand": 26.6
+        }
+      ],
+      "note": "phase 1 swing only until 50% HP; power joins phase 2; brand joins phase 3 (<=25% HP)"
+    },
+    {
+      "depth": 2,
+      "name": "Bonewarden",
+      "dmg": 8.04,
+      "hp": 77,
+      "shield": 8,
+      "xp": 76,
+      "attacks": [
+        {
+          "attack": "swing",
+          "raw": 8.04,
+          "tell": 1,
+          "gap": 0.7,
+          "cycle": 1.7,
+          "dealt": 8,
+          "htk": 9,
+          "armorDealt": 7,
+          "armorHtk": 10,
+          "armorDef": 7,
+          "secIfStand": 15.3,
+          "resolveIn": 1,
+          "dealtIn": 8,
+          "resolveOut": 0,
+          "dealtOut": 0
+        },
+        {
+          "attack": "power",
+          "raw": 13.668,
+          "tell": 1.3,
+          "gap": 0.9,
+          "cycle": 2.2,
+          "dealt": 14,
+          "htk": 5,
+          "armorDealt": 11,
+          "armorHtk": 7,
+          "armorDef": 7,
+          "secIfStand": 11
+        },
+        {
+          "attack": "brand",
+          "raw": 6.834,
+          "tell": 1.15,
+          "gap": 0.75,
+          "cycle": 1.9,
+          "dealt": 7,
+          "htk": 10,
+          "armorDealt": 6,
+          "armorHtk": 12,
+          "armorDef": 7,
+          "secIfStand": 19
+        }
+      ],
+      "note": "phase 1 swing only until 50% HP; power joins phase 2; brand joins phase 3 (<=25% HP)"
+    },
+    {
+      "depth": 3,
+      "name": "Bonewarden",
+      "dmg": 9.593,
+      "hp": 98,
+      "shield": 10,
+      "xp": 90,
+      "attacks": [
+        {
+          "attack": "swing",
+          "raw": 9.593,
+          "tell": 1,
+          "gap": 0.7,
+          "cycle": 1.7,
+          "dealt": 10,
+          "htk": 7,
+          "armorDealt": 8,
+          "armorHtk": 9,
+          "armorDef": 7,
+          "secIfStand": 11.9,
+          "resolveIn": 1,
+          "dealtIn": 10,
+          "resolveOut": 0,
+          "dealtOut": 0
+        },
+        {
+          "attack": "power",
+          "raw": 16.308,
+          "tell": 1.3,
+          "gap": 0.9,
+          "cycle": 2.2,
+          "dealt": 16,
+          "htk": 5,
+          "armorDealt": 13,
+          "armorHtk": 6,
+          "armorDef": 7,
+          "secIfStand": 11
+        },
+        {
+          "attack": "brand",
+          "raw": 8.154,
+          "tell": 1.15,
+          "gap": 0.75,
+          "cycle": 1.9,
+          "dealt": 8,
+          "htk": 9,
+          "armorDealt": 7,
+          "armorHtk": 10,
+          "armorDef": 7,
+          "secIfStand": 17.1
+        }
+      ],
+      "note": "phase 1 swing only until 50% HP; power joins phase 2; brand joins phase 3 (<=25% HP)"
+    },
+    {
+      "depth": 4,
+      "name": "Bonewarden",
+      "dmg": 11.1,
+      "hp": 120,
+      "shield": 12,
+      "xp": 104,
+      "attacks": [
+        {
+          "attack": "swing",
+          "raw": 11.1,
+          "tell": 1,
+          "gap": 0.7,
+          "cycle": 1.7,
+          "dealt": 11,
+          "htk": 7,
+          "armorDealt": 9,
+          "armorHtk": 8,
+          "armorDef": 7,
+          "secIfStand": 11.9,
+          "resolveIn": 1,
+          "dealtIn": 11,
+          "resolveOut": 0,
+          "dealtOut": 0
+        },
+        {
+          "attack": "power",
+          "raw": 18.87,
+          "tell": 1.3,
+          "gap": 0.9,
+          "cycle": 2.2,
+          "dealt": 19,
+          "htk": 4,
+          "armorDealt": 15,
+          "armorHtk": 5,
+          "armorDef": 7,
+          "secIfStand": 8.8
+        },
+        {
+          "attack": "brand",
+          "raw": 9.435,
+          "tell": 1.15,
+          "gap": 0.75,
+          "cycle": 1.9,
+          "dealt": 9,
+          "htk": 8,
+          "armorDealt": 8,
+          "armorHtk": 9,
+          "armorDef": 7,
+          "secIfStand": 15.2
+        }
+      ],
+      "note": "phase 1 swing only until 50% HP; power joins phase 2; brand joins phase 3 (<=25% HP)"
+    },
+    {
+      "depth": 5,
+      "name": "Bonewarden",
+      "dmg": 12.56,
+      "hp": 141,
+      "shield": 14,
+      "xp": 118,
+      "attacks": [
+        {
+          "attack": "swing",
+          "raw": 12.56,
+          "tell": 1,
+          "gap": 0.7,
+          "cycle": 1.7,
+          "dealt": 13,
+          "htk": 6,
+          "armorDealt": 10,
+          "armorHtk": 7,
+          "armorDef": 7,
+          "secIfStand": 10.2,
+          "resolveIn": 1,
+          "dealtIn": 13,
+          "resolveOut": 0,
+          "dealtOut": 0
+        },
+        {
+          "attack": "power",
+          "raw": 21.352,
+          "tell": 1.3,
+          "gap": 0.9,
+          "cycle": 2.2,
+          "dealt": 21,
+          "htk": 4,
+          "armorDealt": 17,
+          "armorHtk": 5,
+          "armorDef": 7,
+          "secIfStand": 8.8
+        },
+        {
+          "attack": "brand",
+          "raw": 10.676,
+          "tell": 1.15,
+          "gap": 0.75,
+          "cycle": 1.9,
+          "dealt": 11,
+          "htk": 7,
+          "armorDealt": 9,
+          "armorHtk": 8,
+          "armorDef": 7,
+          "secIfStand": 13.3
+        }
+      ],
+      "note": "phase 1 swing only until 50% HP; power joins phase 2; brand joins phase 3 (<=25% HP)"
+    }
+  ],
+  "proposal": [
+    {
+      "depth": 1,
+      "fade": 1,
+      "hpFactor": 1.429,
+      "hpBefore": 56,
+      "hpAfter": 80,
+      "shieldBefore": 6,
+      "shieldAfter": 8,
+      "hpMatchesLive": true,
+      "attacks": [
+        {
+          "attack": "swing",
+          "mul": 1,
+          "raw": 6.44,
+          "before": 6,
+          "after": 6,
+          "htkBefore": 12,
+          "htkAfter": 12
+        },
+        {
+          "attack": "power",
+          "mul": 3,
+          "raw": 19.32,
+          "before": 11,
+          "after": 19,
+          "htkBefore": 7,
+          "htkAfter": 4
+        },
+        {
+          "attack": "brand",
+          "mul": 2,
+          "raw": 12.88,
+          "before": 5,
+          "after": 13,
+          "htkBefore": 14,
+          "htkAfter": 6
+        }
+      ],
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 22,
+            "sec": 9.9,
+            "phase2": 5.4,
+            "window": 4.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 18,
+            "sec": 8.1,
+            "phase2": 4.5,
+            "window": 3.6,
+            "powerLands": true
+          }
+        },
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 18,
+            "sec": 8.1,
+            "phase2": 4.5,
+            "window": 3.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 15,
+            "sec": 6.8,
+            "phase2": 3.6,
+            "window": 3.2,
+            "powerLands": true
+          }
+        },
+        "sword-rare-dmg": {
+          "name": "Grave Vow",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 15,
+            "sec": 6.8,
+            "phase2": 3.6,
+            "window": 3.2,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 13,
+            "sec": 5.9,
+            "phase2": 3.2,
+            "window": 2.7,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 8,
+            "sec": 3,
+            "phase2": 1.5,
+            "window": 1.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 7,
+            "sec": 2.6,
+            "phase2": 1.5,
+            "window": 1.1,
+            "powerLands": false
+          }
+        }
+      }
+    },
+    {
+      "depth": 2,
+      "fade": 0.75,
+      "hpFactor": 1.325,
+      "hpBefore": 77,
+      "hpAfter": 102,
+      "shieldBefore": 8,
+      "shieldAfter": 10,
+      "hpMatchesLive": true,
+      "attacks": [
+        {
+          "attack": "swing",
+          "mul": 1,
+          "raw": 8.04,
+          "before": 8,
+          "after": 8,
+          "htkBefore": 9,
+          "htkAfter": 9
+        },
+        {
+          "attack": "power",
+          "mul": 2.675,
+          "raw": 21.507,
+          "before": 14,
+          "after": 22,
+          "htkBefore": 5,
+          "htkAfter": 4
+        },
+        {
+          "attack": "brand",
+          "mul": 1.787,
+          "raw": 14.367,
+          "before": 7,
+          "after": 14,
+          "htkBefore": 10,
+          "htkAfter": 5
+        }
+      ],
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 28,
+            "sec": 12.6,
+            "phase2": 7.2,
+            "window": 5.4,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 23,
+            "sec": 10.3,
+            "phase2": 5.9,
+            "window": 4.5,
+            "powerLands": true
+          }
+        },
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 23,
+            "sec": 10.3,
+            "phase2": 5.9,
+            "window": 4.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 19,
+            "sec": 8.6,
+            "phase2": 5,
+            "window": 3.6,
+            "powerLands": true
+          }
+        },
+        "sword-rare-dmg": {
+          "name": "Grave Vow",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 19,
+            "sec": 8.6,
+            "phase2": 5,
+            "window": 3.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 16,
+            "sec": 7.2,
+            "phase2": 4.1,
+            "window": 3.2,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 10,
+            "sec": 3.7,
+            "phase2": 2.2,
+            "window": 1.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 8,
+            "sec": 3,
+            "phase2": 1.9,
+            "window": 1.1,
+            "powerLands": false
+          }
+        }
+      }
+    },
+    {
+      "depth": 3,
+      "fade": 0.5,
+      "hpFactor": 1.214,
+      "hpBefore": 98,
+      "hpAfter": 119,
+      "shieldBefore": 10,
+      "shieldAfter": 12,
+      "hpMatchesLive": true,
+      "attacks": [
+        {
+          "attack": "swing",
+          "mul": 1,
+          "raw": 9.593,
+          "before": 10,
+          "after": 10,
+          "htkBefore": 7,
+          "htkAfter": 7
+        },
+        {
+          "attack": "power",
+          "mul": 2.35,
+          "raw": 22.544,
+          "before": 16,
+          "after": 23,
+          "htkBefore": 5,
+          "htkAfter": 4
+        },
+        {
+          "attack": "brand",
+          "mul": 1.575,
+          "raw": 15.109,
+          "before": 8,
+          "after": 15,
+          "htkBefore": 9,
+          "htkAfter": 5
+        }
+      ],
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 33,
+            "sec": 14.8,
+            "phase2": 8.1,
+            "window": 6.7,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 27,
+            "sec": 12.1,
+            "phase2": 6.8,
+            "window": 5.4,
+            "powerLands": true
+          }
+        },
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 27,
+            "sec": 12.1,
+            "phase2": 6.8,
+            "window": 5.4,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 22,
+            "sec": 9.9,
+            "phase2": 5.4,
+            "window": 4.5,
+            "powerLands": true
+          }
+        },
+        "sword-rare-dmg": {
+          "name": "Grave Vow",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 22,
+            "sec": 9.9,
+            "phase2": 5.4,
+            "window": 4.5,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 19,
+            "sec": 8.6,
+            "phase2": 5,
+            "window": 3.6,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 11,
+            "sec": 4.1,
+            "phase2": 2.2,
+            "window": 1.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 10,
+            "sec": 3.7,
+            "phase2": 2.2,
+            "window": 1.5,
+            "powerLands": true
+          }
+        }
+      }
+    },
+    {
+      "depth": 4,
+      "fade": 0.25,
+      "hpFactor": 1.108,
+      "hpBefore": 120,
+      "hpAfter": 133,
+      "shieldBefore": 12,
+      "shieldAfter": 13,
+      "hpMatchesLive": true,
+      "attacks": [
+        {
+          "attack": "swing",
+          "mul": 1,
+          "raw": 11.1,
+          "before": 11,
+          "after": 11,
+          "htkBefore": 7,
+          "htkAfter": 7
+        },
+        {
+          "attack": "power",
+          "mul": 2.025,
+          "raw": 22.478,
+          "before": 19,
+          "after": 22,
+          "htkBefore": 4,
+          "htkAfter": 4
+        },
+        {
+          "attack": "brand",
+          "mul": 1.362,
+          "raw": 15.118,
+          "before": 9,
+          "after": 15,
+          "htkBefore": 8,
+          "htkAfter": 5
+        }
+      ],
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 37,
+            "sec": 16.6,
+            "phase2": 9,
+            "window": 7.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 30,
+            "sec": 13.5,
+            "phase2": 7.2,
+            "window": 6.3,
+            "powerLands": true
+          }
+        },
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 30,
+            "sec": 13.5,
+            "phase2": 7.2,
+            "window": 6.3,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 25,
+            "sec": 11.2,
+            "phase2": 6.3,
+            "window": 4.9,
+            "powerLands": true
+          }
+        },
+        "sword-rare-dmg": {
+          "name": "Grave Vow",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 25,
+            "sec": 11.2,
+            "phase2": 6.3,
+            "window": 4.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 21,
+            "sec": 9.5,
+            "phase2": 5.4,
+            "window": 4,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 13,
+            "sec": 4.8,
+            "phase2": 2.6,
+            "window": 2.2,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 11,
+            "sec": 4.1,
+            "phase2": 2.2,
+            "window": 1.9,
+            "powerLands": true
+          }
+        }
+      }
+    },
+    {
+      "depth": 5,
+      "fade": 0,
+      "hpFactor": 1,
+      "hpBefore": 141,
+      "hpAfter": 141,
+      "shieldBefore": 14,
+      "shieldAfter": 14,
+      "hpMatchesLive": true,
+      "attacks": [
+        {
+          "attack": "swing",
+          "mul": 1,
+          "raw": 12.56,
+          "before": 13,
+          "after": 13,
+          "htkBefore": 6,
+          "htkAfter": 6
+        },
+        {
+          "attack": "power",
+          "mul": 1.7,
+          "raw": 21.352,
+          "before": 21,
+          "after": 21,
+          "htkBefore": 4,
+          "htkAfter": 4
+        },
+        {
+          "attack": "brand",
+          "mul": 1.15,
+          "raw": 14.444,
+          "before": 11,
+          "after": 14,
+          "htkBefore": 7,
+          "htkAfter": 5
+        }
+      ],
+      "fights": {
+        "rusty": {
+          "name": "Rusty Sword",
+          "avg": 4,
+          "min": 2,
+          "max": 5,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 39,
+            "sec": 17.5,
+            "phase2": 9.9,
+            "window": 7.6,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 31,
+            "sec": 13.9,
+            "phase2": 7.7,
+            "window": 6.3,
+            "powerLands": true
+          }
+        },
+        "sword-common": {
+          "name": "Short Sword",
+          "avg": 5,
+          "min": 3,
+          "max": 6,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 31,
+            "sec": 13.9,
+            "phase2": 7.7,
+            "window": 6.3,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 26,
+            "sec": 11.7,
+            "phase2": 6.8,
+            "window": 4.9,
+            "powerLands": true
+          }
+        },
+        "sword-rare-dmg": {
+          "name": "Grave Vow",
+          "avg": 6,
+          "min": 4,
+          "max": 7,
+          "period": 0.45,
+          "avgFight": {
+            "hits": 26,
+            "sec": 11.7,
+            "phase2": 6.8,
+            "window": 4.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 23,
+            "sec": 10.3,
+            "phase2": 5.9,
+            "window": 4.5,
+            "powerLands": true
+          }
+        },
+        "sword-grandsire": {
+          "name": "Grandsire Oswin",
+          "avg": 12,
+          "min": 10,
+          "max": 14,
+          "period": 0.372,
+          "avgFight": {
+            "hits": 13,
+            "sec": 4.8,
+            "phase2": 3,
+            "window": 1.9,
+            "powerLands": true
+          },
+          "maxFight": {
+            "hits": 12,
+            "sec": 4.5,
+            "phase2": 2.6,
+            "window": 1.9,
+            "powerLands": true
+          }
+        }
+      }
+    }
+  ],
+  "bossFormula": [
+    {
+      "depth": 1,
+      "placed": false,
+      "dmg": 8.64,
+      "hp": 420,
+      "shield": 105,
+      "attacks": [
+        {
+          "attack": "contact",
+          "mul": 1,
+          "tell": 0,
+          "raw": 8.64,
+          "dealt": 9,
+          "htk": 8,
+          "note": "melee body, while patterns are on cooldown"
+        },
+        {
+          "attack": "charge",
+          "mul": 1.3,
+          "tell": 0.75,
+          "raw": 11.232,
+          "dealt": 11,
+          "htk": 7,
+          "note": "contact during the charge"
+        },
+        {
+          "attack": "hop",
+          "mul": 1.1,
+          "tell": 0.85,
+          "raw": 9.504,
+          "dealt": 10,
+          "htk": 7,
+          "note": "Mother Murk phase 1. r28"
+        },
+        {
+          "attack": "ring",
+          "mul": 0.7,
+          "tell": 0.55,
+          "raw": 6.048,
+          "dealt": 6,
+          "htk": 12,
+          "note": "per bullet. Murk phase 2. 14 or 18 shots"
+        },
+        {
+          "attack": "slam",
+          "mul": 1.15,
+          "tell": 0.9,
+          "raw": 9.936,
+          "dealt": 10,
+          "htk": 7,
+          "note": "not on Murk. r26. phase 2 repeats 3 times"
+        },
+        {
+          "attack": "nova",
+          "mul": 1.1,
+          "tell": 1.15,
+          "raw": 9.504,
+          "dealt": 10,
+          "htk": 7,
+          "note": "not on Murk. r58"
+        },
+        {
+          "attack": "beam",
+          "mul": 1,
+          "tell": 1,
+          "raw": 8.64,
+          "dealt": 9,
+          "htk": 8,
+          "note": "not on Murk"
+        },
+        {
+          "attack": "spread",
+          "mul": 0.7,
+          "tell": 0.85,
+          "raw": 6.048,
+          "dealt": 6,
+          "htk": 12,
+          "note": "per bolt"
+        },
+        {
+          "attack": "spiral",
+          "mul": 0.6,
+          "tell": 0.6,
+          "raw": 5.184,
+          "dealt": 5,
+          "htk": 14,
+          "note": "per shot during the spin"
+        },
+        {
+          "attack": "lob",
+          "mul": 0.9,
+          "tell": 1,
+          "raw": 7.776,
+          "dealt": 8,
+          "htk": 9,
+          "note": "bomb. poison patch is 0.15 of that per 0.5s"
+        }
+      ]
+    },
+    {
+      "depth": 2,
+      "placed": false,
+      "dmg": 11.016,
+      "hp": 525,
+      "shield": 131,
+      "attacks": [
+        {
+          "attack": "contact",
+          "mul": 1,
+          "tell": 0,
+          "raw": 11.016,
+          "dealt": 11,
+          "htk": 7,
+          "note": "melee body, while patterns are on cooldown"
+        },
+        {
+          "attack": "charge",
+          "mul": 1.3,
+          "tell": 0.75,
+          "raw": 14.321,
+          "dealt": 14,
+          "htk": 5,
+          "note": "contact during the charge"
+        },
+        {
+          "attack": "hop",
+          "mul": 1.1,
+          "tell": 0.85,
+          "raw": 12.118,
+          "dealt": 12,
+          "htk": 6,
+          "note": "Mother Murk phase 1. r28"
+        },
+        {
+          "attack": "ring",
+          "mul": 0.7,
+          "tell": 0.55,
+          "raw": 7.711,
+          "dealt": 8,
+          "htk": 9,
+          "note": "per bullet. Murk phase 2. 14 or 18 shots"
+        },
+        {
+          "attack": "slam",
+          "mul": 1.15,
+          "tell": 0.9,
+          "raw": 12.668,
+          "dealt": 13,
+          "htk": 6,
+          "note": "not on Murk. r26. phase 2 repeats 3 times"
+        },
+        {
+          "attack": "nova",
+          "mul": 1.1,
+          "tell": 1.15,
+          "raw": 12.118,
+          "dealt": 12,
+          "htk": 6,
+          "note": "not on Murk. r58"
+        },
+        {
+          "attack": "beam",
+          "mul": 1,
+          "tell": 1,
+          "raw": 11.016,
+          "dealt": 11,
+          "htk": 7,
+          "note": "not on Murk"
+        },
+        {
+          "attack": "spread",
+          "mul": 0.7,
+          "tell": 0.85,
+          "raw": 7.711,
+          "dealt": 8,
+          "htk": 9,
+          "note": "per bolt"
+        },
+        {
+          "attack": "spiral",
+          "mul": 0.6,
+          "tell": 0.6,
+          "raw": 6.61,
+          "dealt": 7,
+          "htk": 10,
+          "note": "per shot during the spin"
+        },
+        {
+          "attack": "lob",
+          "mul": 0.9,
+          "tell": 1,
+          "raw": 9.914,
+          "dealt": 10,
+          "htk": 7,
+          "note": "bomb. poison patch is 0.15 of that per 0.5s"
+        }
+      ]
+    },
+    {
+      "depth": 3,
+      "placed": false,
+      "dmg": 13.392,
+      "hp": 630,
+      "shield": 158,
+      "attacks": [
+        {
+          "attack": "contact",
+          "mul": 1,
+          "tell": 0,
+          "raw": 13.392,
+          "dealt": 13,
+          "htk": 6,
+          "note": "melee body, while patterns are on cooldown"
+        },
+        {
+          "attack": "charge",
+          "mul": 1.3,
+          "tell": 0.75,
+          "raw": 17.41,
+          "dealt": 17,
+          "htk": 5,
+          "note": "contact during the charge"
+        },
+        {
+          "attack": "hop",
+          "mul": 1.1,
+          "tell": 0.85,
+          "raw": 14.731,
+          "dealt": 15,
+          "htk": 5,
+          "note": "Mother Murk phase 1. r28"
+        },
+        {
+          "attack": "ring",
+          "mul": 0.7,
+          "tell": 0.55,
+          "raw": 9.374,
+          "dealt": 9,
+          "htk": 8,
+          "note": "per bullet. Murk phase 2. 14 or 18 shots"
+        },
+        {
+          "attack": "slam",
+          "mul": 1.15,
+          "tell": 0.9,
+          "raw": 15.401,
+          "dealt": 15,
+          "htk": 5,
+          "note": "not on Murk. r26. phase 2 repeats 3 times"
+        },
+        {
+          "attack": "nova",
+          "mul": 1.1,
+          "tell": 1.15,
+          "raw": 14.731,
+          "dealt": 15,
+          "htk": 5,
+          "note": "not on Murk. r58"
+        },
+        {
+          "attack": "beam",
+          "mul": 1,
+          "tell": 1,
+          "raw": 13.392,
+          "dealt": 13,
+          "htk": 6,
+          "note": "not on Murk"
+        },
+        {
+          "attack": "spread",
+          "mul": 0.7,
+          "tell": 0.85,
+          "raw": 9.374,
+          "dealt": 9,
+          "htk": 8,
+          "note": "per bolt"
+        },
+        {
+          "attack": "spiral",
+          "mul": 0.6,
+          "tell": 0.6,
+          "raw": 8.035,
+          "dealt": 8,
+          "htk": 9,
+          "note": "per shot during the spin"
+        },
+        {
+          "attack": "lob",
+          "mul": 0.9,
+          "tell": 1,
+          "raw": 12.053,
+          "dealt": 12,
+          "htk": 6,
+          "note": "bomb. poison patch is 0.15 of that per 0.5s"
+        }
+      ]
+    },
+    {
+      "depth": 4,
+      "placed": false,
+      "dmg": 15.768,
+      "hp": 735,
+      "shield": 184,
+      "attacks": [
+        {
+          "attack": "contact",
+          "mul": 1,
+          "tell": 0,
+          "raw": 15.768,
+          "dealt": 16,
+          "htk": 5,
+          "note": "melee body, while patterns are on cooldown"
+        },
+        {
+          "attack": "charge",
+          "mul": 1.3,
+          "tell": 0.75,
+          "raw": 20.498,
+          "dealt": 20,
+          "htk": 4,
+          "note": "contact during the charge"
+        },
+        {
+          "attack": "hop",
+          "mul": 1.1,
+          "tell": 0.85,
+          "raw": 17.345,
+          "dealt": 17,
+          "htk": 5,
+          "note": "Mother Murk phase 1. r28"
+        },
+        {
+          "attack": "ring",
+          "mul": 0.7,
+          "tell": 0.55,
+          "raw": 11.038,
+          "dealt": 11,
+          "htk": 7,
+          "note": "per bullet. Murk phase 2. 14 or 18 shots"
+        },
+        {
+          "attack": "slam",
+          "mul": 1.15,
+          "tell": 0.9,
+          "raw": 18.133,
+          "dealt": 18,
+          "htk": 4,
+          "note": "not on Murk. r26. phase 2 repeats 3 times"
+        },
+        {
+          "attack": "nova",
+          "mul": 1.1,
+          "tell": 1.15,
+          "raw": 17.345,
+          "dealt": 17,
+          "htk": 5,
+          "note": "not on Murk. r58"
+        },
+        {
+          "attack": "beam",
+          "mul": 1,
+          "tell": 1,
+          "raw": 15.768,
+          "dealt": 16,
+          "htk": 5,
+          "note": "not on Murk"
+        },
+        {
+          "attack": "spread",
+          "mul": 0.7,
+          "tell": 0.85,
+          "raw": 11.038,
+          "dealt": 11,
+          "htk": 7,
+          "note": "per bolt"
+        },
+        {
+          "attack": "spiral",
+          "mul": 0.6,
+          "tell": 0.6,
+          "raw": 9.461,
+          "dealt": 9,
+          "htk": 8,
+          "note": "per shot during the spin"
+        },
+        {
+          "attack": "lob",
+          "mul": 0.9,
+          "tell": 1,
+          "raw": 14.191,
+          "dealt": 14,
+          "htk": 5,
+          "note": "bomb. poison patch is 0.15 of that per 0.5s"
+        }
+      ]
+    },
+    {
+      "depth": 5,
+      "placed": true,
+      "dmg": 18.144,
+      "hp": 840,
+      "shield": 210,
+      "attacks": [
+        {
+          "attack": "contact",
+          "mul": 1,
+          "tell": 0,
+          "raw": 18.144,
+          "dealt": 18,
+          "htk": 4,
+          "note": "melee body, while patterns are on cooldown"
+        },
+        {
+          "attack": "charge",
+          "mul": 1.3,
+          "tell": 0.75,
+          "raw": 23.587,
+          "dealt": 24,
+          "htk": 3,
+          "note": "contact during the charge"
+        },
+        {
+          "attack": "hop",
+          "mul": 1.1,
+          "tell": 0.85,
+          "raw": 19.958,
+          "dealt": 20,
+          "htk": 4,
+          "note": "Mother Murk phase 1. r28"
+        },
+        {
+          "attack": "ring",
+          "mul": 0.7,
+          "tell": 0.55,
+          "raw": 12.701,
+          "dealt": 13,
+          "htk": 6,
+          "note": "per bullet. Murk phase 2. 14 or 18 shots"
+        },
+        {
+          "attack": "slam",
+          "mul": 1.15,
+          "tell": 0.9,
+          "raw": 20.866,
+          "dealt": 21,
+          "htk": 4,
+          "note": "not on Murk. r26. phase 2 repeats 3 times"
+        },
+        {
+          "attack": "nova",
+          "mul": 1.1,
+          "tell": 1.15,
+          "raw": 19.958,
+          "dealt": 20,
+          "htk": 4,
+          "note": "not on Murk. r58"
+        },
+        {
+          "attack": "beam",
+          "mul": 1,
+          "tell": 1,
+          "raw": 18.144,
+          "dealt": 18,
+          "htk": 4,
+          "note": "not on Murk"
+        },
+        {
+          "attack": "spread",
+          "mul": 0.7,
+          "tell": 0.85,
+          "raw": 12.701,
+          "dealt": 13,
+          "htk": 6,
+          "note": "per bolt"
+        },
+        {
+          "attack": "spiral",
+          "mul": 0.6,
+          "tell": 0.6,
+          "raw": 10.886,
+          "dealt": 11,
+          "htk": 7,
+          "note": "per shot during the spin"
+        },
+        {
+          "attack": "lob",
+          "mul": 0.9,
+          "tell": 1,
+          "raw": 16.33,
+          "dealt": 16,
+          "htk": 5,
+          "note": "bomb. poison patch is 0.15 of that per 0.5s"
+        }
+      ]
+    }
+  ],
+  "bossLive": {
+    "depth": 5,
+    "name": "MOTHER MURK",
+    "dmg": 18.144,
+    "hp": 840,
+    "shield": 210,
+    "attacks": [
+      {
+        "attack": "contact",
+        "raw": 18.144,
+        "dealt": 18,
+        "htk": 4
+      },
+      {
+        "attack": "charge",
+        "raw": 23.587,
+        "dealt": 24,
+        "htk": 3
+      },
+      {
+        "attack": "hop",
+        "raw": 19.958,
+        "dealt": 20,
+        "htk": 4
+      },
+      {
+        "attack": "ring",
+        "raw": 12.701,
+        "dealt": 13,
+        "htk": 6
+      },
+      {
+        "attack": "slam",
+        "raw": 20.866,
+        "dealt": 21,
+        "htk": 4
+      },
+      {
+        "attack": "nova",
+        "raw": 19.958,
+        "dealt": 20,
+        "htk": 4
+      },
+      {
+        "attack": "beam",
+        "raw": 18.144,
+        "dealt": 18,
+        "htk": 4
+      },
+      {
+        "attack": "spread",
+        "raw": 12.701,
+        "dealt": 13,
+        "htk": 6
+      },
+      {
+        "attack": "spiral",
+        "raw": 10.886,
+        "dealt": 11,
+        "htk": 7
+      },
+      {
+        "attack": "lob",
+        "raw": 16.33,
+        "dealt": 16,
+        "htk": 5
+      }
+    ],
+    "patterns": [
+      "hop",
+      "summon",
+      "p2",
+      "ring"
+    ]
+  },
+  "ttk": [
+    {
+      "id": "fists",
+      "name": "Fists",
+      "rarity": 0,
+      "sheet": {
+        "min": 2,
+        "max": 4,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.054,
+        "family": "fist",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 3,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 21,
+            "sec": 9.5,
+            "minHits": 31,
+            "maxHits": 16
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 29,
+            "sec": 13,
+            "minHits": 43,
+            "maxHits": 22
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 36,
+            "sec": 16.2,
+            "minHits": 54,
+            "maxHits": 27
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 44,
+            "sec": 19.8,
+            "minHits": 66,
+            "maxHits": 33
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 52,
+            "sec": 23.4,
+            "minHits": 78,
+            "maxHits": 39
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 350,
+            "sec": 157.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "rusty",
+      "name": "Rusty Sword",
+      "rarity": 0,
+      "sheet": {
+        "min": 2,
+        "max": 5,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.081,
+        "family": "sword",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 4,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 16,
+            "sec": 7.2,
+            "minHits": 31,
+            "maxHits": 13
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 22,
+            "sec": 9.9,
+            "minHits": 43,
+            "maxHits": 17
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 27,
+            "sec": 12.1,
+            "minHits": 54,
+            "maxHits": 22
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 33,
+            "sec": 14.8,
+            "minHits": 66,
+            "maxHits": 27
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 39,
+            "sec": 17.5,
+            "minHits": 78,
+            "maxHits": 31
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 263,
+            "sec": 118.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "sword-common",
+      "name": "Short Sword",
+      "rarity": 0,
+      "sheet": {
+        "min": 3,
+        "max": 6,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.081,
+        "family": "sword",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 5,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 13,
+            "sec": 5.9,
+            "minHits": 21,
+            "maxHits": 11
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 17,
+            "sec": 7.7,
+            "minHits": 29,
+            "maxHits": 15
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 22,
+            "sec": 9.9,
+            "minHits": 36,
+            "maxHits": 18
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 27,
+            "sec": 12.1,
+            "minHits": 44,
+            "maxHits": 22
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 31,
+            "sec": 13.9,
+            "minHits": 52,
+            "maxHits": 26
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 210,
+            "sec": 94.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "axe-common",
+      "name": "Hand Axe",
+      "rarity": 0,
+      "sheet": {
+        "min": 4,
+        "max": 8,
+        "aspd": 0.9,
+        "period": 0.5,
+        "windup": 0.14,
+        "family": "axe",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 6,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 11,
+            "sec": 5.5,
+            "minHits": 16,
+            "maxHits": 8
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 15,
+            "sec": 7.5,
+            "minHits": 22,
+            "maxHits": 11
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 18,
+            "sec": 9,
+            "minHits": 27,
+            "maxHits": 14
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 22,
+            "sec": 11,
+            "minHits": 33,
+            "maxHits": 17
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 26,
+            "sec": 13,
+            "minHits": 39,
+            "maxHits": 20
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 175,
+            "sec": 87.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "bow-common",
+      "name": "Short Bow",
+      "rarity": 0,
+      "sheet": {
+        "min": 4,
+        "max": 9,
+        "aspd": 1.05,
+        "period": 0.429,
+        "windup": 0.086,
+        "family": "bow",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 7,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 9,
+            "sec": 3.9,
+            "minHits": 16,
+            "maxHits": 7
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 13,
+            "sec": 5.6,
+            "minHits": 22,
+            "maxHits": 10
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 16,
+            "sec": 6.9,
+            "minHits": 27,
+            "maxHits": 12
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 19,
+            "sec": 8.2,
+            "minHits": 33,
+            "maxHits": 15
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 23,
+            "sec": 9.9,
+            "minHits": 39,
+            "maxHits": 18
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 150,
+            "sec": 64.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "sword-grandsire",
+      "name": "Grandsire Oswin",
+      "rarity": 3,
+      "sheet": {
+        "min": 10,
+        "max": 14,
+        "aspd": 1.21,
+        "period": 0.372,
+        "windup": 0.067,
+        "family": "sword",
+        "crit": 5,
+        "ls": 6
+      },
+      "avg": 12,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 6,
+            "sec": 2.2,
+            "minHits": 7,
+            "maxHits": 5
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 8,
+            "sec": 3,
+            "minHits": 9,
+            "maxHits": 7
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 9,
+            "sec": 3.3,
+            "minHits": 11,
+            "maxHits": 8
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 11,
+            "sec": 4.1,
+            "minHits": 14,
+            "maxHits": 10
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 13,
+            "sec": 4.8,
+            "minHits": 16,
+            "maxHits": 12
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 88,
+            "sec": 32.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "bow-banshee",
+      "name": "Scream of the Banshee",
+      "rarity": 3,
+      "sheet": {
+        "min": 11,
+        "max": 17,
+        "aspd": 1.05,
+        "period": 0.429,
+        "windup": 0.086,
+        "family": "bow",
+        "crit": 16,
+        "ls": 0
+      },
+      "avg": 14,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 5,
+            "sec": 2.1,
+            "minHits": 6,
+            "maxHits": 4
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 7,
+            "sec": 3,
+            "minHits": 8,
+            "maxHits": 5
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 8,
+            "sec": 3.4,
+            "minHits": 10,
+            "maxHits": 7
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 10,
+            "sec": 4.3,
+            "minHits": 12,
+            "maxHits": 8
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 12,
+            "sec": 5.1,
+            "minHits": 15,
+            "maxHits": 10
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 75,
+            "sec": 32.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "axe-gravedigger",
+      "name": "Gravedigger's Due",
+      "rarity": 3,
+      "sheet": {
+        "min": 12,
+        "max": 18,
+        "aspd": 0.9,
+        "period": 0.5,
+        "windup": 0.14,
+        "family": "axe",
+        "crit": 18,
+        "ls": 4
+      },
+      "avg": 15,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 5,
+            "sec": 2.5,
+            "minHits": 6,
+            "maxHits": 4
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 6,
+            "sec": 3,
+            "minHits": 8,
+            "maxHits": 5
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 8,
+            "sec": 4,
+            "minHits": 9,
+            "maxHits": 6
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 9,
+            "sec": 4.5,
+            "minHits": 11,
+            "maxHits": 8
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 11,
+            "sec": 5.5,
+            "minHits": 13,
+            "maxHits": 9
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 70,
+            "sec": 35
+          }
+        }
+      ]
+    },
+    {
+      "id": "sword-rare-haste",
+      "name": "Shadow Cry",
+      "rarity": 2,
+      "sheet": {
+        "min": 4,
+        "max": 7,
+        "aspd": 1.12,
+        "period": 0.402,
+        "windup": 0.072,
+        "family": "sword",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 6,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 11,
+            "sec": 4.4,
+            "minHits": 16,
+            "maxHits": 9
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 15,
+            "sec": 6,
+            "minHits": 22,
+            "maxHits": 13
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 18,
+            "sec": 7.2,
+            "minHits": 27,
+            "maxHits": 16
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 22,
+            "sec": 8.8,
+            "minHits": 33,
+            "maxHits": 19
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 26,
+            "sec": 10.5,
+            "minHits": 39,
+            "maxHits": 23
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 175,
+            "sec": 70.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "sword-rare-dmg",
+      "name": "Grave Vow",
+      "rarity": 2,
+      "sheet": {
+        "min": 4,
+        "max": 7,
+        "aspd": 1,
+        "period": 0.45,
+        "windup": 0.081,
+        "family": "sword",
+        "crit": 5,
+        "ls": 0
+      },
+      "avg": 6,
+      "rows": [
+        {
+          "depth": 1,
+          "se": {
+            "hp": 56,
+            "shield": 6,
+            "hits": 11,
+            "sec": 5,
+            "minHits": 16,
+            "maxHits": 9
+          },
+          "boss": null
+        },
+        {
+          "depth": 2,
+          "se": {
+            "hp": 77,
+            "shield": 8,
+            "hits": 15,
+            "sec": 6.8,
+            "minHits": 22,
+            "maxHits": 13
+          },
+          "boss": null
+        },
+        {
+          "depth": 3,
+          "se": {
+            "hp": 98,
+            "shield": 10,
+            "hits": 18,
+            "sec": 8.1,
+            "minHits": 27,
+            "maxHits": 16
+          },
+          "boss": null
+        },
+        {
+          "depth": 4,
+          "se": {
+            "hp": 120,
+            "shield": 12,
+            "hits": 22,
+            "sec": 9.9,
+            "minHits": 33,
+            "maxHits": 19
+          },
+          "boss": null
+        },
+        {
+          "depth": 5,
+          "se": {
+            "hp": 141,
+            "shield": 14,
+            "hits": 26,
+            "sec": 11.7,
+            "minHits": 39,
+            "maxHits": 23
+          },
+          "boss": {
+            "name": "live",
+            "hp": 840,
+            "shield": 210,
+            "hits": 175,
+            "sec": 78.8
+          }
+        }
+      ]
+    }
+  ],
+  "stacking": {
+    "summary": {
+      "iasSumsOnce": true,
+      "critOnce": true,
+      "critRatio": 1.83,
+      "leechBeforeArmor": true,
+      "bowSkipsLeech": true,
+      "familyDoesNotChangeDamage": true
+    },
+    "aspd": {
+      "swordIas": 21,
+      "withTwoExtra10": 1.41,
+      "swordOnly": 1.21,
+      "expectedSum": 1.41,
+      "sumOnce": true
+    },
+    "crit": {
+      "baseNo": 12,
+      "rolledNo": 12,
+      "dealtNo": 12,
+      "baseYes": 11,
+      "mul": 2,
+      "rolledYes": 22,
+      "dealtYes": 22,
+      "ratio": 1.83,
+      "liveAppliesOnce": true,
+      "pendingOnTop": 44
+    },
+    "leech": {
+      "ls": 6,
+      "rolled": 14,
+      "leechBase": 14,
+      "healed": 0.84,
+      "ramDealt": 6,
+      "ramArmor": 0.4,
+      "healedOnFullRoll": true,
+      "ramTookLess": true
+    },
+    "bowLeech": {
+      "source": "bow",
+      "base": 6,
+      "pct": 0,
+      "healed": 0,
+      "skipped": true
+    },
+    "swordPeriod": 0.45,
+    "axePeriod": 0.5,
+    "familyDamage": {
+      "sword": 10,
+      "axe": 10
+    },
+    "poise": {
+      "seTaken": 0.3,
+      "seMax": 360,
+      "swordLight": 18,
+      "hitsToStaggerSe": 67,
+      "seStaggered": true,
+      "playerMax": 140,
+      "incomingSkill": 8,
+      "seSwingsToStaggerPlayer": 18,
+      "playerStaggered": true
+    }
+  },
+  "uniques": {
+    "eligible": [
+      {
+        "L": 1,
+        "names": [
+          "Grandsire Oswin",
+          "Gravedigger's Due",
+          "Rootwake",
+          "Ratcatcher's Coat",
+          "Fool's Motley",
+          "Lanternjaw",
+          "Wind Walkers",
+          "Eye of the Choir",
+          "Bloodbound Signet",
+          "Tam's Copper",
+          "Tam's Lantern Bead",
+          "Tam's Coffin Lid",
+          "Scream of the Banshee",
+          "Spine of the First Lich",
+          "Hellmouth Strider"
+        ]
+      },
+      {
+        "L": 2,
+        "names": [
+          "Grandsire Oswin",
+          "Gravedigger's Due",
+          "Oathbreaker",
+          "Rootwake",
+          "Ratcatcher's Coat",
+          "Hollowmere Mail",
+          "Fool's Motley",
+          "Lanternjaw",
+          "Wind Walkers",
+          "Eye of the Choir",
+          "Bloodbound Signet",
+          "Tam's Copper",
+          "Tam's Lantern Bead",
+          "Tam's Coffin Lid",
+          "Calder's Oath",
+          "Merrow's Mirror",
+          "Scream of the Banshee",
+          "Spine of the First Lich",
+          "Hellmouth Strider"
+        ]
+      },
+      {
+        "L": 5,
+        "names": [
+          "Grandsire Oswin",
+          "Gravedigger's Due",
+          "Oathbreaker",
+          "Rootwake",
+          "Widow's Harvest",
+          "Ratcatcher's Coat",
+          "Hollowmere Mail",
+          "The Last Bastion",
+          "Fool's Motley",
+          "Lanternjaw",
+          "Crown of Hollowmere",
+          "Wind Walkers",
+          "Pilgrim's Descent",
+          "Eye of the Choir",
+          "Bloodbound Signet",
+          "Tam's Copper",
+          "Tam's Lantern Bead",
+          "Jester's Last Laugh",
+          "The Mason's Tooth",
+          "Tam's Coffin Lid",
+          "Calder's Oath",
+          "Merrow's Mirror",
+          "The Gatekeeper",
+          "Penitent's Door",
+          "Scream of the Banshee",
+          "Spine of the First Lich",
+          "Hellmouth Strider"
+        ]
+      }
+    ],
+    "bossUniqueDepth1": [
+      {
+        "name": "Hellmouth Strider",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
+        "name": "Tam's Copper",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Tam's Copper",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Tam's Copper",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Fool's Motley",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Cap"
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Bloodbound Signet",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Wind Walkers",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Boots"
+      },
+      {
+        "name": "Ratcatcher's Coat",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Leather Armor"
+      },
+      {
+        "name": "Wind Walkers",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Boots"
+      },
+      {
+        "name": "Tam's Coffin Lid",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Wooden Buckler"
+      },
+      {
+        "name": "Bloodbound Signet",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Gravedigger's Due",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 7,
+        "ias": 0,
+        "base": "Hand Axe"
+      },
+      {
+        "name": "Grandsire Oswin",
+        "lvl": 1,
+        "req": 2,
+        "min": 3,
+        "max": 7,
+        "hp": 0,
+        "dmg": 6,
+        "ias": 21,
+        "base": "Short Sword"
+      },
+      {
+        "name": "Eye of the Choir",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 4,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Rootwake",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 8,
+        "hp": 16,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Gnarled Staff"
+      },
+      {
+        "name": "Tam's Copper",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Ring"
+      },
+      {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Wind Walkers",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Boots"
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 11,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Copper Charm"
+      },
+      {
+        "name": "Spine of the First Lich",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 6,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Fool's Motley",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 0,
+        "dmg": 0,
+        "ias": 11,
+        "base": "Cap"
+      },
+      {
+        "name": "Tam's Lantern Bead",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 11,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Copper Charm"
+      },
+      {
+        "name": "Scream of the Banshee",
+        "lvl": 1,
+        "req": 2,
+        "min": 4,
+        "max": 10,
+        "hp": 0,
+        "dmg": 5,
+        "ias": 0,
+        "base": "Short Bow"
+      },
+      {
+        "name": "Lanternjaw",
+        "lvl": 1,
+        "req": 2,
+        "min": 0,
+        "max": 0,
+        "hp": 21,
+        "dmg": 0,
+        "ias": 0,
+        "base": "Helm"
+      }
+    ]
+  },
+  "constants": {
+    "dmgBump": [
+      {
+        "d": 1,
+        "mob": 1.25,
+        "boss": 1.08
+      },
+      {
+        "d": 2,
+        "mob": 1.233,
+        "boss": 1.08
+      },
+      {
+        "d": 3,
+        "mob": 1.216,
+        "boss": 1.08
+      },
+      {
+        "d": 4,
+        "mob": 1.199,
+        "boss": 1.08
+      },
+      {
+        "d": 5,
+        "mob": 1.182,
+        "boss": 1.08
+      }
+    ],
+    "blockCap": 40,
+    "seTell": {
+      "swing": {
+        "dur": 1,
+        "gap": 0.7,
+        "w": 16,
+        "len": 52,
+        "hit": 8,
+        "mul": 1,
+        "act": "attack",
+        "col": "#ff4040"
+      },
+      "power": {
+        "dur": 1.3,
+        "gap": 0.9,
+        "r": 10,
+        "mul": 1.7,
+        "act": "powerup",
+        "col": "#ff8040"
+      },
+      "brand": {
+        "dur": 1.15,
+        "gap": 0.75,
+        "r": 8,
+        "mul": 0.85,
+        "act": "attack",
+        "col": "#c080ff"
+      }
+    },
+    "bossTell": {
+      "ring": 0.55,
+      "spiral": 0.6,
+      "spread": 0.85,
+      "charge": 0.75,
+      "slam": 0.9,
+      "hop": 0.85,
+      "nova": 1.15,
+      "beam": 1,
+      "teleport": 0.75,
+      "teleportRing": 0.55,
+      "lob": 1,
+      "phaseBeat": 0.7,
+      "hopRing": 0.45
+    },
+    "move": 62,
+    "minMove": 0.2,
+    "critBase": 5,
+    "critMulBase": 2,
+    "lifeDrainWired": false
+  },
+  "pageErrors": [],
+  "playtestUi": {
+    "boot": {
+      "hp": 60,
+      "maxHp": 60,
+      "depth": 1,
+      "version": "0.7.18",
+      "god": false
+    },
+    "level2": {
+      "lvl": 2,
+      "hp": 70,
+      "maxHp": 70,
+      "mp": 30,
+      "maxMp": 30,
+      "invincible": true,
+      "shiftT": 1000000000
+    },
+    "globeText": "70",
+    "heartText": "0",
+    "heartIsPotionCount": false,
+    "potionCount": 3,
+    "afterGod": {
+      "hp": 70,
+      "maxHp": 70,
+      "god": true,
+      "invincible": true
+    },
+    "afterHeal": {
+      "hp": 70,
+      "maxHp": 70
+    },
+    "afterDepth4": {
+      "depth": 4,
+      "hp": 70,
+      "maxHp": 70,
+      "lvl": 2
+    },
+    "afterDevSword": {
+      "hp": 70,
+      "maxHp": 70,
+      "weapon": "sword",
+      "lvl": 2,
+      "min": 3,
+      "max": 6
+    },
+    "errors": []
+  }
+}
