@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!-- HUD scale: integer desktop bar, settings persistence, touch targets, zoom-independent item labels. -->
+<html>
+<head><meta charset="utf-8"><title>hud-scale</title>
+<style>html,body{margin:0;background:#000;color:#ccc;font:12px monospace}iframe{border:0}pre{white-space:pre-wrap}</style>
+</head>
+<body>
+<iframe id="g" src="../index.html?v=hudscale" style="width:1280px;height:720px"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+const perfRows = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n') + '\n\nPERF\n' + JSON.stringify(perfRows);
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function raf() { return new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))); }
+document.getElementById('g').addEventListener('load', () => {
+  run(document.getElementById('g').contentWindow).then(finish, e => {
+    lines.push('FAIL harness :: ' + (e && e.stack || e));
+    finish();
+  });
+}, { once: true });
+
+function box(el) {
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom };
+}
+function overlaps(a, b) {
+  if (!a || !b || a.w < 1 || b.w < 1) return false;
+  return a.x < b.r - 0.5 && b.x < a.r - 0.5 && a.y < b.b - 0.5 && b.y < a.b - 0.5;
+}
+
+async function boot(w, width, height, touch) {
+  const frame = document.getElementById('g');
+  frame.style.width = width + 'px';
+  frame.style.height = height + 'px';
+  await raf();
+  w.__zoomDesk = !touch;
+  const anyway = w.document.getElementById('rAnyway');
+  if (touch && anyway) anyway.click();
+  w.game.touchMode = !!touch;
+  w.game.settings.lighting = 'low';
+  w.game.settings.hudScale = 'auto';
+  if (!w.game.player) w.game.newGame();
+  w.game.touchMode = !!touch;
+  if (w.game.player) { w.game.player.torchT = 200; w.game.player.torches = 4; }
+  if (w.game.enemies && w.game.enemies.splice) w.game.enemies.splice(0, w.game.enemies.length);
+  for (let i = 0; i < 8; i++) w.game.step(0.2, { x: 0, y: 0 });
+  w.resize();
+  if (typeof w.syncDesk === 'function') w.syncDesk();
+  w.render();
+  await raf();
+}
+
+async function run(w) {
+  const g = w.game;
+  check('prefs', g.HUD_PREFS.join(',') === 'auto,75,100,125,150', g.HUD_PREFS.join(','));
+  check('auto mul is 1', g.hudPrefMul('auto') === 1 && g.hudPrefMul('100') === 1 && g.hudPrefMul('75') === 0.75 && g.hudPrefMul('150') === 1.5);
+  check('junk pref mul is 1', g.hudPrefMul('nope') === 1);
+  const expect = [
+    ['720 auto', 1280, 720, 1, 'auto', 2],
+    ['1080 auto', 1920, 1080, 1, 'auto', 3],
+    ['1440 auto', 2560, 1440, 1, 'auto', 4],
+    ['4k auto', 3840, 2160, 1, 'auto', 6],
+    ['1440 75', 2560, 1440, 1, '75', 3],
+    ['1440 125', 2560, 1440, 1, '125', 5],
+    ['1440 150', 2560, 1440, 1, '150', 6],
+    ['win125 auto', 2048, 1152, 1.25, 'auto', 4],
+    ['win150 auto', 1707, 960, 1.5, 'auto', 4]
+  ];
+  expect.forEach(row => {
+    const got = g.computeHudScale(row[1], row[2], row[3], row[4]);
+    check('scale ' + row[0], got === row[5], got);
+  });
+  check('scale clamp low', g.computeHudScale(200, 100, 1, '75') === 1);
+  check('scale clamp high', g.computeHudScale(4000, 4000, 2, '150') === 6);
+  check('720 150 still fits', g.fitHudScale(1280, 720, 1, '150', 7) >= 1 && g.fitHudScale(1280, 720, 1, '150', 7) <= g.computeHudScale(1280, 720, 1, '150'));
+  check('1440 150 not above auto by more than the width allows', g.fitHudScale(2560, 1440, 1, '150', 4) >= g.fitHudScale(2560, 1440, 1, 'auto', 4));
+  check('fit never exceeds raw scale', g.fitHudScale(1280, 720, 1, '150', 7) <= g.computeHudScale(1280, 720, 1, '150'));
+
+  await boot(w, 1280, 720, false);
+  const cv0 = w.document.getElementById('game');
+  const dpr0 = w.devicePixelRatio || 1;
+  const scale0 = (parseFloat(cv0.style.width) * dpr0) / (g.vw || 1);
+  const face1 = g.worldLabelFace();
+  check('label face tracks SCALE', face1 === Math.max(6, Math.round(6 * scale0)), face1 + ' scale ' + scale0.toFixed(2));
+  g.settings.hudScale = '150';
+  const face150 = g.worldLabelFace();
+  check('150 label face larger or equal', face150 >= face1, face1 + ' -> ' + face150);
+  g.settings.hudScale = 'auto';
+
+  function cluster() {
+    const desk = w.document.getElementById('deskHud');
+    const slots = [...desk.querySelectorAll('.dh-slot')].filter(el => el.style.display !== 'none' && el.getBoundingClientRect().width > 2);
+    const globes = [...desk.querySelectorAll('.dh-globe')];
+    const keys = slots.map(el => el.querySelector('.key')).filter(Boolean);
+    return { desk, slots, globes, keys, db: box(desk) };
+  }
+  function assertFit(tag) {
+    const c = cluster();
+    const vw = w.innerWidth, vh = w.innerHeight;
+    check(tag + ' desk on screen', c.db && c.db.x >= -1 && c.db.y >= -1 && c.db.r <= vw + 1 && c.db.b <= vh + 1, JSON.stringify(c.db));
+    c.globes.forEach((el, i) => {
+      const b = box(el);
+      check(tag + ' globe ' + i + ' inside', b.x >= -1 && b.y >= -1 && b.r <= vw + 1 && b.b <= vh + 1 && b.h >= 40, Math.round(b.w) + 'x' + Math.round(b.h));
+    });
+    for (let i = 0; i < c.slots.length; i++) for (let j = i + 1; j < c.slots.length; j++) {
+      if (overlaps(box(c.slots[i]), box(c.slots[j]))) check(tag + ' slots overlap', false, i + ',' + j);
+    }
+    check(tag + ' no slot overlap', true);
+    c.slots.forEach((el, i) => {
+      const s = box(el), k = box(el.querySelector('.key'));
+      const inside = k && k.x >= s.x - 0.5 && k.y >= s.y - 0.5 && k.r <= s.r + 0.5 && k.b <= s.b + 0.5;
+      check(tag + ' key ' + i + ' inside slot', inside, k && (Math.round(k.b) + ' vs ' + Math.round(s.b)));
+      check(tag + ' slot ' + i + ' on screen', s.r <= vw + 1 && s.b <= vh + 1 && s.x >= -1, Math.round(s.w) + '@' + Math.round(s.x));
+    });
+    const well = c.desk.querySelector('.dh-well');
+    if (well) check(tag + ' well on screen', box(well).r <= vw + 1 && box(well).w > 8, Math.round(box(well).w));
+    return c;
+  }
+  const autoC = assertFit('720 auto');
+  const autoSlot = autoC.slots[0] ? box(autoC.slots[0]).h : 0;
+  check('720 auto slot grew past 48', autoSlot >= 48, autoSlot);
+  w.__safeInsets = { l: 8, r: 10, t: 16, b: 28 };
+  w.resize();
+  if (typeof w.syncDesk === 'function') w.syncDesk();
+  const safeDesk = box(w.document.getElementById('deskHud'));
+  check('desk clears bottom safe area', safeDesk && safeDesk.b <= w.innerHeight - 28 + 1, safeDesk && (w.innerHeight - safeDesk.b).toFixed(1));
+  check('desk clears left safe area', safeDesk && safeDesk.x >= 8 - 1, safeDesk && safeDesk.x.toFixed(1));
+  w.__safeInsets = { l: 0, r: 0, t: 0, b: 0 };
+  w.resize();
+  if (typeof w.syncDesk === 'function') w.syncDesk();
+
+  g.settings.hudScale = '150';
+  w.saveSettings();
+  w.resize();
+  if (typeof w.syncDesk === 'function') w.syncDesk();
+  w.render();
+  const big = assertFit('720 150');
+  const bigSlot = big.slots[0] ? box(big.slots[0]).h : 0;
+  check('720 150 slot at least auto', bigSlot + 0.5 >= autoSlot, bigSlot + ' vs ' + autoSlot);
+
+  const saved = JSON.parse(w.localStorage.getItem('cryptdelve-settings') || '{}');
+  check('settings saved 150', saved.hudScale === '150', saved.hudScale);
+  w.save();
+  const run = JSON.parse(w.localStorage.getItem('cryptdelve') || '{}');
+  check('run save has no hudScale', run.hudScale == null && (!run.p || run.p.hudScale == null));
+  g.settings.hudScale = 'auto';
+  w.saveSettings();
+
+  const sizes = [[1920, 1080, '1080'], [2560, 1440, '1440'], [3840, 2160, '4k']];
+  for (const [ww, hh, name] of sizes) {
+    await boot(w, ww, hh, false);
+    g.settings.hudScale = 'auto';
+    w.resize(); w.syncDesk(); w.render();
+    const a = assertFit(name + ' auto');
+    const ah = a.slots[0] ? box(a.slots[0]).h : 0;
+    g.settings.hudScale = '150';
+    w.resize(); w.syncDesk(); w.render();
+    const b = assertFit(name + ' 150');
+    const bh = b.slots[0] ? box(b.slots[0]).h : 0;
+    check(name + ' 150 >= auto', bh + 0.5 >= ah, ah + ' -> ' + bh);
+    const t0 = performance.now();
+    for (let i = 0; i < 12; i++) w.render();
+    const avg = (performance.now() - t0) / 12;
+    perfRows.push({ name, avg: +avg.toFixed(2), slot: Math.round(bh), face: g.worldLabelFace() });
+    check(name + ' render recorded', avg >= 0, avg.toFixed(1));
+  }
+
+  await boot(w, 2560, 1440, false);
+  g.settings.hudScale = 'auto';
+  w.resize(); w.syncDesk();
+  const p = g.player;
+  const it = g.makeItem(4, 1);
+  g.ground.push({ x: p.x + 12, y: p.y - 4, bob: 0, item: it, lock: false });
+  g.setZoom(1);
+  w.render();
+  const faceZoom1 = g.worldLabelFace();
+  const met1 = g.worldLabelMetrics(it.name.toUpperCase());
+  const slotBefore = box(w.document.querySelector('#deskHud .dh-slot')).h;
+  g.setZoom(g.zoomSteps()[0]);
+  w.syncDesk();
+  w.render();
+  const faceFar = g.worldLabelFace();
+  const metFar = g.worldLabelMetrics(it.name.toUpperCase());
+  const slotFar = box(w.document.querySelector('#deskHud .dh-slot')).h;
+  check('label face ignores zoom', faceZoom1 === faceFar && faceZoom1 >= 24, faceZoom1 + '/' + faceFar);
+  check('label device box ignores zoom', met1.hDev === metFar.hDev && Math.abs(met1.tw - metFar.tw) < 0.5, met1.hDev + ' ' + metFar.hDev);
+  check('desk slot ignores zoom', Math.abs(slotBefore - slotFar) < 1, slotBefore + ' -> ' + slotFar);
+  check('zoom out still widens the view', g.zoom < 0.95, g.zoom + ' wp ' + g.worldPix());
+  g.setZoom(1);
+
+  await boot(w, 390, 844, true);
+  await boot(w, 412, 915, true);
+  const phones = [[390, 844], [412, 915], [768, 1024]];
+  for (const [ww, hh] of phones) {
+    await boot(w, ww, hh, true);
+    const hud = parseFloat(getComputedStyle(w.document.documentElement).getPropertyValue('--hud')) || 1;
+    const ids = ['bAtk', 'bHP', 'bMP', 'bInv', 'tPause', 'tMap'];
+    ids.forEach(id => {
+      const el = w.document.getElementById(id);
+      const b = box(el);
+      const visual = b ? Math.min(b.w, b.h) : 0;
+      check(ww + ' ' + id + ' >= 44', visual >= 43.5, visual.toFixed(1) + ' hud ' + hud);
+      if (b) check(ww + ' ' + id + ' on screen', b.x >= -1 && b.y >= -1 && b.r <= ww + 1 && b.b <= hh + 1, Math.round(b.x) + ',' + Math.round(b.y));
+    });
+    let gl = w.document.getElementById('glHud');
+    if (!gl) { gl = w.document.createElement('button'); gl.id = 'glHud'; w.document.body.appendChild(gl); }
+    const gb = box(gl);
+    check(ww + ' glHud >= 44', gb && Math.min(gb.w, gb.h) >= 43.5, gb && Math.min(gb.w, gb.h).toFixed(1));
+    const lbl = w.document.querySelector('#satchel .slot .lbl') || null;
+    w.game.openInv();
+    const tab = w.document.querySelector('#satTabs .sat-tab[data-tab="character"]');
+    if (tab) tab.click();
+    const lab = [...w.document.querySelectorAll('#satchel .slot .lbl')].find(el => (el.textContent || '').trim());
+    const lb = lab ? box(lab) : null;
+    check(ww + ' wpn label taller than 8px', !!(lb && lb.h >= 8), lb && lb.h);
+    if (w.game.closeInv) w.game.closeInv();
+    void lbl;
+  }
+}
+</script>
+</body>
+</html>

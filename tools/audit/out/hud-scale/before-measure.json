@@ -1,0 +1,494 @@
+[
+  {
+    "id": "1080",
+    "avg": 5.68333333331005,
+    "pref": "auto",
+    "k": "3",
+    "zoom": 1,
+    "wp": 6,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      1920,
+      156,
+      0,
+      924
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-1080.png"
+  },
+  {
+    "id": "1440",
+    "avg": 3.6916666666899496,
+    "pref": "auto",
+    "k": "4",
+    "zoom": 1,
+    "wp": 8,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      2560,
+      208,
+      0,
+      1232
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-1440.png"
+  },
+  {
+    "id": "1440-150",
+    "avg": 3.0333333333255723,
+    "pref": "150",
+    "k": "4",
+    "zoom": 1,
+    "wp": 8,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      2560,
+      208,
+      0,
+      1232
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-1440-150.png"
+  },
+  {
+    "id": "1440-far",
+    "avg": 6.649999999984478,
+    "pref": "auto",
+    "k": "4",
+    "zoom": 0.375,
+    "wp": 3,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      2559,
+      208,
+      1,
+      1232
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-1440-far.png"
+  },
+  {
+    "id": "4k",
+    "avg": 3.891666666682189,
+    "pref": "auto",
+    "k": "6",
+    "zoom": 1,
+    "wp": 12,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      3840,
+      312,
+      0,
+      1848
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-4k.png"
+  },
+  {
+    "id": "4k-150",
+    "avg": 2.9416666666899496,
+    "pref": "150",
+    "k": "6",
+    "zoom": 1,
+    "wp": 12,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      3840,
+      312,
+      0,
+      1848
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-4k-150.png"
+  },
+  {
+    "id": "720-150",
+    "avg": 3.2916666666666665,
+    "pref": "150",
+    "k": "2",
+    "zoom": 1,
+    "wp": 4,
+    "slot": [
+      48,
+      48
+    ],
+    "globe": [
+      56,
+      56
+    ],
+    "keyInside": false,
+    "desk": [
+      1280,
+      104,
+      0,
+      616
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "before-720-150.png"
+  },
+  {
+    "id": "phone412",
+    "avg": 3.2666666666433835,
+    "pref": "auto",
+    "k": "1",
+    "zoom": 1,
+    "wp": 7,
+    "slot": null,
+    "globe": null,
+    "keyInside": false,
+    "desk": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        73.9,
+        73.9
+      ],
+      "bHP": [
+        40.3,
+        40.3
+      ],
+      "bMP": [
+        40.3,
+        40.3
+      ],
+      "bInv": [
+        40.3,
+        40.3
+      ],
+      "tPause": [
+        26.9,
+        26.9
+      ],
+      "tMap": [
+        40.3,
+        40.3
+      ]
+    },
+    "overflow": 0,
+    "file": "before-phone412.png"
+  },
+  {
+    "id": "phone390",
+    "avg": 4.216666666674428,
+    "pref": "auto",
+    "k": "1",
+    "zoom": 1,
+    "wp": 6,
+    "slot": null,
+    "globe": null,
+    "keyInside": false,
+    "desk": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        73.9,
+        73.9
+      ],
+      "bHP": [
+        40.3,
+        40.3
+      ],
+      "bMP": [
+        40.3,
+        40.3
+      ],
+      "bInv": [
+        40.3,
+        40.3
+      ],
+      "tPause": [
+        26.9,
+        26.9
+      ],
+      "tMap": [
+        40.3,
+        40.3
+      ]
+    },
+    "overflow": 0,
+    "file": "before-phone390.png"
+  },
+  {
+    "id": "tablet",
+    "avg": 2.733333333317811,
+    "pref": "auto",
+    "k": "1",
+    "zoom": 1,
+    "wp": 9,
+    "slot": null,
+    "globe": null,
+    "keyInside": false,
+    "desk": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        84.5,
+        84.5
+      ],
+      "bHP": [
+        46.1,
+        46.1
+      ],
+      "bMP": [
+        46.1,
+        46.1
+      ],
+      "bInv": [
+        46.1,
+        46.1
+      ],
+      "tPause": [
+        30.7,
+        30.7
+      ],
+      "tMap": [
+        46.1,
+        46.1
+      ]
+    },
+    "overflow": 0,
+    "file": "before-tablet.png"
+  }
+]
