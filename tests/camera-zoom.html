@@ -239,12 +239,14 @@ async function run(w) {
 
   function arrowHit() {
     clearFoes();
+    g.projs.length = 0;
     const p = g.player;
-    const e = w.spawnEnemy(g.MOB_IDS[0], p.x + 70, p.y);
-    e.x = p.x + 70; e.y = p.y; e.r = e.r || 6;
+    const e = w.spawnEnemy(g.MOB_IDS[0], p.x + 48, p.y);
+    e.x = p.x + 48; e.y = p.y; e.r = e.r || 6;
     const hp = e.hp;
-    g.projs.push({ x: e.x - e.r - 2, y: e.y, vx: 200, vy: 0, r: 3, dmg: 5, owner: 'p', kind: 'arrow', life: 1, visualStyle: null });
-    g.step(0.02, { x: 0, y: 0 });
+    g.projs.push({ x: e.x - e.r - 1, y: e.y, vx: 180, vy: 0, r: 3, dmg: 5, owner: 'p', kind: 'arrow', life: 1, visualStyle: null });
+    g.step(0.016, { x: 0, y: 0 });
+    g.projs.length = 0;
     return e.hp < hp;
   }
   g.setZoom(1);
@@ -278,6 +280,72 @@ async function run(w) {
   }
   check('unexplored tile stays dark when zoomed out', !!dark, dark && dark.s.join(','));
   check('remembered tile is not the same black', !!(seen && seen[1] > (dark ? dark.s[1] : 0) + 40), seen && seen.join(','));
+
+  if (g.glLookReset) g.glLookReset();
+  g.player.torchT = 90;
+  function sumPx(px) { return px ? px[0] + px[1] + px[2] : -1; }
+  function farUnseen() {
+    const V = g.lightFrame;
+    if (!V) return null;
+    const x0 = Math.floor(V.x / 16), y0 = Math.floor(V.y / 16);
+    const x1 = Math.floor((V.x + V.w) / 16), y1 = Math.floor((V.y + V.h) / 16);
+    let best = null;
+    for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+      if (w.tileAt(tx, ty) !== 1 || g.seenAt(tx, ty)) continue;
+      const wx = (tx + 0.5) * 16, wy = (ty + 0.5) * 16;
+      if (Math.hypot(wx - g.player.x, wy - g.player.y) < 140) continue;
+      const s = g.lightSample(wx, wy);
+      if (!s) continue;
+      const sum = sumPx(s);
+      if (!best || sum < best.sum) best = { sum: sum, s: s, tx: tx, ty: ty, wx: wx, wy: wy };
+    }
+    return best;
+  }
+  function lightProbe(tag) {
+    w.render();
+    const near = g.lightSample(g.player.x, g.player.y - 2);
+    const far = farUnseen();
+    const bw = w.document.getElementById('game').width;
+    const lq = g.lightScale();
+    check(tag + ' torch bright', sumPx(near) > 80, sumPx(near) + ' ' + g.lightPath());
+    check(tag + ' unexplored dark', !!(far && far.sum < 80), far && (far.sum + ' @' + far.tx + ',' + far.ty));
+    if (g.lightPath() === 'canvas') {
+      const expectW = Math.max(1, Math.ceil(bw * lq));
+      check(tag + ' lightmap matches quality', Math.abs(g.lcan.width - expectW) <= 1, g.lcan.width + ' vs ' + expectW + ' q ' + lq);
+    } else check(tag + ' lightmap matches quality', g.lightPath() === 'webgl', g.lightPath());
+  }
+  const prevLight = g.settings.lighting, prevGl = g.settings.glLight;
+  g.settings.lighting = 'low';
+  g.settings.glLight = 'off';
+  g.setZoom(1);
+  lightProbe('low 1x');
+  g.setZoom(steps[0]);
+  lightProbe('low far');
+  g.settings.lighting = 'high';
+  g.settings.glLight = 'on';
+  g.setZoom(1);
+  w.render();
+  const gl1 = g.glStatus ? g.glStatus() : null;
+  check('gl 1x path', g.lightPath() === 'webgl', (gl1 && gl1.reason) || g.lightPath());
+  if (g.lightPath() === 'webgl') lightProbe('gl 1x');
+  g.setZoom(steps[0]);
+  w.render();
+  const glF = g.glStatus ? g.glStatus() : null;
+  check('gl far path', g.lightPath() === 'webgl', (glF && glF.reason) || g.lightPath());
+  if (g.lightPath() === 'webgl') lightProbe('gl far');
+  g.settings.lighting = prevLight || 'high';
+  g.settings.glLight = prevGl || 'off';
+  if (g.glLookReset) g.glLookReset();
+  g.setZoom(1);
+
+  // 125% Windows: CSS 1536x864 at DPR 1.25 is 1920x1080 device pixels, so SCALE and the
+  // integer steps match the 1080p DPR 1 reference (far step stays 60 x 33.75, not ~75).
+  const win1 = g.backingMetrics(1536, 864, 1.25, 6, null);
+  const winFar = g.backingMetrics(1536, 864, 1.25, 2, null);
+  const winSteps = [2, 3, 4, 5, 6].map(n => g.backingMetrics(1536, 864, 1.25, n, null).worldPix);
+  check('dpr 1.25 at 1536x864 matches 1080p', win1.scale === 6 && win1.vw === 320 && win1.vh === 180 && win1.worldPix === 6 && win1.bw === 320 && win1.bh === 180, JSON.stringify(win1));
+  check('dpr 1.25 at 1536x864 far is 60 tiles', winFar.worldPix === 2 && winFar.tilesX === 60 && Math.abs(winFar.tilesY - 33.75) < 0.01 && winFar.bw === 960 && winFar.bh === 540, JSON.stringify(winFar));
+  check('dpr 1.25 at 1536x864 steps stay distinct', winSteps.join(',') === '2,3,4,5,6', winSteps.join(','));
 
   function aim(wx, wy) {
     const s = g.worldToScreen(wx, wy);

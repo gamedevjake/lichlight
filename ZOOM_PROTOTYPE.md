@@ -107,3 +107,57 @@ Combat stage suites `stage1` through `stage7`, `stage9`, `stage10`, `stage11`, p
 - WebGL LIGHT was left off (the default). The zoomed blit uses the world-buffer size and the existing NEAREST filters. It was not timed with GL on.
 - Zoom is still a session toggle. A save made while zoomed reloads at 1x on purpose.
 - The 1x frame is not bit-exact: 72 pixels differ by 1 level. I did not find a shifted sprite or HUD.
+
+## Follow-up after conditional approval
+
+Head reviewed was `018199f`. These updates stay on the same branch. No gameplay, save, audio, or `version.json` change. No rendering bug turned up, so `index.html` was not edited again.
+
+### Assertion updates
+
+| Check | Old assertion | New assertion |
+| --- | --- | --- |
+| `v075` `f1 desktop steps` | `zoomSteps()` is exactly `0.25,0.35,0.5,0.75,1` | The list is exactly the distinct integer sixths for this viewport (`2,3,4,5,6` of `SCALE`, 60-tile cap, duplicates removed), widest first, `1` last, each `worldPix` a strictly increasing integer |
+| `v075` `f1 minus from 1` | One zoom-out from 1x lands on exactly `0.75` | One zoom-out lands on exactly the adjacent wider step (ratio and `worldPix`), still below `SCALE` |
+| `v075` `f1 out to 0.25` | Three more zoom-outs land on exactly `0.25` | The same walk — `(list length - 2)` more zoom-outs, which is 3 when five steps exist — lands on exactly the far integer step, and the view is wider than `VW × VH` |
+| `v075` `f1 plus toward 1` | One zoom-in from the far step lands on exactly `0.35` | One zoom-in lands on exactly the next step toward 1x (index 1), not the far pixel |
+| `v076` `b1 far fog` | A floor tile past the torch, whose old `VW × VH` screen point cleared the HUD, has lightmap sum `< 80` | The same darkness rule. The point must sit inside the world backing store (inset 4px), because `worldToScreen` is now one backing pixel per world pixel |
+| `v076` `b1 screen dark` | That screen pixel, read in the `VW × VH` canvas, has sum `< 90` | That backing-store pixel, read on the world canvas, still has sum `< 90` |
+
+`v075` is now FAIL 1 / 60, and the only failure is `f3 multi select`, which also fails on main. `v076` is PASS / 48.
+
+### Extra checks in `tests/camera-zoom.html`
+
+The suite is now **PASS / 125**, including the original 108.
+
+- Low lighting at 1x and at the far step: torch sum `> 80`, an unexplored tile sum `< 80`, lightmap width is half the world buffer (160 vs 320 at 1x on the test iframe; 480 vs 960 at the far step).
+- WebGL (`settings.glLight = 'on'`, High) at 1x and at the far step: path is `webgl`, torch bright, unexplored tile sum 29.
+- DPR 1.25 at CSS 1536×864: `SCALE` 6, 1x backing 320×180, far `worldPix` 2, backing 960×540, **60 × 33.75 tiles**, steps `2,3,4,5,6`. That CSS size is 1920×1080 device pixels, so it matches the 1080p reference rather than the wider DPR-1.25-at-1920×1080 case.
+
+### Lighting and 125% screenshots
+
+Headless Chrome 156. Unexplored lightmap samples are sum 29 where the wide view can see past the start room. `imageSmoothingEnabled` stayed false on the present canvas. HUD size did not follow the zoom.
+
+| Frame | Path | worldPix | Backing | Light buffer | Near sum | Far sum | avg ms |
+| --- | --- | ---: | --- | --- | ---: | ---: | ---: |
+| `light-desk-low-1x.png` | canvas Low | 6 | 320×180 | 160×90 | 576 | none in the 1x window | 2.33 |
+| `light-desk-low-far.png` | canvas Low | 2 | 960×540 | 480×270 | 576 | 29 | 6.51 |
+| `light-desk-gl-1x.png` | webgl High | 6 | 320×180 | GL at 320×180 | 765 | none in the 1x window | 36.4 |
+| `light-desk-gl-far.png` | webgl High | 2 | 960×540 | GL at 960×540 | 765 | 29 | 311 |
+| `win125-1536-1x.png` | canvas High | 6 | 320×180 | 320×180 | 563 | none in the 1x window | 4.16 |
+| `win125-1536-far.png` | canvas High | 2 | 960×540 | 960×540 | 563 | 29 | 9.2 |
+
+The 1x window is only 320×180, so a fresh start room often has no unexplored floor both on screen and more than 140px from the player. The wide step does, and that tile stays at the void color (29) for Low, WebGL, and the 125% far shot.
+
+WebGL at the far step averaged 311 ms/frame in this headless process (software GL, full 960×540 occlusion upload). The canvas path for the same view averaged 6.5 ms. The picture is right: torch in the middle, black outside it, HUD unchanged. This is a cost note, not a fog bug. GL LIGHT remains off by default.
+
+### Remaining failures versus main `743c826`
+
+No new failure names. `v075` `f1 *` and `v076` `b1 far fog` / `b1 screen dark` are gone.
+
+Still failing on both this branch and main: version pins that expect `0.7.11`; `v07103` stats/name; `v0711` gold/tome/stats; `v0712` and `v0713` shop layout; `v0715` / `v07151` satchel scale; `v075` `f3 multi select`; `v077` `f4 pool` and `f5 shop boss`; `v078-play` `f11 champions only`; `v0781` `f1 boss hits`. Main also failed `v075` `f4 skins rotate`, `stage8` `harbinger telegraphs before the rat`, and `v078` `notes` / `changelog`. Those did not fail here. `v07152` resize race, `v0714` footer, and `v077` `f2 brazier` did not fail on either run.
+
+### Still open
+
+- A 1920×1080 CSS window at DPR 1.25 (device 2400×1350) still uses the 60-tile cap, so the far step is about 50 tiles, not 60. The requested 125% case (1536×864 CSS) does not hit that cap.
+- Safari, a real S25 viewport, and a real GPU timing of GL LIGHT at 960×540 are unchecked.
+- Zoom is still not saved. 1x is still 72 pixels off bit-exact, each by one level.
