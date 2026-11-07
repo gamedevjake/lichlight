@@ -3058,3 +3058,22 @@ The body holds the attack strip's drawn-back frame, not the swing's anticipate f
 - `index.html` — the bolt, its hysteresis, and the projectile hit radius.
 - `tests/se-bolt.html` — the locks above.
 - `COMBAT_REDESIGN_CHANGELOG.md` — this entry only.
+
+---
+
+### 2026-11-07 — Super Elite swing step (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** The depth-5 swing lock only. Not merged. Not deployed.
+- **Version:** `version.json` was not edited. It is still `0.7.18`.
+
+The depth-5 swing lock moves from 0.80s to **0.68s**. The tell is still 1.00s, so the step is **0.32s**. The lane half-width stays 8px.
+
+A stopped player at 30 fps with 100 ms of input still has about 0.187s of movement, about 11.6px, which clears the lane. The same sum at 60 fps clears by more. A player who waits 150 ms and is still swinging covers about 5.8px and does not clear. Depths 1–4 stay locked at 0.25s. Life tables are unchanged.
+
+#### Files
+
+- `index.html` — `SE_SWING_LOCK_DEEP` is 0.68.
+- `tests/se-combat.html` — the 0.68s lock, the late swing, and the 30 fps dodge.
+- `tests/stage9-bosses.html` — the depth-5 step check uses the same window.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only.

@@ -188,7 +188,8 @@ function run(w) {
 
   const slow = 62 * 0.2;
   const swingWin = g.SE_TELL.swing.dur - g.seSwingLock(g.depth);
-  check('depth 5 swing step clears and a swinging step does not', g.depth === 5 && 62 * swingWin + 1e-6 >= g.SE_TELL.swing.hit && 62 * 0.55 * swingWin < g.SE_TELL.swing.hit, swingWin);
+  const lag30 = 1 / 30 + 0.10;
+  check('depth 5 swing step clears after 30fps and 100ms, and a late swing does not', g.depth === 5 && Math.abs(g.seSwingLock(5) - 0.68) < 1e-9 && 62 * Math.max(0, swingWin - lag30) + 1e-6 >= g.SE_TELL.swing.hit && 62 * 0.55 * Math.max(0, swingWin - 0.15) < g.SE_TELL.swing.hit, swingWin);
   check('depth 5 power reaches a sword and a full step leaves the center', g.sePowerReach(5) === 36 && 62 * g.SE_TELL.power.dur > g.sePowerReach(5) && slow * g.SE_TELL.power.dur < g.sePowerReach(5));
   check('super elite brand clears at the move floor', slow * g.SE_TELL.brand.dur + 1e-6 >= g.SE_TELL.brand.r + 5);
 

@@ -164,7 +164,7 @@ function run(w) {
   p.x = track.x + 18; p.y = track.y; p.hp = 800; p.st.maxHp = 800; p.inv0 = 0; p.swing = 0; p.st.ms = 1;
   g.seBeginTell(track, 'swing');
   const sw = g.teles.find(t => t.seTell === 'swing');
-  check('depth 5 swing tracks and then locks', sw && sw.dur === 1 && sw.lockAt === 0.8 && sw.w === 16 && sw.len === 52 && sw.match === true, sw && sw.lockAt);
+  check('depth 5 swing tracks and then locks', sw && sw.dur === 1 && Math.abs(sw.lockAt - 0.68) < 1e-9 && sw.w === 16 && sw.len === 52 && sw.match === true, sw && sw.lockAt);
   const aim0 = sw.a;
   for (let i = 0; i < 6; i++) g.step(0.05, { x: 0, y: 1 });
   const aimMid = sw.a;
@@ -186,6 +186,7 @@ function run(w) {
   g.seBeginTell(trackHit, 'swing');
   const sw2 = g.teles.find(t => t.seTell === 'swing');
   while (sw2.t < sw2.lockAt - 1e-6) g.step(0.05, { x: 0, y: 0 });
+  while (sw2.t < sw2.lockAt + 0.15 - 1e-6 && g.teles.indexOf(sw2) >= 0) g.step(0.05, { x: 0, y: 0 });
   const y2 = p.y;
   let swingAt = null;
   while (g.teles.indexOf(sw2) >= 0 && sw2.t < 1.2) {
@@ -194,7 +195,23 @@ function run(w) {
     g.step(0.05, { x: 0, y: 1 });
     if (p.hp < 800) { swingAt = (yBefore - y2) + 62 * 0.55 * 0.05; break; }
   }
-  check('keeping the swing does not clear the locked lane', swingAt != null && swingAt < g.SE_TELL.swing.hit, 'y ' + (swingAt == null ? 'none' : swingAt.toFixed(2)) + ' hp ' + p.hp);
+  check('a late swing does not clear the locked lane', swingAt != null && swingAt < g.SE_TELL.swing.hit && p.hp < 800, 'y ' + (swingAt == null ? 'none' : swingAt.toFixed(2)) + ' hp ' + p.hp);
+
+  const trackDodge = openFloor(5);
+  trackDodge.dmg = 30; trackDodge.spd = 0; trackDodge.seAct = '';
+  p.x = trackDodge.x + 18; p.y = trackDodge.y; p.hp = 800; p.st.maxHp = 800; p.inv0 = 0; p.swing = 0; p.st.ms = 1;
+  g.seBeginTell(trackDodge, 'swing');
+  const swD = g.teles.find(t => t.seTell === 'swing');
+  while (swD.t < swD.lockAt - 1e-6) g.step(0.05, { x: 0, y: 0 });
+  let waited = 0;
+  while (waited < (1 / 30 + 0.10) - 1e-6 && g.teles.indexOf(swD) >= 0) { g.step(1 / 30, { x: 0, y: 0 }); waited += 1 / 30; }
+  const yD = p.y;
+  while (g.teles.indexOf(swD) >= 0 && swD.t < 1.2) g.step(0.016, { x: 0, y: 1 });
+  const dodgeMove = p.y - yD;
+  const win = g.SE_TELL.swing.dur - g.seSwingLock(5);
+  const afterLag = Math.max(0, win - (1 / 30 + 0.10));
+  const after60 = Math.max(0, win - (1 / 60 + 0.10));
+  check('a 30fps dodge with 100ms of input leaves the lane', Math.abs(g.seSwingLock(5) - 0.68) < 1e-9 && 62 * afterLag >= g.SE_TELL.swing.hit && 62 * after60 >= g.SE_TELL.swing.hit && dodgeMove > g.SE_TELL.swing.hit && p.hp === 800, 'y ' + dodgeMove.toFixed(1) + ' win ' + win.toFixed(3) + ' 60 ' + (62 * after60).toFixed(1));
 
   const timing = openFloor(5);
   timing.dmg = 25; timing.seAct = '';
