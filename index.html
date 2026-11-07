@@ -392,21 +392,29 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel .sat-pane[data-pane="map"]{height:102px;box-sizing:border-box;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/content/map_viewport_9slice_18_s6.png) 6 fill / 6px / 0 stretch;background:#120c10}
 #satMap{width:100%;height:100%;display:block;image-rendering:pixelated;background:#120c10}
 #satchel #detail,#satchel #notesBtn,#satchel #dtext,#satchel #dbtns,#satchel #gold{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
-#deskHud{position:absolute;z-index:7;pointer-events:auto;display:flex;align-items:flex-end;justify-content:space-between;image-rendering:pixelated;font:bold 11px "Pixelify Sans",sans-serif;color:#e8dcc0}
+#deskHud{position:absolute;z-index:7;pointer-events:auto;display:block;overflow:visible;image-rendering:pixelated;font:bold 11px "Pixelify Sans",sans-serif;color:#e8dcc0}
 #deskHud.hidden{display:none!important}
-.dh-globe{position:relative;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
-.dh-globe .fill{position:absolute;left:18%;right:18%;bottom:14%;background:#8a1820;border-radius:40%;overflow:hidden}
-.dh-globe.mp .fill{background:#1a2a5a}
+.dh-bar{position:absolute;left:0;right:0;pointer-events:none;background:url(assets/ui/v07101/desktop/bar/desk_bar_9slice_64x40_s16.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-xp{position:absolute;pointer-events:none;background:url(assets/ui/v07101/desktop/bar/meter_track_9slice_12x5_s3.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-xp i{display:block;height:100%;width:0;background:url(assets/ui/v07101/desktop/bar/meter_fill_xp_9slice_6x3_s1.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-globe{position:absolute;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.dh-globe .face{position:absolute;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.dh-globe .fill{position:absolute;left:18%;right:18%;bottom:14%;top:18%;background:transparent;border-radius:40%;overflow:hidden}
 .dh-globe .fill i{display:block;width:100%;background:#c02028;position:absolute;left:0;bottom:0}
 .dh-globe.mp .fill i{background:#3050d0}
 .dh-globe b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none}
-.dh-slots{display:flex;align-items:flex-end;gap:4px}
-.dh-slot{position:relative;background-repeat:no-repeat;background-position:center;background-size:100% 100%;cursor:pointer}
+.dh-slot{position:absolute;background-repeat:no-repeat;background-position:center;background-size:100% 100%;cursor:pointer;image-rendering:pixelated}
 .dh-slot .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);pointer-events:none}
-.dh-slot .key{position:absolute;right:2px;bottom:2px;font-size:9px;line-height:1;color:#e8c840;pointer-events:none}
-.dh-well{flex:1 1 auto;min-width:40px;margin:0 6px 4px;padding:2px 6px;background:url(assets/ui/v07101/desktop/bar/center_well_9slice_12_s4.png) center/100% 100% no-repeat;display:flex;flex-direction:column;justify-content:center;gap:1px}
-.dh-well .row{display:flex;justify-content:space-between;gap:6px;white-space:nowrap}
-#deskHud{background:url(assets/ui/v07101/desktop/bar/desk_bar_9slice_64x40_s16.png) center bottom / 100% 78% no-repeat}
+.dh-slot .key{position:absolute;left:0;right:0;text-align:center;color:#e8c840;pointer-events:none;white-space:nowrap}
+.dh-slot.sel{box-shadow:0 0 0 2px #e8c840}
+.dh-well{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:0;padding:0 4px;background:url(assets/ui/v07101/desktop/bar/center_well_9slice_12_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;overflow:hidden;color:#e8dcc0}
+.dh-well .row{display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
+.dh-well .sp{flex:1 1 auto;min-width:4px}
+.dh-well img{image-rendering:pixelated;flex:0 0 auto}
+.dh-well .meter{flex:0 0 auto;background:url(assets/ui/v07101/desktop/bar/meter_track_9slice_12x5_s3.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-well .meter i{display:block;height:100%;width:0;background:#ffb040}
+.dh-well.compact .full{display:none}
+.dh-well:not(.compact) .short{display:none}
 /* v0.7.11: HUD labels stay off the art, the satchel badge is not clipped, map matches potions */
 #touch .btn .sub,#touch .btn .ico{font-size:0!important;color:transparent!important;text-shadow:none!important}
 #bInv{overflow:visible}
@@ -11308,15 +11316,7 @@ function fitHudScale(cssW, cssH, dpr, pref, nSlots) {
   cssH = cssH > 0 ? cssH : 1;
   nSlots = nSlots == null ? 4 : nSlots | 0;
   let k = computeHudScale(cssW, cssH, dpr, pref);
-  const fits = (scale) => {
-    const font = Math.max(1, Math.round(11 * scale)) / dpr;
-    const slot = Math.round(48 * scale) / dpr;
-    const globe = Math.round(56 * scale) / dpr;
-    const gap = Math.round(4 * scale) / dpr;
-    const well = Math.ceil(deskSampleWidth(font) * 1.15) + Math.round(12 * scale) / dpr;
-    const need = 2 * globe + nSlots * slot + nSlots * gap + well + Math.round(8 * scale) / dpr;
-    return need <= cssW + 0.5 && globe <= cssH * 0.30;
-  };
+  const fits = (scale) => (640 * scale) / dpr <= cssW + 4 && (56 * scale) / dpr <= cssH * 0.32 + 4;
   while (k > 1 && !fits(k)) k--;
   return k;
 }
@@ -11337,10 +11337,13 @@ function placeDesk101() {
   const safe = safeCssBox();
   const availW = Math.max(80, r.width - (safe.l || 0) - (safe.r || 0));
   const k = fitHudScale(availW, r.height || appH || 1, dpr, settings.hudScale, deskSlotCount(el));
-  if (el.dataset.k !== String(k)) el.dataset.built = '';
+  const artW = 640;
+  const sig = k + 'x' + artW;
+  if (el.dataset.built !== sig) el.dataset.built = '';
   el.dataset.k = String(k);
-  const globe = Math.round(56 * k) / dpr;
-  const band = Math.max(globe, Math.min((r.height || appH || 1) * 0.28, Math.round(52 * k) / dpr));
+  el.dataset.art = String(artW);
+  el.dataset.sig = sig;
+  const band = Math.round(56 * k) / dpr;
   let top = r.bottom - band - (safe.b || 0);
   const minTop = r.top + (safe.t || 0);
   if (top < minTop) top = minTop;
@@ -11394,7 +11397,7 @@ function syncDesk() {
   el.setAttribute('aria-hidden', show ? 'false' : 'true');
   if (!show) return;
   placeDesk101();
-  if (el.dataset.built !== el.dataset.k) buildDesk(el, +(el.dataset.k || 1));
+  if (el.dataset.built !== el.dataset.sig) buildDesk(el, +(el.dataset.k || 1), +(el.dataset.art || 640));
   const p = player, s = p.st, bar = spellBar(p);
   const hp = el.querySelector('.dh-globe.hp i'), mp = el.querySelector('.dh-globe.mp i');
   const hpn = el.querySelector('.dh-globe.hp b'), mpn = el.querySelector('.dh-globe.mp b');
@@ -11402,13 +11405,25 @@ function syncDesk() {
   if (mp) mp.style.height = clamp(p.mp / (s.maxMp || 1), 0, 1) * 100 + '%';
   if (hpn) hpn.textContent = String(Math.ceil(p.hp));
   if (mpn) mpn.textContent = String(Math.floor(p.mp));
+  const xp = el.querySelector('.dh-xp i');
+  if (xp) xp.style.width = clamp(p.xp / (xpNeed(p.lvl) || 1), 0, 1) * 100 + '%';
   const well = el.querySelector('.dh-well');
-  if (well) well.innerHTML = '<div class="row"><span>KEY ' + p.keys + '</span><span>TORCH ' + p.torches + '</span><span>RP ' + (p.rpPot || 0) + '</span><span>LV ' + p.lvl + '</span></div><div class="row"><span>GATE ' + (p.gateKeys || 0) + '</span><span>FOOD ' + (p.rations || 0) + '</span><span>' + (necroKnown() ? ('NECRO ' + (p.npPot || 0)) : '') + '</span><span>I BAG</span></div>';
+  if (well) {
+    const set = (sel, text) => { const n = well.querySelector(sel); if (n) n.textContent = text; };
+    set('.n-key', 'x' + p.keys);
+    set('.n-torch', 'x' + p.torches);
+    set('.n-rp', 'x' + (p.rpPot || 0));
+    set('.n-lv', 'LV ' + p.lvl);
+    set('.n-gate', 'GATE KEYS ' + (p.gateKeys || 0));
+    set('.n-food', 'FOOD ' + (p.rations || 0));
+    const meter = well.querySelector('.meter i');
+    if (meter) meter.style.width = clamp((p.torchT || 0) / (TORCH_TIME || 1), 0, 1) * 100 + '%';
+  }
   el.querySelectorAll('.dh-spell').forEach((node, i) => {
     const id = bar[i];
     const art = id && SPELL_HUD[id];
-    node.style.display = id ? '' : 'none';
-    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art + '_idle.png)') : 'none';
+    node.style.display = '';
+    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art.replace('_48', '_24') + '_idle.png)') : 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_24.png)';
     node.classList.toggle('sel', !!id && V101.barSel === i);
     const idx = id ? TOME_IDS.indexOf(id) : -1;
     const cd = node.querySelector('.cd');
@@ -11417,68 +11432,74 @@ function syncDesk() {
     if (cd) cd.style.height = (idx >= 0 && max ? cur / max * 100 : 0) + '%';
   });
 }
-function buildDesk(el, k) {
+function buildDesk(el, k, artW) {
   k = k > 0 ? k : 1;
+  artW = 640;
   const dpr = window.devicePixelRatio || 1;
-  const slot = Math.round(48 * k) / dpr;
-  const globe = Math.round(56 * k) / dpr;
-  const font = Math.max(1, Math.round(11 * k)) / dpr;
-  const keyFont = Math.max(1, Math.round(9 * k)) / dpr;
-  const gap = Math.max(1, Math.round(4 * k)) / dpr;
-  const inset = Math.max(1, Math.round(2 * k)) / dpr;
-  el.dataset.built = String(k);
+  const px = (n) => (Math.round(n * k) / dpr) + 'px';
+  const put = (node, x, y, w, h) => { node.style.left = px(x); node.style.top = px(y); node.style.width = px(w); node.style.height = px(h); };
+  const icon = (c) => { try { return c && c.toDataURL ? c.toDataURL() : ''; } catch (e) { return ''; } };
+  el.dataset.built = el.dataset.sig || (k + 'x' + artW);
   el.dataset.k = String(k);
-  el.style.fontSize = font + 'px';
+  el.dataset.art = String(artW);
+  el.style.fontSize = px(7);
   el.innerHTML = '';
-  const globeEl = (kind) => {
+  const bar = document.createElement('div'); bar.className = 'dh-bar';
+  bar.style.top = px(12); bar.style.height = px(40); bar.style.left = '0'; bar.style.right = '0';
+  el.appendChild(bar);
+  const comp = document.createElement('div'); comp.className = 'dh-comp';
+  comp.style.position = 'absolute'; comp.style.top = '0'; comp.style.height = '100%';
+  comp.style.width = px(640); comp.style.left = '50%'; comp.style.marginLeft = (Math.round(-320 * k) / dpr) + 'px';
+  el.appendChild(comp);
+  const xp = document.createElement('div'); xp.className = 'dh-xp'; xp.innerHTML = '<i></i>';
+  xp.style.left = px(58); xp.style.right = px(58); xp.style.top = px(18); xp.style.height = px(5);
+  comp.appendChild(xp);
+  const globeEl = (kind, x) => {
     const d = document.createElement('div'); d.className = 'dh-globe ' + kind;
-    d.style.width = globe + 'px'; d.style.height = globe + 'px';
-    d.style.flex = '0 0 auto';
-    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_' + kind + '_frame_48.png)';
-    d.innerHTML = '<div class="fill"><i></i></div><b>0</b>';
-    d.querySelector('b').style.fontSize = font + 'px';
+    put(d, x, 0, 56, 56);
+    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_socket_56.png)';
+    const face = document.createElement('div'); face.className = 'face';
+    face.style.left = px(4); face.style.top = px(4); face.style.width = px(48); face.style.height = px(48);
+    face.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_' + kind + '_frame_48.png)';
+    face.innerHTML = '<div class="fill"><i></i></div><b>0</b>';
+    face.querySelector('b').style.fontSize = px(12);
+    d.appendChild(face);
     return d;
   };
-  const slotEl = (act, art, key) => {
-    const d = document.createElement('div'); d.className = 'dh-slot'; d.dataset.act = act;
-    d.style.width = slot + 'px'; d.style.height = slot + 'px';
+  const slotEl = (x, act, art, key, extra) => {
+    const d = document.createElement('div'); d.className = 'dh-slot' + (extra || '');
+    put(d, x, 24, 24, 24);
     d.style.backgroundImage = 'url(assets/ui/v07101/hud/composed/' + art + '_idle.png)';
     d.innerHTML = '<i class="cd"></i><span class="key">' + key + '</span>';
     const lab = d.querySelector('.key');
-    lab.style.fontSize = keyFont + 'px';
-    lab.style.right = inset + 'px';
-    lab.style.bottom = inset + 'px';
-    d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); });
-    d.style.flex = '0 0 auto';
+    lab.style.fontSize = px(6); lab.style.bottom = '0'; lab.style.height = px(7); lab.style.lineHeight = px(7);
+    if (act) d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); });
     return d;
   };
-  el.appendChild(globeEl('hp'));
-  const row = document.createElement('div'); row.className = 'dh-slots';
-  row.style.gap = gap + 'px';
-  row.style.flex = '1 1 auto';
-  row.style.minWidth = '0';
-  row.appendChild(slotEl('attack', 'hud_attack_48', 'LMB'));
-  row.appendChild(slotEl('hp', 'hud_heal_48', 'Q'));
-  row.appendChild(slotEl('mp', 'hud_mana_48', 'E'));
+  comp.appendChild(globeEl('hp', 0));
+  comp.appendChild(slotEl(60, 'attack', 'hud_attack_24', 'LMB'));
+  comp.appendChild(slotEl(90, 'hp', 'hud_heal_24', 'Q'));
+  comp.appendChild(slotEl(116, 'mp', 'hud_mana_24', 'E'));
+  const wellW = 640 - 356;
   const well = document.createElement('div'); well.className = 'dh-well';
-  well.style.fontSize = font + 'px';
-  well.style.minWidth = '0';
-  row.appendChild(well);
-  row.appendChild(slotEl('roll', 'hud_roll_48', 'SPC'));
+  put(well, 146, 24, wellW, 24);
+  well.style.fontSize = px(7); well.style.lineHeight = px(8);
+  const keySrc = icon(typeof KEY_ICON !== 'undefined' ? KEY_ICON : null);
+  const torchSrc = icon(typeof TORCH_ICON !== 'undefined' ? TORCH_ICON : null);
+  const rpSrc = icon(typeof ICONS !== 'undefined' ? ICONS.rp : null);
+  const ico = (src) => '<img alt="" src="' + src + '" style="width:' + px(8) + ';height:' + px(8) + '">';
+  well.innerHTML = '<div class="row">' + ico(keySrc) + '<b class="n-key"></b>' + ico(torchSrc) + '<b class="n-torch"></b><span class="meter" style="width:' + px(40) + ';height:' + px(5) + '"><i></i></span>' + ico(rpSrc) + '<b class="n-rp"></b><span class="sp"></span><b class="n-lv"></b></div>'
+    + '<div class="row"><span class="n-gate"></span><span class="n-food"></span><span class="sp"></span><span>I: BAG  T: TOME  M: MAP</span></div>';
+  comp.appendChild(well);
+  comp.appendChild(slotEl(640 - 204, 'roll', 'hud_roll_24', 'SPC'));
   for (let i = 0; i < 4; i++) {
-    const d = document.createElement('div'); d.className = 'dh-slot dh-spell'; d.dataset.bar = String(i);
-    d.style.width = slot + 'px'; d.style.height = slot + 'px';
-    d.style.flex = '0 0 auto';
-    d.innerHTML = '<i class="cd"></i><span class="key">' + (i + 1) + '</span>';
-    const lab = d.querySelector('.key');
-    lab.style.fontSize = keyFont + 'px';
-    lab.style.right = inset + 'px';
-    lab.style.bottom = inset + 'px';
+    const d = slotEl(640 - 174 + 30 * i, '', 'hud_attack_24', String(i + 1), ' dh-spell');
+    d.dataset.bar = String(i);
+    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_24.png)';
     d.addEventListener('pointerdown', e => { e.preventDefault(); V101.barSel = i; pressBar(i); });
-    row.appendChild(d);
+    comp.appendChild(d);
   }
-  el.appendChild(row);
-  el.appendChild(globeEl('mp'));
+  comp.appendChild(globeEl('mp', 640 - 56));
 }
 function deskAct(act) {
   if (act === 'attack') { held.attack = true; tapQ.attack = performance.now() + 250; setTimeout(() => { held.attack = false; }, 80); return; }
