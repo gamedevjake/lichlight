@@ -3036,3 +3036,25 @@ Legacy failure names match `e830a53` on a rerun. `v0714` footer names and the st
 - `tests/stage9-bosses.html` — depth-5 expectations, depth-1 script kept.
 - `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
 - `version.json` was not edited. Loot, saves, and workflows were not edited.
+
+---
+
+### 2026-11-07 — Super Elite ranged bolt (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Combat behavior on the depth-5 rotation. Jake approved the bolt from `SE_RANGED_RETALIATION_DESIGN.md`. Not merged. Not deployed.
+- **Version:** `version.json` was not edited. It is still `0.7.18`.
+
+From depth 5, a Super Elite that has stayed with the player more than 64px away for 0.35s arms a bolt. The mode turns off only after the player has stayed at or inside 40px for 0.35s. The band between those distances holds the current mode. A stay of 0.2s on either side does not flip it. Exactly 64px does not count as far.
+
+The windup is 0.90s. The line tracks until 0.50s and then locks, leaving 0.40s to step. Width is 16, so the half-width is the hit radius of 8. On release, line of sight along the locked ray is checked again. A wall there fires nothing. A clear ray shoots a physical projectile at 160 px/s, radius 3, damage `e.dmg × 0.85`. `solidAt` deletes it. The 2.6s cooldown starts when the windup resolves, including a ray that was blocked, so a corner dip cannot restart the telegraph immediately. Closing the gap does not erase a line that is already out.
+
+The body holds the attack strip's drawn-back frame, not the swing's anticipate frame and not the brand's taunt. The wind cue is `enm_ranged_attack_01`. Release is `cbt_proj_arrow_fly_01`. A hit on the player is `cbt_proj_arrow_impact_01`. The player whoosh is not used. Bosses do not run this. Life, taken, and damage tables are unchanged.
+
+`tests/se-bolt.html` covers the dwell, the 0.2s flicker, the dive, the lock, the hit radius, damage at depths 5, 8, and 12, the wall, the cues, and the boss.
+
+#### Files
+
+- `index.html` — the bolt, its hysteresis, and the projectile hit radius.
+- `tests/se-bolt.html` — the locks above.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only.

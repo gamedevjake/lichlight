@@ -6788,7 +6788,11 @@ function update(dt) {
     if (pr.life > 0 && projHitsTorch(pr.x, pr.y, dead ? 4 : 0)) dead = true;
     if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && !e.dead && e.hp > 0 && Math.hypot(e.x - pr.x, e.y - pr.y) <= e.r + pr.r + 0.51) { dead = true; break; }
       if (!dead && pr.kind === 'arrow') { for (const o of props) if (o && !o.broken && Math.hypot(o.x - pr.x, (o.y - 4) - pr.y) < (pr.r || 3) + 8) { dead = true; break; } } }
-    if (!dead && pr.owner === 'e' && p.roll <= 0 && Math.hypot(p.x - pr.x, p.y - pr.y) < p.r + pr.r) { dead = true; hitP = true; if (!(p.isInvincible || p.isPlayerUndetected)) { hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } } }
+    if (!dead && pr.owner === 'e' && p.roll <= 0) {
+      const pd = Math.hypot(p.x - pr.x, p.y - pr.y);
+      const touch = pr.hitR > 0 ? pd <= pr.hitR : pd < p.r + pr.r;
+      if (touch) { dead = true; hitP = true; if (!(p.isInvincible || p.isPlayerUndetected)) { if (pr.seBolt && typeof seHear === 'function') seHear('impact', 'bolt', 'cbt_proj_arrow_impact_01', pr.x, pr.y, 1); hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } } }
+    }
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
@@ -15413,10 +15417,20 @@ function seImg717(clip, t, face) {
   return (face < 0 ? fr.l : fr.r) || fr.r;
 }
 function sePoseAct(kind) {
+  if (kind === 'bolt') return 'bolt';
   const row = SE_TELL[kind];
   return (row && row.act) || 'attack';
 }
-function sePosePackKey(act) { return act === 'brand' ? 'taunt' : act; }
+function sePosePackKey(act) {
+  if (act === 'brand') return 'taunt';
+  if (act === 'bolt') return 'attack';
+  return act;
+}
+function seTellDur(kind) {
+  if (kind === 'bolt') return SE_BOLT.wind;
+  const row = SE_TELL[kind];
+  return row ? row.dur : 0;
+}
 function seActClip(pack, act) {
   if (!pack || !act) return null;
   const key = sePosePackKey(act);
@@ -15429,14 +15443,19 @@ function seStrikeLead(act, clip) {
   return { hf: hf, ms: ms, lead: (hf - 1) * ms / 1000 + 0.001 };
 }
 function sePoseHold(kind, clip) {
-  const row = SE_TELL[kind];
-  if (!row) return 0;
+  const dur = seTellDur(kind);
+  if (!(dur > 0)) return 0;
   const info = seStrikeLead(sePoseAct(kind), clip);
-  return Math.max(0, row.dur - info.lead - SE_HIT_EARLY);
+  return Math.max(0, dur - info.lead - SE_HIT_EARLY);
 }
 function sePoseLocal(kind, actT, clip) {
   const hold = sePoseHold(kind, clip);
   const t = actT > 0 ? actT : 0;
+  // The bolt holds the drawn-back attack frame. Swing holds the anticipate frame.
+  if (kind === 'bolt' && t < hold) {
+    const info = seStrikeLead('bolt', clip);
+    return info.ms / 1000 + 0.001;
+  }
   if (t < hold) return 0;
   return t - hold;
 }
@@ -15446,11 +15465,11 @@ function seFrameAt(kind, actT, clip) {
   return Math.floor(local * 1000 / info.ms);
 }
 function seHitSync(kind) {
-  const row = SE_TELL[kind];
-  if (!row) return null;
+  const dur = seTellDur(kind);
+  if (!(dur > 0)) return null;
   const info = seStrikeLead(sePoseAct(kind), null);
   const frameOnAt = sePoseHold(kind, null) + (info.hf - 1) * info.ms / 1000;
-  return { act: sePoseAct(kind), frame: info.hf - 1, frameOnAt: frameOnAt, soundAt: row.dur, slack: row.dur - frameOnAt };
+  return { act: sePoseAct(kind), frame: info.hf - 1, frameOnAt: frameOnAt, soundAt: dur, slack: dur - frameOnAt };
 }
 function sePose717(e) {
   const pack = seClip717(e.seId);
@@ -15488,6 +15507,11 @@ const SE_TELL = {
 // Sword reach is weapon 24 plus the Super Elite body 12. Depth 5+ power uses that as the drawn hit radius.
 const SE_SWORD_REACH = 36;
 const SE_SWING_LOCK_DEEP = 0.80;
+// Depth 5+ ranged retaliation. Near and far are center distances. The dead band holds the current mode.
+const SE_BOLT = {
+  near: 40, far: 64, dwell: 0.35, wind: 0.90, lock: 0.50,
+  speed: 160, radius: 3, hit: 8, lane: 16, gap: 2.6, range: 220, mul: 0.85, act: 'bolt'
+};
 const SE_HIT_EARLY = 0.06; // the strike frame is up this long before the impact cue
 const SE_HIT_FRAME = { attack: 3, powerup: 4, taunt: 4, brand: 4 };
 const SE_WIND_CUE = { swing: 'cbt_tell_melee_01', power: 'cbt_tell_melee_02', brand: 'cbt_proj_magic_bolt_fly_01' };
@@ -15540,8 +15564,65 @@ function seHear(phase, kind, id, x, y, vol) {
 function seTellVfx(e, kind) {
   const info = seRoster717(e.seId);
   if (kind === 'brand') { seSpawnVfx717('rune_slam', e.seMx, e.seMy, 1); return; }
+  if (kind === 'bolt') { seSpawnVfx717('shadow_bolt', e.x + (e.face || 1) * 16, e.y - 10, e.face || 1); return; }
   const id = kind === 'power' ? info.powerupVfx : info.attackVfx;
   seSpawnVfx717(id, e.x + (e.face || 1) * 16, e.y - 10, e.face || 1);
+}
+function seTickBoltRange(e, dt, dd) {
+  if (!seDeepCombat(depth)) { e.seFar = false; e.seFarT = 0; e.seNearT = 0; return; }
+  if (dd > SE_BOLT.far) {
+    e.seFarT = (e.seFarT || 0) + dt;
+    e.seNearT = 0;
+    if (!e.seFar && e.seFarT >= SE_BOLT.dwell - 1e-9) e.seFar = true;
+  } else if (dd <= SE_BOLT.near) {
+    e.seNearT = (e.seNearT || 0) + dt;
+    e.seFarT = 0;
+    if (e.seFar && e.seNearT >= SE_BOLT.dwell - 1e-9) e.seFar = false;
+  } else {
+    e.seFarT = 0;
+    e.seNearT = 0;
+  }
+  if (e.seBoltCd > 0) e.seBoltCd = Math.max(0, e.seBoltCd - dt);
+}
+function seBeginBolt(e) {
+  if (!e || !player || e.seAct || !seDeepCombat(depth)) return false;
+  const dd = Math.hypot(player.x - e.x, player.y - e.y);
+  if (!(e.seFar) || dd > SE_BOLT.range || e.seBoltCd > 0) return false;
+  if (typeof sightLOS === 'function' && !sightLOS(e, player)) return false;
+  const aim = Math.atan2(player.y - e.y, player.x - e.x);
+  e.seAim = aim;
+  e.seMx = player.x; e.seMy = player.y;
+  e.seAct = 'bolt'; e.seActT = 0; e.seHit = true; e.seKind = 'bolt';
+  e.sePose = ''; e.sePoseLeft = 0; e.seBoltLocked = false;
+  seHear('wind', 'bolt', 'enm_ranged_attack_01', e.x, e.y, 0.9);
+  seTellVfx(e, 'bolt');
+  tele({
+    kind: 'line', x: e.x, y: e.y, w: SE_BOLT.lane, len: Math.max(24, Math.min(SE_BOLT.range, dd)),
+    dur: SE_BOLT.wind, a: aim, col: '#ffd24a', src: e, lockAt: SE_BOLT.lock,
+    seTell: 'bolt', match: true, onDone: T2 => seFireBolt(e, T2)
+  });
+  return true;
+}
+function seFireBolt(e, spec) {
+  if (e) {
+    const clip = seActClip(seClip717(e.seId), 'bolt');
+    e.sePose = 'bolt';
+    e.sePoseT = seStrikeLead('bolt', clip).lead;
+    e.sePoseLeft = 0.18;
+    e.seAct = ''; e.seKind = '';
+    e.seBoltLocked = false;
+    e.seBoltCd = SE_BOLT.gap;
+  }
+  if (!e || e.dead || e.hp <= 0 || e.sePhase !== 'fight' || state !== 'play' || !player) return 0;
+  if (ccImmobilized(e) || e.fearT > 0) return 0;
+  const a = spec && Number.isFinite(+spec.a) ? +spec.a : (e.seAim || 0);
+  const len = spec && spec.len > 0 ? Math.min(SE_BOLT.range, spec.len) : SE_BOLT.range;
+  const tx = e.x + Math.cos(a) * len, ty = e.y + Math.sin(a) * len;
+  if (typeof sightLOS === 'function' && !sightLOS(e, { x: tx, y: ty })) return 0;
+  seHear('release', 'bolt', 'cbt_proj_arrow_fly_01', e.x, e.y, 0.9);
+  const pr = (typeof eShoot === 'function') ? eShoot(e, a, SE_BOLT.speed, { mul: SE_BOLT.mul, r: SE_BOLT.radius, life: SE_BOLT.range / SE_BOLT.speed + 0.05, kind: 'bolt' }) : null;
+  if (pr) { pr.seBolt = true; pr.hitR = SE_BOLT.hit; }
+  return pr ? 1 : 0;
 }
 function seFightPhase(e) {
   if (!e || !(e.maxHp > 0)) return 1;
@@ -15627,6 +15708,14 @@ function seTick717(dt) {
     if (ccImmobilized(e)) { if (e.seAct) seClearTell(e); e._seMoved = false; continue; }
     const dx = player.x - e.x, dy = player.y - e.y, dd = Math.hypot(dx, dy) || 1;
     const reach = e.r + player.r + 8;
+    seTickBoltRange(e, dt, dd);
+    if (e.seKind === 'bolt' && e.seAct && typeof teles !== 'undefined' && teles) {
+      for (let ti = 0; ti < teles.length; ti++) {
+        const tel = teles[ti];
+        if (!tel || tel.src !== e || tel.seTell !== 'bolt' || !(tel.t < SE_BOLT.lock)) continue;
+        tel.len = Math.max(24, Math.min(SE_BOLT.range, dd));
+      }
+    }
     if (!e.seAct && dd > reach) {
       const sp = e.spd * seMoveMul(e);
       const ox = e.x, oy = e.y;
@@ -15636,7 +15725,9 @@ function seTick717(dt) {
     if (e.seAct) e.seActT += dt;
     else {
       e.seCd -= dt;
-      if (e.seCd <= 0) {
+      const boltReady = !!(e.seFar) && !(e.seBoltCd > 0) && seDeepCombat(depth) && dd <= SE_BOLT.range && (typeof sightLOS !== 'function' || sightLOS(e, player));
+      if (e.seCd <= 0 && boltReady) seBeginBolt(e);
+      else if (e.seCd <= 0) {
         const kind = seNextKind(e);
         if (dd < (kind === 'brand' ? 160 : reach + 36)) seBeginTell(e, kind);
         else e.seCd = 0;
@@ -15904,6 +15995,7 @@ if (window.game) {
     HM_MARK: HM_MARK, HM_BITE: HM_BITE, heavyEncounter: heavyEncounter, hellmouthMark: hellmouthMark, hellmouthBite: hellmouthBite,
     bossResist: bossResist, seResist: seResist, seFightPhase: seFightPhase, seNextKind: seNextKind, seBeginTell: seBeginTell, seResolveTell: seResolveTell, seClearTell: seClearTell,
     seDeepCombat: seDeepCombat, seSwingLock: seSwingLock, sePowerReach: sePowerReach, seBrandReach: seBrandReach, seCircleHit: seCircleHit, seSwingHit: seSwingHit, seTeleHit: seTeleHit,
+    SE_BOLT: SE_BOLT, seBeginBolt: seBeginBolt, seFireBolt: seFireBolt, seTickBoltRange: seTickBoltRange,
     seHitSync: seHitSync, sePoseLocal: sePoseLocal, seFrameAt: seFrameAt, sePoseAct: sePoseAct, SE_SWORD_REACH: SE_SWORD_REACH, SE_SWING_LOCK_DEEP: SE_SWING_LOCK_DEEP, SE_HIT_EARLY: SE_HIT_EARLY, SE_HIT_FRAME: SE_HIT_FRAME, SE_WIND_CUE: SE_WIND_CUE, SE_KIND_CUE: SE_KIND_CUE,
     AFFIX_MIN_DEPTH: AFFIX_MIN_DEPTH, AFFIX_PAIR_DEPTH: AFFIX_PAIR_DEPTH, AFFIX_GUARD_MUL: AFFIX_GUARD_MUL, AFFIX_GUARD_GAP: AFFIX_GUARD_GAP,
     AFFIX_PHASE_TELL: AFFIX_PHASE_TELL, AFFIX_PHASE_GAP: AFFIX_PHASE_GAP, AFFIX_VOL_HP: AFFIX_VOL_HP, AFFIX_VOL_TELL: AFFIX_VOL_TELL, AFFIX_VOL_R: AFFIX_VOL_R,
