@@ -126,6 +126,8 @@ function run(w) {
     return it;
   }
   function forgeUnique(name, L) {
+    const wasLvl = p.lvl;
+    p.lvl = Math.max(wasLvl | 0, 20);
     const prev = p.found.slice();
     p.found = g.UNIQUES.map(u => u.name).filter(n => n !== name);
     let it = null;
@@ -134,6 +136,7 @@ function run(w) {
       if (c && c.name === name && c.rarity === 3) it = c;
     }
     p.found = prev;
+    p.lvl = wasLvl;
     if (!it) throw new Error('missing ' + name + ' @' + L);
     return it;
   }

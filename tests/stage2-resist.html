@@ -311,6 +311,8 @@ function run(w) {
   check('se shield after cold resist', seDrop.shield === 0 && seDrop.hp === 40, 'sh ' + seDrop.shield + ' hp ' + seDrop.hp);
 
   g.newGame(); p = calm(g, w);
+  const lvlKeep2 = p.lvl;
+  p.lvl = 20;
   let sawUnique = false, uniqueGrew = false;
   for (let i = 0; i < 24; i++) {
     const it = g.makeItem(8, 3);
@@ -320,6 +322,7 @@ function run(w) {
     if (mods.resFire || mods.resCold || mods.resLightning || mods.resPoison || mods.resShadow || mods.resAll || mods.maxResist || mods.penFire || mods.penAll || mods.conv || mods.ailment || mods.flatFire || mods.critDmg) uniqueGrew = true;
   }
   check('uniques do not gain a resist ward', sawUnique && !uniqueGrew);
+  p.lvl = lvlKeep2;
 
   const am = { id: 'stage2-charm', slot: 'amulet', name: 'Test Charm', mods: { fire: 6, crit: 2, def: 3, resFire: 20, resAll: 5, maxResist: 3, penFire: 4, penAll: 1 }, powers: [] };
   p.equip.amulet = am;

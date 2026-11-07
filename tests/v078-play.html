@@ -130,6 +130,7 @@ function run(w) {
   g.startFloor(25, true);
   const deep = g.shopUniquePrice(2);
   check('f12 depth price', deep > shallow * 1.4, shallow + ' -> ' + deep);
+  g.player.lvl = 12;
   let sa = 0, sb = 0, na = 0, nb = 0;
   for (let i = 0; i < 12; i++) {
     const a = g.rollShopUnique({ slot: 'weapon', tier: 1, price: shallow });

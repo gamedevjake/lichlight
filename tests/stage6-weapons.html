@@ -61,7 +61,10 @@ function wear(g, p, name, aspd) {
     p.atkCd = 0; p.swing = 0; p.atkPhase = ''; p.atkWind = 0;
     return it;
   }
+  const was = p.lvl;
+  p.lvl = Math.max(was | 0, 12);
   const it = g.makeItem(1, 0, name);
+  p.lvl = was;
   p.equip.weapon = it;
   p.st.aspd = aspd || it.spd || 1;
   p.atkCd = 0; p.swing = 0; p.atkPhase = ''; p.atkWind = 0;

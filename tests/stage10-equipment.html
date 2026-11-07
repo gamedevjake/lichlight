@@ -137,6 +137,8 @@ function run(w) {
   }
   check('magic armor always adds a resist line on top of the ward', typed >= 16, typed + '/24 ward ' + g.gearWard('Leather Armor', 2));
 
+  const lvlKeep10 = p.lvl;
+  p.lvl = 20;
   const white1 = g.makeItem(1, 0, 'Leather Armor');
   const white3 = g.makeItem(3, 0, 'Leather Armor');
   const white4 = g.makeItem(4, 0, 'Leather Armor');
@@ -172,6 +174,7 @@ function run(w) {
     if (m.resAll || m.resFire || m.conv || m.ailment || m.flatFire || m.critDmg || m.penFire) grew = true;
   }
   check('rolled uniques do not grow a ward or a conversion', sawUnique && !grew);
+  p.lvl = lvlKeep10;
 
   p = calm(g, w);
   p.equip.armor = leather; p.equip.helm = cap; p.equip.boots = boots; p.equip.shield = buckler;

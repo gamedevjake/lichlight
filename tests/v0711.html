@@ -66,6 +66,7 @@ function run(w) {
   const mapW = parseFloat(w.getComputedStyle(mapBtn).width);
   check('map button potion size', mapW >= 48, mapW);
 
+  g.player.lvl = 12;
   w.__forcePPuzzle = 1;
   w.__forcePPuzzleKind = 'braziers';
   let sealedBoss = 0, leakedBoss = 0, vaultSealed = 0, vaultLeak = 0, tries = 0;
@@ -176,6 +177,7 @@ function run(w) {
   const notes = w.document.getElementById('notesPane');
   check('notes overflow', notes && notes.scrollHeight >= notes.clientHeight, notes && (notes.scrollHeight + '/' + notes.clientHeight));
 
+  g.player.lvl = 12;
   g.player.inv[0] = g.makeItem(8, 3);
   w.satchelOpenTab('inventory');
   const slot = w.document.querySelector('#grid .slot');

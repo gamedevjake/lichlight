@@ -2925,3 +2925,32 @@ The audit write-up is `STAGE11_WEAPON_SFX_AUDIT.md`.
 - `STAGE11_WEAPON_SFX_AUDIT.md` — the audit, with an implementation note at the top.
 - `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
 - `version.json` was not edited. `.github` was not edited.
+
+---
+
+### 2026-11-07 — Early loot level gate (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Loot. Jake approved `AUDIT_EARLY_LOOT_LEVEL_GATE_PLAN.md` (`d271a3a` on `audit/early-rare-loot-whoosh`) as a review PR. It is not merged and it is not live.
+- **Base:** `main` at `743c826` (`Play melee swooshes when the visible swing starts`).
+- **Version / Commit:** `version.json` was not edited. It is still `0.7.18`. No tag. No deploy. Swing audio was not edited.
+
+#### What changed
+
+While the character is level 1 or 2, `makeItem0` will not create a rare or a unique, and it will not create an item whose required level is above the character. The check is the live `player.lvl` at the moment of generation. Depth does not waive it. There is no window flag.
+
+A caller that asked for rare or unique and passed the promo argument gets a magic item with exactly two affixes, at the highest item level that character can wear (2 at level 1, 3 at level 2). The name is a magic name. Unique lore, unique powers, and the rare-only affixes `maxResist` and `penAll` are not rolled. Armor still receives the Stage 10 ward. A chest or trash roll that merely came up rare becomes an ordinary magic (one or two affixes), not that promo kit.
+
+From level 3 the factory is the previous one: same rarity argument, same item level, same affix counts, same unique odds. Reaching level 3 does not rewrite an item that already exists.
+
+Shortcut tunnels still open. Their cracked mouths are no longer marked `gatedRare`, so breaking one does not pay `greaterRare711`. Puzzle rooms and other non-passage cracks still do.
+
+The Hollow Pedlar does not show sealed-unique rows until level 3, and `rollShopUnique` / `buyUnique` refuse while level is 1 or 2. Offers are still labels until the purchase. After level 3 the same unsold offer rolls a unique. Load does not migrate bag, paper doll, or gear already on a saved floor.
+
+#### Files
+
+- `index.html` — the gate in `makeItem0`, promo callers, passage mouths, Pedlar refusal.
+- `tests/early-loot-gate.html` — levels 1, 2, and 3, deep floors, every listed source, two-affix promo swords, Pedlar, shortcuts.
+- `tests/early-balance.html`, `tests/stage2-resist.html`, `tests/stage10-equipment.html`, `tests/se-midgame-prototype.html`, `tests/v0717.html`, `tests/v0718.html`, `tests/v078-play.html`, `tests/v07103.html`, `tests/v0711.html` — formula and loot-table checks build their rares at level 12 or higher so the gate does not rewrite the specimen.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
+- `version.json` was not edited. Swing cues and audio files were not edited.
