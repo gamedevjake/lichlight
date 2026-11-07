@@ -189,7 +189,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (max-width:420px){#menu .mbtn{font-size:16px;padding:10px 12px}#menu .aopts{gap:5px 8px}}
 #safeProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .btn .ico .skimg{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;pointer-events:none}
-#glHud{position:absolute;z-index:8;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:28px;height:28px;padding:0;border-radius:6px;border:1px solid rgba(224,176,64,.7);background:rgba(12,8,10,.4);color:#ffe7a8;font:bold 15px/26px "Pixelify Sans",sans-serif;text-shadow:0 1px 2px #000;touch-action:manipulation}
+#glHud{position:absolute;z-index:8;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:44px;height:44px;padding:0;border-radius:6px;border:1px solid rgba(224,176,64,.7);background:rgba(12,8,10,.4);color:#ffe7a8;font:bold 18px/42px "Pixelify Sans",sans-serif;text-shadow:0 1px 2px #000;touch-action:manipulation;transform:scale(var(--hud));transform-origin:top left}
 #glHud.hidden{display:none}
 #glDev.overlay{z-index:35;overflow:hidden;align-items:stretch;justify-content:flex-start;background:transparent !important;background-color:transparent !important;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;padding:0}
 #glDev .gldevbox{position:absolute;display:flex;flex-direction:column;width:440px;height:520px;min-width:280px;min-height:220px;max-height:none;overflow:hidden;text-align:left;padding:0;background:rgba(28,20,24,.42);border-color:rgba(210,176,120,.5);outline:none;box-shadow:none}
@@ -362,7 +362,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #notesPane canvas{position:relative;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
 #satchel .slot{width:24px;height:24px;border:0;border-image:none;outline:none;box-shadow:none;border-radius:0;padding:0;animation:none;background-color:transparent;background-image:url(assets/ui/v07101/satchel/content/slot_idle_24.png);background-size:100% 100%;background-repeat:no-repeat}
 #satchel .slot img{width:16px;height:16px}
-#satchel .slot .lbl{font-size:4px;line-height:5px;color:#8a7a6a;bottom:0}
+#satchel .slot .lbl{font-size:var(--lbl,4px);line-height:1.15;color:#8a7a6a;bottom:0}
 #satchel .slot:hover{background-image:url(assets/ui/v07101/satchel/content/slot_hover_24.png)}
 #satchel .slot.r3{background-image:url(assets/ui/v07101/satchel/content/slot_unique_24.png)}
 #satchel .slot.new{background-image:url(assets/ui/v07101/satchel/content/slot_new_24.png)}
@@ -392,26 +392,35 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel .sat-pane[data-pane="map"]{height:102px;box-sizing:border-box;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/content/map_viewport_9slice_18_s6.png) 6 fill / 6px / 0 stretch;background:#120c10}
 #satMap{width:100%;height:100%;display:block;image-rendering:pixelated;background:#120c10}
 #satchel #detail,#satchel #notesBtn,#satchel #dtext,#satchel #dbtns,#satchel #gold{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
-#deskHud{position:absolute;z-index:7;pointer-events:auto;display:flex;align-items:flex-end;justify-content:space-between;image-rendering:pixelated;font:bold 11px "Pixelify Sans",sans-serif;color:#e8dcc0}
+#deskHud{position:absolute;z-index:7;pointer-events:auto;display:block;overflow:visible;image-rendering:pixelated;font:bold 11px "Pixelify Sans",sans-serif;color:#e8dcc0}
 #deskHud.hidden{display:none!important}
-.dh-globe{position:relative;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
-.dh-globe .fill{position:absolute;left:18%;right:18%;bottom:14%;background:#8a1820;border-radius:40%;overflow:hidden}
-.dh-globe.mp .fill{background:#1a2a5a}
+.dh-bar{position:absolute;left:0;right:0;pointer-events:none;background:url(assets/ui/v07101/desktop/bar/desk_bar_9slice_64x40_s16.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-xp{position:absolute;pointer-events:none;background:url(assets/ui/v07101/desktop/bar/meter_track_9slice_12x5_s3.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-xp i{display:block;height:100%;width:0;background:url(assets/ui/v07101/desktop/bar/meter_fill_xp_9slice_6x3_s1.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-globe{position:absolute;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.dh-globe .face{position:absolute;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.dh-globe .fill{position:absolute;left:18%;right:18%;bottom:14%;top:18%;background:transparent;border-radius:40%;overflow:hidden}
 .dh-globe .fill i{display:block;width:100%;background:#c02028;position:absolute;left:0;bottom:0}
 .dh-globe.mp .fill i{background:#3050d0}
 .dh-globe b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none}
-.dh-slots{display:flex;align-items:flex-end;gap:4px}
-.dh-slot{position:relative;background-repeat:no-repeat;background-position:center;background-size:100% 100%;cursor:pointer}
+.dh-slot{position:absolute;background-repeat:no-repeat;background-position:center;background-size:100% 100%;cursor:pointer;image-rendering:pixelated}
 .dh-slot .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);pointer-events:none}
-.dh-slot .key{position:absolute;right:-2px;bottom:-2px;font-size:9px;color:#e8c840}
-.dh-well{flex:1 1 auto;min-width:40px;margin:0 6px 4px;padding:2px 6px;background:url(assets/ui/v07101/desktop/bar/center_well_9slice_12_s4.png) center/100% 100% no-repeat;display:flex;flex-direction:column;justify-content:center;gap:1px}
-.dh-well .row{display:flex;justify-content:space-between;gap:6px;white-space:nowrap}
-#deskHud{background:url(assets/ui/v07101/desktop/bar/desk_bar_9slice_64x40_s16.png) center bottom / 100% 78% no-repeat}
+.dh-slot .key{position:absolute;left:0;right:0;text-align:center;color:#e8c840;pointer-events:none;white-space:nowrap}
+.dh-slot.sel{box-shadow:0 0 0 2px #e8c840}
+.dh-well{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:0;padding:0 4px;background:url(assets/ui/v07101/desktop/bar/center_well_9slice_12_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;overflow:hidden;color:#e8dcc0}
+.dh-well .row{display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
+.dh-well .sp{flex:1 1 auto;min-width:4px}
+.dh-well img{image-rendering:pixelated;flex:0 0 auto}
+.dh-well .meter{flex:0 0 auto;background:url(assets/ui/v07101/desktop/bar/meter_track_9slice_12x5_s3.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.dh-well .meter i{display:block;height:100%;width:0;background:#ffb040}
+.dh-well.compact .full{display:none}
+.dh-well:not(.compact) .short{display:none}
 /* v0.7.11: HUD labels stay off the art, the satchel badge is not clipped, map matches potions */
 #touch .btn .sub,#touch .btn .ico{font-size:0!important;color:transparent!important;text-shadow:none!important}
 #bInv{overflow:visible}
 #bInv .nbadge{z-index:6;top:-6px;right:-6px;min-width:16px;height:16px;line-height:16px;font-size:10px}
 #cornerbar #tMap,#tMap{width:48px;height:48px;border-radius:50%}
+#cornerbar #tPause,#tPause{width:48px;height:48px}
 #gkN{display:none!important}
 #satchel #stats{overflow:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 #satchel #notesPane{overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
@@ -583,6 +592,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mDim">UI DIM: OFF</button>
     <button class="mbtn small" id="mHit">HIT TEXT: ON</button>
     <button class="mbtn small" id="mEnemyHp">ENEMY HP: ON</button>
+    <button class="mbtn small" id="mHud">HUD SCALE: AUTO</button>
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
     <label>AMBIENCE <input type="range" id="volAmb" min="0" max="100" step="5"></label>
@@ -826,6 +836,51 @@ function drawTextRaw(s, x, y, col, shadow) {
   t.restore();
 }
 function drawTextC(s, x, y, col, sh) { drawText(s, x - textW(String(s)) / 2, y, col, sh); }
+// World item names stay on the item, but the glyph is sized in HUD pixels (SCALE), not worldPix.
+const HUD_PREFS = ['auto', '75', '100', '125', '150'];
+function hudPrefMul(pref) {
+  const v = String(pref == null ? 'auto' : pref);
+  if (v === 'auto') return 1;
+  const n = parseInt(v, 10);
+  return (n === 75 || n === 100 || n === 125 || n === 150) ? n / 100 : 1;
+}
+function worldLabelFace() {
+  const mul = (typeof settings !== 'undefined') ? hudPrefMul(settings.hudScale) : 1;
+  return Math.max(6, Math.round(6 * (SCALE || 1) * mul));
+}
+function worldLabelMetrics(s) {
+  s = String(s);
+  const face = worldLabelFace();
+  const pix = textPix718() || 1;
+  const probe = worldLabelMetrics.c || (worldLabelMetrics.c = document.createElement('canvas').getContext('2d'));
+  probe.font = uiFont(face, 700);
+  const tw = probe.measureText(s).width;
+  const hDev = Math.max(8, Math.round(face * 0.72));
+  return { face, pix, tw, hDev, worldW: tw / pix, worldH: hDev / pix };
+}
+function drawWorldLabel(s, x, y, col) {
+  s = String(s);
+  const met = worldLabelMetrics(s);
+  const m = ctx.getTransform();
+  const pix = met.pix;
+  const dx = Math.round((m.a * x + m.c * y + m.e) * pix);
+  const dy = Math.round((m.b * x + m.d * y + m.f) * pix);
+  const t = textCtx718c;
+  if (!t) { drawTextC(s, x, y, col, true); return; }
+  const w = Math.ceil(met.tw), h = met.hDev, left = dx - (w >> 1);
+  t.save();
+  t.globalAlpha = ctx.globalAlpha;
+  t.font = uiFont(met.face, 700);
+  t.textBaseline = 'top';
+  t.imageSmoothingEnabled = false;
+  t.fillStyle = 'rgba(0,0,0,.65)';
+  t.fillRect(left - 3, dy - 1, w + 6, h + 2);
+  t.fillStyle = '#000';
+  t.fillText(s, left + 1, dy + 1);
+  t.fillStyle = col || '#fff';
+  t.fillText(s, left, dy);
+  t.restore();
+}
 
 // ---------- sprites ----------
 const PAL = { k:'#1a1020', s:'#f0c090', h:'#c8c8d8', H:'#8888a0', b:'#3868d0', B:'#204088', y:'#e8c840', w:'#7a4a20', W:'#a87038',
@@ -915,8 +970,9 @@ for (let f = 0; f < 3; f++) tileImgs.torch.push(makeSprite([
   f === 0 ? "..F.." : f === 1 ? ".F..." : "...F.", f === 0 ? ".FfF." : ".fFf.", ".ffr.", "..r..", ".kwk.", "..w..", "..w.."]));
 
 // ---------- audio: settings, buses, sfx ----------
-const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, ambVol: 65, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off', mapOp: 100, hitText: true, enemyHp: true },
+const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, ambVol: 65, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off', mapOp: 100, hitText: true, enemyHp: true, hudScale: 'auto' },
   (() => { try { return JSON.parse(localStorage.getItem('cryptdelve-settings')) || {}; } catch (e) { return {}; } })());
+if (HUD_PREFS.indexOf(String(settings.hudScale)) < 0) settings.hudScale = 'auto';
 let seAmbHold717 = false; // v0.7.17 SE1: ambient bus held at 0 for the whole Super Elite encounter
 function saveSettings() { try { localStorage.setItem('cryptdelve-settings', JSON.stringify(settings)); } catch (e) {} }
 let actx = null, bus = null, noiseBuf = null, audioErr = null;
@@ -4107,7 +4163,7 @@ function groundItemAt(cx, cy, pad) { // hit-test icon + name label in world spac
   if (!player) return null; const w = clientToWorld(cx, cy); let best = null, bd = 1e9;
   for (const g of ground) { if (!g.item || lootHidden075(g)) continue;
     let hit = w.x > g.x - 7 - pad && w.x < g.x + 7 + pad && w.y > g.y - 10 - pad && w.y < g.y + 4 + pad;
-    if (!hit && labelShown(g)) { const lw = textW(g.item.name.toUpperCase()); hit = w.x > g.x - lw / 2 - 2 - pad && w.x < g.x + lw / 2 + 2 + pad && w.y > g.y - 18 - pad && w.y < g.y - 9 + pad / 2; }
+    if (!hit && labelShown(g)) { const nm = g.item.name.toUpperCase(), met = worldLabelMetrics(nm), hw = Math.max(textW(nm), met.worldW) / 2 + 2, hh = Math.max(9, met.worldH); hit = w.x > g.x - hw - pad && w.x < g.x + hw + pad && w.y > g.y - 16 - pad && w.y < g.y - 16 + hh + pad; }
     if (hit) { const d = Math.hypot(w.x - g.x, w.y - g.y + 6); if (d < bd) { bd = d; best = g; } } }
   return best;
 }
@@ -4430,8 +4486,11 @@ const JR = 50;
 function hudScale() { const s = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hud')); return s > 0 ? s : 1; }
 function joyRest() {
   const k = hudScale();
-  const h = appH, sl = settings.touchLayout && settings.touchLayout.swap ? appW - 100 : 100;
-  jb.style.left = (sl / k) + 'px'; jb.style.top = ((h - 95) / k) + 'px'; jk.style.left = '60px'; jk.style.top = '60px'; jb.style.opacity = .45;
+  const h = appH;
+  const box = (typeof SAFE74 === 'object' && SAFE74 && SAFE74.css) ? SAFE74.css : null;
+  const safeL = box ? (box.l || 0) : 0, safeB = box ? (box.b || 0) : 0;
+  const sl = settings.touchLayout && settings.touchLayout.swap ? appW - 100 - safeL : 100 + safeL;
+  jb.style.left = (sl / k) + 'px'; jb.style.top = ((h - 95 - safeB) / k) + 'px'; jk.style.left = '60px'; jk.style.top = '60px'; jb.style.opacity = .45;
 }
 jz.addEventListener('pointerdown', e => {
   e.preventDefault(); if (state === 'play' && dismissTapClient(e.clientX, e.clientY)) return; // v0.7.2 §9c tap-to-dismiss
@@ -7717,6 +7776,36 @@ syncBattleBtn();
 $('mLight').addEventListener('click', () => { settings.lighting = lightingQ() === 'high' ? 'low' : 'high'; saveSettings(); syncLightBtn(); syncGlDev(); });
 function syncLightBtn() { $('mLight').textContent = 'LIGHTING: ' + lightingQ().toUpperCase(); }
 syncLightBtn();
+function cycleHudScale() {
+  const i = HUD_PREFS.indexOf(String(settings.hudScale || 'auto'));
+  settings.hudScale = HUD_PREFS[(i + 1) % HUD_PREFS.length];
+  saveSettings();
+  syncHudBtn();
+  if (typeof resize === 'function') resize();
+}
+function hudCapNote() {
+  const v = String(settings.hudScale || 'auto');
+  if (v === 'auto') return '';
+  const dpr = window.devicePixelRatio || 1;
+  const w = appW || window.innerWidth || 800, h = appH || window.innerHeight || 450;
+  const wanted = computeHudScale(w, h, dpr, v);
+  const applied = fitHudScale(w, h, dpr, v);
+  const autoK = fitHudScale(w, h, dpr, 'auto');
+  if (applied < wanted && autoK > 0) {
+    const pct = Math.round(applied / autoK * 100);
+    return ' (CAPPED AT ' + pct + '% ON THIS SCREEN)';
+  }
+  return '';
+}
+function syncHudBtn() {
+  const b = $('mHud'); if (!b) return;
+  const v = String(settings.hudScale || 'auto');
+  const label = 'HUD SCALE: ' + (v === 'auto' ? 'AUTO' : (v + '%' + hudCapNote()));
+  b.textContent = label;
+  b.title = label;
+}
+if ($('mHud')) $('mHud').addEventListener('click', cycleHudScale);
+syncHudBtn();
 $('mGl').addEventListener('click', () => { cycleGlLight(); syncGlDev(); });
 function syncGlBtn() { const b = $('mGl'); if (b) b.textContent = 'GL LIGHT: ' + glLightMode().toUpperCase(); }
 syncGlBtn();
@@ -8605,11 +8694,10 @@ function render() {
   ctx.save(); ctx.translate(-sx, -sy);
   drawEmissive(sx, sy); v073Emissive(); v074Emissive(); drawBloom(); drawVisDebug(); drawV06Emissive(); drawCritters(true);
   for (const g of ground) { if (!g.item) continue; const d = Math.hypot(g.x - p.x, g.y - p.y);
-    if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
-      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 17), w + 3, 7); drawTextC(nm, g.x, g.y - 16, RCOL[g.item.rarity], false); } }
+    if (labelShown(g)) drawWorldLabel(g.item.name.toUpperCase(), g.x, g.y - 16, RCOL[g.item.rarity]); }
   drawTeles(); drawClickMark(); v074World(); /* v0.7.4: alert '!' + power-attack charge */
   if (!touchMode && keys.Alt) for (const g of ground) { if (g.item || lootHidden075(g)) continue; const t = groundLabel(g) || (g.gold ? g.gold + ' GOLD' : g.pot ? (g.pot === 'hp' ? 'LIFE POTION' : g.pot === 'rp' ? 'REPAIR POTION' : g.pot === 'np' ? 'NECRO POTION' : 'MANA POTION') : g.key ? 'KEY' : g.torch ? 'TORCH' : ''); if (!t) continue;
-    const w = textW(t); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 13), w + 3, 7); drawTextC(t, g.x, g.y - 12, groundLabel(g) ? '#e8dcc0' : g.gold ? '#e8c840' : g.key ? '#ffe060' : g.torch ? '#ffb040' : g.pot === 'np' ? '#7ee0c8' : g.pot === 'rp' ? '#ffa850' : g.pot === 'mp' ? '#8098ff' : '#ff8080'); }
+    drawWorldLabel(t, g.x, g.y - 12, groundLabel(g) ? '#e8dcc0' : g.gold ? '#e8c840' : g.key ? '#ffe060' : g.torch ? '#ffb040' : g.pot === 'np' ? '#7ee0c8' : g.pot === 'rp' ? '#ffa850' : g.pot === 'mp' ? '#8098ff' : '#ff8080'); }
   for (const e of enemies) if (e.state === 'chase' && !e.T.boss && !e.hidden && !e.disg && dist(e, p) < 150 && !(e.T.ai === 'shade' && dist(e, p) > 40)) {
     if (!(e.superElite || settings.enemyHp !== false)) continue; // v0.7.17 M2: trash/elites hide; Super Elites stay (boss-tier)
     const w = e.superElite ? 16 : 12, X = Math.round(e.x - w / 2), Y = Math.round(e.y - e.r - 9 - Math.round(e.z || 0));
@@ -11215,7 +11303,7 @@ function fitUi101() {
   s = Math.max(0.7, Math.min(s, 1.35));
   if (h < 430) s = Math.min(s, Math.max(0.66, h / 480));
   let hud = Math.min(w / 800, h / 430);
-  hud = Math.max(0.84, Math.min(hud, 1.22));
+  hud = Math.max(1, Math.min(hud, 1.22));
   document.documentElement.style.setProperty('--ui', s.toFixed(3));
   document.documentElement.style.setProperty('--hud', hud.toFixed(3));
   if (window.__tlReady && typeof applyTouchLayout === 'function') applyTouchLayout();
@@ -11225,16 +11313,61 @@ function fitUi101() {
 }
 const _resize101 = resize;
 resize = function () { const r = _resize101(); fitUi101(); return r; };
+function computeHudScale(cssW, cssH, dpr, pref) {
+  dpr = dpr > 0 ? dpr : 1;
+  cssH = cssH > 0 ? cssH : 1;
+  let s = Math.round(cssH * dpr * 0.15 * hudPrefMul(pref) / 52);
+  if (s < 1) s = 1;
+  if (s > 6) s = 6;
+  return s;
+}
+function deskSampleWidth(fontPx) {
+  const c = deskSampleWidth.c || (deskSampleWidth.c = document.createElement('canvas').getContext('2d'));
+  c.font = uiFont(Math.max(1, fontPx), 700);
+  return c.measureText('KEY 00 TORCH 00 RP 00 LV 00').width;
+}
+function fitHudScale(cssW, cssH, dpr, pref, nSlots) {
+  dpr = dpr > 0 ? dpr : 1;
+  cssW = cssW > 0 ? cssW : 1;
+  cssH = cssH > 0 ? cssH : 1;
+  nSlots = nSlots == null ? 4 : nSlots | 0;
+  let k = computeHudScale(cssW, cssH, dpr, pref);
+  const fits = (scale) => (640 * scale) / dpr <= cssW + 4 && (56 * scale) / dpr <= cssH * 0.32 + 4;
+  while (k > 1 && !fits(k)) k--;
+  return k;
+}
+function deskSlotCount(el) {
+  let n = 4;
+  if (!el) return n;
+  el.querySelectorAll('.dh-spell').forEach(node => { if (node.style.display !== 'none') n++; });
+  return n;
+}
+function safeCssBox() {
+  if (typeof SAFE74 === 'object' && SAFE74 && SAFE74.css) return SAFE74.css;
+  return { l: 0, r: 0, t: 0, b: 0 };
+}
 function placeDesk101() {
   const el = $('deskHud'); if (!el || !canvas) return;
   const r = canvas.getBoundingClientRect();
-  const k = Math.max(1, Math.floor(Math.min((r.width || appW) / 420, (r.height || appH) * 0.15 / 52)));
-  const band = Math.max(52, Math.min(r.height * 0.22, 52 * k));
-  el.style.left = r.left + 'px';
-  el.style.width = Math.max(120, r.width) + 'px';
-  el.style.height = band + 'px';
-  el.style.top = (r.bottom - band) + 'px';
+  const dpr = window.devicePixelRatio || 1;
+  const safe = safeCssBox();
+  const availW = Math.max(80, r.width - (safe.l || 0) - (safe.r || 0));
+  const k = fitHudScale(availW, r.height || appH || 1, dpr, settings.hudScale, deskSlotCount(el));
+  const artW = 640;
+  const sig = k + 'x' + artW;
+  if (el.dataset.built !== sig) el.dataset.built = '';
   el.dataset.k = String(k);
+  el.dataset.art = String(artW);
+  el.dataset.sig = sig;
+  const band = Math.round(56 * k) / dpr;
+  let top = r.bottom - band - (safe.b || 0);
+  const minTop = r.top + (safe.t || 0);
+  if (top < minTop) top = minTop;
+  el.style.left = (r.left + (safe.l || 0)) + 'px';
+  el.style.width = availW + 'px';
+  el.style.height = band + 'px';
+  el.style.top = top + 'px';
+  if (typeof syncHudBtn === 'function') syncHudBtn();
 }
 function syncUseArt() {
   const b = $('bUse'); if (!b) return;
@@ -11281,7 +11414,7 @@ function syncDesk() {
   el.setAttribute('aria-hidden', show ? 'false' : 'true');
   if (!show) return;
   placeDesk101();
-  if (!el.dataset.built) buildDesk(el);
+  if (el.dataset.built !== el.dataset.sig) buildDesk(el, +(el.dataset.k || 1), +(el.dataset.art || 640));
   const p = player, s = p.st, bar = spellBar(p);
   const hp = el.querySelector('.dh-globe.hp i'), mp = el.querySelector('.dh-globe.mp i');
   const hpn = el.querySelector('.dh-globe.hp b'), mpn = el.querySelector('.dh-globe.mp b');
@@ -11289,13 +11422,25 @@ function syncDesk() {
   if (mp) mp.style.height = clamp(p.mp / (s.maxMp || 1), 0, 1) * 100 + '%';
   if (hpn) hpn.textContent = String(Math.ceil(p.hp));
   if (mpn) mpn.textContent = String(Math.floor(p.mp));
+  const xp = el.querySelector('.dh-xp i');
+  if (xp) xp.style.width = clamp(p.xp / (xpNeed(p.lvl) || 1), 0, 1) * 100 + '%';
   const well = el.querySelector('.dh-well');
-  if (well) well.innerHTML = '<div class="row"><span>KEY ' + p.keys + '</span><span>TORCH ' + p.torches + '</span><span>RP ' + (p.rpPot || 0) + '</span><span>LV ' + p.lvl + '</span></div><div class="row"><span>GATE ' + (p.gateKeys || 0) + '</span><span>FOOD ' + (p.rations || 0) + '</span><span>' + (necroKnown() ? ('NECRO ' + (p.npPot || 0)) : '') + '</span><span>I BAG</span></div>';
+  if (well) {
+    const set = (sel, text) => { const n = well.querySelector(sel); if (n) n.textContent = text; };
+    set('.n-key', 'x' + p.keys);
+    set('.n-torch', 'x' + p.torches);
+    set('.n-rp', 'x' + (p.rpPot || 0));
+    set('.n-lv', 'LV ' + p.lvl);
+    set('.n-gate', 'GATE KEYS ' + (p.gateKeys || 0));
+    set('.n-food', 'FOOD ' + (p.rations || 0));
+    const meter = well.querySelector('.meter i');
+    if (meter) meter.style.width = clamp((p.torchT || 0) / (TORCH_TIME || 1), 0, 1) * 100 + '%';
+  }
   el.querySelectorAll('.dh-spell').forEach((node, i) => {
     const id = bar[i];
     const art = id && SPELL_HUD[id];
-    node.style.display = id ? '' : 'none';
-    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art + '_idle.png)') : 'none';
+    node.style.display = '';
+    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art.replace('_48', '_24') + '_idle.png)') : 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_24.png)';
     node.classList.toggle('sel', !!id && V101.barSel === i);
     const idx = id ? TOME_IDS.indexOf(id) : -1;
     const cd = node.querySelector('.cd');
@@ -11304,43 +11449,74 @@ function syncDesk() {
     if (cd) cd.style.height = (idx >= 0 && max ? cur / max * 100 : 0) + '%';
   });
 }
-function buildDesk(el) {
-  el.dataset.built = '1';
-  const k = 1;
-  const sz = 48;
+function buildDesk(el, k, artW) {
+  k = k > 0 ? k : 1;
+  artW = 640;
+  const dpr = window.devicePixelRatio || 1;
+  const px = (n) => (Math.round(n * k) / dpr) + 'px';
+  const put = (node, x, y, w, h) => { node.style.left = px(x); node.style.top = px(y); node.style.width = px(w); node.style.height = px(h); };
+  const icon = (c) => { try { return c && c.toDataURL ? c.toDataURL() : ''; } catch (e) { return ''; } };
+  el.dataset.built = el.dataset.sig || (k + 'x' + artW);
+  el.dataset.k = String(k);
+  el.dataset.art = String(artW);
+  el.style.fontSize = px(7);
   el.innerHTML = '';
-  const globe = (kind) => {
+  const bar = document.createElement('div'); bar.className = 'dh-bar';
+  bar.style.top = px(12); bar.style.height = px(40); bar.style.left = '0'; bar.style.right = '0';
+  el.appendChild(bar);
+  const comp = document.createElement('div'); comp.className = 'dh-comp';
+  comp.style.position = 'absolute'; comp.style.top = '0'; comp.style.height = '100%';
+  comp.style.width = px(640); comp.style.left = '50%'; comp.style.marginLeft = (Math.round(-320 * k) / dpr) + 'px';
+  el.appendChild(comp);
+  const xp = document.createElement('div'); xp.className = 'dh-xp'; xp.innerHTML = '<i></i>';
+  xp.style.left = px(58); xp.style.right = px(58); xp.style.top = px(18); xp.style.height = px(5);
+  comp.appendChild(xp);
+  const globeEl = (kind, x) => {
     const d = document.createElement('div'); d.className = 'dh-globe ' + kind;
-    d.style.width = (sz + 8) + 'px'; d.style.height = (sz + 8) + 'px';
-    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_' + kind + '_frame_48.png)';
-    d.innerHTML = '<div class="fill"><i></i></div><b>0</b>';
+    put(d, x, 0, 56, 56);
+    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_socket_56.png)';
+    const face = document.createElement('div'); face.className = 'face';
+    face.style.left = px(4); face.style.top = px(4); face.style.width = px(48); face.style.height = px(48);
+    face.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_' + kind + '_frame_48.png)';
+    face.innerHTML = '<div class="fill"><i></i></div><b>0</b>';
+    face.querySelector('b').style.fontSize = px(12);
+    d.appendChild(face);
     return d;
   };
-  const slot = (act, art, key) => {
-    const d = document.createElement('div'); d.className = 'dh-slot'; d.dataset.act = act;
-    d.style.width = sz + 'px'; d.style.height = sz + 'px';
+  const slotEl = (x, act, art, key, extra) => {
+    const d = document.createElement('div'); d.className = 'dh-slot' + (extra || '');
+    put(d, x, 24, 24, 24);
     d.style.backgroundImage = 'url(assets/ui/v07101/hud/composed/' + art + '_idle.png)';
     d.innerHTML = '<i class="cd"></i><span class="key">' + key + '</span>';
-    d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); });
+    const lab = d.querySelector('.key');
+    lab.style.fontSize = px(6); lab.style.bottom = '0'; lab.style.height = px(7); lab.style.lineHeight = px(7);
+    if (act) { d.dataset.act = act; d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); }); }
     return d;
   };
-  el.appendChild(globe('hp'));
-  const row = document.createElement('div'); row.className = 'dh-slots';
-  row.appendChild(slot('attack', 'hud_attack_48', 'LMB'));
-  row.appendChild(slot('hp', 'hud_heal_48', 'Q'));
-  row.appendChild(slot('mp', 'hud_mana_48', 'E'));
-  const well = document.createElement('div'); well.className = 'dh-well'; row.appendChild(well);
-  row.appendChild(slot('roll', 'hud_roll_48', 'SPC'));
+  comp.appendChild(globeEl('hp', 0));
+  comp.appendChild(slotEl(60, 'attack', 'hud_attack_24', 'LMB'));
+  comp.appendChild(slotEl(90, 'hp', 'hud_heal_24', 'Q'));
+  comp.appendChild(slotEl(116, 'mp', 'hud_mana_24', 'E'));
+  const wellW = 640 - 356;
+  const well = document.createElement('div'); well.className = 'dh-well';
+  put(well, 146, 24, wellW, 24);
+  well.style.fontSize = px(7); well.style.lineHeight = px(8);
+  const keySrc = icon(typeof KEY_ICON !== 'undefined' ? KEY_ICON : null);
+  const torchSrc = icon(typeof TORCH_ICON !== 'undefined' ? TORCH_ICON : null);
+  const rpSrc = icon(typeof ICONS !== 'undefined' ? ICONS.rp : null);
+  const ico = (src) => '<img alt="" src="' + src + '" style="width:' + px(8) + ';height:' + px(8) + '">';
+  well.innerHTML = '<div class="row">' + ico(keySrc) + '<b class="n-key"></b>' + ico(torchSrc) + '<b class="n-torch"></b><span class="meter" style="width:' + px(40) + ';height:' + px(5) + '"><i></i></span>' + ico(rpSrc) + '<b class="n-rp"></b><span class="sp"></span><b class="n-lv"></b></div>'
+    + '<div class="row"><span class="n-gate"></span><span class="n-food"></span><span class="sp"></span><span>I: BAG  T: TOME  M: MAP</span></div>';
+  comp.appendChild(well);
+  comp.appendChild(slotEl(640 - 204, 'roll', 'hud_roll_24', 'SPC'));
   for (let i = 0; i < 4; i++) {
-    const d = document.createElement('div'); d.className = 'dh-slot dh-spell'; d.dataset.bar = String(i);
-    d.style.width = sz + 'px'; d.style.height = sz + 'px';
-    d.innerHTML = '<i class="cd"></i><span class="key">' + (i + 1) + '</span>';
+    const d = slotEl(640 - 174 + 30 * i, '', 'hud_attack_24', String(i + 1), ' dh-spell');
+    d.dataset.bar = String(i);
+    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_24.png)';
     d.addEventListener('pointerdown', e => { e.preventDefault(); V101.barSel = i; pressBar(i); });
-    row.appendChild(d);
+    comp.appendChild(d);
   }
-  el.appendChild(row);
-  el.appendChild(globe('mp'));
-  void k;
+  comp.appendChild(globeEl('mp', 640 - 56));
 }
 function deskAct(act) {
   if (act === 'attack') { held.attack = true; tapQ.attack = performance.now() + 250; setTimeout(() => { held.attack = false; }, 80); return; }
@@ -11683,6 +11859,8 @@ function sizeSatchel() {
   host.dataset.scale = scCss;
   host.dataset.tabs = m.tabs;
   host.dataset.mode = m.mode || '';
+  const lblPx = Math.max(4, Math.min(11, Math.round(12 / (sc || 1))));
+  art.style.setProperty('--lbl', lblPx + 'px');
   // Flex centers the margin box, so margin-top of half the overflow still leaves the
   // tab strip above the glass. Pin the pack to the top and let #inv clip the bottom.
   const hostH = 202 * sc;
@@ -15591,6 +15769,12 @@ if (window.game) {
   Object.defineProperty(window.game, 'bossIntro', { configurable: true, get() { return bossIntro; }, set(v) { bossIntro = v; } });
   Object.defineProperty(window.game, 'introBoss', { configurable: true, get() { return introBoss; }, set(v) { introBoss = v; } });
   Object.defineProperty(window.game, 'climb', { configurable: true, get() { return climb; } });
+  window.game.computeHudScale = computeHudScale;
+  window.game.fitHudScale = fitHudScale;
+  window.game.hudPrefMul = hudPrefMul;
+  window.game.worldLabelFace = worldLabelFace;
+  window.game.worldLabelMetrics = worldLabelMetrics;
+  window.game.HUD_PREFS = HUD_PREFS;
 }
 
 </script>

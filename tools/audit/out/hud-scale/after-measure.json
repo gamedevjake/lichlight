@@ -1,0 +1,504 @@
+[
+  {
+    "id": "1080",
+    "avg": 4.266666666682188,
+    "pref": "auto",
+    "k": "3",
+    "face": 36,
+    "zoom": 1,
+    "wp": 6,
+    "slot": [
+      144,
+      144
+    ],
+    "globe": [
+      168,
+      168
+    ],
+    "keyInside": true,
+    "desk": [
+      1920,
+      168,
+      0,
+      912
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-1080.png"
+  },
+  {
+    "id": "1440",
+    "avg": 2.9249999999689558,
+    "pref": "auto",
+    "k": "4",
+    "face": 48,
+    "zoom": 1,
+    "wp": 8,
+    "slot": [
+      192,
+      192
+    ],
+    "globe": [
+      224,
+      224
+    ],
+    "keyInside": true,
+    "desk": [
+      2560,
+      224,
+      0,
+      1216
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-1440.png"
+  },
+  {
+    "id": "1440-150",
+    "avg": 3.0333333333643773,
+    "pref": "150",
+    "k": "5",
+    "face": 72,
+    "zoom": 1,
+    "wp": 8,
+    "slot": [
+      240,
+      240
+    ],
+    "globe": [
+      280,
+      280
+    ],
+    "keyInside": true,
+    "desk": [
+      2560,
+      280,
+      0,
+      1160
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-1440-150.png"
+  },
+  {
+    "id": "1440-far",
+    "avg": 5.791666666666667,
+    "pref": "auto",
+    "k": "4",
+    "face": 48,
+    "zoom": 0.375,
+    "wp": 3,
+    "slot": [
+      192,
+      192
+    ],
+    "globe": [
+      224,
+      224
+    ],
+    "keyInside": true,
+    "desk": [
+      2559,
+      224,
+      1,
+      1216
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-1440-far.png"
+  },
+  {
+    "id": "4k",
+    "avg": 3.0666666666511446,
+    "pref": "auto",
+    "k": "6",
+    "face": 72,
+    "zoom": 1,
+    "wp": 12,
+    "slot": [
+      288,
+      288
+    ],
+    "globe": [
+      336,
+      336
+    ],
+    "keyInside": true,
+    "desk": [
+      3840,
+      336,
+      0,
+      1824
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-4k.png"
+  },
+  {
+    "id": "4k-150",
+    "avg": 3.9166666666666665,
+    "pref": "150",
+    "k": "6",
+    "face": 108,
+    "zoom": 1,
+    "wp": 12,
+    "slot": [
+      288,
+      288
+    ],
+    "globe": [
+      336,
+      336
+    ],
+    "keyInside": true,
+    "desk": [
+      3840,
+      336,
+      0,
+      1824
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-4k-150.png"
+  },
+  {
+    "id": "720-150",
+    "avg": 2.9416666666511446,
+    "pref": "150",
+    "k": "2",
+    "face": 36,
+    "zoom": 1,
+    "wp": 4,
+    "slot": [
+      96,
+      96
+    ],
+    "globe": [
+      112,
+      112
+    ],
+    "keyInside": true,
+    "desk": [
+      1280,
+      112,
+      0,
+      608
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        0,
+        0
+      ],
+      "bHP": [
+        0,
+        0
+      ],
+      "bMP": [
+        0,
+        0
+      ],
+      "bInv": [
+        0,
+        0
+      ],
+      "tPause": [
+        0,
+        0
+      ],
+      "tMap": [
+        0,
+        0
+      ]
+    },
+    "overflow": 0,
+    "file": "after-720-150.png"
+  },
+  {
+    "id": "phone412",
+    "avg": 3.025000000023283,
+    "pref": "auto",
+    "k": "2",
+    "face": 42,
+    "zoom": 1,
+    "wp": 7,
+    "slot": null,
+    "globe": null,
+    "keyInside": false,
+    "desk": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        88,
+        88
+      ],
+      "bHP": [
+        48,
+        48
+      ],
+      "bMP": [
+        48,
+        48
+      ],
+      "bInv": [
+        48,
+        48
+      ],
+      "tPause": [
+        48,
+        48
+      ],
+      "tMap": [
+        48,
+        48
+      ]
+    },
+    "overflow": 0,
+    "file": "after-phone412.png"
+  },
+  {
+    "id": "phone390",
+    "avg": 3.850000000015522,
+    "pref": "auto",
+    "k": "2",
+    "face": 36,
+    "zoom": 1,
+    "wp": 6,
+    "slot": null,
+    "globe": null,
+    "keyInside": false,
+    "desk": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        88,
+        88
+      ],
+      "bHP": [
+        48,
+        48
+      ],
+      "bMP": [
+        48,
+        48
+      ],
+      "bInv": [
+        48,
+        48
+      ],
+      "tPause": [
+        48,
+        48
+      ],
+      "tMap": [
+        48,
+        48
+      ]
+    },
+    "overflow": 0,
+    "file": "after-phone390.png"
+  },
+  {
+    "id": "tablet",
+    "avg": 2.6666666666666665,
+    "pref": "auto",
+    "k": "3",
+    "face": 54,
+    "zoom": 1,
+    "wp": 9,
+    "slot": null,
+    "globe": null,
+    "keyInside": false,
+    "desk": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "touchBoxes": {
+      "bAtk": [
+        88,
+        88
+      ],
+      "bHP": [
+        48,
+        48
+      ],
+      "bMP": [
+        48,
+        48
+      ],
+      "bInv": [
+        48,
+        48
+      ],
+      "tPause": [
+        48,
+        48
+      ],
+      "tMap": [
+        48,
+        48
+      ]
+    },
+    "overflow": 0,
+    "file": "after-tablet.png"
+  }
+]
