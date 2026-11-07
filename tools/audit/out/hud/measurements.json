@@ -1,0 +1,7880 @@
+[
+  {
+    "build": "before",
+    "id": "1280x720",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      1280,
+      720
+    ],
+    "dpr": 1,
+    "physical": [
+      1280,
+      720
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Sturdy Leather Armor of All Wards",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        1280,
+        720
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        1280,
+        720
+      ],
+      "textBacking": [
+        1280,
+        720
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 4,
+      "hudPresent": 4,
+      "worldPresent": 4,
+      "hudFontDev": 24,
+      "labelFontDev": 24,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 20,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 64,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 120,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 136,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 32,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 68,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 28,
+        "pctH": 3.89
+      },
+      "survCssTop": 556,
+      "panelCssTop": 600,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          1280,
+          104
+        ],
+        "dev": [
+          1280,
+          104
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 616,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 6.67,
+        "pctW": 3.75,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 672,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 7.78,
+        "pctW": 4.38,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 664,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 7.78,
+        "pctW": 4.38,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 664,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 4.31,
+        "pctW": 10.97,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 685,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 1.53,
+        "pctW": 1.4,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 711,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 1241,
+        "w": 139,
+        "h": 16,
+        "x": 17,
+        "y": 19
+      },
+      "midInk": {
+        "n": 5973,
+        "w": 430,
+        "h": 72,
+        "x": 479,
+        "y": 275
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "3",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1260,
+          606
+        ],
+        "dev": [
+          1260,
+          606
+        ],
+        "pctH": 84.17,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          72,
+          15
+        ],
+        "dev": [
+          72,
+          15
+        ],
+        "pctH": 2.08,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          219,
+          69
+        ],
+        "dev": [
+          219,
+          69
+        ],
+        "pctH": 9.58,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          168,
+          60
+        ],
+        "dev": [
+          168,
+          60
+        ],
+        "pctH": 8.33,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-1280x720.png",
+      "bottom": "before-1280x720-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 1,
+      "100": 2,
+      "125": 2,
+      "150": 2,
+      "auto": 2
+    }
+  },
+  {
+    "build": "before",
+    "id": "1920x1080",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      1920,
+      1080
+    ],
+    "dpr": 1,
+    "physical": [
+      1920,
+      1080
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Cruel Short Sword of Conduction",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        1920,
+        1080
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        1920,
+        1080
+      ],
+      "textBacking": [
+        1920,
+        1080
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 6,
+      "hudPresent": 6,
+      "worldPresent": 6,
+      "hudFontDev": 36,
+      "labelFontDev": 36,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 30,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 96,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 180,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 204,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 48,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 102,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 42,
+        "pctH": 3.89
+      },
+      "survCssTop": 834,
+      "panelCssTop": 900,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          1920,
+          156
+        ],
+        "dev": [
+          1920,
+          156
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 924,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 4.44,
+        "pctW": 2.5,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1032,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 5.19,
+        "pctW": 2.92,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1024,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 5.19,
+        "pctW": 2.92,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1024,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 2.87,
+        "pctW": 7.31,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1045,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 1.02,
+        "pctW": 0.93,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 1071,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 2.59,
+        "pctW": 1.46,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 2502,
+        "w": 207,
+        "h": 24,
+        "x": 26,
+        "y": 29
+      },
+      "midInk": {
+        "n": 12073,
+        "w": 610,
+        "h": 108,
+        "x": 737,
+        "y": 413
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "4",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1680,
+          808
+        ],
+        "dev": [
+          1680,
+          808
+        ],
+        "pctH": 74.81,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          96,
+          20
+        ],
+        "dev": [
+          96,
+          20
+        ],
+        "pctH": 1.85,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          292,
+          92
+        ],
+        "dev": [
+          292,
+          92
+        ],
+        "pctH": 8.52,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          224,
+          80
+        ],
+        "dev": [
+          224,
+          80
+        ],
+        "pctH": 7.41,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-1920x1080.png",
+      "bottom": "before-1920x1080-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 2,
+      "125": 3,
+      "150": 3,
+      "auto": 2
+    }
+  },
+  {
+    "build": "before",
+    "id": "2560x1440",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      2560,
+      1440
+    ],
+    "dpr": 1,
+    "physical": [
+      2560,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Twitching Gnarled Staff of the Pyre",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        2560,
+        1440
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        2560,
+        1440
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 48,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 56,
+        "pctH": 3.89
+      },
+      "survCssTop": 1112,
+      "panelCssTop": 1200,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          2560,
+          208
+        ],
+        "dev": [
+          2560,
+          208
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1232,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 3.33,
+        "pctW": 1.88,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1392,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 2.15,
+        "pctW": 5.48,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1405,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 0.76,
+        "pctW": 0.7,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 1431,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 1.94,
+        "pctW": 1.09,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4155,
+        "w": 275,
+        "h": 32,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 22231,
+        "w": 893,
+        "h": 145,
+        "x": 943,
+        "y": 550
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "5",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          2100,
+          1010
+        ],
+        "dev": [
+          2100,
+          1010
+        ],
+        "pctH": 70.14,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          120,
+          25
+        ],
+        "dev": [
+          120,
+          25
+        ],
+        "pctH": 1.74,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          365,
+          115
+        ],
+        "dev": [
+          365,
+          115
+        ],
+        "pctH": 7.99,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          280,
+          100
+        ],
+        "dev": [
+          280,
+          100
+        ],
+        "pctH": 6.94,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-2560x1440.png",
+      "bottom": "before-2560x1440-bottom.png",
+      "satchel": "before-2560x1440-satchel.png"
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "before",
+    "id": "3840x2160",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      3840,
+      2160
+    ],
+    "dpr": 1,
+    "physical": [
+      3840,
+      2160
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Crackling Short Bow",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        3840,
+        2160
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        3840,
+        2160
+      ],
+      "textBacking": [
+        3840,
+        2160
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 12,
+      "hudPresent": 12,
+      "worldPresent": 12,
+      "hudFontDev": 72,
+      "labelFontDev": 72,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 60,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 192,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 360,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 408,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 96,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 204,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 84,
+        "pctH": 3.89
+      },
+      "survCssTop": 1668,
+      "panelCssTop": 1800,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          3840,
+          312
+        ],
+        "dev": [
+          3840,
+          312
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1848,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 2.22,
+        "pctW": 1.25,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2112,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 2.59,
+        "pctW": 1.46,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2104,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 2.59,
+        "pctW": 1.46,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2104,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 1.44,
+        "pctW": 3.66,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2125,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 0.51,
+        "pctW": 0.47,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 2151,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 1.3,
+        "pctW": 0.73,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 2641,
+        "w": 412,
+        "h": 13,
+        "x": 52,
+        "y": 57
+      },
+      "midInk": {
+        "n": 34703,
+        "w": 950,
+        "h": 216,
+        "x": 1516,
+        "y": 825
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "8",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          3360,
+          1616
+        ],
+        "dev": [
+          3360,
+          1616
+        ],
+        "pctH": 74.81,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          192,
+          40
+        ],
+        "dev": [
+          192,
+          40
+        ],
+        "pctH": 1.85,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          584,
+          184
+        ],
+        "dev": [
+          584,
+          184
+        ],
+        "pctH": 8.52,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          448,
+          160
+        ],
+        "dev": [
+          448,
+          160
+        ],
+        "pctH": 7.41,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-3840x2160.png",
+      "bottom": "before-3840x2160-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 3,
+      "100": 5,
+      "125": 6,
+      "150": 6,
+      "auto": 5
+    }
+  },
+  {
+    "build": "before",
+    "id": "win125-2048x1152",
+    "zoomFar": false,
+    "note": "2560x1440 physical at 125% Windows",
+    "css": [
+      2048,
+      1152
+    ],
+    "dpr": 1.25,
+    "physical": [
+      2560,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Sharp Short Sword",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1.25,
+      "inner": [
+        2048,
+        1152
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        2048,
+        1152
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 48,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 56,
+        "pctH": 3.89
+      },
+      "survCssTop": 889.6,
+      "panelCssTop": 960,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          2048,
+          156
+        ],
+        "dev": [
+          2560,
+          195
+        ],
+        "pctH": 13.54,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 996,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          60,
+          60
+        ],
+        "pctH": 4.17,
+        "pctW": 2.34,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1104,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          70,
+          70
+        ],
+        "pctH": 4.86,
+        "pctW": 2.73,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1096,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          70,
+          70
+        ],
+        "pctH": 4.86,
+        "pctW": 2.73,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1096,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          175.49,
+          38.75
+        ],
+        "pctH": 2.69,
+        "pctW": 6.86,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1117,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          22.34,
+          13.75
+        ],
+        "pctH": 0.95,
+        "pctW": 0.87,
+        "fontCss": 9,
+        "fontDev": 11.25,
+        "top": 1143,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          35,
+          35
+        ],
+        "pctH": 2.43,
+        "pctW": 1.37,
+        "fontCss": 15,
+        "fontDev": 18.75,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4248,
+        "w": 275,
+        "h": 33,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 15756,
+        "w": 608,
+        "h": 145,
+        "x": 1011,
+        "y": 550
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "4",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1680,
+          808
+        ],
+        "dev": [
+          2100,
+          1010
+        ],
+        "pctH": 70.14,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          96,
+          20
+        ],
+        "dev": [
+          120,
+          25
+        ],
+        "pctH": 1.74,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          292,
+          92
+        ],
+        "dev": [
+          365,
+          115
+        ],
+        "pctH": 7.99,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          224,
+          80
+        ],
+        "dev": [
+          280,
+          100
+        ],
+        "pctH": 6.94,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-win125-2048x1152.png",
+      "bottom": "before-win125-2048x1152-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "before",
+    "id": "win150-1707x960",
+    "zoomFar": false,
+    "note": "2560x1440 physical at 150% Windows",
+    "css": [
+      1707,
+      960
+    ],
+    "dpr": 1.5,
+    "physical": [
+      2560.5,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Fleeing Bone Pendant of the Lamp",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1.5,
+      "inner": [
+        1707,
+        960
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        1706.67,
+        960
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 48,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 56,
+        "pctH": 3.89
+      },
+      "survCssTop": 741.33,
+      "panelCssTop": 800,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          1706.66,
+          104
+        ],
+        "dev": [
+          2559.98,
+          156
+        ],
+        "pctH": 10.83,
+        "pctW": 99.98,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 856,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          72,
+          72
+        ],
+        "pctH": 5,
+        "pctW": 2.81,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 912,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 5.83,
+        "pctW": 3.28,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 904,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 5.83,
+        "pctW": 3.28,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 904,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          210.59,
+          46.5
+        ],
+        "pctH": 3.23,
+        "pctW": 8.22,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 925,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          26.81,
+          16.5
+        ],
+        "pctH": 1.15,
+        "pctW": 1.05,
+        "fontCss": 9,
+        "fontDev": 13.5,
+        "top": 951,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          42,
+          42
+        ],
+        "pctH": 2.92,
+        "pctW": 1.64,
+        "fontCss": 15,
+        "fontDev": 22.5,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4248,
+        "w": 275,
+        "h": 33,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 21236,
+        "w": 820,
+        "h": 145,
+        "x": 979,
+        "y": 550
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "3",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1260,
+          606
+        ],
+        "dev": [
+          1890,
+          909
+        ],
+        "pctH": 63.13,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          72,
+          15
+        ],
+        "dev": [
+          108,
+          22.5
+        ],
+        "pctH": 1.56,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          219,
+          69
+        ],
+        "dev": [
+          328.5,
+          103.5
+        ],
+        "pctH": 7.19,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          168,
+          60
+        ],
+        "dev": [
+          252,
+          90
+        ],
+        "pctH": 6.25,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-win150-1707x960.png",
+      "bottom": "before-win150-1707x960-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "before",
+    "id": "phone-412x915",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "physical": [
+      1236,
+      2745
+    ],
+    "touch": true,
+    "seeded": {
+      "itemName": "Kiln Helm",
+      "rarity": 1,
+      "zoomSteps": [
+        1,
+        1.15,
+        1.25,
+        1.35
+      ]
+    },
+    "measured": {
+      "dpr": 3,
+      "inner": [
+        412,
+        915
+      ],
+      "vw": 176,
+      "vh": 392,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        176,
+        392
+      ],
+      "css": [
+        410.67,
+        914.67
+      ],
+      "textBacking": [
+        1232,
+        2744
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 7,
+      "hudPresent": 7,
+      "worldPresent": 7,
+      "hudFontDev": 42,
+      "labelFontDev": 42,
+      "labelPctH": 1.53,
+      "hudFontPctH": 1.53,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 35,
+        "pctH": 1.28
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 112,
+        "pctH": 4.08
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 210,
+        "pctH": 7.65
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 238,
+        "pctH": 8.67
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 56,
+        "pctH": 2.04
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 119,
+        "pctH": 4.34
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 49,
+        "pctH": 1.79
+      },
+      "survCssTop": 818.99,
+      "panelCssTop": 844.66,
+      "cssVarHud": "0.840",
+      "cssVarUi": "0.792",
+      "deskBand": {
+        "hidden": true,
+        "sel": "#deskHud"
+      },
+      "deskSlot": null,
+      "deskGlobe": null,
+      "deskGlobeNum": null,
+      "deskWell": null,
+      "deskKey": null,
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.08,
+        "pctW": 17.94,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 819.24,
+        "touch44": true
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          47.04,
+          47.04
+        ],
+        "dev": [
+          141.12,
+          141.12
+        ],
+        "pctH": 5.14,
+        "pctW": 11.42,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 735.24,
+        "touch44": true
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.41,
+        "pctW": 9.79,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 861.24,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.41,
+        "pctW": 9.79,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 688.2,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 2.94,
+        "pctW": 6.52,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 884.76,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.41,
+        "pctW": 9.79,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 871.32,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 3.06,
+        "pctW": 6.8,
+        "fontCss": 15,
+        "fontDev": 45,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 8431,
+        "w": 410,
+        "h": 154,
+        "x": 30,
+        "y": 40
+      },
+      "midInk": {
+        "n": 2974,
+        "w": 207,
+        "h": 27,
+        "x": 608,
+        "y": 1223
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "1",
+      "mode": "compact",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          412,
+          202
+        ],
+        "dev": [
+          1236,
+          606
+        ],
+        "pctH": 22.08,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          24,
+          5
+        ],
+        "dev": [
+          72,
+          15
+        ],
+        "pctH": 0.55,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          73,
+          23
+        ],
+        "dev": [
+          219,
+          69
+        ],
+        "pctH": 2.51,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "close": {
+        "css": [
+          56,
+          20
+        ],
+        "dev": [
+          168,
+          60
+        ],
+        "pctH": 2.19,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "gtipFont": 13,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-phone-412x915.png",
+      "bottom": "before-phone-412x915-bottom.png",
+      "satchel": "before-phone-412x915-satchel.png"
+    },
+    "proposedHud": {
+      "75": 4,
+      "100": 6,
+      "125": 6,
+      "150": 6,
+      "auto": 6
+    }
+  },
+  {
+    "build": "before",
+    "id": "phone-390x844",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      390,
+      844
+    ],
+    "dpr": 3,
+    "physical": [
+      1170,
+      2532
+    ],
+    "touch": true,
+    "seeded": {
+      "itemName": "Sharp Short Sword",
+      "rarity": 1,
+      "zoomSteps": [
+        1,
+        1.15,
+        1.25,
+        1.35
+      ]
+    },
+    "measured": {
+      "dpr": 3,
+      "inner": [
+        390,
+        844
+      ],
+      "vw": 195,
+      "vh": 422,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        195,
+        422
+      ],
+      "css": [
+        390,
+        844
+      ],
+      "textBacking": [
+        1170,
+        2532
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 6,
+      "hudPresent": 6,
+      "worldPresent": 6,
+      "hudFontDev": 36,
+      "labelFontDev": 36,
+      "labelPctH": 1.42,
+      "hudFontPctH": 1.42,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 30,
+        "pctH": 1.18
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 96,
+        "pctH": 3.79
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 180,
+        "pctH": 7.11
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 204,
+        "pctH": 8.06
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 48,
+        "pctH": 1.9
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 102,
+        "pctH": 4.03
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 42,
+        "pctH": 1.66
+      },
+      "survCssTop": 762,
+      "panelCssTop": 784,
+      "cssVarHud": "0.840",
+      "cssVarUi": "0.750",
+      "deskBand": {
+        "hidden": true,
+        "sel": "#deskHud"
+      },
+      "deskSlot": null,
+      "deskGlobe": null,
+      "deskGlobeNum": null,
+      "deskWell": null,
+      "deskKey": null,
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.76,
+        "pctW": 18.95,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 748.23,
+        "touch44": true
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          47.04,
+          47.04
+        ],
+        "dev": [
+          141.12,
+          141.12
+        ],
+        "pctH": 5.57,
+        "pctW": 12.06,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 664.23,
+        "touch44": true
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.78,
+        "pctW": 10.34,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 790.23,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.78,
+        "pctW": 10.34,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 617.19,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 3.18,
+        "pctW": 6.89,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 813.75,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.78,
+        "pctW": 10.34,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 800.31,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 3.32,
+        "pctW": 7.18,
+        "fontCss": 15,
+        "fontDev": 45,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 6900,
+        "w": 352,
+        "h": 175,
+        "x": 26,
+        "y": 35
+      },
+      "midInk": {
+        "n": 4362,
+        "w": 343,
+        "h": 23,
+        "x": 494,
+        "y": 1139
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "1",
+      "mode": "compact",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          390,
+          202
+        ],
+        "dev": [
+          1170,
+          606
+        ],
+        "pctH": 23.93,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          24,
+          5
+        ],
+        "dev": [
+          72,
+          15
+        ],
+        "pctH": 0.59,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          73,
+          23
+        ],
+        "dev": [
+          219,
+          69
+        ],
+        "pctH": 2.73,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "close": {
+        "css": [
+          56,
+          20
+        ],
+        "dev": [
+          168,
+          60
+        ],
+        "pctH": 2.37,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "gtipFont": 13,
+      "holdHidden": null
+    },
+    "safe": {
+      "insetCss": {
+        "l": 0,
+        "r": 0,
+        "t": 47,
+        "b": 34
+      },
+      "topInkBeforeY": 35,
+      "topInkAfterY": 191,
+      "pauseBefore": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 3.18,
+        "pctW": 6.89,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 813.75,
+        "touch44": false
+      },
+      "pauseAfter": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 3.18,
+        "pctW": 6.89,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 813.75,
+        "touch44": false
+      },
+      "atkBefore": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.76,
+        "pctW": 18.95,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 748.23,
+        "touch44": true
+      },
+      "atkAfter": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.76,
+        "pctW": 18.95,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 748.23,
+        "touch44": true
+      }
+    },
+    "files": {
+      "full": "before-phone-390x844.png",
+      "bottom": "before-phone-390x844-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 4,
+      "100": 5,
+      "125": 6,
+      "150": 6,
+      "auto": 5
+    }
+  },
+  {
+    "build": "before",
+    "id": "tablet-768x1024",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      768,
+      1024
+    ],
+    "dpr": 2,
+    "physical": [
+      1536,
+      2048
+    ],
+    "touch": true,
+    "seeded": {
+      "itemName": "Grounded Wooden Buckler",
+      "rarity": 1,
+      "zoomSteps": [
+        1,
+        1.15,
+        1.25,
+        1.35
+      ]
+    },
+    "measured": {
+      "dpr": 2,
+      "inner": [
+        768,
+        1024
+      ],
+      "vw": 170,
+      "vh": 227,
+      "zoom": 1,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        170,
+        227
+      ],
+      "css": [
+        765,
+        1021.5
+      ],
+      "textBacking": [
+        1530,
+        2043
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 9,
+      "hudPresent": 9,
+      "worldPresent": 9,
+      "hudFontDev": 54,
+      "labelFontDev": 54,
+      "labelPctH": 2.64,
+      "hudFontPctH": 2.64,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 45,
+        "pctH": 2.2
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 144,
+        "pctH": 7.03
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 270,
+        "pctH": 13.18
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 306,
+        "pctH": 14.94
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 72,
+        "pctH": 3.52
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 153,
+        "pctH": 7.47
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 63,
+        "pctH": 3.08
+      },
+      "survCssTop": 838.5,
+      "panelCssTop": 888,
+      "cssVarHud": "0.960",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "hidden": true,
+        "sel": "#deskHud"
+      },
+      "deskSlot": null,
+      "deskGlobe": null,
+      "deskGlobeNum": null,
+      "deskWell": null,
+      "deskKey": null,
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          84.48,
+          84.48
+        ],
+        "dev": [
+          168.96,
+          168.96
+        ],
+        "pctH": 8.25,
+        "pctW": 11,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 914.55,
+        "touch44": true
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          53.76,
+          53.76
+        ],
+        "dev": [
+          107.52,
+          107.52
+        ],
+        "pctH": 5.25,
+        "pctW": 7,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 818.55,
+        "touch44": true
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          46.08,
+          46.08
+        ],
+        "dev": [
+          92.16,
+          92.16
+        ],
+        "pctH": 4.5,
+        "pctW": 6,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 962.55,
+        "touch44": true
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          46.08,
+          46.08
+        ],
+        "dev": [
+          92.16,
+          92.16
+        ],
+        "pctH": 4.5,
+        "pctW": 6,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 764.79,
+        "touch44": true
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          30.72,
+          30.72
+        ],
+        "dev": [
+          61.44,
+          61.44
+        ],
+        "pctH": 3,
+        "pctW": 4,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 989.43,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          46.08,
+          46.08
+        ],
+        "dev": [
+          92.16,
+          92.16
+        ],
+        "pctH": 4.5,
+        "pctW": 6,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 974.07,
+        "touch44": true
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 2.73,
+        "pctW": 3.65,
+        "fontCss": 15,
+        "fontDev": 30,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 3975,
+        "w": 155,
+        "h": 88,
+        "x": 57,
+        "y": 52
+      },
+      "midInk": {
+        "n": 13277,
+        "w": 690,
+        "h": 35,
+        "x": 534,
+        "y": 826
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "1",
+      "mode": "compact",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          420,
+          202
+        ],
+        "dev": [
+          840,
+          404
+        ],
+        "pctH": 19.73,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          24,
+          5
+        ],
+        "dev": [
+          48,
+          10
+        ],
+        "pctH": 0.49,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          73,
+          23
+        ],
+        "dev": [
+          146,
+          46
+        ],
+        "pctH": 2.25,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "close": {
+        "css": [
+          56,
+          20
+        ],
+        "dev": [
+          112,
+          40
+        ],
+        "pctH": 1.95,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "gtipFont": 13,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "before-tablet-768x1024.png",
+      "bottom": "before-tablet-768x1024-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 3,
+      "100": 4,
+      "125": 5,
+      "150": 6,
+      "auto": 4
+    }
+  },
+  {
+    "build": "before",
+    "id": "2560x1440",
+    "zoomFar": true,
+    "note": "",
+    "css": [
+      2560,
+      1440
+    ],
+    "dpr": 1,
+    "physical": [
+      2560,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Sealed Chain Mail",
+      "rarity": 1,
+      "zoomSteps": [
+        0.25,
+        0.35,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        2560,
+        1440
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 0.25,
+      "worldPix": null,
+      "view": null,
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        2560,
+        1440
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": null,
+      "hudDisplay": null,
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 12,
+      "labelPctH": 0.83,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 14,
+        "pctH": 0.97
+      },
+      "survCssTop": 1112,
+      "panelCssTop": 1200,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          2560,
+          208
+        ],
+        "dev": [
+          2560,
+          208
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1232,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 3.33,
+        "pctW": 1.88,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1392,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 2.15,
+        "pctW": 5.48,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1405,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 0.76,
+        "pctW": 0.7,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 1431,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 1.94,
+        "pctW": 1.09,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4155,
+        "w": 275,
+        "h": 32,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 1312,
+        "w": 151,
+        "h": 37,
+        "x": 1212,
+        "y": 685
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": null,
+    "safe": null,
+    "files": {
+      "full": "before-2560x1440-far.png",
+      "bottom": "before-2560x1440-far-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "after",
+    "id": "1280x720",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      1280,
+      720
+    ],
+    "dpr": 1,
+    "physical": [
+      1280,
+      720
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Murderous Copper Charm",
+      "rarity": 1,
+      "zoomSteps": [
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        1280,
+        720
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": 4,
+      "view": {
+        "w": 320,
+        "h": 180,
+        "pix": 4
+      },
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        1280,
+        720
+      ],
+      "textBacking": [
+        1280,
+        720
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 4,
+      "hudPresent": 4,
+      "worldPresent": 4,
+      "hudFontDev": 24,
+      "labelFontDev": 24,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 20,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 64,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 120,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 136,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 32,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 68,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 28,
+        "pctH": 3.89
+      },
+      "survCssTop": 556,
+      "panelCssTop": 600,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          1280,
+          104
+        ],
+        "dev": [
+          1280,
+          104
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 616,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 6.67,
+        "pctW": 3.75,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 672,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 7.78,
+        "pctW": 4.38,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 664,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 7.78,
+        "pctW": 4.38,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 664,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 4.31,
+        "pctW": 10.97,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 685,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 1.53,
+        "pctW": 1.4,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 711,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 1241,
+        "w": 139,
+        "h": 16,
+        "x": 17,
+        "y": 19
+      },
+      "midInk": {
+        "n": 5146,
+        "w": 343,
+        "h": 72,
+        "x": 505,
+        "y": 275
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "3",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1260,
+          606
+        ],
+        "dev": [
+          1260,
+          606
+        ],
+        "pctH": 84.17,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          72,
+          15
+        ],
+        "dev": [
+          72,
+          15
+        ],
+        "pctH": 2.08,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          219,
+          69
+        ],
+        "dev": [
+          219,
+          69
+        ],
+        "pctH": 9.58,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          168,
+          60
+        ],
+        "dev": [
+          168,
+          60
+        ],
+        "pctH": 8.33,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-1280x720.png",
+      "bottom": "after-1280x720-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 1,
+      "100": 2,
+      "125": 2,
+      "150": 2,
+      "auto": 2
+    }
+  },
+  {
+    "build": "after",
+    "id": "1920x1080",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      1920,
+      1080
+    ],
+    "dpr": 1,
+    "physical": [
+      1920,
+      1080
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Murderous Short Sword",
+      "rarity": 1,
+      "zoomSteps": [
+        0.3333333333333333,
+        0.5,
+        0.6666666666666666,
+        0.8333333333333334,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        1920,
+        1080
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": 6,
+      "view": {
+        "w": 320,
+        "h": 180,
+        "pix": 6
+      },
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        1920,
+        1080
+      ],
+      "textBacking": [
+        1920,
+        1080
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 6,
+      "hudPresent": 6,
+      "worldPresent": 6,
+      "hudFontDev": 36,
+      "labelFontDev": 36,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 30,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 96,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 180,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 204,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 48,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 102,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 42,
+        "pctH": 3.89
+      },
+      "survCssTop": 834,
+      "panelCssTop": 900,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          1920,
+          156
+        ],
+        "dev": [
+          1920,
+          156
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 924,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 4.44,
+        "pctW": 2.5,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1032,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 5.19,
+        "pctW": 2.92,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1024,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 5.19,
+        "pctW": 2.92,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1024,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 2.87,
+        "pctW": 7.31,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1045,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 1.02,
+        "pctW": 0.93,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 1071,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 2.59,
+        "pctW": 1.46,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 2502,
+        "w": 207,
+        "h": 24,
+        "x": 26,
+        "y": 29
+      },
+      "midInk": {
+        "n": 10184,
+        "w": 502,
+        "h": 108,
+        "x": 758,
+        "y": 413
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "4",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1680,
+          808
+        ],
+        "dev": [
+          1680,
+          808
+        ],
+        "pctH": 74.81,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          96,
+          20
+        ],
+        "dev": [
+          96,
+          20
+        ],
+        "pctH": 1.85,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          292,
+          92
+        ],
+        "dev": [
+          292,
+          92
+        ],
+        "pctH": 8.52,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          224,
+          80
+        ],
+        "dev": [
+          224,
+          80
+        ],
+        "pctH": 7.41,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-1920x1080.png",
+      "bottom": "after-1920x1080-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 2,
+      "125": 3,
+      "150": 3,
+      "auto": 2
+    }
+  },
+  {
+    "build": "after",
+    "id": "2560x1440",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      2560,
+      1440
+    ],
+    "dpr": 1,
+    "physical": [
+      2560,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Lucid Ring of Shade Ward",
+      "rarity": 1,
+      "zoomSteps": [
+        0.375,
+        0.5,
+        0.625,
+        0.875,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        2560,
+        1440
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": 8,
+      "view": {
+        "w": 320,
+        "h": 180,
+        "pix": 8
+      },
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        2560,
+        1440
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 48,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 56,
+        "pctH": 3.89
+      },
+      "survCssTop": 1112,
+      "panelCssTop": 1200,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          2560,
+          208
+        ],
+        "dev": [
+          2560,
+          208
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1232,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 3.33,
+        "pctW": 1.88,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1392,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 2.15,
+        "pctW": 5.48,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1405,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 0.76,
+        "pctW": 0.7,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 1431,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 1.94,
+        "pctW": 1.09,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4155,
+        "w": 275,
+        "h": 32,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 17851,
+        "w": 682,
+        "h": 145,
+        "x": 1011,
+        "y": 550
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "5",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          2100,
+          1010
+        ],
+        "dev": [
+          2100,
+          1010
+        ],
+        "pctH": 70.14,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          120,
+          25
+        ],
+        "dev": [
+          120,
+          25
+        ],
+        "pctH": 1.74,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          365,
+          115
+        ],
+        "dev": [
+          365,
+          115
+        ],
+        "pctH": 7.99,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          280,
+          100
+        ],
+        "dev": [
+          280,
+          100
+        ],
+        "pctH": 6.94,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-2560x1440.png",
+      "bottom": "after-2560x1440-bottom.png",
+      "satchel": "after-2560x1440-satchel.png"
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "after",
+    "id": "3840x2160",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      3840,
+      2160
+    ],
+    "dpr": 1,
+    "physical": [
+      3840,
+      2160
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Glowing Round Shield of the Kiln",
+      "rarity": 1,
+      "zoomSteps": [
+        0.3333333333333333,
+        0.5,
+        0.6666666666666666,
+        0.8333333333333334,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        3840,
+        2160
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": 12,
+      "view": {
+        "w": 320,
+        "h": 180,
+        "pix": 12
+      },
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        3840,
+        2160
+      ],
+      "textBacking": [
+        3840,
+        2160
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 12,
+      "hudPresent": 12,
+      "worldPresent": 12,
+      "hudFontDev": 72,
+      "labelFontDev": 72,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 60,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 192,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 360,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 408,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 96,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 204,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 84,
+        "pctH": 3.89
+      },
+      "survCssTop": 1668,
+      "panelCssTop": 1800,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          3840,
+          312
+        ],
+        "dev": [
+          3840,
+          312
+        ],
+        "pctH": 14.44,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1848,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 2.22,
+        "pctW": 1.25,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2112,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 2.59,
+        "pctW": 1.46,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2104,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 2.59,
+        "pctW": 1.46,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2104,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 1.44,
+        "pctW": 3.66,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 2125,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 0.51,
+        "pctW": 0.47,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 2151,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 1.3,
+        "pctW": 0.73,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 2641,
+        "w": 412,
+        "h": 13,
+        "x": 52,
+        "y": 57
+      },
+      "midInk": {
+        "n": 44210,
+        "w": 1208,
+        "h": 216,
+        "x": 1480,
+        "y": 825
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "8",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          3360,
+          1616
+        ],
+        "dev": [
+          3360,
+          1616
+        ],
+        "pctH": 74.81,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          192,
+          40
+        ],
+        "dev": [
+          192,
+          40
+        ],
+        "pctH": 1.85,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          584,
+          184
+        ],
+        "dev": [
+          584,
+          184
+        ],
+        "pctH": 8.52,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          448,
+          160
+        ],
+        "dev": [
+          448,
+          160
+        ],
+        "pctH": 7.41,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-3840x2160.png",
+      "bottom": "after-3840x2160-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 3,
+      "100": 5,
+      "125": 6,
+      "150": 6,
+      "auto": 5
+    }
+  },
+  {
+    "build": "after",
+    "id": "win125-2048x1152",
+    "zoomFar": false,
+    "note": "2560x1440 physical at 125% Windows",
+    "css": [
+      2048,
+      1152
+    ],
+    "dpr": 1.25,
+    "physical": [
+      2560,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Fleet Bone Pendant of the Kiln",
+      "rarity": 1,
+      "zoomSteps": [
+        0.375,
+        0.5,
+        0.625,
+        0.875,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1.25,
+      "inner": [
+        2048,
+        1152
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": 8,
+      "view": {
+        "w": 320,
+        "h": 180,
+        "pix": 8
+      },
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        2048,
+        1152
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 48,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 56,
+        "pctH": 3.89
+      },
+      "survCssTop": 889.6,
+      "panelCssTop": 960,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          2048,
+          156
+        ],
+        "dev": [
+          2560,
+          195
+        ],
+        "pctH": 13.54,
+        "pctW": 100,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 996,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          60,
+          60
+        ],
+        "pctH": 4.17,
+        "pctW": 2.34,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1104,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          70,
+          70
+        ],
+        "pctH": 4.86,
+        "pctW": 2.73,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1096,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          70,
+          70
+        ],
+        "pctH": 4.86,
+        "pctW": 2.73,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1096,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          175.49,
+          38.75
+        ],
+        "pctH": 2.69,
+        "pctW": 6.86,
+        "fontCss": 11,
+        "fontDev": 13.75,
+        "top": 1117,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          22.34,
+          13.75
+        ],
+        "pctH": 0.95,
+        "pctW": 0.87,
+        "fontCss": 9,
+        "fontDev": 11.25,
+        "top": 1143,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 15,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          35,
+          35
+        ],
+        "pctH": 2.43,
+        "pctW": 1.37,
+        "fontCss": 15,
+        "fontDev": 18.75,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4248,
+        "w": 275,
+        "h": 33,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 19912,
+        "w": 758,
+        "h": 145,
+        "x": 1011,
+        "y": 550
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "4",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1680,
+          808
+        ],
+        "dev": [
+          2100,
+          1010
+        ],
+        "pctH": 70.14,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          96,
+          20
+        ],
+        "dev": [
+          120,
+          25
+        ],
+        "pctH": 1.74,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          292,
+          92
+        ],
+        "dev": [
+          365,
+          115
+        ],
+        "pctH": 7.99,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          224,
+          80
+        ],
+        "dev": [
+          280,
+          100
+        ],
+        "pctH": 6.94,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-win125-2048x1152.png",
+      "bottom": "after-win125-2048x1152-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "after",
+    "id": "win150-1707x960",
+    "zoomFar": false,
+    "note": "2560x1440 physical at 150% Windows",
+    "css": [
+      1707,
+      960
+    ],
+    "dpr": 1.5,
+    "physical": [
+      2560.5,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Murderous Gnarled Staff of Cruelty",
+      "rarity": 1,
+      "zoomSteps": [
+        0.375,
+        0.5,
+        0.625,
+        0.875,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1.5,
+      "inner": [
+        1707,
+        960
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 1,
+      "worldPix": 8,
+      "view": {
+        "w": 320,
+        "h": 180,
+        "pix": 8
+      },
+      "backing": [
+        320,
+        180
+      ],
+      "css": [
+        1706.67,
+        960
+      ],
+      "textBacking": [
+        2560,
+        1440
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 8,
+      "hudFontDev": 48,
+      "labelFontDev": 48,
+      "labelPctH": 3.33,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 40,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 128,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 240,
+        "pctH": 16.67
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 272,
+        "pctH": 18.89
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 64,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 136,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 56,
+        "pctH": 3.89
+      },
+      "survCssTop": 741.33,
+      "panelCssTop": 800,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          1706.66,
+          104
+        ],
+        "dev": [
+          2559.98,
+          156
+        ],
+        "pctH": 10.83,
+        "pctW": 99.98,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 856,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          72,
+          72
+        ],
+        "pctH": 5,
+        "pctW": 2.81,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 912,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 5.83,
+        "pctW": 3.28,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 904,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 5.83,
+        "pctW": 3.28,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 904,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          210.59,
+          46.5
+        ],
+        "pctH": 3.23,
+        "pctW": 8.22,
+        "fontCss": 11,
+        "fontDev": 16.5,
+        "top": 925,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          26.81,
+          16.5
+        ],
+        "pctH": 1.15,
+        "pctW": 1.05,
+        "fontCss": 9,
+        "fontDev": 13.5,
+        "top": 951,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 18,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          42,
+          42
+        ],
+        "pctH": 2.92,
+        "pctW": 1.64,
+        "fontCss": 15,
+        "fontDev": 22.5,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4248,
+        "w": 275,
+        "h": 33,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 22583,
+        "w": 898,
+        "h": 145,
+        "x": 943,
+        "y": 550
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "3",
+      "mode": "desktop",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          1260,
+          606
+        ],
+        "dev": [
+          1890,
+          909
+        ],
+        "pctH": 63.13,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          72,
+          15
+        ],
+        "dev": [
+          108,
+          22.5
+        ],
+        "pctH": 1.56,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          219,
+          69
+        ],
+        "dev": [
+          328.5,
+          103.5
+        ],
+        "pctH": 7.19,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "close": {
+        "css": [
+          168,
+          60
+        ],
+        "dev": [
+          252,
+          90
+        ],
+        "pctH": 6.25,
+        "fontSpecified": 0,
+        "touch44": true
+      },
+      "gtipFont": 14,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-win150-1707x960.png",
+      "bottom": "after-win150-1707x960-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  },
+  {
+    "build": "after",
+    "id": "phone-412x915",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "physical": [
+      1236,
+      2745
+    ],
+    "touch": true,
+    "seeded": {
+      "itemName": "Sealed Greaves",
+      "rarity": 1,
+      "zoomSteps": [
+        1,
+        1.1428571428571428,
+        1.2857142857142858,
+        1.4285714285714286
+      ]
+    },
+    "measured": {
+      "dpr": 3,
+      "inner": [
+        412,
+        915
+      ],
+      "vw": 176,
+      "vh": 392,
+      "zoom": 1,
+      "worldPix": 7,
+      "view": {
+        "w": 176,
+        "h": 392,
+        "pix": 7
+      },
+      "backing": [
+        176,
+        392
+      ],
+      "css": [
+        410.67,
+        914.67
+      ],
+      "textBacking": [
+        1232,
+        2744
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 7,
+      "hudPresent": 7,
+      "worldPresent": 7,
+      "hudFontDev": 42,
+      "labelFontDev": 42,
+      "labelPctH": 1.53,
+      "hudFontPctH": 1.53,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 35,
+        "pctH": 1.28
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 112,
+        "pctH": 4.08
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 210,
+        "pctH": 7.65
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 238,
+        "pctH": 8.67
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 56,
+        "pctH": 2.04
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 119,
+        "pctH": 4.34
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 49,
+        "pctH": 1.79
+      },
+      "survCssTop": 818.99,
+      "panelCssTop": 844.66,
+      "cssVarHud": "0.840",
+      "cssVarUi": "0.792",
+      "deskBand": {
+        "hidden": true,
+        "sel": "#deskHud"
+      },
+      "deskSlot": null,
+      "deskGlobe": null,
+      "deskGlobeNum": null,
+      "deskWell": null,
+      "deskKey": null,
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.08,
+        "pctW": 17.94,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 819.24,
+        "touch44": true
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          47.04,
+          47.04
+        ],
+        "dev": [
+          141.12,
+          141.12
+        ],
+        "pctH": 5.14,
+        "pctW": 11.42,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 735.24,
+        "touch44": true
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.41,
+        "pctW": 9.79,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 861.24,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.41,
+        "pctW": 9.79,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 688.2,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 2.94,
+        "pctW": 6.52,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 884.76,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.41,
+        "pctW": 9.79,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 871.32,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 3.06,
+        "pctW": 6.8,
+        "fontCss": 15,
+        "fontDev": 45,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 8431,
+        "w": 410,
+        "h": 154,
+        "x": 30,
+        "y": 40
+      },
+      "midInk": {
+        "n": 4948,
+        "w": 333,
+        "h": 27,
+        "x": 545,
+        "y": 1223
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "1",
+      "mode": "compact",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          412,
+          202
+        ],
+        "dev": [
+          1236,
+          606
+        ],
+        "pctH": 22.08,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          24,
+          5
+        ],
+        "dev": [
+          72,
+          15
+        ],
+        "pctH": 0.55,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          73,
+          23
+        ],
+        "dev": [
+          219,
+          69
+        ],
+        "pctH": 2.51,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "close": {
+        "css": [
+          56,
+          20
+        ],
+        "dev": [
+          168,
+          60
+        ],
+        "pctH": 2.19,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "gtipFont": 13,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-phone-412x915.png",
+      "bottom": "after-phone-412x915-bottom.png",
+      "satchel": "after-phone-412x915-satchel.png"
+    },
+    "proposedHud": {
+      "75": 4,
+      "100": 6,
+      "125": 6,
+      "150": 6,
+      "auto": 6
+    }
+  },
+  {
+    "build": "after",
+    "id": "phone-390x844",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      390,
+      844
+    ],
+    "dpr": 3,
+    "physical": [
+      1170,
+      2532
+    ],
+    "touch": true,
+    "seeded": {
+      "itemName": "Murderous Helm of Shade Ward",
+      "rarity": 1,
+      "zoomSteps": [
+        1,
+        1.1666666666666667,
+        1.3333333333333333,
+        1.5
+      ]
+    },
+    "measured": {
+      "dpr": 3,
+      "inner": [
+        390,
+        844
+      ],
+      "vw": 195,
+      "vh": 422,
+      "zoom": 1,
+      "worldPix": 6,
+      "view": {
+        "w": 195,
+        "h": 422,
+        "pix": 6
+      },
+      "backing": [
+        195,
+        422
+      ],
+      "css": [
+        390,
+        844
+      ],
+      "textBacking": [
+        1170,
+        2532
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 6,
+      "hudPresent": 6,
+      "worldPresent": 6,
+      "hudFontDev": 36,
+      "labelFontDev": 36,
+      "labelPctH": 1.42,
+      "hudFontPctH": 1.42,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 30,
+        "pctH": 1.18
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 96,
+        "pctH": 3.79
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 180,
+        "pctH": 7.11
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 204,
+        "pctH": 8.06
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 48,
+        "pctH": 1.9
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 102,
+        "pctH": 4.03
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 42,
+        "pctH": 1.66
+      },
+      "survCssTop": 762,
+      "panelCssTop": 784,
+      "cssVarHud": "0.840",
+      "cssVarUi": "0.750",
+      "deskBand": {
+        "hidden": true,
+        "sel": "#deskHud"
+      },
+      "deskSlot": null,
+      "deskGlobe": null,
+      "deskGlobeNum": null,
+      "deskWell": null,
+      "deskKey": null,
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.76,
+        "pctW": 18.95,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 748.23,
+        "touch44": true
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          47.04,
+          47.04
+        ],
+        "dev": [
+          141.12,
+          141.12
+        ],
+        "pctH": 5.57,
+        "pctW": 12.06,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 664.23,
+        "touch44": true
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.78,
+        "pctW": 10.34,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 790.23,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.78,
+        "pctW": 10.34,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 617.19,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 3.18,
+        "pctW": 6.89,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 813.75,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          40.32,
+          40.32
+        ],
+        "dev": [
+          120.96,
+          120.96
+        ],
+        "pctH": 4.78,
+        "pctW": 10.34,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 800.31,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          84,
+          84
+        ],
+        "pctH": 3.32,
+        "pctW": 7.18,
+        "fontCss": 15,
+        "fontDev": 45,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 6900,
+        "w": 352,
+        "h": 175,
+        "x": 26,
+        "y": 35
+      },
+      "midInk": {
+        "n": 6893,
+        "w": 553,
+        "h": 23,
+        "x": 383,
+        "y": 1139
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "1",
+      "mode": "compact",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          390,
+          202
+        ],
+        "dev": [
+          1170,
+          606
+        ],
+        "pctH": 23.93,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          24,
+          5
+        ],
+        "dev": [
+          72,
+          15
+        ],
+        "pctH": 0.59,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          73,
+          23
+        ],
+        "dev": [
+          219,
+          69
+        ],
+        "pctH": 2.73,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "close": {
+        "css": [
+          56,
+          20
+        ],
+        "dev": [
+          168,
+          60
+        ],
+        "pctH": 2.37,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "gtipFont": 13,
+      "holdHidden": null
+    },
+    "safe": {
+      "insetCss": {
+        "l": 0,
+        "r": 0,
+        "t": 47,
+        "b": 34
+      },
+      "topInkBeforeY": 35,
+      "topInkAfterY": 191,
+      "pauseBefore": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 3.18,
+        "pctW": 6.89,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 813.75,
+        "touch44": false
+      },
+      "pauseAfter": {
+        "sel": "#tPause",
+        "css": [
+          26.88,
+          26.88
+        ],
+        "dev": [
+          80.64,
+          80.64
+        ],
+        "pctH": 3.18,
+        "pctW": 6.89,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 813.75,
+        "touch44": false
+      },
+      "atkBefore": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.76,
+        "pctW": 18.95,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 748.23,
+        "touch44": true
+      },
+      "atkAfter": {
+        "sel": "#bAtk",
+        "css": [
+          73.92,
+          73.92
+        ],
+        "dev": [
+          221.76,
+          221.76
+        ],
+        "pctH": 8.76,
+        "pctW": 18.95,
+        "fontCss": 12,
+        "fontDev": 36,
+        "top": 748.23,
+        "touch44": true
+      }
+    },
+    "files": {
+      "full": "after-phone-390x844.png",
+      "bottom": "after-phone-390x844-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 4,
+      "100": 5,
+      "125": 6,
+      "150": 6,
+      "auto": 5
+    }
+  },
+  {
+    "build": "after",
+    "id": "tablet-768x1024",
+    "zoomFar": false,
+    "note": "",
+    "css": [
+      768,
+      1024
+    ],
+    "dpr": 2,
+    "physical": [
+      1536,
+      2048
+    ],
+    "touch": true,
+    "seeded": {
+      "itemName": "Storm-warded Cap",
+      "rarity": 1,
+      "zoomSteps": [
+        1,
+        1.1111111111111112,
+        1.2222222222222223,
+        1.3333333333333333
+      ]
+    },
+    "measured": {
+      "dpr": 2,
+      "inner": [
+        768,
+        1024
+      ],
+      "vw": 170,
+      "vh": 227,
+      "zoom": 1,
+      "worldPix": 9,
+      "view": {
+        "w": 170,
+        "h": 227,
+        "pix": 9
+      },
+      "backing": [
+        170,
+        227
+      ],
+      "css": [
+        765,
+        1021.5
+      ],
+      "textBacking": [
+        1530,
+        2043
+      ],
+      "hudBacking": [
+        300,
+        150
+      ],
+      "hudDisplay": "none",
+      "hudShown": false,
+      "scaleGuess": 9,
+      "hudPresent": 9,
+      "worldPresent": 9,
+      "hudFontDev": 54,
+      "labelFontDev": 54,
+      "labelPctH": 2.64,
+      "hudFontPctH": 2.64,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 45,
+        "pctH": 2.2
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 144,
+        "pctH": 7.03
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 270,
+        "pctH": 13.18
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 306,
+        "pctH": 14.94
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 72,
+        "pctH": 3.52
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 153,
+        "pctH": 7.47
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 63,
+        "pctH": 3.08
+      },
+      "survCssTop": 838.5,
+      "panelCssTop": 888,
+      "cssVarHud": "0.960",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "hidden": true,
+        "sel": "#deskHud"
+      },
+      "deskSlot": null,
+      "deskGlobe": null,
+      "deskGlobeNum": null,
+      "deskWell": null,
+      "deskKey": null,
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          84.48,
+          84.48
+        ],
+        "dev": [
+          168.96,
+          168.96
+        ],
+        "pctH": 8.25,
+        "pctW": 11,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 914.55,
+        "touch44": true
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          53.76,
+          53.76
+        ],
+        "dev": [
+          107.52,
+          107.52
+        ],
+        "pctH": 5.25,
+        "pctW": 7,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 818.55,
+        "touch44": true
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          46.08,
+          46.08
+        ],
+        "dev": [
+          92.16,
+          92.16
+        ],
+        "pctH": 4.5,
+        "pctW": 6,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 962.55,
+        "touch44": true
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          46.08,
+          46.08
+        ],
+        "dev": [
+          92.16,
+          92.16
+        ],
+        "pctH": 4.5,
+        "pctW": 6,
+        "fontCss": 12,
+        "fontDev": 24,
+        "top": 764.79,
+        "touch44": true
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          30.72,
+          30.72
+        ],
+        "dev": [
+          61.44,
+          61.44
+        ],
+        "pctH": 3,
+        "pctW": 4,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 989.43,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          46.08,
+          46.08
+        ],
+        "dev": [
+          92.16,
+          92.16
+        ],
+        "pctH": 4.5,
+        "pctW": 6,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 974.07,
+        "touch44": true
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 2.73,
+        "pctW": 3.65,
+        "fontCss": 15,
+        "fontDev": 30,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 3975,
+        "w": 155,
+        "h": 88,
+        "x": 57,
+        "y": 52
+      },
+      "midInk": {
+        "n": 9440,
+        "w": 496,
+        "h": 35,
+        "x": 642,
+        "y": 826
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": {
+      "scale": "1",
+      "mode": "compact",
+      "tabs": "baked",
+      "panel": "420",
+      "host": {
+        "css": [
+          420,
+          202
+        ],
+        "dev": [
+          840,
+          404
+        ],
+        "pctH": 19.73,
+        "fontSpecified": 16,
+        "touch44": true
+      },
+      "slotLabel": {
+        "css": [
+          24,
+          5
+        ],
+        "dev": [
+          48,
+          10
+        ],
+        "pctH": 0.49,
+        "fontSpecified": 4,
+        "touch44": false
+      },
+      "slotLabelText": "WPN",
+      "tab": {
+        "css": [
+          73,
+          23
+        ],
+        "dev": [
+          146,
+          46
+        ],
+        "pctH": 2.25,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "close": {
+        "css": [
+          56,
+          20
+        ],
+        "dev": [
+          112,
+          40
+        ],
+        "pctH": 1.95,
+        "fontSpecified": 0,
+        "touch44": false
+      },
+      "gtipFont": 13,
+      "holdHidden": null
+    },
+    "safe": null,
+    "files": {
+      "full": "after-tablet-768x1024.png",
+      "bottom": "after-tablet-768x1024-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 3,
+      "100": 4,
+      "125": 5,
+      "150": 6,
+      "auto": 4
+    }
+  },
+  {
+    "build": "after",
+    "id": "2560x1440",
+    "zoomFar": true,
+    "note": "",
+    "css": [
+      2560,
+      1440
+    ],
+    "dpr": 1,
+    "physical": [
+      2560,
+      1440
+    ],
+    "touch": false,
+    "seeded": {
+      "itemName": "Bile-warded Wooden Buckler",
+      "rarity": 1,
+      "zoomSteps": [
+        0.375,
+        0.5,
+        0.625,
+        0.875,
+        1
+      ]
+    },
+    "measured": {
+      "dpr": 1,
+      "inner": [
+        2560,
+        1440
+      ],
+      "vw": 320,
+      "vh": 180,
+      "zoom": 0.375,
+      "worldPix": 3,
+      "view": {
+        "w": 853,
+        "h": 480,
+        "pix": 3
+      },
+      "backing": [
+        853,
+        480
+      ],
+      "css": [
+        2559,
+        1440
+      ],
+      "textBacking": [
+        2559,
+        1440
+      ],
+      "hudBacking": [
+        320,
+        180
+      ],
+      "hudDisplay": "block",
+      "hudShown": true,
+      "scaleGuess": 8,
+      "hudPresent": 8,
+      "worldPresent": 3,
+      "hudFontDev": 47.98,
+      "labelFontDev": 18,
+      "labelPctH": 1.25,
+      "hudFontPctH": 3.33,
+      "survivalBar": {
+        "logical": 5,
+        "dev": 39.98,
+        "pctH": 2.78
+      },
+      "survivalTrackW": {
+        "logical": 16,
+        "dev": 127.95,
+        "pctH": 8.89
+      },
+      "d2Panel": {
+        "logical": 30,
+        "dev": 239.91,
+        "pctH": 16.66
+      },
+      "orbDiameter": {
+        "logical": 34,
+        "dev": 271.89,
+        "pctH": 18.88
+      },
+      "skillIcon": {
+        "logical": 8,
+        "dev": 63.98,
+        "pctH": 4.44
+      },
+      "iconBox": {
+        "logical": 17,
+        "dev": 135.95,
+        "pctH": 9.44
+      },
+      "labelPlate": {
+        "logical": 7,
+        "dev": 21,
+        "pctH": 1.46
+      },
+      "survCssTop": 1112,
+      "panelCssTop": 1200,
+      "cssVarHud": "1.220",
+      "cssVarUi": "1.350",
+      "deskBand": {
+        "sel": "#deskHud",
+        "css": [
+          2559,
+          208
+        ],
+        "dev": [
+          2559,
+          208
+        ],
+        "pctH": 14.44,
+        "pctW": 99.96,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1232,
+        "touch44": true
+      },
+      "deskSlot": {
+        "sel": "#deskHud .dh-slot",
+        "css": [
+          48,
+          48
+        ],
+        "dev": [
+          48,
+          48
+        ],
+        "pctH": 3.33,
+        "pctW": 1.88,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1392,
+        "touch44": true
+      },
+      "deskGlobe": {
+        "sel": "#deskHud .dh-globe",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskGlobeNum": {
+        "sel": "#deskHud .dh-globe b",
+        "css": [
+          56,
+          56
+        ],
+        "dev": [
+          56,
+          56
+        ],
+        "pctH": 3.89,
+        "pctW": 2.19,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1384,
+        "touch44": true
+      },
+      "deskWell": {
+        "sel": "#deskHud .dh-well",
+        "css": [
+          140.39,
+          31
+        ],
+        "dev": [
+          140.39,
+          31
+        ],
+        "pctH": 2.15,
+        "pctW": 5.48,
+        "fontCss": 11,
+        "fontDev": 11,
+        "top": 1405,
+        "touch44": false
+      },
+      "deskKey": {
+        "sel": "#deskHud .key",
+        "css": [
+          17.88,
+          11
+        ],
+        "dev": [
+          17.88,
+          11
+        ],
+        "pctH": 0.76,
+        "pctW": 0.7,
+        "fontCss": 9,
+        "fontDev": 9,
+        "top": 1431,
+        "touch44": false
+      },
+      "atk": {
+        "sel": "#bAtk",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "roll": {
+        "sel": "#bRoll",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "hp": {
+        "sel": "#bHP",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "inv": {
+        "sel": "#bInv",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 12,
+        "fontDev": 12,
+        "top": 0,
+        "touch44": false
+      },
+      "pause": {
+        "sel": "#tPause",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "map": {
+        "sel": "#tMap",
+        "css": [
+          0,
+          0
+        ],
+        "dev": [
+          0,
+          0
+        ],
+        "pctH": 0,
+        "pctW": 0,
+        "fontCss": 0,
+        "fontDev": 0,
+        "top": 0,
+        "touch44": false
+      },
+      "gl": {
+        "sel": "#glHud",
+        "css": [
+          28,
+          28
+        ],
+        "dev": [
+          28,
+          28
+        ],
+        "pctH": 1.94,
+        "pctW": 1.09,
+        "fontCss": 15,
+        "fontDev": 15,
+        "top": 6,
+        "touch44": false
+      },
+      "topInk": {
+        "n": 4155,
+        "w": 275,
+        "h": 32,
+        "x": 35,
+        "y": 38
+      },
+      "midInk": {
+        "n": 3511,
+        "w": 276,
+        "h": 55,
+        "x": 1177,
+        "y": 656
+      },
+      "state": "play",
+      "frameErr": null,
+      "safeProbe": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      }
+    },
+    "satchel": null,
+    "safe": null,
+    "files": {
+      "full": "after-2560x1440-far.png",
+      "bottom": "after-2560x1440-far-bottom.png",
+      "satchel": null
+    },
+    "proposedHud": {
+      "75": 2,
+      "100": 3,
+      "125": 4,
+      "150": 5,
+      "auto": 3
+    }
+  }
+]
