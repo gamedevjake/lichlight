@@ -126,9 +126,26 @@ The longer bar means the player has to make that sidestep several times. The saf
 
 `tests/se-midgame-prototype.html` is 28/0. It locks the early life and shields, the three tables, tell geometry and the 0.25 s lock, the sidestep, the 32–40 s depth-12 rare sword (and the same band at level 19), depth 16 staying under 70 s, the physical / fire / charge / shock / burn / leech cases, and Mother Murk.
 
+## Test expectation changes
+
+Only checks that failed because they still wanted the pre-prototype life, shield, or incoming hit. Mechanics (poise still lands, Hellmouth does not delete, resist still applies once and before fortitude, depth 1–4 literals, tell ratios) stay asserted. `index.html` was not edited for this pass.
+
+| File | Test | Old | New | Why |
+| --- | --- | --- | --- | --- |
+| `tests/stage5-poise.html` | `super elite fight shield does not stop poise` | Shield ends at 10 (40 − 30) | Shield ends at `40 − round(30 × seTakenMul(depth))`. At depth 5 that is 23 (the hit kept is 17). Life stays 400. Poise dealt stays 5.4 and the tier stays super. | Depth 5 keeps 0.55 of a player hit. The shield still absorbs the whole hit, and it still does not block poise. |
+| `tests/stage8-enemies.html` | `hellmouth does not delete the super elite` | Life 80 and shield 10 | Life stays 80. Opening shield is `round(seMaxHp717(depth) × 0.10)` (19 at depth 5). After the cast it is that shield minus `round(shield × 0.25)` (19 − 5 = 14). The actor is still in the fight and the shield is still above 0. | The bite is still 25% of the current shield and still does not touch life. The old 10 was 25% of the old 14-point shield. |
+| `tests/stage9-bosses.html` | `super elite pools match and fire stays killable` | Fire hit is `round(64 × resist)` | Same resist fraction, then `× seTakenMul(depth)`, then round. A −15 Fire row at depth 10 goes from 74 to 14. Pools still have to equal `seMaxHp717`. | Fortitude applies after resist. The bolt is still well under the life bar. |
+| `tests/stage9-bosses.html` | was `physical is unchanged and fire resist applies once on a super elite` | Life ends at 320, physical amount 100 | Renamed `physical skips resist and fire resist applies once before fortitude`. Physical amount is `round(100 × seTakenMul)` (55 at depth 5). Fire amount is `round(80 × seTakenMul)` (44). Life ends at 500 minus those two (401). `penHits` stays 1 and `resistPct` stays 20. | Physical still ignores the Fire row. Fire resist still runs once, then fortitude. |
+| `tests/stage10-equipment.html` | was `super elite life follows the early-balance curve` | `seMaxHp717` is 80, 141, 249 | Renamed `super elite life keeps the early body and applies the life table`. `seFadeHp717` is still 80, 141, 249. Live `seMaxHp717` is 80, and `round(fade × seLifeMul)` at depths 5 and 10 (194 and 809), which must differ from the fade body. | Depth 1 is the early tune. Depths 5 and 10 keep that body and then apply `SE_LIFE_TABLE`. |
+| `tests/early-balance.html` | was `depths 1-5 match the approved table and 5+ stays on the old body` | Depth 5 life 141, shield 14, hits 13/21/11. Depths 6–12 life equals `seBaseHp717`. | Renamed `depths 1-4 match the approved table and 5+ follows the life and damage tables`. Depths 1–4 stay on 80/102/119/133 and the old def-0 hits. From depth 5 the fade body still equals `seBaseHp717`, live life is the life table (depth 5 is 194 / 19), and def-0 hits are `round(seBaseDmg717 × seDmgMul × seTellMul)` (depth 5 is 31 / 53 / 27). Tell ratios from depth 5 stay 1.7 and 0.85. | The early floors stay locked. Deeper floors have to move with the tables, and the tell ratios do not. |
+| `tests/early-balance.html` | was `depth 5 brand stays 11, not the audit 14` | The local expected brand was 11 | Renamed `depth 5 brand tell stays 0.85, not the audit 1.15`. `seTellMul('brand', 5)` is 0.85. The dealt brand from ×0.85 is not the ×1.15 number and is not 14. | The tell ratio did not become the audit's 1.15. Outgoing damage did change, so 11 is no longer the hit. |
+| `tests/early-balance.html` | was `time to kill matches the audit for common, rare, and unique` | Depth 5 Rusty Sword 17.5 s, window 7.6 s. The kill loop stopped at 80 hits. | Renamed `depth 1 time to kill matches the audit and depth 5 follows life and taken`. Depth 1 stays 9.9 / 4.5, 8.1 / 3.6, 6.8 / 3.2, 3.0 / 1.5, and the max-roll window stays 1.1. The power-tell rule stays (depth-1 unique window ≥ 1.3 s, max roll < 1.3 s). Depth 5 is simulated from `seMaxHp717` and `round(4 × seTakenMul)` and must finish: 48.15 s, window 22.05 s. The loop cap is 400 hits so that kill is visible. | Depth 1 is unchanged. Depth 5's longer bar and smaller hit need more than 80 swings, and the expected clock is the tables, not 17.5 s. |
+
+No other check in these files was edited. Stages 1–4, 6, and 7 were not edited.
+
 ## Suites against main
 
-Same runner, headless Chrome, branch versus `5bfb9a8`. Counts are pass/fail.
+Same runner, headless Chrome, this branch versus `5bfb9a8`. Counts are pass/fail. No remaining failures.
 
 | File | `5bfb9a8` | This branch |
 | --- | --- | --- |
@@ -136,19 +153,11 @@ Same runner, headless Chrome, branch versus `5bfb9a8`. Counts are pass/fail.
 | `tests/stage2-resist.html` | 73/0 | 73/0 |
 | `tests/stage3-crit-scaling.html` | 58/0 | 58/0 |
 | `tests/stage4-status.html` | 75/0 | 75/0 |
-| `tests/stage5-poise.html` | 78/0 | 77/1 |
+| `tests/stage5-poise.html` | 78/0 | 78/0 |
 | `tests/stage6-weapons.html` | 47/0 | 47/0 |
 | `tests/stage7-skills.html` | 70/0 | 70/0 |
-| `tests/stage8-enemies.html` | 64/0 | 63/1 |
-| `tests/stage9-bosses.html` | 77/0 | 75/2 |
-| `tests/stage10-equipment.html` | 64/0 | 63/1 |
-| `tests/early-balance.html` | 50/0 | 48/2 |
+| `tests/stage8-enemies.html` | 64/0 | 64/0 |
+| `tests/stage9-bosses.html` | 77/0 | 77/0 |
+| `tests/stage10-equipment.html` | 64/0 | 64/0 |
+| `tests/early-balance.html` | 50/0 | 50/0 |
 | `tests/se-midgame-prototype.html` | not on main | 28/0 |
-
-Every failure name is absent on `5bfb9a8`. Stages 1–4, 6, and 7 match main exactly. None of the failures are a tell, a sidestep, Mother Murk, or a deleted Super Elite.
-
-- **Stage 5** `super elite fight shield does not stop poise`. The floor is depth 5, so a 30-point hit is kept at 0.55 and removes 17, not 30. Shield ends at 23 instead of 10. Poise still landed (`dealt` 5.4, the super-tier 18 × 0.3). The shield did not block poise. The assertion also required the old unreduced hit.
-- **Stage 8** `hellmouth does not delete the super elite`. The Super Elite is still there at 80 life. Hellmouth bit the new depth-5 shield (19, down to 14) instead of the old shield (14, down to 10). It did not delete the actor.
-- **Stage 9** `super elite pools match and fire stays killable`. Pools follow `seMaxHp717`. The fire half expects the pre-fortitude number (74) and now sees 14, which is that 74 kept at depth 10's taken fraction. `physical is unchanged and fire resist applies once on a super elite` is the same thing at depth 5: 100 physical becomes 55, fire-into-+20 becomes 44, life ends at 401 instead of 320. Resist still applies once. Fortitude applies after it.
-- **Stage 10** `super elite life follows the early-balance curve`. Depth 1 is still 80. Depth 5 is 194, not 141. Depth 10 is 809, not 249.
-- **Early balance** `depths 1-5 match the approved table and 5+ stays on the old body`. Depths 1–4 still match. Depth 5 life is 194 / shield 19, and the def-0 hits are 31 / 53 / 27 instead of 13 / 21 / 11, which is the ×2.5 outgoing curve. Deeper floors report `life moved` off `seBaseHp717`. `time to kill matches the audit for common, rare, and unique` records the depth-5 Rusty Sword at 36 s instead of 17.5 s. Tell-geometry checks in that file still pass.

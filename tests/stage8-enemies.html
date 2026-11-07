@@ -389,6 +389,11 @@ function run(w) {
   g.enemies.forEach(e => { if (!(e.T && e.T.boss) && !e.superElite) { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; } });
   const se2 = g.seSpawn717('se_bonewarden', 'fight');
   se2.x = p.x + 20; se2.y = p.y; se2.hp = 80; se2.dead = false; se2.hidden = false;
+  const shieldOpen = se2.shield;
+  const shieldOfLife = Math.round(g.seMaxHp717(g.depth) * g.SE_SHIELD_FRAC);
+  let bite = Math.round(shieldOpen * g.HM_BITE);
+  if (bite < 1) bite = 1;
+  if (bite > shieldOpen) bite = shieldOpen;
   let boss2 = g.enemies.find(e => e.T && e.T.boss && e !== se2);
   if (!boss2) boss2 = g.spawnBoss(p.x + 48, p.y);
   boss2.x = p.x + 48; boss2.y = p.y; boss2.dead = false; boss2.hp = 300; boss2.maxHp = 300; boss2.shield = 80; boss2.mawVuln = 0;
@@ -397,7 +402,7 @@ function run(w) {
   const sinks = p.activeHellSinks || [];
   check('hellmouth does not sink a gate encounter', !sinks.some(s => s.enemyRef === se2) && !sinks.some(s => s.enemyRef === boss2));
   for (let i = 0; i < 45; i++) w.tickHellmouth(0.05);
-  check('hellmouth does not delete the super elite', se2.dead !== true && se2.hp === 80 && se2.shield === 10 && g.enemies.indexOf(se2) >= 0, 'hp ' + se2.hp + ' sh ' + se2.shield);
+  check('hellmouth does not delete the super elite', se2.dead !== true && se2.hp === 80 && shieldOpen === shieldOfLife && shieldOpen > bite && se2.shield === shieldOpen - bite && g.enemies.indexOf(se2) >= 0, 'hp ' + se2.hp + ' sh ' + se2.shield + ' from ' + shieldOpen);
 }
 </script>
 </body>

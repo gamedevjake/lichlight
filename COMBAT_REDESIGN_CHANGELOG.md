@@ -2869,3 +2869,17 @@ Three independent tables, each 1 through depth 4, so depths 1–4 stay 80 / 102 
 Life steal still uses the pre-mitigation number, so it does not see `seTakenMul`. That debt stays open, with crab shell, uncapped crit, and curse life drain.
 
 The measured tables, the white and Ninth Psalm flags, and the suite counts are in `SE_MIDGAME_PROTOTYPE_REPORT.md`. Stages 1–4, 6, and 7 match `5bfb9a8`. The branch-only failures are the old depth-5+ life and the old unreduced player hit, named in that report. Poise still lands. Hellmouth still does not delete a Super Elite.
+
+---
+
+### 2026-11-07 — Super Elite prototype test maintenance
+
+- **Date:** 2026-11-07.
+- **Stage:** Test maintenance on the review prototype only. `index.html` was not edited. Balance tables, tell geometry, and AI were not edited. Not merged. Not deployed. `version.json` is still `0.7.18`.
+- **Parent:** `8f7f01f9799041f820f7eb2a7f7678c0ba351178`.
+
+The Stage 5, 8, 9, 10, and early-balance checks that failed on `8f7f01f` failed only because they still expected the pre-prototype life, shield, or incoming hit. Each now derives the expected number from `seFadeHp717`, `seLifeMul`, `seTakenMul`, `seDmgMul`, and `seTellMul`. Depths 1–4 stay on the approved literals. Poise must still land for 5.4 and the shield must still absorb the whole hit. Hellmouth must leave the Super Elite at 80 life and reduce the opening shield by 25%, not kill it. Fire resist must still report one penetration hit at 20% and must still run before fortitude. The depth-5 brand tell must stay 0.85, not 1.15.
+
+The file, the old name, the old number, and the new number are in `SE_MIDGAME_PROTOTYPE_REPORT.md`.
+
+Re-run against `5bfb9a8`, pass/fail: stages 1–10 and early-balance are 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 77/0, 64/0, 50/0 on both. `tests/se-midgame-prototype.html` is 28/0 on this branch and is not on main. No remaining failure.
