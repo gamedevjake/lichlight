@@ -1,0 +1,656 @@
+[
+  {
+    "mode": "desk",
+    "step": "6",
+    "legacy": "1",
+    "label": "1",
+    "zoom": 1,
+    "worldPix": null,
+    "view": null,
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      320,
+      180
+    ],
+    "light": [
+      320,
+      180
+    ],
+    "tiles": [
+      20,
+      11.25
+    ],
+    "avg": 3.09,
+    "p95": 3.9,
+    "mem": 8755200,
+    "file": "before-desk-1920-z1",
+    "phase": "before"
+  },
+  {
+    "mode": "desk",
+    "step": "6",
+    "legacy": "0.75",
+    "label": "0.75",
+    "zoom": 0.75,
+    "worldPix": null,
+    "view": null,
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      320,
+      180
+    ],
+    "light": [
+      320,
+      180
+    ],
+    "tiles": [
+      20,
+      11.25
+    ],
+    "avg": 2.95,
+    "p95": 3.6,
+    "mem": 8755200,
+    "file": "before-desk-1920-z0.75",
+    "phase": "before"
+  },
+  {
+    "mode": "desk",
+    "step": "6",
+    "legacy": "0.5",
+    "label": "0.5",
+    "zoom": 0.5,
+    "worldPix": null,
+    "view": null,
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      320,
+      180
+    ],
+    "light": [
+      320,
+      180
+    ],
+    "tiles": [
+      20,
+      11.25
+    ],
+    "avg": 3.58,
+    "p95": 8.3,
+    "mem": 8755200,
+    "file": "before-desk-1920-z0.5",
+    "phase": "before"
+  },
+  {
+    "mode": "desk",
+    "step": "6",
+    "legacy": "0.35",
+    "label": "0.35",
+    "zoom": 0.35,
+    "worldPix": null,
+    "view": null,
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      320,
+      180
+    ],
+    "light": [
+      320,
+      180
+    ],
+    "tiles": [
+      20,
+      11.25
+    ],
+    "avg": 4.36,
+    "p95": 8.6,
+    "mem": 8755200,
+    "file": "before-desk-1920-z0.35",
+    "phase": "before"
+  },
+  {
+    "mode": "desk",
+    "step": "6",
+    "legacy": "0.25",
+    "label": "0.25",
+    "zoom": 0.25,
+    "worldPix": null,
+    "view": null,
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      320,
+      180
+    ],
+    "light": [
+      320,
+      180
+    ],
+    "tiles": [
+      20,
+      11.25
+    ],
+    "avg": 5.53,
+    "p95": 8.8,
+    "mem": 8755200,
+    "file": "before-desk-1920-z0.25",
+    "phase": "before"
+  },
+  {
+    "mode": "desk",
+    "step": "6",
+    "legacy": "",
+    "label": "1",
+    "zoom": 1,
+    "worldPix": 6,
+    "view": {
+      "w": 320,
+      "h": 180,
+      "pix": 6
+    },
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      320,
+      180
+    ],
+    "light": [
+      320,
+      180
+    ],
+    "tiles": [
+      20,
+      11.25
+    ],
+    "avg": 2.85,
+    "p95": 3.4,
+    "mem": 8755200,
+    "file": "after-desk-1920-z1",
+    "phase": "after"
+  },
+  {
+    "mode": "desk",
+    "step": "5",
+    "legacy": "",
+    "label": "0.83",
+    "zoom": 0.8333333333333334,
+    "worldPix": 5,
+    "view": {
+      "w": 384,
+      "h": 216,
+      "pix": 5
+    },
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      384,
+      216
+    ],
+    "light": [
+      384,
+      216
+    ],
+    "tiles": [
+      24,
+      13.5
+    ],
+    "avg": 3.12,
+    "p95": 3.8,
+    "mem": 9188352,
+    "file": "after-desk-1920-z5-6",
+    "phase": "after"
+  },
+  {
+    "mode": "desk",
+    "step": "4",
+    "legacy": "",
+    "label": "0.67",
+    "zoom": 0.6666666666666666,
+    "worldPix": 4,
+    "view": {
+      "w": 480,
+      "h": 270,
+      "pix": 4
+    },
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      480,
+      270
+    ],
+    "light": [
+      480,
+      270
+    ],
+    "tiles": [
+      30,
+      16.88
+    ],
+    "avg": 3.53,
+    "p95": 7.7,
+    "mem": 9561600,
+    "file": "after-desk-1920-z4-6",
+    "phase": "after"
+  },
+  {
+    "mode": "desk",
+    "step": "3",
+    "legacy": "",
+    "label": "0.50",
+    "zoom": 0.5,
+    "worldPix": 3,
+    "view": {
+      "w": 640,
+      "h": 360,
+      "pix": 3
+    },
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      640,
+      360
+    ],
+    "light": [
+      640,
+      360
+    ],
+    "tiles": [
+      40,
+      22.5
+    ],
+    "avg": 4.4,
+    "p95": 9.6,
+    "mem": 10368000,
+    "file": "after-desk-1920-z0.5",
+    "phase": "after"
+  },
+  {
+    "mode": "desk",
+    "step": "2",
+    "legacy": "",
+    "label": "0.33",
+    "zoom": 0.3333333333333333,
+    "worldPix": 2,
+    "view": {
+      "w": 960,
+      "h": 540,
+      "pix": 2
+    },
+    "vw": 320,
+    "vh": 180,
+    "dpr": 1,
+    "inner": [
+      1920,
+      1080
+    ],
+    "backing": [
+      960,
+      540
+    ],
+    "light": [
+      960,
+      540
+    ],
+    "tiles": [
+      60,
+      33.75
+    ],
+    "avg": 5.8,
+    "p95": 11.4,
+    "mem": 12672000,
+    "file": "after-desk-1920-zfar",
+    "phase": "after"
+  },
+  {
+    "label": "1",
+    "zoom": 1,
+    "worldPix": null,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      176,
+      392
+    ],
+    "light": [
+      176,
+      392
+    ],
+    "text": [
+      1232,
+      2744
+    ],
+    "tiles": [
+      11,
+      24.5
+    ],
+    "parts": {
+      "world": 275968,
+      "light": 275968,
+      "text": 13522432,
+      "hud": 0
+    },
+    "mem": 14074368,
+    "avg": 3.17,
+    "p95": 9.2,
+    "file": "before-phone-412-z1",
+    "phase": "before",
+    "mode": "phone"
+  },
+  {
+    "label": "1.15",
+    "zoom": 1.15,
+    "worldPix": null,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      176,
+      392
+    ],
+    "light": [
+      176,
+      392
+    ],
+    "text": [
+      1232,
+      2744
+    ],
+    "tiles": [
+      11,
+      24.5
+    ],
+    "parts": {
+      "world": 275968,
+      "light": 275968,
+      "text": 13522432,
+      "hud": 0
+    },
+    "mem": 14074368,
+    "avg": 3.43,
+    "p95": 11.4,
+    "file": "before-phone-412-z1.15",
+    "phase": "before",
+    "mode": "phone"
+  },
+  {
+    "label": "1.25",
+    "zoom": 1.25,
+    "worldPix": null,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      176,
+      392
+    ],
+    "light": [
+      176,
+      392
+    ],
+    "text": [
+      1232,
+      2744
+    ],
+    "tiles": [
+      11,
+      24.5
+    ],
+    "parts": {
+      "world": 275968,
+      "light": 275968,
+      "text": 13522432,
+      "hud": 0
+    },
+    "mem": 14074368,
+    "avg": 2.67,
+    "p95": 3.2,
+    "file": "before-phone-412-z1.25",
+    "phase": "before",
+    "mode": "phone"
+  },
+  {
+    "label": "1.35",
+    "zoom": 1.35,
+    "worldPix": null,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      176,
+      392
+    ],
+    "light": [
+      176,
+      392
+    ],
+    "text": [
+      1232,
+      2744
+    ],
+    "tiles": [
+      11,
+      24.5
+    ],
+    "parts": {
+      "world": 275968,
+      "light": 275968,
+      "text": 13522432,
+      "hud": 0
+    },
+    "mem": 14074368,
+    "avg": 2.81,
+    "p95": 3.3,
+    "file": "before-phone-412-z1.35",
+    "phase": "before",
+    "mode": "phone"
+  },
+  {
+    "label": "1",
+    "zoom": 1,
+    "worldPix": 7,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      176,
+      392
+    ],
+    "light": [
+      176,
+      392
+    ],
+    "text": [
+      1232,
+      2744
+    ],
+    "tiles": [
+      11,
+      24.5
+    ],
+    "parts": {
+      "world": 275968,
+      "light": 275968,
+      "text": 13522432,
+      "hud": 0
+    },
+    "mem": 14074368,
+    "avg": 3.18,
+    "p95": 9.6,
+    "file": "after-phone-412-z1",
+    "phase": "after",
+    "mode": "phone"
+  },
+  {
+    "label": "1.14",
+    "zoom": 1.1428571428571428,
+    "worldPix": 8,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      154,
+      343
+    ],
+    "light": [
+      154,
+      343
+    ],
+    "text": [
+      1232,
+      2744
+    ],
+    "tiles": [
+      9.63,
+      21.44
+    ],
+    "parts": {
+      "world": 211288,
+      "light": 211288,
+      "text": 13522432,
+      "hud": 275968
+    },
+    "mem": 14220976,
+    "avg": 3.08,
+    "p95": 7.9,
+    "file": "after-phone-412-add1",
+    "phase": "after",
+    "mode": "phone"
+  },
+  {
+    "label": "1.29",
+    "zoom": 1.2857142857142858,
+    "worldPix": 9,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      137,
+      305
+    ],
+    "light": [
+      137,
+      305
+    ],
+    "text": [
+      1233,
+      2745
+    ],
+    "tiles": [
+      8.56,
+      19.06
+    ],
+    "parts": {
+      "world": 167140,
+      "light": 167140,
+      "text": 13538340,
+      "hud": 275968
+    },
+    "mem": 14148588,
+    "avg": 2.59,
+    "p95": 3.4,
+    "file": "after-phone-412-add2",
+    "phase": "after",
+    "mode": "phone"
+  },
+  {
+    "label": "1.43",
+    "zoom": 1.4285714285714286,
+    "worldPix": 10,
+    "inner": [
+      412,
+      915
+    ],
+    "dpr": 3,
+    "backing": [
+      123,
+      274
+    ],
+    "light": [
+      123,
+      274
+    ],
+    "text": [
+      1230,
+      2740
+    ],
+    "tiles": [
+      7.69,
+      17.13
+    ],
+    "parts": {
+      "world": 134808,
+      "light": 134808,
+      "text": 13480800,
+      "hud": 275968
+    },
+    "mem": 14026384,
+    "avg": 2.5,
+    "p95": 3.4,
+    "file": "after-phone-412-add3",
+    "phase": "after",
+    "mode": "phone"
+  }
+]

@@ -38,15 +38,48 @@ function run(w) {
   check('b2 omit equal', same.includes('no difference'), same);
 
   w.__zoomDesk = true;
+  // Integer desktop zoom. Each assertion keeps the old behavior and the old strictness.
+  // f1 desktop steps — old: steps.join(',') === '0.25,0.35,0.5,0.75,1'
+  //   (exact shipped list, widest first, 1x last).
+  //   new: exact distinct sixths of SCALE for this viewport (2,3,4,5,6), duplicates
+  //   removed, 60-tile cap applied, widest ratio first, 1x last. Same "the list is
+  //   exactly the shipped steps" check; the values are the integer pixels.
+  function deskSpec(iw, ih, dpr) {
+    dpr = dpr || 1;
+    const S = Math.max(1, Math.floor(Math.min(iw, ih) * dpr / 170));
+    const vw = Math.floor(iw * dpr / S);
+    const ratios = [], pix = [], seen = new Set();
+    for (const n of [2, 3, 4, 5, 6]) {
+      let wp = Math.max(1, Math.round(S * n / 6));
+      const cap = Math.max(1, Math.ceil((vw * S) / 960));
+      if (wp < cap) wp = cap;
+      if (seen.has(wp)) continue;
+      seen.add(wp);
+      ratios.push(wp === S ? 1 : wp / S);
+      pix.push(wp);
+    }
+    return { ratios: ratios, pix: pix, scale: S };
+  }
+  const spec = deskSpec(w.innerWidth, w.innerHeight, w.devicePixelRatio || 1);
   const steps = g.zoomSteps();
-  check('f1 desktop steps', steps.join(',') === '0.25,0.35,0.5,0.75,1', steps.join(','));
+  const listOk = steps.length === spec.ratios.length && spec.ratios.length >= 2 && steps[steps.length - 1] === 1 && spec.pix[0] < spec.scale && spec.pix.every((p, i) => p === Math.round(p) && (i === 0 || p > spec.pix[i - 1])) && steps.every((s, i) => Math.abs(s - spec.ratios[i]) < 1e-9);
+  check('f1 desktop steps', listOk, steps.map(s => Math.round(s * 1000) / 1000).join(',') + ' pix ' + spec.pix.join(','));
   g.setZoom(1);
   g.cycleZoom(-1);
-  check('f1 minus from 1', g.zoom === 0.75, g.zoom);
-  g.cycleZoom(-1); g.cycleZoom(-1); g.cycleZoom(-1);
-  check('f1 out to 0.25', g.zoom === 0.25, g.zoom);
+  // f1 minus from 1 — old: g.zoom === 0.75 (exactly one step wider than 1x, not the far step).
+  //   new: zoom and worldPix are exactly the adjacent wider step (second from the end).
+  const adj = spec.ratios.length - 2;
+  check('f1 minus from 1', Math.abs(g.zoom - spec.ratios[adj]) < 1e-9 && g.worldPix() === spec.pix[adj] && g.worldPix() < spec.scale, g.zoom + ' pix ' + g.worldPix());
+  // f1 out to 0.25 — old: three more minus cycles land on exactly 0.25 (the wide end of a 5-step list).
+  //   new: the same walk, (list length - 2) more minus cycles, lands on exactly the far integer step.
+  const zoomHops = spec.ratios.length - 2;
+  for (let i = 0; i < zoomHops; i++) g.cycleZoom(-1);
+  const farView = g.viewWorldSize();
+  check('f1 out to 0.25', zoomHops === spec.ratios.length - 2 && Math.abs(g.zoom - spec.ratios[0]) < 1e-9 && g.worldPix() === spec.pix[0] && farView.w > g.vw && farView.h > g.vh, 'hops ' + zoomHops + ' zoom ' + g.zoom + ' pix ' + g.worldPix() + ' view ' + Math.round(farView.w) + 'x' + Math.round(farView.h));
   g.cycleZoom(1);
-  check('f1 plus toward 1', g.zoom === 0.35, g.zoom);
+  // f1 plus toward 1 — old: g.zoom === 0.35 (exactly one step back toward 1x, not a jump to 1x).
+  //   new: zoom and worldPix are exactly the next step toward 1x (index 1), still not the far pixel.
+  check('f1 plus toward 1', Math.abs(g.zoom - spec.ratios[1]) < 1e-9 && g.worldPix() === spec.pix[1] && g.worldPix() !== spec.pix[0], g.zoom + ' pix ' + g.worldPix());
   g.setZoom(1);
   delete w.__zoomDesk;
 

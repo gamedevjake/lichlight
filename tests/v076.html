@@ -77,13 +77,19 @@ function run(w) {
   let far = null, farN = 0;
   const x0 = Math.max(0, Math.floor(vis.x / 16)), y0 = Math.max(0, Math.floor(vis.y / 16));
   const x1 = Math.floor((vis.x + vis.w) / 16), y1 = Math.floor((vis.y + vis.h) / 16);
-  const edge = g.vw * 0.28;
+  // b1 far fog / b1 screen dark — old: worldToScreen was in the fixed VW×VH canvas, so the
+  //   sample had to sit inside that rect and clear of the HUD (x 8..vw-28%, y 46..vh-36).
+  //   new: worldToScreen is a backing-store pixel (one world pixel per canvas pixel). The
+  //   zoomed canvas is larger than VW×VH and the HUD is not on it, so the tile must sit
+  //   inside the backing store, inset 4px from the clip edge. Darkness thresholds are unchanged
+  //   (lightmap sum < 80, presented pixel sum < 90) and the tile is still past the torch.
+  const cvFog = w.document.getElementById('game');
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
     if (w.tileAt(tx, ty) !== 1) continue;
     const wx = (tx + .5) * 16, wy = (ty + .5) * 16;
     if (Math.hypot(wx - pl.x, wy - (pl.y - 2)) < 130) continue; // past the torch
     const sc = g.worldToScreen(wx, wy);
-    if (sc.x < 8 || sc.y < 46 || sc.x > g.vw - edge || sc.y > g.vh - 36) continue;
+    if (sc.x < 4 || sc.y < 4 || sc.x > cvFog.width - 4 || sc.y > cvFog.height - 4) continue;
     const s = g.lightSample(wx, wy);
     if (!s) continue;
     farN++;
@@ -92,9 +98,10 @@ function run(w) {
   }
   check('b1 far fog', !!(far && far.sum < 80), (far ? far.sum + ' @' + far.tx + ',' + far.ty : 'none') + ' n=' + farN);
   if (far) {
-    const cv = w.document.getElementById('game');
-    const px = cv.getContext('2d').getImageData(Math.floor(far.sc.x), Math.floor(far.sc.y), 1, 1).data;
-    check('b1 screen dark', sumRgb(px) < 90, sumRgb(px) + ' at ' + Math.floor(far.sc.x) + ',' + Math.floor(far.sc.y));
+    const cv = cvFog;
+    const ix = Math.floor(far.sc.x), iy = Math.floor(far.sc.y);
+    const px = cv.getContext('2d').getImageData(ix, iy, 1, 1).data;
+    check('b1 screen dark', sumRgb(px) < 90, sumRgb(px) + ' at ' + ix + ',' + iy);
   } else lines.push('FAIL b1 screen dark :: no far floor tile');
 
   delete w.__forceRitual; delete w.__forceHaz; delete w.__forceGlimmer; delete w.__prismForce;

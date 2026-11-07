@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>zoom-shot</title>
+<style>html,body{margin:0;background:#000;overflow:hidden}iframe{position:fixed;inset:0;border:0;width:100%;height:100%}</style>
+</head>
+<body>
+<iframe id="g"></iframe>
+<script>
+const q = new URLSearchParams(location.search);
+const mode = q.get('mode') || 'desk';
+const step = q.get('step') || '6';
+const frame = document.getElementById('g');
+frame.src = '../../index.html?shot=' + mode + step;
+frame.addEventListener('load', () => {
+  const w = frame.contentWindow;
+  const g = w.game;
+  let n = 0;
+  const raf = w.requestAnimationFrame.bind(w);
+  w.requestAnimationFrame = fn => { if (n++ > 2) return 0; return raf(fn); };
+  let s = 48271;
+  w.Math.random = () => { s = (s * 48271) % 2147483647; return (s % 1000000) / 1000000; };
+  if (mode === 'touch') { g.touchMode = true; delete w.__zoomDesk; }
+  else { w.__zoomDesk = true; if (g.touchMode) g.touchMode = false; }
+  g.newGame();
+  if (mode === 'touch') g.touchMode = true;
+  w.resize();
+  const legacy = q.get('legacy');
+  if (legacy) g.setZoom(+legacy);
+  else if (g.backingMetrics) {
+    const dpr = w.devicePixelRatio || 1;
+    const m = mode === 'touch'
+      ? g.backingMetrics(w.innerWidth, w.innerHeight, dpr, null, +step)
+      : g.backingMetrics(w.innerWidth, w.innerHeight, dpr, +step, null);
+    g.setZoom(m.worldPix / m.scale);
+  } else g.setZoom(+step);
+  if (g.player) g.player.torchT = 90;
+  if (typeof w.syncDesk === 'function') w.syncDesk();
+  w.render();
+  const samples = [];
+  for (let i = 0; i < 20; i++) {
+    const t0 = performance.now();
+    w.render();
+    samples.push(performance.now() - t0);
+  }
+  samples.sort((a, b) => a - b);
+  const dprNow = w.devicePixelRatio || 1;
+  const cv = w.document.getElementById('game');
+  const light = g.lcan, text = g.textLayer, hud = g.hudLayer;
+  const mem = cv.width * cv.height * 4
+    + (light ? light.width * light.height * 4 : 0)
+    + (text ? text.width * text.height * 4 : 0)
+    + (hud && hud.style.display !== 'none' ? hud.width * hud.height * 4 : 0);
+  const row = {
+    mode, step, legacy: legacy || '',
+    label: g.zoomLabel ? g.zoomLabel() : String(g.zoom),
+    zoom: g.zoom,
+    worldPix: g.worldPix ? g.worldPix() : null,
+    view: g.viewWorldSize ? g.viewWorldSize() : null,
+    vw: g.vw, vh: g.vh, dpr: dprNow,
+    inner: [w.innerWidth, w.innerHeight],
+    backing: [cv.width, cv.height],
+    light: light ? [light.width, light.height] : [0, 0],
+    tiles: [+(cv.width / 16).toFixed(2), +(cv.height / 16).toFixed(2)],
+    avg: +(samples.reduce((a, b) => a + b, 0) / samples.length).toFixed(2),
+    p95: +samples[Math.min(samples.length - 1, Math.ceil(samples.length * 0.95) - 1)].toFixed(2),
+    mem
+  };
+  document.title = 'READY';
+  window.__shot = row;
+});
+</script>
+</body>
+</html>
