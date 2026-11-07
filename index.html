@@ -1755,12 +1755,15 @@ function affixNameBit(a, it, which) {
   const list = which === 0 ? a.p : a.s;
   return list && list.length ? pick(list) : '';
 }
+let killLootLvl = null; // set only while one kill's drops roll; the level from immediately before that kill's XP
 function makeItem0(L, forceRarity, baseName, promo) {
-  // Level 1–2: no rare or unique, and the item level cannot require more than the character has now.
+  // Level 1–2: no rare or unique, and the item level cannot require more than that level.
+  // A kill's drops use the level recorded before that kill's XP. Everything else uses player.lvl.
   // A caller that asked for rare/unique and passed promo gets a two-affix magic at the wearable cap.
   // A rolled rare (chest table, no promo) becomes an ordinary magic. Level 3+ does not enter this block.
   L = Math.max(1, Math.floor(+L || 1));
-  const early = !!(player && (player.lvl | 0) <= 2);
+  const gateLvl = killLootLvl != null ? (killLootLvl | 0) : (player ? (player.lvl | 0) : 0);
+  const early = !!(player && gateLvl <= 2);
   let promoted = false;
   let rar = forceRarity;
   if (early) {
@@ -1772,7 +1775,7 @@ function makeItem0(L, forceRarity, baseName, promo) {
       if (rar >= 2) { promoted = !!promo; rar = 1; }
       else if (rar < 0) rar = 0;
     }
-    const cap = earlyIlvlCap(rar > 0 ? 1 : 0, player.lvl | 0);
+    const cap = earlyIlvlCap(rar > 0 ? 1 : 0, gateLvl);
     L = promoted ? cap : Math.min(L, cap);
   }
   let base = baseName ? BASES.find(b => b.name === baseName) : null;
@@ -5273,19 +5276,32 @@ function regularDrops(e, d) {
   else if ((r -= DROP.mp) < 0) at({ pot: 'mp' });
   else if ((r -= DROP.white) < 0) { if (!gate || Math.random() < LOOT_GATE.white) white(); } // v0.6.0 early loot gate
 }
+function runKillLoot(lootLvl, fn) {
+  const prev = killLootLvl;
+  killLootLvl = lootLvl;
+  try { return fn(); }
+  finally { killLootLvl = prev; }
+}
 function bossUnique(L) { // prefers unfound + depth-appropriate (pickUnique); widens the level window if nothing is eligible yet
-  if (player && (player.lvl | 0) <= 2) return makeItem(L, 3, null, true);
+  const gateLvl = killLootLvl != null ? (killLootLvl | 0) : (player ? (player.lvl | 0) : 0);
+  if (player && gateLvl <= 2) return makeItem(L, 3, null, true);
   for (let k = 0; k <= 60; k += 3) { const it = makeItem(L + k, 3); if (it.rarity === 3) { if (k) { it.lvl = L; it.reqLvl = calcReqLvl(it); it.reqSrc = 'drop'; } return it; } }
   return makeItem(L, 2);
 }
 function killEnemy(e) {
   // v0.7.18 B2: commit the Super Elite dead before loot, sound, or the corpse. A throw later cannot reload a frozen fight.
   if (e && e.superElite) {
+    const lootLvl = player ? (player.lvl | 0) : null;
     try { if (typeof seMarkDead717 === 'function') seMarkDead717(e); } catch (_) {}
     try { save(); } catch (_) {}
     try { removeEnemy(e); } catch (_) { e.hp = 0; e.dead = true; }
     try { if (player) { player.kills++; gainXp(e.xp || 0); } } catch (_) {}
-    try { if (typeof seLoot717 === 'function') seLoot717(e); } catch (_) {}
+    try {
+      if (typeof seLoot717 === 'function') {
+        if (lootLvl == null) seLoot717(e);
+        else runKillLoot(lootLvl, () => seLoot717(e));
+      }
+    } catch (_) {}
     return;
   }
   const T = e.T;
@@ -5294,7 +5310,9 @@ function killEnemy(e) {
   burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null; if (!T.boss && !e.superElite) smpFightKill(e);
   if (T.ai === 'bomber' && e.mode !== 'boom') { const x = e.x, y = e.y, dmg = e.dmg; cueAt('cbt_explosion_small_01', x, y, 420, 1, { delay: .45 }); tele({ x, y, r: 30, dur: .45, col: '#a0e040', onDone: () => blast(x, y, 30, dmg, T.label, { col: '#a0e040', tr: .4, from: e }) }); }
   if (T.split) for (let k = 0; k < 2 && enemies.length < MAX_ENEMIES; k++) { const m = spawnEnemy(T.split, e.x + (k ? 5 : -5), e.y, false); m.state = 'chase'; m.kx = (k ? 80 : -80); }
+  const lootLvl = player ? (player.lvl | 0) : 0;
   player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else if (!e.superElite) eventThought('postkill', .1, 40);
+  runKillLoot(lootLvl, () => {
   const L = depth + (e.elite ? 1 : 0) + (T.boss ? 2 : 0);
   if (T.boss) {
     const B = e.B, drop = (it, dx, dy) => { dropAt(ground, e.x + dx, e.y + dy, { item: it }); if (it.rarity === 3) uniqueDropFx(e.x + dx, e.y + dy); };
@@ -5316,6 +5334,7 @@ function killEnemy(e) {
     return;
   }
   regularDrops(e, depth);
+  });
 }
 function gainXp(n) {
   const p = player; if (p.xpBuffT > 0 && n > 0) n = Math.round(n * (1 + XPBUFF)); p.xp += n;

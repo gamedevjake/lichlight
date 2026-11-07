@@ -219,6 +219,138 @@ function run(w) {
     check('a level 1 boss drops only wearable magic and common gear', gear.length >= 3 && badBoss.length === 0, 'n' + gear.length + ' bad' + badBoss.length);
   }
 
+  function arm(lvl) { p.lvl = lvl; p.xp = w.xpNeed(lvl) - 1; p.xpBuffT = 0; }
+  function slap(e) { e.hp = 1; e.shield = 0; if (e.sePhase) e.sePhase = 'fight'; w.damageEnemy(e, 99999, 0, 0, '#fff', false); }
+  function gearOf() { return g.ground.filter(x => x.item).map(x => x.item); }
+  function mimicOf(elite) {
+    const e = w.spawnEnemy('bat', p.x + 22, p.y, !!elite);
+    e.T = Object.assign({}, e.T, { disguise: !elite, boss: false, revive: false, split: 0, ai: '', pack: 0 });
+    e.elite = !!elite;
+    e.xp = 5;
+    return e;
+  }
+  function whiteOk(it, pre) {
+    const cap = g.earlyIlvlCap(0, pre);
+    return it && it.rarity === 0 && it.lvl === Math.min(10, cap) && it.reqLvl <= pre;
+  }
+  g.startFloor(10, true);
+  for (const pre of [1, 2]) {
+    arm(pre);
+    g.ground.length = 0;
+    slap(mimicOf(false));
+    const it = gearOf()[0];
+    check('trash kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(it, pre), it && ('L' + it.lvl + ' r' + it.rarity + ' now' + p.lvl));
+    arm(pre);
+    const rnd = w.Math.random;
+    w.Math.random = function () { return 0; };
+    g.ground.length = 0;
+    try { slap(mimicOf(true)); }
+    finally { w.Math.random = rnd; }
+    const cit = gearOf()[0];
+    check('champion kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(cit, pre), cit && ('L' + cit.lvl + ' r' + cit.rarity));
+    arm(pre);
+    g.ground.length = 0;
+    const hm = mimicOf(false);
+    hm.hp = 30;
+    p.activeHellSinks = [{ frame: 100, killed: false, state: 'sinking', enemyRef: hm, x: hm.x, y: hm.y, sinkCue: 1 }];
+    w.tickHellmouth(0.02);
+    const hit = gearOf()[0];
+    check('hellmouth kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(hit, pre), hit && ('L' + hit.lvl + ' r' + hit.rarity + ' now' + p.lvl));
+  }
+  g.startFloor(1, true);
+  w.__seUnique = 0;
+  w.__seGkey = 1;
+  for (const pre of [1, 2]) {
+    if (w.sePlan717) w.sePlan717(1);
+    arm(pre);
+    g.ground.length = 0;
+    const se = g.seSpawn717('se_morbius', 'fight');
+    se.xp = 5; se.sePhase = 'fight';
+    slap(se);
+    const it = gearOf()[0];
+    const promo = it && it.rarity === 1 && it.lvl === g.earlyIlvlCap(1, pre) && it.reqLvl <= pre && !it.lore && !(it.powers && it.powers.length) && !legalMagicMods(it, g).length;
+    check('super elite kill ' + pre + ' to ' + (pre + 1) + ' is an enhanced magic at the earlier cap', p.lvl === pre + 1 && promo, it && ('r' + it.rarity + ' L' + it.lvl + ' n' + affixCount(it, g) + ' ' + it.base));
+  }
+  g.startFloor(10, true);
+  let heldEarly = null;
+  for (const pre of [1, 2]) {
+    arm(pre);
+    if (pre === 2) heldEarly = g.makeItem(9, 2, 'Short Sword', true);
+    const boss = w.spawnBoss(p.x + 28, p.y);
+    boss.B = Object.assign({}, boss.B, { oswin: true });
+    boss.xp = 5;
+    g.ground.length = 0;
+    let forced = null;
+    const origMake = w.makeItem;
+    if (pre === 2) w.makeItem = function (L, rar, base, promo) {
+      const it = origMake(L, rar, 'Short Sword', promo);
+      if (!forced && promo) forced = it;
+      return it;
+    };
+    try { slap(boss); }
+    finally { w.makeItem = origMake; }
+    const gear = gearOf();
+    const cap = g.earlyIlvlCap(1, pre);
+    const bad = gear.filter(it => it.rarity !== 1 || it.lvl !== cap || it.reqLvl > pre || it.lore || (it.powers && it.powers.length) || legalMagicMods(it, g).length);
+    check('boss kill ' + pre + ' to ' + (pre + 1) + ' keeps the guaranteed rewards at the earlier cap', p.lvl === pre + 1 && gear.length >= 5 && bad.length === 0, gear.map(it => it.base + ' r' + it.rarity + ' L' + it.lvl + ' n' + affixCount(it, g)).join(' | '));
+    if (pre === 2) check('level 2 to 3 boss guaranteed reward is a two-affix magic', !!(forced && forced.rarity === 1 && forced.lvl === cap && affixCount(forced, g) === 2 && !forced.lore && !(forced.powers && forced.powers.length)), forced && ('n' + affixCount(forced, g) + ' L' + forced.lvl + ' r' + forced.rarity));
+  }
+  const laterRare = g.makeItem(9, 2, 'Short Sword');
+  const shopIt = g.rollShopUnique({ slot: 'weapon', tier: 1, price: 80 });
+  const rndChest = w.Math.random;
+  w.Math.random = function () { return 0; };
+  let chest;
+  try { chest = w.chestLoot(5); }
+  finally { w.Math.random = rndChest; }
+  check('after the level 3 kill, new drops follow level 3 and the held item stays',
+    p.lvl === 3 && heldEarly.rarity === 1 && heldEarly.lvl === g.earlyIlvlCap(1, 2) && laterRare.rarity === 2 && laterRare.lvl === 9 && shopIt && shopIt.rarity === 3 && chest && chest.rarity === 2,
+    'held r' + heldEarly.rarity + ' later r' + (laterRare && laterRare.rarity) + ' shop ' + (shopIt && shopIt.rarity) + ' chest ' + (chest && chest.rarity));
+
+  arm(2);
+  const kept = g.makeItem(9, 2, 'Short Sword', true);
+  const origDrops = w.regularDrops;
+  let threw = false;
+  w.regularDrops = function () { throw new Error('drop failed'); };
+  try {
+    const e = w.spawnEnemy('bat', p.x + 16, p.y, false);
+    e.xp = 5;
+    slap(e);
+  } catch (err) { threw = true; }
+  finally { w.regularDrops = origDrops; }
+  const afterThrow = g.makeItem(9, 2, 'Short Sword');
+  check('a throwing drop clears the recorded level', threw && p.lvl >= 3 && afterThrow.rarity === 2 && afterThrow.lvl === 9 && kept.rarity === 1, 'threw ' + threw + ' r' + afterThrow.rarity);
+
+  arm(2);
+  g.startFloor(10, true);
+  arm(2);
+  const origNest = w.regularDrops;
+  let childLvl = -1, parentLvl = -1;
+  w.regularDrops = function (e, d) {
+    if (e && e._nestParent) {
+      const child = w.spawnEnemy('bat', p.x + 18, p.y, false);
+      child.T = Object.assign({}, child.T, { disguise: true, boss: false, revive: false, split: 0, ai: '' });
+      child.xp = 0;
+      g.ground.length = 0;
+      child.hp = 1; child.shield = 0;
+      w.damageEnemy(child, 99999, 0, 0, '#fff', false);
+      const cit = gearOf()[0];
+      childLvl = cit ? cit.lvl : -1;
+      g.ground.length = 0;
+      origNest(e, d);
+      const pit = gearOf()[0];
+      parentLvl = pit ? pit.lvl : -1;
+      return;
+    }
+    origNest(e, d);
+  };
+  try {
+    const parent = mimicOf(false);
+    parent._nestParent = true;
+    g.ground.length = 0;
+    slap(parent);
+  } finally { w.regularDrops = origNest; }
+  check('a nested kill does not inherit the outer recorded level', p.lvl === 3 && parentLvl === g.earlyIlvlCap(0, 2) && childLvl === 10, 'parent ' + parentLvl + ' child ' + childLvl);
+
   pin(p, 2);
   g.startFloor(5, true);
   const shop = g.shop;

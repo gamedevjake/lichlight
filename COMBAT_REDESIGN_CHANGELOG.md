@@ -2954,3 +2954,7 @@ The Hollow Pedlar does not show sealed-unique rows until level 3, and `rollShopU
 - `tests/early-balance.html`, `tests/stage2-resist.html`, `tests/stage10-equipment.html`, `tests/se-midgame-prototype.html`, `tests/v0717.html`, `tests/v0718.html`, `tests/v078-play.html`, `tests/v07103.html`, `tests/v0711.html` — formula and loot-table checks build their rares at level 12 or higher so the gate does not rewrite the specimen.
 - `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
 - `version.json` was not edited. Swing cues and audio files were not edited.
+
+#### Recorded level on a kill
+
+Jake approved using the level from immediately before that kill's XP for the gear that kill drops. `killEnemy` records `player.lvl` before `gainXp` and holds it only while that kill's drops roll: trash, champions, Super Elites, bosses (including Oswin's second unique), and a Hellmouth kill on its later frame. A nested kill saves and restores the outer value, and a throw while dropping clears it. Chests, cracks, the Pedlar, and gear rolled when the floor was built still use the level at that moment. XP, the level-up, the heal, and the death order are unchanged. `version.json` was not edited.
