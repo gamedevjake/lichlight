@@ -133,6 +133,7 @@ function run(w) {
   check('se shield then hp', se.shield === seSh - 4 && se.hp === seHp);
   g.ground.length = 0;
   w.__seGkey = 0;
+  g.player.lvl = 12;
   se.hp = 1; se.shield = 0;
   w.damageEnemy(se, 20, 0, 0, '#fff', false);
   const gold = g.ground.reduce((n, it) => n + (it.gold || 0), 0);
@@ -153,6 +154,7 @@ function run(w) {
 
   function sePurse(d, uniqRoll, gkeyRoll) {
     g.startFloor(d, true);
+    g.player.lvl = 12;
     if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
     const e = g.seSpawn717('se_morbius', 'fight');
     e.sePhase = 'fight'; e.hp = 1; e.shield = 0;

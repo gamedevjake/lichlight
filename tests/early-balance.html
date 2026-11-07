@@ -120,6 +120,7 @@ function run(w) {
   check('super elite unique chances', !chanceBad, chanceBad);
   function gearAt(d, roll) {
     g.startFloor(d, true);
+    g.player.lvl = 12;
     if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
     const e = g.seSpawn717('se_morbius', 'fight');
     e.sePhase = 'fight'; e.hp = 1; e.shield = 0;
@@ -184,7 +185,7 @@ function run(w) {
     void before;
   }
   check('depth 1-5 super elite xp reaches level 2 then 3 then 4', prog.join(',') === '2.32,3.21,3.111,4.51,4.169', prog.join(','));
-  p.lvl = 2; w.computeStats();
+  p.lvl = 12; w.computeStats();
   const rare1 = w.makeItem(1, 2, 'Short Sword');
   const rare3 = w.makeItem(3, 2, 'Leather Armor');
   const magic3 = w.makeItem(3, 1, 'Cap');
@@ -200,6 +201,7 @@ function run(w) {
 
   function gilt(d, roll, prism) {
     g.startFloor(d, true);
+    g.player.lvl = 12;
     g.ground.length = 0;
     w.__giltUnique = roll;
     w.__goldRoll = 0;
@@ -356,6 +358,7 @@ function run(w) {
   const wore = w.equipFrom(heldAt);
   check('re-equip of a grandfathered item succeeds below the new requirement', p.equip.armor && p.equip.armor.id === 41 && wore !== false, p.equip.armor && p.equip.armor.reqLvl);
   w.unequipSlot('armor');
+  p.lvl = 12;
   const fresh = w.makeItem(3, 2, 'Leather Armor');
   const slot = p.inv.indexOf(null);
   p.inv[slot] = fresh;
@@ -367,6 +370,7 @@ function run(w) {
   p.lvl = 3; w.computeStats();
   w.equipFrom(slot);
   check('level 3 can equip the new rare', p.equip.armor && p.equip.armor.id === fresh.id, p.equip.armor && p.equip.armor.reqLvl);
+  p.lvl = 12;
   const cap = w.makeItem(3, 1, 'Cap');
   const capAt = p.inv.indexOf(null); p.inv[capAt] = cap;
   p.lvl = 1; w.computeStats();
@@ -377,6 +381,7 @@ function run(w) {
   check('a new white of item level 3 still requires 1', white.reqLvl === 1 && w.canWear(white));
 
   g.newGame();
+  g.player.lvl = 12;
   const onFloor = w.makeItem(3, 2, 'Leather Armor');
   onFloor.id = 501; onFloor.name = 'Floor Rare'; delete onFloor.reqLvl; delete onFloor.reqSrc;
   const dropped = w.makeItem(3, 2, 'Leather Armor');

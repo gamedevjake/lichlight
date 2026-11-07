@@ -1705,7 +1705,17 @@ function grandfatherWorldItems() {
 }
 function reqOf(it) { if (!it) return 1; if (!Number.isFinite(it.reqLvl)) it.reqLvl = calcReqLvl(it); return it.reqLvl; }
 function canWear(it) { return !it || !player || player.lvl >= reqOf(it); }
-function makeItem(L, forceRarity, baseName) { const it = makeItem0(L, forceRarity, baseName); it.reqLvl = calcReqLvl(it); it.reqSrc = 'drop'; setFullDur(it); return it; }
+function earlyIlvlCap(rar, lvl) {
+  const r = (rar | 0) > 0 ? 1 : 0;
+  const need = Math.max(1, lvl | 0);
+  let best = 1;
+  for (let n = 1; n <= 80; n++) {
+    if (calcReqLvl({ rarity: r, lvl: n, name: '' }) <= need) best = n;
+    else break;
+  }
+  return best;
+}
+function makeItem(L, forceRarity, baseName, promo) { const it = makeItem0(L, forceRarity, baseName, promo); it.reqLvl = calcReqLvl(it); it.reqSrc = 'drop'; setFullDur(it); return it; }
 // ---- durability (D2-style): weapons + armor pieces (not rings). Broken (0) items give no stats but stay in the bag for repair.
 const DUR_SLOT = { weapon: 30, armor: 40, helm: 30, boots: 26, shield: 44, amulet: 22 }, DUR_RAR = [1, 1.15, 1.3, 1.7];
 const WEAR_HITS = 6;      // a weapon loses 1 durability per this many swings that land
@@ -1818,10 +1828,33 @@ function affixNameBit(a, it, which) {
   const list = which === 0 ? a.p : a.s;
   return list && list.length ? pick(list) : '';
 }
-function makeItem0(L, forceRarity, baseName) {
-  const base = baseName ? BASES.find(b => b.name === baseName) : pick(BASES.filter(b => b.lvl <= L + 1 && !b.noDrop));
+let killLootLvl = null; // set only while one kill's drops roll; the level from immediately before that kill's XP
+function makeItem0(L, forceRarity, baseName, promo) {
+  // Level 1–2: no rare or unique, and the item level cannot require more than that level.
+  // A kill's drops use the level recorded before that kill's XP. Everything else uses player.lvl.
+  // A caller that asked for rare/unique and passed promo gets a two-affix magic at the wearable cap.
+  // A rolled rare (chest table, no promo) becomes an ordinary magic. Level 3+ does not enter this block.
+  L = Math.max(1, Math.floor(+L || 1));
+  const gateLvl = killLootLvl != null ? (killLootLvl | 0) : (player ? (player.lvl | 0) : 0);
+  const early = !!(player && gateLvl <= 2);
+  let promoted = false;
   let rar = forceRarity;
-  if (rar === undefined) { const r = Math.random(); rar = r < .03 + L * .003 ? 3 : r < .15 ? 2 : r < .5 ? 1 : 0; }
+  if (early) {
+    if (rar === undefined) {
+      const r = Math.random();
+      rar = r < .5 ? 1 : 0;
+    } else {
+      rar = rar | 0;
+      if (rar >= 2) { promoted = !!promo; rar = 1; }
+      else if (rar < 0) rar = 0;
+    }
+    const cap = earlyIlvlCap(rar > 0 ? 1 : 0, gateLvl);
+    L = promoted ? cap : Math.min(L, cap);
+  }
+  let base = baseName ? BASES.find(b => b.name === baseName) : null;
+  if (early && base && (base.lvl | 0) > L + 1) base = null;
+  if (!base) base = pick(BASES.filter(b => b.lvl <= L + 1 && !b.noDrop));
+  if (!early && rar === undefined) { const r = Math.random(); rar = r < .03 + L * .003 ? 3 : r < .15 ? 2 : r < .5 ? 1 : 0; }
   const it = { id: itemId++, slot: base.slot, icon: base.icon, base: base.name, rarity: rar, lvl: L, mods: {}, name: base.name };
   const scale = 1 + L * .06;
   if (base.min) { it.min = Math.round(base.min * scale); it.max = Math.round(base.max * scale); it.spd = base.spd; }
@@ -1844,7 +1877,7 @@ function makeItem0(L, forceRarity, baseName) {
     if (u.powers && u.powers.length) U.powers = cleanPowers(u.powers);
     return U;
   }
-  const n = rar === 0 ? 0 : rar === 1 ? irand(1, 2) : irand(3, 4);
+  const n = promoted ? 2 : (rar === 0 ? 0 : rar === 1 ? irand(1, 2) : irand(3, 4));
   const avail = AFFIX.filter(a => lootAffixOk(a, L, it.slot, rar));
   const chosen = [];
   while (chosen.length < n && chosen.length < avail.length) {
@@ -5325,18 +5358,32 @@ function regularDrops(e, d) {
   else if ((r -= DROP.mp) < 0) at({ pot: 'mp' });
   else if ((r -= DROP.white) < 0) { if (!gate || Math.random() < LOOT_GATE.white) white(); } // v0.6.0 early loot gate
 }
+function runKillLoot(lootLvl, fn) {
+  const prev = killLootLvl;
+  killLootLvl = lootLvl;
+  try { return fn(); }
+  finally { killLootLvl = prev; }
+}
 function bossUnique(L) { // prefers unfound + depth-appropriate (pickUnique); widens the level window if nothing is eligible yet
+  const gateLvl = killLootLvl != null ? (killLootLvl | 0) : (player ? (player.lvl | 0) : 0);
+  if (player && gateLvl <= 2) return makeItem(L, 3, null, true);
   for (let k = 0; k <= 60; k += 3) { const it = makeItem(L + k, 3); if (it.rarity === 3) { if (k) { it.lvl = L; it.reqLvl = calcReqLvl(it); it.reqSrc = 'drop'; } return it; } }
   return makeItem(L, 2);
 }
 function killEnemy(e) {
   // v0.7.18 B2: commit the Super Elite dead before loot, sound, or the corpse. A throw later cannot reload a frozen fight.
   if (e && e.superElite) {
+    const lootLvl = player ? (player.lvl | 0) : null;
     try { if (typeof seMarkDead717 === 'function') seMarkDead717(e); } catch (_) {}
     try { save(); } catch (_) {}
     try { removeEnemy(e); } catch (_) { e.hp = 0; e.dead = true; }
     try { if (player) { player.kills++; gainXp(e.xp || 0); } } catch (_) {}
-    try { if (typeof seLoot717 === 'function') seLoot717(e); } catch (_) {}
+    try {
+      if (typeof seLoot717 === 'function') {
+        if (lootLvl == null) seLoot717(e);
+        else runKillLoot(lootLvl, () => seLoot717(e));
+      }
+    } catch (_) {}
     return;
   }
   const T = e.T;
@@ -5345,14 +5392,16 @@ function killEnemy(e) {
   burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null; if (!T.boss && !e.superElite) smpFightKill(e);
   if (T.ai === 'bomber' && e.mode !== 'boom') { const x = e.x, y = e.y, dmg = e.dmg; cueAt('cbt_explosion_small_01', x, y, 420, 1, { delay: .45 }); tele({ x, y, r: 30, dur: .45, col: '#a0e040', onDone: () => blast(x, y, 30, dmg, T.label, { col: '#a0e040', tr: .4, from: e }) }); }
   if (T.split) for (let k = 0; k < 2 && enemies.length < MAX_ENEMIES; k++) { const m = spawnEnemy(T.split, e.x + (k ? 5 : -5), e.y, false); m.state = 'chase'; m.kx = (k ? 80 : -80); }
+  const lootLvl = player ? (player.lvl | 0) : 0;
   player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else if (!e.superElite) eventThought('postkill', .1, 40);
+  runKillLoot(lootLvl, () => {
   const L = depth + (e.elite ? 1 : 0) + (T.boss ? 2 : 0);
   if (T.boss) {
     const B = e.B, drop = (it, dx, dy) => { dropAt(ground, e.x + dx, e.y + dy, { item: it }); if (it.rarity === 3) uniqueDropFx(e.x + dx, e.y + dy); };
     // bosses are the ONLY source of uniques, and the main source of magic/rare gear
-    drop(bossUnique(L), 0, -14);                                 // guaranteed unique
-    drop(makeItem(L, 2), -14, 0);                                // guaranteed rare
-    drop(makeItem(L, Math.random() < .5 ? 2 : 1), 14, 0);        // rare or magic
+    drop(bossUnique(L), 0, -14);                                 // guaranteed unique (promo magic while level <= 2)
+    drop(makeItem(L, 2, null, true), -14, 0);                    // guaranteed rare
+    { const midRare = Math.random() < .5; drop(makeItem(L, midRare ? 2 : 1, null, midRare), 14, 0); } // rare or magic
     drop(makeItem(L, 1), 0, 12);                                 // magic
     if (B.oswin) drop(bossUnique(L + 2), 0, -26);
     if (goldKept()) dropAt(ground, e.x - 8, e.y + 14, { gold: Math.min(49, Math.max(1, Math.round(25 * depth))) }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' }); if (Math.random() < NECRO_DROP) dropAt(ground, e.x + 16, e.y + 6, { pot: 'np' }); bossExtraDrops(e); // v0.7.8.1 F1: boss gold 30% as often; F7 necro, bosses only
@@ -5367,6 +5416,7 @@ function killEnemy(e) {
     return;
   }
   regularDrops(e, depth);
+  });
 }
 function gainXp(n) {
   const p = player; if (p.xpBuffT > 0 && n > 0) n = Math.round(n * (1 + XPBUFF)); p.xp += n;
@@ -7348,6 +7398,7 @@ function rollShopOffers() {
   return shuffled(rows).slice(0, 3).map((o, i) => { const tier = i + 1 + (o.slot === 'amulet' ? 1 : 0); return { slot: o.slot, label: o.label, tier, price: shopUniquePrice(tier), sold: false }; });
 }
 function rollShopUnique(offer) { // blind buy: stats are rolled now, scaled by price tier and the trader's depth
+  if (player && (player.lvl | 0) <= 2) return null;
   const tier = clamp((offer && offer.tier) || 1, 1, 5), d = Math.max(1, depth | 0);
   const L = Math.max(1, Math.round(d * (0.5 + tier * 0.22) + tier * 2));
   const bases = BASES.filter(b => b.slot === offer.slot && !b.noDrop && b.lvl <= L + 2);
@@ -7365,8 +7416,10 @@ function rollShopUnique(offer) { // blind buy: stats are rolled now, scaled by p
 }
 function buyUnique(i) {
   const p = player, o = shop && shop.offers && shop.offers[i]; if (!o || o.sold) return;
+  if ((p.lvl | 0) <= 2) { shopNote = 'Sealed uniques wait until level 3.'; sfx('fail', { cue: 'meta_shop_cantafford_01' }); renderShop(); return; }
   if (p.gold < o.price) { shopNote = 'Not enough gold.'; sfx('fail', { cue: 'meta_shop_cantafford_01' }); renderShop(); return; }
-  const it = rollShopUnique(o); p.gold -= o.price; o.sold = true; const slot = p.inv.indexOf(null);
+  const it = rollShopUnique(o); if (!it) { shopNote = 'Sealed uniques wait until level 3.'; sfx('fail'); renderShop(); return; }
+  p.gold -= o.price; o.sold = true; const slot = p.inv.indexOf(null);
   if (slot >= 0) p.inv[slot] = it; else { dropAt(ground, p.x, p.y + 4, { item: it }); ground[ground.length - 1].lock = true; }
   markFound(it); sfx('gold', { cue: 'meta_shop_buy_01' }); shopNote = 'The seal breaks: ' + it.name + '.'; flashMsg(it.name, RCOL[3]); renderShop();
 }
@@ -9385,9 +9438,9 @@ function giltGear(d) {
   // From depth 5 the 20% unique is back, still at item level depth+1 (the audit's level, not the old depth+2).
   d = Math.max(1, d | 0);
   const L = d + 1;
-  if (d < 5) return makeItem(L, 2);
+  if (d < 5) return makeItem(L, 2, null, true);
   const roll = (typeof window.__giltUnique === 'number') ? window.__giltUnique : Math.random();
-  return makeItem(L, roll < 0.20 ? 3 : 2);
+  return makeItem(L, roll < 0.20 ? 3 : 2, null, true);
 }
 function openSecretChest(c) { if (c.open) return; c.open = 1; v072Stats.secretChests++; const x = (c.tx + .5) * TS, y = (c.ty + .5) * TS; sfx('chest'); burst(x, y - 4, '#ffe080', 14, 40);
   if (c.prism) { if (goldKept()) { const piles = [irand(20, 35), irand(11, 20), irand(7, 13)]; piles.forEach((n, i) => dropAt(ground, x + (i - 1) * 8, y + 8, { gold: n * depth })); flashMsg('The chest is packed with gold.', '#e8c840'); } else flashMsg('The chest opens. No coin this time.', '#c8b8a0'); return; }
@@ -10969,8 +11022,8 @@ UNIQUES.push(
 const _eligible710 = eligibleUniques;
 eligibleUniques = function (L) { return _eligible710(L); }; // v0.7.12 F2: unique bows (tomeBow) roll with other uniques
 const _makeItem710 = makeItem;
-makeItem = function (L, rar, baseName) {
-  const it = _makeItem710(L, rar, baseName);
+makeItem = function (L, rar, baseName, promo) {
+  const it = _makeItem710(L, rar, baseName, promo);
   if (!it) return it;
   const b = BASES.find(q => q.name === it.base);
   if (b && b.bow) it.bow = 1;
@@ -12281,7 +12334,7 @@ const SPELL_CARD = {
   hellmouth: ['MANA 18', 'COOLDOWN 6S', 'DEVOURS NON-BOSSES IN SIGHT', 'BOSSES TAKE +10% DAMAGE', 'FOR 3 SECONDS']
 };
 let vic711 = null, holdOn = false;
-function greaterRare711() { return makeItem(depth + 2, 2); }
+function greaterRare711() { return makeItem(depth + 2, 2, null, true); }
 function exitTile711() {
   if (!map || !map.length) return null;
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (map[y * MW + x] === TILE.STAIRS) return { tx: x, ty: y };
@@ -12343,7 +12396,7 @@ function markGatedLoot711() {
   const reach = (tx, ty) => tx >= 0 && ty >= 0 && tx < MW && ty < MH && !!vis[ty * MW + tx];
   for (const c of chests) if (c && !reach(c.tx, c.ty)) c.gatedRare = 1;
   for (const s of secrets) {
-    if (!s || s.broken) continue;
+    if (!s || s.broken || s.passage) continue; // shortcut mouths stay cracks; they are not a rare reward
     let far = false;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const x = s.tx + dx, y = s.ty + dy;
@@ -13653,6 +13706,7 @@ function paintShopSealed712() {
     cv.dataset.hit712 = '1';
     cv.addEventListener('pointerup', e => {
       if (scrollBox('shopSealed').moved) return;
+      if ((player.lvl | 0) <= 2) return;
       const i = shopHit713(cv, e.clientX, e.clientY);
       const o = shop && shop.offers && shop.offers[i];
       if (o && !o.sold) buyUnique(i);
@@ -14489,7 +14543,8 @@ paintShopBuy712 = function () {
 paintShopSealed712 = function () {
   const cv = $('shUniCv'); if (!cv || !player) return;
   if (shop && !Array.isArray(shop.offers)) shop.offers = rollShopOffers();
-  const offers = (shop && shop.offers) || [];
+  const locked = (player.lvl | 0) <= 2;
+  const offers = locked ? [] : ((shop && shop.offers) || []);
   const w = 280, h = 74, rh = 18;
   const c = shopCanvas716(cv, w, h);
   c.clearRect(0, 0, w, h);
@@ -14499,7 +14554,7 @@ paintShopSealed712 = function () {
   s.maxScrollY = Math.max(0, contentH - h);
   clampScroll712(s);
   drawScrollContainer(c, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 6, bg: '#f3e6c8' }, function () {
-    pxText(c, 'SEALED UNTIL THE COIN IS SPENT.', 4, 2, '#4a2a18', false, w - 4);
+    pxText(c, locked ? 'SEALED UNIQUES WAIT UNTIL LEVEL 3.' : 'SEALED UNTIL THE COIN IS SPENT.', 4, 2, '#4a2a18', false, w - 4);
     offers.forEach((o, i) => {
       const y = 14 + i * rh;
       c.fillStyle = i === 0 ? '#efe0c0' : '#efe0c0';
@@ -14508,13 +14563,14 @@ paintShopSealed712 = function () {
       pxText(c, label, 6, y + 4, o.sold ? '#8a7058' : '#3a2414', false, w - 48);
       if (!o.sold) pxText(c, o.price + 'G', w - 40, y + 4, player.gold >= o.price ? '#6a4010' : '#8a7058', false, w - 4);
     });
-    if (!offers.length) pxText(c, 'NO SEALED STOCK', 6, 28, '#4a2a18', false, w - 4);
+    if (!offers.length && !locked) pxText(c, 'NO SEALED STOCK', 6, 28, '#4a2a18', false, w - 4);
   });
   bindScrollEl(cv, 'shopSealed', function () { return uiScale712(cv); }, paintShopSealed712);
   if (!cv.dataset.hit712) {
     cv.dataset.hit712 = '1';
     cv.addEventListener('pointerup', e => {
       if (scrollBox('shopSealed').moved) return;
+      if ((player.lvl | 0) <= 2) return;
       const i = shopHit713(cv, e.clientX, e.clientY);
       const o = shop && shop.offers && shop.offers[i];
       if (o && !o.sold) buyUnique(i);
@@ -15515,7 +15571,7 @@ function seRollGear(d) {
   const p = seUniqueChance(d);
   const roll = (typeof window.__seUnique === 'number') ? window.__seUnique : Math.random();
   if (p > 0 && roll < p) return bossUnique(d);
-  return makeItem(d, 2); // a miss, and depths 1-2, are a rare. Gold, the ration, and the gate key are separate.
+  return makeItem(d, 2, null, true); // a miss, and depths 1-2, are a rare once the character is level 3+. Gold, the ration, and the gate key are separate.
 }
 function seLoot717(e) {
   seMarkDead717(e);
@@ -15716,7 +15772,7 @@ if (window.game) {
     SE_ROSTER: SE_ROSTER, SE_IDS: SE_IDS, SE_SHIELD_IDS: SE_SHIELD_IDS, SE_SHIELD_FRAC: SE_SHIELD_FRAC, SE_GKEY_P: SE_GKEY_P,
     sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seBaseHp717: seBaseHp717, seFadeHp717: seFadeHp717, seEarlyFade: seEarlyFade, seTellMul: seTellMul, seUniqueChance: seUniqueChance, seRollGear: seRollGear, seLoot717: seLoot717, seSnap717: seSnap717,
     SE_LIFE_TABLE: SE_LIFE_TABLE, SE_TAKEN_TABLE: SE_TAKEN_TABLE, SE_DMG_TABLE: SE_DMG_TABLE, seLifeMul: seLifeMul, seTakenMul: seTakenMul, seDmgMul: seDmgMul, seBaseDmg717: seBaseDmg717, seDmg717: seDmg717,
-    giltGear: giltGear, calcReqLvl: calcReqLvl, calcReqLvlLegacy: calcReqLvlLegacy, stampReq: stampReq, REQ_POLICY: REQ_POLICY,
+    giltGear: giltGear, calcReqLvl: calcReqLvl, calcReqLvlLegacy: calcReqLvlLegacy, stampReq: stampReq, REQ_POLICY: REQ_POLICY, earlyIlvlCap: earlyIlvlCap,
     WARD_MIG: WARD_MIG, migrateGearWard: migrateGearWard,
     seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, seRecover717: seRecover717, seMarkDead717: seMarkDead717,
     loadSeArt717: loadSeArt717, buildSeClips717: buildSeClips717,

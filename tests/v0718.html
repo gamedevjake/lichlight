@@ -88,6 +88,7 @@ function run(w) {
   g.startFloor(1);
   g.ground.length = 0;
   w.__seGkey = 0;
+  g.player.lvl = 12;
   const se = g.seSpawn717('se_arachnex', 'fight');
   se.sePhase = 'fight'; se.shield = se.maxShield; se.hp = 3;
   const px0 = g.player.x;
@@ -109,6 +110,7 @@ function run(w) {
 
   function sePurse(d, uniqRoll, gkeyRoll) {
     g.startFloor(d, true);
+    g.player.lvl = 12;
     if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
     const e = g.seSpawn717('se_morbius', 'fight');
     e.sePhase = 'fight'; e.hp = 1; e.shield = 0;

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<!-- Level 1-2 equipment gate: no rare or unique, wearable requirements, promo magics, open shortcuts. -->
+<html>
+<head><meta charset="utf-8"><title>early-loot-gate</title></head>
+<body>
+<iframe id="g" src="../index.html?v=early-loot-gate" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function mulberry(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function affixCount(it, g) {
+  const mods = it.mods || {};
+  const keys = Object.keys(mods);
+  let n = 0;
+  for (const k of keys) {
+    if (!g.AFFIX.some(a => a.k === k)) continue;
+    n++;
+  }
+  return n;
+}
+function legalMagicMods(it, g) {
+  const bad = [];
+  const mods = it.mods || {};
+  for (const k in mods) {
+    if (k === 'maxResist' || k === 'penAll') bad.push(k);
+    const a = g.AFFIX.find(q => q.k === k);
+    if (!a) continue;
+    if (a.minRarity != null && a.minRarity > 1) bad.push('rar:' + k);
+    if (a.minLvl && it.lvl < a.minLvl) bad.push('lvl:' + k);
+    if (a.slots && a.slots.indexOf(it.slot) < 0) bad.push('slot:' + k);
+  }
+  return bad;
+}
+function pin(p, lvl) { p.lvl = lvl; p.xp = -1e15; }
+function run(w) {
+  w.__noSampleSfx = true;
+  const g = w.game;
+  const origRandom = w.Math.random;
+  g.newGame();
+  const p = g.player;
+  check('version stays 0.7.18', g.version === '0.7.18');
+  check('caps match the requirement formula', g.earlyIlvlCap(1, 1) === 2 && g.earlyIlvlCap(1, 2) === 3 && g.earlyIlvlCap(0, 1) === 4 && g.earlyIlvlCap(0, 2) === 5);
+
+  function promoSword(lvl) {
+    pin(p, lvl);
+    return g.makeItem(40, 2, 'Short Sword', true);
+  }
+  for (const lvl of [1, 2]) {
+    const it = promoSword(lvl);
+    const bad = legalMagicMods(it, g);
+    const n = affixCount(it, g);
+    check('level ' + lvl + ' promo sword is a wearable two-affix magic',
+      it.rarity === 1 && it.base === 'Short Sword' && it.lvl === g.earlyIlvlCap(1, lvl) && it.reqLvl === g.calcReqLvl(it) && it.reqLvl <= lvl && n === 2 && !it.lore && !(it.powers && it.powers.length) && !bad.length && it.name.indexOf('Short Sword') >= 0,
+      'r' + it.rarity + ' L' + it.lvl + ' req' + it.reqLvl + ' n' + n + ' ' + it.name + ' ' + bad.join(','));
+    const arm = g.makeItem(40, 3, 'Leather Armor', true);
+    const armBad = legalMagicMods(arm, g);
+    const ward = g.gearWard('Leather Armor', arm.lvl);
+    const typed = arm.mods.resFire || arm.mods.resCold || arm.mods.resLightning || arm.mods.resPoison || arm.mods.resShadow || (arm.mods.resAll || 0) > ward;
+    check('level ' + lvl + ' promo armor keeps the ward and a magic resist',
+      arm.rarity === 1 && arm.base === 'Leather Armor' && arm.reqLvl <= lvl && !arm.lore && !(arm.powers && arm.powers.length) && !armBad.length && arm.mods.resAll >= ward && typed,
+      'req' + arm.reqLvl + ' ward' + ward + ' res' + arm.mods.resAll);
+    const rolled = g.makeItem(40, 2, 'Short Sword');
+    const rn = affixCount(rolled, g);
+    check('level ' + lvl + ' ordinary rare roll is not the promo kit',
+      rolled.rarity === 1 && rolled.reqLvl <= lvl && !rolled.lore && rn >= 1 && rn <= 2 && rolled.lvl <= g.earlyIlvlCap(1, lvl),
+      'L' + rolled.lvl + ' n' + rn);
+  }
+
+  pin(p, 1);
+  const held = g.makeItem(9, 2, 'Short Sword', true);
+  pin(p, 3);
+  const later = g.makeItem(9, 2, 'Short Sword', true);
+  check('level 3 does not rewrite a level-1 item and restores the rare',
+    held.rarity === 1 && held.lvl === 2 && later.rarity === 2 && later.lvl === 9 && later.reqLvl === g.calcReqLvl(later),
+    'held r' + held.rarity + ' L' + held.lvl + ' later r' + later.rarity + ' L' + later.lvl);
+
+  const deepBad = [];
+  for (const lvl of [1, 2]) {
+    for (const d of [5, 10, 15]) {
+      pin(p, lvl);
+      g.startFloor(d, true);
+      pin(p, lvl);
+      const batch = [
+        g.makeItem(d + 8, 3, null, true),
+        g.makeItem(d + 8, 2),
+        w.chestLoot(d),
+        g.seRollGear(d),
+        g.giltGear(d),
+        w.bossUnique(d + 2),
+        w.greaterRare711()
+      ];
+      batch.forEach((it, i) => {
+        if (!it || it.rarity >= 2 || it.reqLvl > lvl || it.lore || (it.mods && (it.mods.maxResist || it.mods.penAll))) deepBad.push('L' + lvl + ' d' + d + '@' + i + ' r' + (it && it.rarity) + ' req' + (it && it.reqLvl));
+      });
+    }
+  }
+  check('level 1 and 2 stay wearable through depth 15', deepBad.length === 0, deepBad.slice(0, 6).join(' | '));
+
+  pin(p, 1);
+  g.startFloor(1, true);
+  pin(p, 1);
+  g.ground.length = 0;
+  for (let i = 0; i < 30; i++) {
+    const e = w.spawnEnemy(i % 2 ? 'rat' : 'slime', p.x + 24, p.y, false);
+    e.hp = 1;
+    w.damageEnemy(e, 40, 0, 0, '#fff', false);
+  }
+  const champ = w.spawnEnemy('skel', p.x + 28, p.y, true);
+  champ.hp = 1;
+  w.damageEnemy(champ, 80, 0, 0, '#fff', false);
+  const killBad = g.ground.filter(x => x.item && (x.item.rarity >= 2 || x.item.reqLvl > 1));
+  check('trash and champion drops stay common and wearable', killBad.length === 0, killBad.length);
+
+  g.ground.length = 0;
+  p.keys = 8;
+  for (let i = 0; i < 24; i++) {
+    const c = { open: false, free: false, x: p.x, y: p.y, tx: 3, ty: 3 };
+    p.keys = 3;
+    w.openChest(c);
+  }
+  const chestBad = g.ground.filter(x => x.item && (x.item.rarity >= 2 || x.item.reqLvl > 1));
+  check('keyed chests at level 1 are not rare', chestBad.length === 0 && g.ground.some(x => x.item), chestBad.length);
+
+  const beforePots = g.ground.filter(x => x.item).length;
+  for (const o of (g.props || []).slice()) if (o && !o.broken && !o.wall) w.breakPropsAt(o.x, o.y - 4, 12);
+  check('containers do not drop equipment', g.ground.filter(x => x.item).length === beforePots);
+
+  let mouths = 0, flagged = 0, leaked = 0, floorsWith = 0;
+  for (let s = 1; s <= 20; s++) {
+    w.Math.random = mulberry(s * 9973 + 11);
+    pin(p, 1);
+    g.startFloor(1, true);
+    const pass = (g.secrets || []).filter(sec => sec.passage);
+    if (pass.length) floorsWith++;
+    mouths += pass.length;
+    flagged += pass.filter(sec => sec.gatedRare).length;
+    const seen = new Set(g.ground.filter(x => x.item).map(x => x.item));
+    for (const sec of pass) if (!sec.broken) w.breakSecret(sec);
+    for (const x of g.ground) if (x.item && !seen.has(x.item)) leaked++;
+  }
+  w.Math.random = origRandom;
+  check('shortcut mouths are not rare rewards', floorsWith >= 8 && mouths >= 16 && flagged === 0 && leaked === 0, 'floors ' + floorsWith + ' mouths ' + mouths + ' flagged ' + flagged + ' leaked ' + leaked);
+
+  let vaultBad = 0, vaultN = 0;
+  for (let s = 1; s <= 12 && vaultN === 0; s++) {
+    w.Math.random = mulberry(s * 4243 + 2);
+    pin(p, 1);
+    g.startFloor(2, true);
+    pin(p, 1);
+    for (const d of (g.doors || [])) {
+      if (!d || !d.puzzle || !d.rect || d.open) continue;
+      const R = d.rect;
+      for (const x of g.ground) {
+        if (!x.item) continue;
+        const tx = Math.floor(x.x / 16), ty = Math.floor(x.y / 16);
+        if (tx < R.x || tx >= R.x + R.w || ty < R.y || ty >= R.y + R.h) continue;
+        vaultN++;
+        if (x.item.rarity >= 2 || x.item.reqLvl > 1) vaultBad++;
+      }
+    }
+  }
+  w.Math.random = origRandom;
+  check('a depth 2 vault rolled at level 1 is wearable magic or white', vaultN >= 1 && vaultBad === 0, 'n' + vaultN + ' bad' + vaultBad);
+
+  pin(p, 1);
+  g.ground.length = 0;
+  w.__seUnique = 0;
+  w.__seGkey = 0;
+  const se = g.seSpawn717('se_morbius', 'fight');
+  se.sePhase = 'fight'; se.hp = 1; se.shield = 0;
+  w.damageEnemy(se, 80, 0, 0, '#fff', false);
+  const seIt = g.ground.filter(x => x.item).map(x => x.item)[0];
+  check('level 1 super elite is a promo magic with the purse intact',
+    seIt && seIt.rarity === 1 && seIt.lvl === 2 && seIt.reqLvl <= 1 && affixCount(seIt, g) >= 1 && !seIt.lore && g.ground.reduce((n, x) => n + (x.gold || 0), 0) === 25 && g.ground.some(x => x.ration) && g.ground.some(x => x.gkey),
+    seIt && ('r' + seIt.rarity + ' L' + seIt.lvl));
+
+  pin(p, 3);
+  g.startFloor(1, true);
+  pin(p, 3);
+  w.__seUnique = 0.99;
+  const se3 = g.seRollGear(1);
+  check('level 3 depth 1 super elite is still a rare of item level 1', se3 && se3.rarity === 2 && se3.lvl === 1 && se3.reqLvl === 2, se3 && (se3.rarity + ' L' + se3.lvl));
+  w.__seUnique = 0;
+  const se10 = g.seRollGear(10);
+  check('level 3 depth 10 super elite is still a unique', se10 && se10.rarity === 3 && se10.lvl === 10, se10 && se10.rarity);
+
+  pin(p, 1);
+  g.startFloor(5, true);
+  pin(p, 1);
+  const boss = g.enemies.find(e => e && e.T && e.T.boss);
+  check('depth 5 still has its boss', !!boss);
+  if (boss) {
+    g.ground.length = 0;
+    boss.hp = 1; boss.shield = 0;
+    w.damageEnemy(boss, 20000, 0, 0, '#fff', false);
+    const gear = g.ground.filter(x => x.item).map(x => x.item);
+    const badBoss = gear.filter(it => it.rarity >= 2 || it.reqLvl > 1 || it.lore || (it.mods && (it.mods.maxResist || it.mods.penAll)));
+    check('a level 1 boss drops only wearable magic and common gear', gear.length >= 3 && badBoss.length === 0, 'n' + gear.length + ' bad' + badBoss.length);
+  }
+
+  function arm(lvl) { p.lvl = lvl; p.xp = w.xpNeed(lvl) - 1; p.xpBuffT = 0; }
+  function slap(e) { e.hp = 1; e.shield = 0; if (e.sePhase) e.sePhase = 'fight'; w.damageEnemy(e, 99999, 0, 0, '#fff', false); }
+  function gearOf() { return g.ground.filter(x => x.item).map(x => x.item); }
+  function mimicOf(elite) {
+    const e = w.spawnEnemy('bat', p.x + 22, p.y, !!elite);
+    e.T = Object.assign({}, e.T, { disguise: !elite, boss: false, revive: false, split: 0, ai: '', pack: 0 });
+    e.elite = !!elite;
+    e.xp = 5;
+    return e;
+  }
+  function whiteOk(it, pre) {
+    const cap = g.earlyIlvlCap(0, pre);
+    return it && it.rarity === 0 && it.lvl === Math.min(10, cap) && it.reqLvl <= pre;
+  }
+  g.startFloor(10, true);
+  for (const pre of [1, 2]) {
+    arm(pre);
+    g.ground.length = 0;
+    slap(mimicOf(false));
+    const it = gearOf()[0];
+    check('trash kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(it, pre), it && ('L' + it.lvl + ' r' + it.rarity + ' now' + p.lvl));
+    arm(pre);
+    const rnd = w.Math.random;
+    w.Math.random = function () { return 0; };
+    g.ground.length = 0;
+    try { slap(mimicOf(true)); }
+    finally { w.Math.random = rnd; }
+    const cit = gearOf()[0];
+    check('champion kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(cit, pre), cit && ('L' + cit.lvl + ' r' + cit.rarity));
+    arm(pre);
+    g.ground.length = 0;
+    const hm = mimicOf(false);
+    hm.hp = 30;
+    p.activeHellSinks = [{ frame: 100, killed: false, state: 'sinking', enemyRef: hm, x: hm.x, y: hm.y, sinkCue: 1 }];
+    w.tickHellmouth(0.02);
+    const hit = gearOf()[0];
+    check('hellmouth kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(hit, pre), hit && ('L' + hit.lvl + ' r' + hit.rarity + ' now' + p.lvl));
+  }
+  g.startFloor(1, true);
+  w.__seUnique = 0;
+  w.__seGkey = 1;
+  for (const pre of [1, 2]) {
+    if (w.sePlan717) w.sePlan717(1);
+    arm(pre);
+    g.ground.length = 0;
+    const se = g.seSpawn717('se_morbius', 'fight');
+    se.xp = 5; se.sePhase = 'fight';
+    slap(se);
+    const it = gearOf()[0];
+    const promo = it && it.rarity === 1 && it.lvl === g.earlyIlvlCap(1, pre) && it.reqLvl <= pre && !it.lore && !(it.powers && it.powers.length) && !legalMagicMods(it, g).length;
+    check('super elite kill ' + pre + ' to ' + (pre + 1) + ' is an enhanced magic at the earlier cap', p.lvl === pre + 1 && promo, it && ('r' + it.rarity + ' L' + it.lvl + ' n' + affixCount(it, g) + ' ' + it.base));
+  }
+  g.startFloor(10, true);
+  let heldEarly = null;
+  for (const pre of [1, 2]) {
+    arm(pre);
+    if (pre === 2) heldEarly = g.makeItem(9, 2, 'Short Sword', true);
+    const boss = w.spawnBoss(p.x + 28, p.y);
+    boss.B = Object.assign({}, boss.B, { oswin: true });
+    boss.xp = 5;
+    g.ground.length = 0;
+    let forced = null;
+    const origMake = w.makeItem;
+    if (pre === 2) w.makeItem = function (L, rar, base, promo) {
+      const it = origMake(L, rar, 'Short Sword', promo);
+      if (!forced && promo) forced = it;
+      return it;
+    };
+    try { slap(boss); }
+    finally { w.makeItem = origMake; }
+    const gear = gearOf();
+    const cap = g.earlyIlvlCap(1, pre);
+    const bad = gear.filter(it => it.rarity !== 1 || it.lvl !== cap || it.reqLvl > pre || it.lore || (it.powers && it.powers.length) || legalMagicMods(it, g).length);
+    check('boss kill ' + pre + ' to ' + (pre + 1) + ' keeps the guaranteed rewards at the earlier cap', p.lvl === pre + 1 && gear.length >= 5 && bad.length === 0, gear.map(it => it.base + ' r' + it.rarity + ' L' + it.lvl + ' n' + affixCount(it, g)).join(' | '));
+    if (pre === 2) check('level 2 to 3 boss guaranteed reward is a two-affix magic', !!(forced && forced.rarity === 1 && forced.lvl === cap && affixCount(forced, g) === 2 && !forced.lore && !(forced.powers && forced.powers.length)), forced && ('n' + affixCount(forced, g) + ' L' + forced.lvl + ' r' + forced.rarity));
+  }
+  const laterRare = g.makeItem(9, 2, 'Short Sword');
+  const shopIt = g.rollShopUnique({ slot: 'weapon', tier: 1, price: 80 });
+  const rndChest = w.Math.random;
+  w.Math.random = function () { return 0; };
+  let chest;
+  try { chest = w.chestLoot(5); }
+  finally { w.Math.random = rndChest; }
+  check('after the level 3 kill, new drops follow level 3 and the held item stays',
+    p.lvl === 3 && heldEarly.rarity === 1 && heldEarly.lvl === g.earlyIlvlCap(1, 2) && laterRare.rarity === 2 && laterRare.lvl === 9 && shopIt && shopIt.rarity === 3 && chest && chest.rarity === 2,
+    'held r' + heldEarly.rarity + ' later r' + (laterRare && laterRare.rarity) + ' shop ' + (shopIt && shopIt.rarity) + ' chest ' + (chest && chest.rarity));
+
+  arm(2);
+  const kept = g.makeItem(9, 2, 'Short Sword', true);
+  const origDrops = w.regularDrops;
+  let threw = false;
+  w.regularDrops = function () { throw new Error('drop failed'); };
+  try {
+    const e = w.spawnEnemy('bat', p.x + 16, p.y, false);
+    e.xp = 5;
+    slap(e);
+  } catch (err) { threw = true; }
+  finally { w.regularDrops = origDrops; }
+  const afterThrow = g.makeItem(9, 2, 'Short Sword');
+  check('a throwing drop clears the recorded level', threw && p.lvl >= 3 && afterThrow.rarity === 2 && afterThrow.lvl === 9 && kept.rarity === 1, 'threw ' + threw + ' r' + afterThrow.rarity);
+
+  arm(2);
+  g.startFloor(10, true);
+  arm(2);
+  const origNest = w.regularDrops;
+  let childLvl = -1, parentLvl = -1;
+  w.regularDrops = function (e, d) {
+    if (e && e._nestParent) {
+      const child = w.spawnEnemy('bat', p.x + 18, p.y, false);
+      child.T = Object.assign({}, child.T, { disguise: true, boss: false, revive: false, split: 0, ai: '' });
+      child.xp = 0;
+      g.ground.length = 0;
+      child.hp = 1; child.shield = 0;
+      w.damageEnemy(child, 99999, 0, 0, '#fff', false);
+      const cit = gearOf()[0];
+      childLvl = cit ? cit.lvl : -1;
+      g.ground.length = 0;
+      origNest(e, d);
+      const pit = gearOf()[0];
+      parentLvl = pit ? pit.lvl : -1;
+      return;
+    }
+    origNest(e, d);
+  };
+  try {
+    const parent = mimicOf(false);
+    parent._nestParent = true;
+    g.ground.length = 0;
+    slap(parent);
+  } finally { w.regularDrops = origNest; }
+  check('a nested kill does not inherit the outer recorded level', p.lvl === 3 && parentLvl === g.earlyIlvlCap(0, 2) && childLvl === 10, 'parent ' + parentLvl + ' child ' + childLvl);
+
+  pin(p, 2);
+  g.startFloor(5, true);
+  const shop = g.shop;
+  p.gold = 99999;
+  const beforeGold = p.gold;
+  check('pedlar offers exist on the boss floor', !!(shop && shop.offers && shop.offers.length === 3));
+  check('level 2 cannot buy a sealed unique', shop && g.rollShopUnique(shop.offers[0]) == null);
+  w.buyUnique(0);
+  check('a refused purchase does not spend gold or mark the offer sold', p.gold === beforeGold && shop.offers[0] && shop.offers[0].sold !== true, p.gold);
+  if (w.setState) w.setState('play');
+  w.openShop && w.openShop();
+  w.renderShop && w.renderShop();
+  const rows = w.document.getElementById('shUniCv');
+  check('the sealed list draws no unique rows at level 2', rows && (!rows._rows713 || rows._rows713.length === 0), rows && rows._rows713 && rows._rows713.length);
+  w.closeShop && w.closeShop();
+  pin(p, 3);
+  const bought = g.rollShopUnique(shop.offers[0]);
+  check('level 3 still buys a unique from the same offer', bought && bought.rarity === 3 && bought.reqLvl === g.calcReqLvl(bought), bought && bought.rarity);
+
+  pin(p, 12);
+  const rareP = Math.min(0.6, 0.15 + 5 * 0.012);
+  let chestRare = 0, chestWhite = 0, chestUniq = 0, chestN = 0;
+  for (let i = 0; i < 400; i++) {
+    const it = w.chestLoot(5);
+    chestN++;
+    if (it.rarity === 0) chestWhite++;
+    else if (it.rarity === 2) chestRare++;
+    else if (it.rarity >= 3) chestUniq++;
+  }
+  const chestRate = chestRare / chestN;
+  check('level 12 chest table matches the old rare rate', chestWhite === 0 && chestUniq === 0 && Math.abs(chestRate - rareP) < 0.08, chestRate.toFixed(3) + ' vs ' + rareP.toFixed(3));
+  let seRare = 0, seUniq = 0;
+  w.__seUnique = undefined;
+  for (let i = 0; i < 40; i++) {
+    const it = g.seRollGear(1);
+    if (it.rarity === 2 && it.lvl === 1) seRare++;
+    if (it.rarity === 3) seUniq++;
+  }
+  check('level 12 depth 1 super elite stays a rare', seRare === 40 && seUniq === 0, seRare + '/' + seUniq);
+  let deepU = 0;
+  for (let i = 0; i < 20; i++) if (g.seRollGear(10).rarity === 3) deepU++;
+  check('level 12 depth 10 super elite stays a unique', deepU === 20, deepU);
+  w.__giltUnique = 0;
+  const giltU = g.giltGear(8);
+  w.__giltUnique = 0.2;
+  const giltR = g.giltGear(8);
+  check('level 12 gilt odds are unchanged', giltU.rarity === 3 && giltU.lvl === 9 && giltR.rarity === 2 && giltR.lvl === 9, giltU.rarity + '/' + giltR.rarity);
+
+  w.Math.random = origRandom;
+  finish();
+}
+</script>
+</body>
+</html>
