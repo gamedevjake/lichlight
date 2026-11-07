@@ -91,7 +91,7 @@ function run(w) {
     const e = g.seSpawn717(id, 'fight');
     if (!e || e.maxHp !== seHp || e.maxShield !== seSh || e.affix || !e.resists) seBad.push(id + ' hp ' + (e && e.maxHp));
     const fire = e && e.resists ? e.resists.Fire : 0;
-    const dealt = Math.max(1, Math.round(64 * (100 - fire) / 100));
+    const dealt = Math.max(1, Math.round(64 * (100 - fire) / 100 * g.seTakenMul(g.depth)));
     if (e) {
       e.shield = 0; e.hp = 400; e.sePhase = 'fight';
       const hit = g.damageEnemy(e, 64, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, scale: false });
@@ -445,7 +445,10 @@ function run(w) {
   const sePhys = g.damageEnemy(resistSE, 100, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
   const seFire = g.damageEnemy(resistSE, 100, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, scale: false });
   const fireOnce = seFire && seFire.components && seFire.components[0];
-  check('physical is unchanged and fire resist applies once on a super elite', resistSE.hp === 320 && sePhys.amount === 100 && fireOnce && fireOnce.penHits === 1 && fireOnce.resistPct === 20, resistSE.hp + ' fire ' + (seFire && seFire.amount));
+  const keep5 = g.seTakenMul(g.depth);
+  const physAmt = Math.max(1, Math.round(100 * keep5));
+  const fireAmt = Math.max(1, Math.round(100 * 0.8 * keep5));
+  check('physical skips resist and fire resist applies once before fortitude', resistSE.hp === 500 - physAmt - fireAmt && sePhys.amount === physAmt && seFire && seFire.amount === fireAmt && fireOnce && fireOnce.penHits === 1 && fireOnce.resistPct === 20, resistSE.hp + ' phys ' + (sePhys && sePhys.amount) + ' fire ' + (seFire && seFire.amount));
 
   finish();
 }

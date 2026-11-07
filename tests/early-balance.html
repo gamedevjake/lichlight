@@ -43,11 +43,19 @@ function run(w) {
   check('version untouched', g && g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, (g && g.version) + ' ' + ver);
   check('grandfather policy is named', g.REQ_POLICY === 'grandfather-owned');
 
-  const life = { 1: 80, 2: 102, 3: 119, 4: 133, 5: 141 };
-  const shield = { 1: 8, 2: 10, 3: 12, 4: 13, 5: 14 };
-  const swing = { 1: 6, 2: 8, 3: 10, 4: 11, 5: 13 };
-  const power = { 1: 19, 2: 22, 3: 23, 4: 22, 5: 21 };
-  const brand = { 1: 13, 2: 14, 3: 15, 4: 15, 5: 11 };
+  const life = { 1: 80, 2: 102, 3: 119, 4: 133 };
+  const shield = { 1: 8, 2: 10, 3: 12, 4: 13 };
+  const swing = { 1: 6, 2: 8, 3: 10, 4: 11 };
+  const power = { 1: 19, 2: 22, 3: 23, 4: 22 };
+  const brand = { 1: 13, 2: 14, 3: 15, 4: 15 };
+  function hpOf(d) {
+    const body = g.seFadeHp717(d);
+    const mul = g.seLifeMul(d);
+    return mul === 1 ? body : Math.round(body * mul);
+  }
+  function dealtOf(d, kind) {
+    return Math.max(1, Math.round(g.seBaseDmg717(d) * g.seDmgMul(d) * g.seTellMul(kind, d)));
+  }
   g.newGame();
   let p = calm(g, w);
   const rows = [];
@@ -76,19 +84,24 @@ function run(w) {
       if (Math.abs(mul - expectMul[kind]) > 1e-9) rows.push('d' + d + ' ' + kind + ' mul ' + mul);
     }
     if (e.maxHp !== hp || e.maxShield !== sh) rows.push('d' + d + ' spawn ' + e.maxHp + '/' + hp);
-    if (d <= 5) {
-      if (hp !== life[d] || sh !== shield[d]) rows.push('d' + d + ' pool ' + hp + '/' + sh);
-      if (dealt.swing !== swing[d] || dealt.power !== power[d] || dealt.brand !== brand[d]) rows.push('d' + d + ' hit ' + dealt.swing + '/' + dealt.power + '/' + dealt.brand);
+    if (hp !== hpOf(d) || sh !== Math.round(hpOf(d) * g.SE_SHIELD_FRAC)) rows.push('d' + d + ' pool ' + hp + '/' + sh);
+    if (dealt.swing !== dealtOf(d, 'swing') || dealt.power !== dealtOf(d, 'power') || dealt.brand !== dealtOf(d, 'brand')) rows.push('d' + d + ' hit ' + dealt.swing + '/' + dealt.power + '/' + dealt.brand);
+    if (d <= 4) {
+      if (hp !== life[d] || sh !== shield[d]) rows.push('d' + d + ' early pool ' + hp + '/' + sh);
+      if (dealt.swing !== swing[d] || dealt.power !== power[d] || dealt.brand !== brand[d]) rows.push('d' + d + ' early hit ' + dealt.swing + '/' + dealt.power + '/' + dealt.brand);
     } else {
-      if (hp !== base) rows.push('d' + d + ' life moved ' + hp + ' base ' + base);
+      if (g.seFadeHp717(d) !== base) rows.push('d' + d + ' fade body ' + g.seFadeHp717(d) + ' base ' + base);
+      if (hp === base) rows.push('d' + d + ' life skipped the life table ' + hp);
       if (Math.abs(g.seTellMul('power', d) - 1.7) > 1e-9 || Math.abs(g.seTellMul('brand', d) - 0.85) > 1e-9) rows.push('d' + d + ' mul not baseline');
     }
     if (Math.abs(g.seTellMul('swing', d) - 1) > 1e-9) rows.push('d' + d + ' swing mul');
     e.hp = 0; e.dead = true;
   }
-  check('depths 1-5 match the approved table and 5+ stays on the old body', rows.length === 0, rows.join(' | '));
+  check('depths 1-4 match the approved table and 5+ follows the life and damage tables', rows.length === 0, rows.join(' | '));
   check('tell geometry is unchanged', g.SE_TELL.swing.dur === 1 && g.SE_TELL.swing.mul === 1 && g.SE_TELL.power.dur === 1.3 && g.SE_TELL.power.mul === 1.7 && g.SE_TELL.power.r === 10 && g.SE_TELL.brand.dur === 1.15 && g.SE_TELL.brand.mul === 0.85 && g.SE_TELL.brand.r === 8);
-  check('depth 5 brand stays 11, not the audit 14', brand[5] === 11);
+  const brand85 = Math.max(1, Math.round(g.seBaseDmg717(5) * g.seDmgMul(5) * 0.85));
+  const brand115 = Math.max(1, Math.round(g.seBaseDmg717(5) * g.seDmgMul(5) * 1.15));
+  check('depth 5 brand tell stays 0.85, not the audit 1.15', g.seTellMul('brand', 5) === 0.85 && brand85 !== brand115 && brand85 !== 14, brand85 + '/' + brand115);
 
   g.startFloor(1, true); p = calm(g, w);
   if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
@@ -240,22 +253,39 @@ function run(w) {
     const e = g.seSpawn717('se_morbius', 'fight');
     e.sePhase = 'fight'; e.shield = e.maxShield; e.hp = e.maxHp;
     let hits = 0, half = null;
-    while (e.hp > 0 && hits < 80) {
+    while (e.hp > 0 && hits < 400) {
       w.damageEnemy(e, dmg, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], critApplied: true, scale: false });
       hits++;
       if (half == null && e.hp <= e.maxHp * 0.5) half = hits;
     }
     return { hits, time: Math.round(hits * period * 100) / 100, window: Math.round((hits - half) * period * 100) / 100, dead: e.hp <= 0 };
   }
+  function expectKill(d, dmg, period) {
+    const hpMax = g.seMaxHp717(d);
+    const hit = Math.max(1, Math.round(dmg * g.seTakenMul(d)));
+    let hp = hpMax, shield = Math.round(hpMax * g.SE_SHIELD_FRAC), hits = 0, half = null;
+    while (hp > 0 && hits < 400) {
+      let left = hit;
+      const abs = Math.min(shield, left);
+      shield -= abs;
+      left -= abs;
+      if (left > 0) hp -= left;
+      hits++;
+      if (half == null && hp <= hpMax * 0.5) half = hits;
+    }
+    return { time: Math.round(hits * period * 100) / 100, window: Math.round((hits - half) * period * 100) / 100, dead: hp <= 0 };
+  }
   const near = (got, want, name, bag) => { if (Math.abs(got - want) > 0.06) bag.push(name + ' ' + got + '!=' + want); };
   const ttkBad = [];
-  const r1 = ttk(1, 4, 0.45); near(r1.time, 9.9, 'd1 rusty', ttkBad); near(r1.window, 4.5, 'd1 rusty window', ttkBad);
+  const r1 = ttk(1, 4, 0.45); near(r1.time, 9.9, 'd1 rusty', ttkBad); near(r1.window, 4.5, 'd1 rusty window', ttkBad); near(r1.time, expectKill(1, 4, 0.45).time, 'd1 rusty formula', ttkBad);
   const c1 = ttk(1, 5, 0.45); near(c1.time, 8.1, 'd1 common', ttkBad); near(c1.window, 3.6, 'd1 common window', ttkBad);
   const a1 = ttk(1, 6, 0.45); near(a1.time, 6.8, 'd1 rare', ttkBad); near(a1.window, 3.2, 'd1 rare window', ttkBad);
   const u1 = ttk(1, 12, 0.45 / 1.21); near(u1.time, 3.0, 'd1 unique', ttkBad); near(u1.window, 1.5, 'd1 unique window', ttkBad);
   const u1max = ttk(1, 14, 0.45 / 1.21); near(u1max.window, 1.1, 'd1 unique max window', ttkBad);
-  const r5 = ttk(5, 4, 0.45); near(r5.time, 17.5, 'd5 rusty', ttkBad); near(r5.window, 7.6, 'd5 rusty window', ttkBad);
-  check('time to kill matches the audit for common, rare, and unique', ttkBad.length === 0 && u1.window >= 1.3 && u1max.window < 1.3 && r5.dead, ttkBad.join(' | '));
+  const r5 = ttk(5, 4, 0.45);
+  const want5 = expectKill(5, 4, 0.45);
+  near(r5.time, want5.time, 'd5 rusty', ttkBad); near(r5.window, want5.window, 'd5 rusty window', ttkBad);
+  check('depth 1 time to kill matches the audit and depth 5 follows life and taken', ttkBad.length === 0 && u1.window >= 1.3 && u1max.window < 1.3 && r5.dead && want5.dead, ttkBad.join(' | '));
 
   g.newGame(); p = g.player; p.lvl = 2; w.computeStats();
   p.equip = blankEquip();
