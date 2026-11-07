@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<!-- Design sim only. Reads the live game. Does not change gameplay. -->
+<html>
+<head><meta charset="utf-8"><title>se-ranged-design</title></head>
+<body>
+<iframe id="g" src="../../index.html?v=se-ranged-design" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { fail(e); }
+});
+function fail(e) {
+  document.getElementById('out').textContent = JSON.stringify({ error: String(e && e.stack || e) });
+  document.title = 'FAIL 1';
+}
+function r1(n) { return Math.round(n * 10) / 10; }
+function r3(n) { return Math.round(n * 1000) / 1000; }
+function med(a, b) {
+  const n = b - a + 1;
+  if (n <= 1) return a;
+  if (n % 2) return a + (n >> 1);
+  return Math.round(((a + (n >> 1) - 1) + (a + (n >> 1))) / 2);
+}
+const BASE_PICK = [
+  { slot: 'weapon', icon: 'sword', name: 'Short Sword', lvl: 1 },
+  { slot: 'weapon', icon: 'sword', name: 'Broad Sword', lvl: 3 },
+  { slot: 'weapon', icon: 'sword', name: 'Rune Blade', lvl: 9 },
+  { slot: 'weapon', icon: 'staff', name: 'Gnarled Staff', lvl: 2 },
+  { slot: 'weapon', icon: 'staff', name: 'Archon Staff', lvl: 9 },
+  { slot: 'weapon', icon: 'bow', name: 'Short Bow', lvl: 2 },
+  { slot: 'armor', name: 'Leather Armor', lvl: 1 },
+  { slot: 'armor', name: 'Chain Mail', lvl: 3 },
+  { slot: 'armor', name: 'Plate Mail', lvl: 6 },
+  { slot: 'armor', name: 'Dusk Shroud', lvl: 9 },
+  { slot: 'helm', name: 'Cap', lvl: 1 },
+  { slot: 'helm', name: 'Helm', lvl: 2 },
+  { slot: 'helm', name: 'Great Helm', lvl: 5 },
+  { slot: 'helm', name: 'Bone Visage', lvl: 8 },
+  { slot: 'boots', name: 'Boots', lvl: 1 },
+  { slot: 'boots', name: 'Greaves', lvl: 4 },
+  { slot: 'shield', name: 'Wooden Buckler', lvl: 1 },
+  { slot: 'shield', name: 'Round Shield', lvl: 3 },
+  { slot: 'shield', name: 'Kite Shield', lvl: 6 },
+  { slot: 'shield', name: 'Tower Shield', lvl: 10 },
+  { slot: 'shield', name: 'Gothic Shield', lvl: 14 },
+  { slot: 'amulet', name: 'Copper Charm', lvl: 1 },
+  { slot: 'amulet', name: 'Bone Pendant', lvl: 4 },
+  { slot: 'amulet', name: 'Silver Locket', lvl: 7 },
+  { slot: 'amulet', name: 'Choir Medallion', lvl: 10 }
+];
+// Proposed bolt. Not in the game. The sim applies it on top of the live melee tells.
+const BOLT = {
+  minDepth: 5,
+  near: 40,
+  far: 64,
+  dwell: 0.35,
+  wind: 0.90,
+  lock: 0.50,
+  speed: 160,
+  radius: 3,
+  lane: 16,
+  gap: 2.6,
+  range: 220,
+  mul: 0.85
+};
+
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  w.__hurtSpread = 1;
+  w.__champCrit = 1;
+  delete w.__seTune;
+  g.newGame();
+  const p = g.player;
+  p.learned = [true, true, true];
+
+  function best(slot, d, icon) {
+    let win = null;
+    BASE_PICK.forEach(b => {
+      if (b.slot !== slot || b.lvl > d + 1) return;
+      if (icon && b.icon !== icon) return;
+      if (!win || b.lvl > win.lvl) win = b;
+    });
+    return win;
+  }
+  function forge(baseName, L, rarity, extra) {
+    const it = w.makeItem(L, 0, baseName);
+    it.rarity = rarity;
+    it.name = baseName;
+    it.mods = it.mods || {};
+    if (it.slot === 'ring') it.mods = {};
+    if (extra) for (const k in extra) it.mods[k] = (it.mods[k] || 0) + extra[k];
+    it.reqLvl = w.calcReqLvl(it);
+    if (it.maxDur) it.dur = it.maxDur;
+    return it;
+  }
+  function equip(items) {
+    ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet'].forEach(s => { p.equip[s] = null; });
+    items.forEach(it => { p.equip[it.slot] = it; });
+    w.computeStats();
+    p.hp = p.st.maxHp; p.mp = p.st.maxMp; p.inv0 = 0; p.roll = 0;
+    w.clearStatuses(p);
+  }
+  function setLevel(lv) { p.lvl = lv; p.xp = -1e12; w.computeStats(); p.hp = p.st.maxHp; p.mp = p.st.maxMp; }
+  function kit(d, kind) {
+    const L = d;
+    if (kind === 'under') return [forge('Rusty Sword', 1, 0, null)];
+    const items = [];
+    if (kind === 'bow') items.push(forge('Short Bow', L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2), crit: med(3, 6 + L) }));
+    else if (kind === 'caster') items.push(forge(best('weapon', d, 'staff').name, L, 2, { fire: med(2, 4 + L * 2), ias: med(5, 10 + L * 2) }));
+    else items.push(forge(best('weapon', d, 'sword').name, L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2), crit: med(3, 6 + L) }));
+    const armor = best('armor', d), helm = best('helm', d), boots = best('boots', d), shield = best('shield', d), amulet = best('amulet', d);
+    items.push(forge(armor.name, L, 2, { def: med(1, 2 + L), hp: med(4, 8 + L * 3) }));
+    items.push(forge(helm.name, L, 2, { hp: med(4, 8 + L * 3), resFire: med(6, 8 + Math.floor(L / 2)) }));
+    items.push(forge(boots.name, L, 2, { def: med(1, 2 + L), hp: Math.round(med(4, 8 + L * 3) / 2) }));
+    items.push(forge(shield.name, L, 2, { def: med(1, 2 + L) }));
+    items.push(forge(amulet.name, L, 2, { hp: med(4, 8 + L * 3), fire: Math.max(2, Math.round(med(2, 4 + L * 2) / 3)) }));
+    if (kind === 'caster') items.push(forge('Ring', L, 2, { fire: med(2, 4 + L * 2), mp: med(4, 8 + L * 2) }));
+    else if (kind === 'bow') items.push(forge('Ring', L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2) }));
+    else items.push(forge('Ring', L, 2, { dmg: med(1, 2 + L), ias: Math.max(5, Math.round(med(5, 10 + L * 2) / 2)) }));
+    return items;
+  }
+  function actor(d, id) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717(id || 'se_nyx', 'fight');
+    e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.hp = e.maxHp; e.shield = e.maxShield;
+    e.x = p.x + 24; e.y = p.y; e.seStep = 0; e.seAct = ''; e.seCd = 0.6; e.spd = 0;
+    w.clearStatuses(e); g.ensurePoise(e); e.poise = e.poiseMax; e.staggerImmune = 0;
+    if (g.state !== 'play') w.setState('play');
+    return e;
+  }
+  function stanceDist(build, style) {
+    if (build === 'bow') return Math.hypot(140, style === 'kite' ? 24 : 0);
+    if (style === 'kite') return Math.hypot(28, 20);
+    return 14;
+  }
+  function place(e, build, style) {
+    if (build === 'bow') { p.x = e.x + 140; p.y = e.y + (style === 'kite' ? 24 : 0); }
+    else if (style === 'kite') { p.x = e.x + 28; p.y = e.y + 20; }
+    else { p.x = e.x + 14; p.y = e.y; }
+    p.inv0 = 0; p.roll = 0;
+  }
+  function strike(e, kind, build, style) {
+    place(e, build, style);
+    p.hp = 1e6; p.inv0 = 0;
+    const row = g.SE_TELL[kind];
+    let spec = null;
+    if (kind === 'swing') spec = { x: e.x, y: e.y, a: 0, len: row.len, w: row.w };
+    else if (kind === 'power') spec = { x: e.x, y: e.y, r: g.sePowerReach(g.depth) };
+    else {
+      const dodge = style === 'kite' && build === 'bow';
+      spec = { x: p.x, y: dodge ? p.y + 40 : p.y, r: g.seBrandReach() };
+    }
+    e.seAct = ''; e.sePhase = 'fight'; e.dead = false; e.hp = Math.max(e.hp, 1);
+    const hit = g.seResolveTell(e, kind, spec);
+    const dealt = Math.max(0, 1e6 - p.hp);
+    p.hp = 1e6; p.inv0 = 0;
+    return { hit: hit, dealt: dealt };
+  }
+  function boltDealt(e) {
+    p.hp = 1e6; p.inv0 = 0; p.st.block = 0;
+    e.seAct = ''; e.sePhase = 'fight'; e.dead = false; e.hp = Math.max(1, e.hp);
+    w.hurtPlayer(e.dmg * BOLT.mul, e);
+    const dealt = Math.max(0, 1e6 - p.hp);
+    p.hp = p.st.maxHp; p.inv0 = 0;
+    return dealt;
+  }
+
+  // --- power circle: draw radius, center, and the moment it is tested ---
+  g.startFloor(5, true);
+  if (g.state !== 'play') w.setState('play');
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  g.enemies.forEach(e => { if (e) { e.hp = 0; e.dead = true; } });
+  const powE = g.seSpawn717('se_nyx', 'fight');
+  powE.sePhase = 'fight'; powE.dead = false; powE.spd = 0; powE.seAct = ''; powE.hp = powE.maxHp; powE.dmg = 10;
+  powE.x = p.x; powE.y = p.y;
+  g.enemies.forEach(e => { if (e !== powE) { e.hp = 0; e.dead = true; } });
+  g.teles.length = 0;
+  if (g.hazards) g.hazards.length = 0;
+  g.projs.length = 0;
+  p.x = powE.x + 10; p.y = powE.y; p.st.maxHp = 500; p.hp = 500; p.st.regen = 0; p.inv0 = 0; p.st.def = 0; p.st.block = 0;
+  g.seBeginTell(powE, 'power');
+  const pow = g.teles.find(t => t.seTell === 'power');
+  const drawSrc = w.drawTeles.toString();
+  const hitSrc = g.seTeleHit.toString();
+  const updSrc = w.updateEnemies.toString();
+  let seen = null;
+  const origDone = pow.onDone;
+  pow.onDone = T => {
+    seen = { x: T.x, y: T.y, r: T.r, ex: powE.x, ey: powE.y, t: T.t };
+    return origDone(T);
+  };
+  for (let i = 0; i < 10; i++) g.step(0.05, { x: 0, y: 0 });
+  const midHp = p.hp;
+  powE.x += 7; powE.y -= 4;
+  while (g.teles.indexOf(pow) >= 0 && pow.t < 2) g.step(0.05, { x: 0, y: 0 });
+  p.hp = 500; p.inv0 = 0; powE.seAct = ''; g.teles.length = 0;
+  g.seBeginTell(powE, 'power');
+  const edge = g.teles.find(t => t.seTell === 'power');
+  p.x = powE.x + edge.r; p.y = powE.y;
+  const onEdge = g.seTeleHit('power', edge, p.x, p.y);
+  p.x = powE.x + edge.r + 2;
+  const outside = g.seTeleHit('power', edge, p.x, p.y);
+  const powerCircle = {
+    depth: 5,
+    reach: g.sePowerReach(5),
+    teleR: edge.r,
+    match: edge.match === true,
+    followsBody: edge.follow === powE,
+    pinned: !!edge.pin,
+    strokeUsesFullRadius: drawSrc.indexOf('T.r') >= 0 && drawSrc.indexOf('T.match ? 1 : .7') >= 0,
+    hitUsesTeleRadius: hitSrc.indexOf('spec.r') >= 0,
+    followBeforeResolve: updSrc.indexOf('T.follow && !T.pin') >= 0 && updSrc.indexOf('T.onDone(T)') > updSrc.indexOf('T.follow'),
+    noDamageDuringWindup: midHp === 500,
+    evaluatedCenterIsBody: !!(seen && seen.x === seen.ex && seen.y === seen.ey && Math.abs(seen.r - 36) < 1e-6),
+    centerAtEval: seen,
+    hitOnOutline: onEdge === true,
+    missTwoPxOutside: outside === false,
+    quantizeNote: 'Stroke is centered on a circle of radius T.r at the rounded center plus half a pixel. The test uses the unrounded center and T.r. Ink can sit about half a pixel off that circle.'
+  };
+
+  // --- swing window vs latency ---
+  const speed = 62, half = 8, swingMul = 0.55;
+  function windowRow(win, fps, inputMs) {
+    const frame = 1 / fps;
+    const delay = frame + inputMs / 1000;
+    const left = Math.max(0, win - delay);
+    const travel = speed * left;
+    const swingTravel = speed * swingMul * win;
+    const lateSwing = speed * swingMul * Math.max(0, win - 0.15);
+    return {
+      window: win, fps: fps, inputMs: inputMs, delay: r3(delay),
+      travel: r1(travel), clears: travel + 1e-6 >= half,
+      swingWholeWindow: r1(swingTravel), swingClearsIfHeld: swingTravel + 1e-6 >= half,
+      swingAfter150ms: r1(lateSwing), swingLateClears: lateSwing + 1e-6 >= half
+    };
+  }
+  const windows = [0.20, 0.28, 0.32, 0.35];
+  const latencies = [];
+  windows.forEach(win => {
+    [[60, 50], [60, 80], [60, 100], [30, 80], [30, 100], [30, 150]].forEach(pair => {
+      latencies.push(windowRow(win, pair[0], pair[1]));
+    });
+  });
+  const recommend = latencies.filter(row => row.window === 0.32);
+  const swingWindow = {
+    currentLock: g.seSwingLock(5),
+    currentWindow: r3(g.SE_TELL.swing.dur - g.seSwingLock(5)),
+    half: half,
+    minTravelSec: r3(half / speed),
+    rows: latencies,
+    recommendWindow: 0.32,
+    recommendLock: r3(g.SE_TELL.swing.dur - 0.32),
+    recommendClears30fps100ms: recommend.some(row => row.fps === 30 && row.inputMs === 100 && row.clears),
+    currentFails30fps100ms: latencies.some(row => row.window === 0.20 && row.fps === 30 && row.inputMs === 100 && !row.clears)
+  };
+
+  // --- caster 2.3s trace ---
+  function traceCaster(d, lv) {
+    setLevel(lv);
+    equip(kit(d, 'caster'));
+    const e = actor(d, 'se_nyx');
+    p.st.block = 0;
+    const sheet = {
+      weapon: p.equip.weapon && p.equip.weapon.name,
+      mods: p.equip.weapon && p.equip.weapon.mods,
+      min: p.st.min, max: p.st.max, aspd: r3(p.st.aspd), crit: p.st.crit, critMul: p.st.critMul,
+      fire: p.st.fire, def: p.st.def, life: p.st.maxHp, mp: p.st.maxMp,
+      penFire: p.st.penFire, penAll: p.st.penAll, resFire: p.st.resFire,
+      period: r3(g.attackPeriod()),
+      mana: g.SKILLS[0].mana, cd: g.SKILLS[0].cd,
+      regen: r3(1.4 + p.lvl * 0.1)
+    };
+    const pw = p.st.fire + p.lvl * 2;
+    const amp = 1 + w.skillAmp(0) / 100;
+    const fbPre = (8 + pw * 1.4) * amp;
+    const hits = [];
+    let t = 0, atkCd = 0, fbCd = 0, seCd = 0.6, seStep = 0, tell = null;
+    let critAcc = 0, baseI = 0, nStaff = 0, nFb = 0, nCrit = 0, staffSum = 0, fbSum = 0, burnSum = 0;
+    const b0 = p.st.min, b1 = Math.max(p.st.min, p.st.max);
+    const pc = Math.min(1, Math.max(0, p.st.crit) / 100);
+    const mul = p.st.critMul || 2;
+    p.mp = p.st.maxMp;
+    const cap = 8;
+    while (e.hp > 0 && !e.dead && t < cap) {
+      p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * 0.1) * 0.05);
+      g.tickStatuses(e, 0.05);
+      const burned = w.__lastStatusTick && w.__lastStatusTick.id === 'burning' ? w.__lastStatusTick : null;
+      if (burned && burned.dealt > 0 && Math.abs((burned._seen || 0) - t) > 0.02) {
+        burned._seen = t;
+        burnSum += burned.dealt;
+        hits.push({ t: r3(t), skill: 'burn', amount: burned.dealt, hp: e.hp, shield: e.shield || 0 });
+      }
+      atkCd -= 0.05;
+      if (atkCd <= 0 && e.hp > 0) {
+        const base = b0 + ((baseI++) % (b1 - b0 + 1));
+        critAcc += pc;
+        let roll = base, isCrit = false;
+        if (critAcc >= 1) { critAcc -= 1; roll = base * mul; isCrit = true; nCrit++; }
+        const res = g.damageEnemy(e, roll, 0, 0, '#fff', isCrit, null, {
+          type: 'Physical', tags: ['Melee', 'Direct'], more: 1, critApplied: true, skill: 'melee', scale: true,
+          weaponFamily: 'staff'
+        });
+        nStaff++; staffSum += res.amount || 0;
+        hits.push({ t: r3(t), skill: 'staff', pre: roll, crit: !!res.crit, amount: res.amount, shieldAbs: res.shieldAbs, hpDmg: res.hpDmg, hp: e.hp, shield: e.shield || 0, resist: res.components && res.components[0] && res.components[0].resistPct });
+        atkCd += g.attackPeriod();
+      }
+      fbCd -= 0.05;
+      if (fbCd <= 0 && p.mp >= 4 && e.hp > 0 && !e.dead) {
+        p.mp -= 4; fbCd += 0.45; nFb++;
+        const res = g.damageEnemy(e, fbPre, 0, 0, '#ffa030', false, null, {
+          type: 'Fire', tags: ['Spell', 'Projectile'], critApplied: true, skill: 'fireball', scale: true
+        });
+        fbSum += res.amount || 0;
+        const comp = res.components && res.components[0];
+        hits.push({ t: r3(t), skill: 'fireball', pre: r1(fbPre), crit: !!res.crit, amount: res.amount, shieldAbs: res.shieldAbs, hpDmg: res.hpDmg, hp: e.hp, shield: e.shield || 0, resist: comp && comp.resistPct, pen: comp && comp.pen });
+        w.igniteFromSkill(e, pw, 1, g.skillBuild(0));
+      }
+      if (e.hp <= 0 || e.dead) break;
+      if (tell) {
+        tell.t += 0.05;
+        if (tell.t >= tell.dur - 1e-6) { tell = null; seCd = g.SE_TELL.swing.gap; }
+      } else {
+        seCd -= 0.05;
+        if (seCd <= 0) {
+          e.seStep = seStep;
+          const next = g.seNextKind(e);
+          seStep = (seStep + 1) % 6;
+          tell = { kind: next, t: 0, dur: g.SE_TELL[next].dur };
+        }
+      }
+      t += 0.05;
+    }
+    const mag = actor(d, 'se_magmafiend');
+    mag.hp = 1e7; mag.shield = 0;
+    const magHit = g.damageEnemy(mag, fbPre, 0, 0, '#ffa030', false, null, {
+      type: 'Fire', tags: ['Spell'], critApplied: true, skill: 'fireball', scale: true
+    });
+    return {
+      sheet: sheet,
+      pw: pw, amp: amp, fbPre: r1(fbPre),
+      se: { hp: e.maxHp, shield: e.maxShield, taken: g.seTakenMul(d), fire: e.resists && e.resists.Fire, all: e.resists && e.resists.All },
+      ttk: r3(t),
+      nStaff: nStaff, nFb: nFb, nCrit: nCrit,
+      staffSum: staffSum, fbSum: fbSum, burnSum: burnSum,
+      nyxFire: hits.filter(h => h.skill === 'fireball').map(h => h.amount),
+      magmaAmount: magHit.amount,
+      magmaResist: magHit.components && magHit.components[0] && magHit.components[0].resistPct,
+      hits: hits
+    };
+  }
+
+  function fight(d, lv, kind, style, proposal) {
+    setLevel(lv);
+    equip(kit(d, kind));
+    const e = actor(d, 'se_nyx');
+    p.st.block = 0;
+    const cast = kind === 'caster';
+    const bow = kind === 'bow';
+    const dist = stanceDist(kind, style);
+    const period = g.attackPeriod();
+    let t = 0, atkCd = 0, fbCd = 0, seCd = 0.6, seStep = 0, tell = null;
+    let shadow = p.st.maxHp, pots = 3, potsUsed = 0, diedAt = null, dmgIn = 0, boltIn = 0, bolts = 0;
+    let far = false, farT = 0, nearT = 0, boltCd = 0, bolt = null;
+    let critAcc = 0, baseI = 0;
+    const b0 = p.st.min, b1 = Math.max(p.st.min, p.st.max);
+    const pc = Math.min(1, Math.max(0, p.st.crit) / 100);
+    const mul = p.st.critMul || 2;
+    p.mp = p.st.maxMp;
+    const oneBolt = proposal ? boltDealt(e) : 0;
+    e.hp = e.maxHp; e.shield = e.maxShield; e.dead = false; e.sePhase = 'fight';
+    while (e.hp > 0 && !e.dead && t < 360) {
+      const dt = 0.05;
+      shadow = Math.min(p.st.maxHp, shadow + (p.st.regen || 0) * dt);
+      p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * 0.1) * dt);
+      if (shadow < p.st.maxHp * 0.4 && shadow > 0 && pots > 0) {
+        pots--; potsUsed++;
+        shadow = Math.min(p.st.maxHp, shadow + p.st.maxHp * 0.45 + 10);
+      }
+      g.tickStatuses(e, dt);
+      const locked = g.ccImmobilized(e);
+      if (locked) tell = null;
+      atkCd -= dt;
+      if (atkCd <= 0 && e.hp > 0 && !e.dead) {
+        const base = b0 + ((baseI++) % (b1 - b0 + 1));
+        critAcc += pc;
+        let roll = base, isCrit = false;
+        if (critAcc >= 1) { critAcc -= 1; roll = base * mul; isCrit = true; }
+        g.damageEnemy(e, roll, 0, 0, '#fff', isCrit, null, {
+          type: 'Physical', tags: bow ? ['Ranged', 'Projectile', 'Direct'] : ['Melee', 'Direct'],
+          more: 1, critApplied: true, skill: bow ? 'bow' : 'melee', scale: true,
+          weaponFamily: w.weaponFamilyOf(p).id
+        });
+        atkCd += period;
+      }
+      if (cast) fbCd -= dt;
+      if (cast && fbCd <= 0 && p.mp >= 4 && e.hp > 0 && !e.dead) {
+        p.mp -= 4; fbCd += 0.45;
+        const pw = p.st.fire + p.lvl * 2;
+        const amp = 1 + w.skillAmp(0) / 100;
+        g.damageEnemy(e, (8 + pw * 1.4) * amp, 0, 0, '#ffa030', false, null, {
+          type: 'Fire', tags: ['Spell', 'Projectile'], critApplied: true, skill: 'fireball', scale: true
+        });
+        w.igniteFromSkill(e, pw, 1, g.skillBuild(0));
+      }
+      if (e.hp <= 0 || e.dead) break;
+      if (proposal && g.depth >= BOLT.minDepth) {
+        if (dist >= BOLT.far) { farT += dt; nearT = 0; if (!far && farT >= BOLT.dwell) far = true; }
+        else if (dist <= BOLT.near) { nearT += dt; farT = 0; if (far && nearT >= BOLT.dwell) far = false; }
+        else { farT = 0; nearT = 0; }
+        if (bolt) {
+          bolt.t += dt;
+          if (bolt.t >= BOLT.wind - 1e-6) {
+            const eats = style === 'stand' && dist >= BOLT.far && dist <= BOLT.range && !locked;
+            if (eats) { dmgIn += oneBolt; boltIn += oneBolt; shadow -= oneBolt; bolts++; if (shadow <= 0 && diedAt == null) diedAt = t; }
+            else bolts++;
+            bolt = null; boltCd = BOLT.gap;
+          }
+        } else if (far && boltCd <= 0 && dist <= BOLT.range) bolt = { t: 0 };
+        else if (boltCd > 0) boltCd -= dt;
+      }
+      if (tell) {
+        tell.t += dt;
+        if (tell.t >= tell.dur - 1e-6) {
+          const res = locked ? { hit: 0, dealt: 0 } : strike(e, tell.kind, kind, style);
+          if (res.hit) { dmgIn += res.dealt; shadow -= res.dealt; if (shadow <= 0 && diedAt == null) diedAt = t; }
+          seCd = g.SE_TELL[tell.kind].gap;
+          tell = null;
+        }
+      } else if (!locked && !bolt) {
+        seCd -= dt;
+        if (seCd <= 0) {
+          e.seStep = seStep;
+          const next = g.seNextKind(e);
+          seStep = (seStep + 1) % 6;
+          e.seStep = seStep;
+          tell = { kind: next, t: 0, dur: g.SE_TELL[next].dur };
+        }
+      }
+      t += dt;
+    }
+    const done = e.hp <= 0 || e.dead;
+    return {
+      depth: d, build: kind, style: style, proposal: !!proposal,
+      ttk: done ? r1(t) : null,
+      dmgIn: r1(dmgIn), boltIn: r1(boltIn), bolts: bolts, oneBolt: oneBolt,
+      pots: potsUsed, diedAt: diedAt == null ? null : r1(diedAt),
+      life: p.st.maxHp, seHp: e.maxHp, dist: r1(dist)
+    };
+  }
+
+  function boltSchedule(distAt) {
+    let far = false, farT = 0, nearT = 0, boltCd = 0, bolt = null, n = 0, committed = 0;
+    const log = [];
+    for (let t = 0; t < 20; t += 0.05) {
+      const dist = distAt(t);
+      if (dist >= BOLT.far) { farT += 0.05; nearT = 0; if (!far && farT >= BOLT.dwell) far = true; }
+      else if (dist <= BOLT.near) { nearT += 0.05; farT = 0; if (far && nearT >= BOLT.dwell) far = false; }
+      else { farT = 0; nearT = 0; }
+      if (bolt) {
+        bolt.t += 0.05;
+        if (bolt.t >= BOLT.wind - 1e-6) { n++; committed++; log.push(r1(t)); bolt = null; boltCd = BOLT.gap; }
+      } else if (far && boltCd <= 0 && dist <= BOLT.range) bolt = { t: 0 };
+      else if (boltCd > 0) boltCd -= 0.05;
+    }
+    return { bolts: n, times: log };
+  }
+
+  const caster = traceCaster(5, 9);
+  const depths = [5, 8, 12];
+  const levels = { 5: 9, 8: 13, 12: 20 };
+  const builds = ['melee', 'bow', 'caster', 'under'];
+  const now = [], proposal = [];
+  depths.forEach(d => builds.forEach(b => ['stand', 'kite'].forEach(style => {
+    now.push(fight(d, levels[d], b, style, false));
+    proposal.push(fight(d, levels[d], b, style, true));
+  })));
+  // A caster who actually keeps staff range, outside the power circle.
+  const farCaster = [5, 8, 12].map(d => {
+    const stand = fight(d, levels[d], 'caster', 'stand', true);
+    return null;
+  });
+  void farCaster;
+  function fightDist(d, lv, dist, dodge) {
+    setLevel(lv);
+    equip(kit(d, 'caster'));
+    const e = actor(d, 'se_nyx');
+    p.st.block = 0;
+    const oneBolt = boltDealt(e);
+    e.hp = e.maxHp; e.shield = e.maxShield; e.dead = false; e.sePhase = 'fight';
+    let t = 0, atkCd = 0, fbCd = 0, far = false, farT = 0, nearT = 0, boltCd = 0, bolt = null;
+    let shadow = p.st.maxHp, pots = 3, potsUsed = 0, diedAt = null, dmgIn = 0, boltIn = 0, boltsHit = 0;
+    let critAcc = 0, baseI = 0;
+    const b0 = p.st.min, b1 = Math.max(p.st.min, p.st.max);
+    const pc = Math.min(1, Math.max(0, p.st.crit) / 100);
+    const mul = p.st.critMul || 2;
+    p.mp = p.st.maxMp;
+    while (e.hp > 0 && !e.dead && t < 360) {
+      const dt = 0.05;
+      shadow = Math.min(p.st.maxHp, shadow + (p.st.regen || 0) * dt);
+      p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * 0.1) * dt);
+      if (shadow < p.st.maxHp * 0.4 && shadow > 0 && pots > 0) {
+        pots--; potsUsed++;
+        shadow = Math.min(p.st.maxHp, shadow + p.st.maxHp * 0.45 + 10);
+      }
+      g.tickStatuses(e, dt);
+      atkCd -= dt;
+      if (atkCd <= 0 && e.hp > 0) {
+        const base = b0 + ((baseI++) % (b1 - b0 + 1));
+        critAcc += pc;
+        let roll = base, isCrit = false;
+        if (critAcc >= 1) { critAcc -= 1; roll = base * mul; isCrit = true; }
+        g.damageEnemy(e, roll, 0, 0, '#fff', isCrit, null, {
+          type: 'Physical', tags: ['Melee', 'Direct'], more: 1, critApplied: true, skill: 'melee', scale: true, weaponFamily: 'staff'
+        });
+        atkCd += g.attackPeriod();
+      }
+      fbCd -= dt;
+      if (fbCd <= 0 && p.mp >= 4 && e.hp > 0 && !e.dead) {
+        p.mp -= 4; fbCd += 0.45;
+        const pw = p.st.fire + p.lvl * 2;
+        const amp = 1 + w.skillAmp(0) / 100;
+        g.damageEnemy(e, (8 + pw * 1.4) * amp, 0, 0, '#ffa030', false, null, {
+          type: 'Fire', tags: ['Spell', 'Projectile'], critApplied: true, skill: 'fireball', scale: true
+        });
+      }
+      if (e.hp <= 0 || e.dead) break;
+      if (dist >= BOLT.far) { farT += dt; nearT = 0; if (!far && farT >= BOLT.dwell) far = true; }
+      else if (dist <= BOLT.near) { nearT += dt; farT = 0; if (far && nearT >= BOLT.dwell) far = false; }
+      if (bolt) {
+        bolt.t += dt;
+        if (bolt.t >= BOLT.wind - 1e-6) {
+          if (!dodge) { dmgIn += oneBolt; boltIn += oneBolt; shadow -= oneBolt; boltsHit++; if (shadow <= 0 && diedAt == null) diedAt = t; }
+          bolt = null; boltCd = BOLT.gap;
+        }
+      } else if (far && boltCd <= 0) bolt = { t: 0 };
+      else if (boltCd > 0) boltCd -= dt;
+      t += dt;
+    }
+    return { depth: d, dist: dist, dodge: dodge, ttk: e.hp <= 0 || e.dead ? r1(t) : null, dmgIn: r1(dmgIn), boltIn: r1(boltIn), boltsHit: boltsHit, oneBolt: oneBolt, pots: potsUsed, diedAt: diedAt == null ? null : r1(diedAt), life: p.st.maxHp };
+  }
+  const casterFar = [];
+  depths.forEach(d => {
+    casterFar.push(fightDist(d, levels[d], 80, false));
+    casterFar.push(fightDist(d, levels[d], 80, true));
+  });
+
+  const hysteresis = {
+    holdFar: boltSchedule(() => 140),
+    flicker: boltSchedule(t => (Math.floor(t / 0.2) % 2 === 0 ? 30 : 90)),
+    slowToggle: boltSchedule(t => (Math.floor(t / 0.5) % 2 === 0 ? 30 : 90)),
+    diveCancels: boltSchedule(t => (t < 0.5 ? 140 : 20))
+  };
+
+  const out = {
+    version: g.version,
+    headNote: 'sim against the loaded index, design only',
+    bolt: BOLT,
+    powerCircle: powerCircle,
+    swingWindow: swingWindow,
+    caster: caster,
+    hysteresis: hysteresis,
+    now: now,
+    proposal: proposal,
+    casterFar: casterFar
+  };
+  document.getElementById('out').textContent = JSON.stringify(out);
+  document.title = 'PASS / 1';
+}
+</script>
+</body>
+</html>
