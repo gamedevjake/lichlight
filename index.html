@@ -3847,7 +3847,7 @@ function updateEnemies(dt) {
   }
   // telegraphs
   for (let i = teles.length - 1; i >= 0; i--) { const T = teles[i]; T.t += dt;
-    if (T.follow) { T.x = T.follow.x; T.y = T.follow.y; }
+    if (T.follow && !T.pin) { T.x = T.follow.x; T.y = T.follow.y; }
     if (T.kind === 'line' && T.src) { T.x = T.src.x; T.y = T.src.y; if (T.t < T.lockAt || (!T.lockAt && T.t < .02)) T.a = angTo(T.src, player) + (T.off || 0); }
     if (T.t >= T.dur) { teles.splice(i, 1); if (T.src && T.src.dead) continue; if (T.onDone && state === 'play') T.onDone(T); if (state !== 'play') return; }
   }
@@ -15412,12 +15412,59 @@ function seImg717(clip, t, face) {
   if (!fr) return null;
   return (face < 0 ? fr.l : fr.r) || fr.r;
 }
+function sePoseAct(kind) {
+  const row = SE_TELL[kind];
+  return (row && row.act) || 'attack';
+}
+function sePosePackKey(act) { return act === 'brand' ? 'taunt' : act; }
+function seActClip(pack, act) {
+  if (!pack || !act) return null;
+  const key = sePosePackKey(act);
+  return pack[key] || pack[act] || null;
+}
+function seStrikeLead(act, clip) {
+  const key = sePosePackKey(act);
+  const hf = clip && clip.hitFrame > 0 ? clip.hitFrame : (SE_HIT_FRAME[act] || SE_HIT_FRAME[key] || 3);
+  const ms = clip && clip.ms > 0 ? clip.ms : (SE_STATE_MS[key] || 95);
+  return { hf: hf, ms: ms, lead: (hf - 1) * ms / 1000 + 0.001 };
+}
+function sePoseHold(kind, clip) {
+  const row = SE_TELL[kind];
+  if (!row) return 0;
+  const info = seStrikeLead(sePoseAct(kind), clip);
+  return Math.max(0, row.dur - info.lead - SE_HIT_EARLY);
+}
+function sePoseLocal(kind, actT, clip) {
+  const hold = sePoseHold(kind, clip);
+  const t = actT > 0 ? actT : 0;
+  if (t < hold) return 0;
+  return t - hold;
+}
+function seFrameAt(kind, actT, clip) {
+  const info = seStrikeLead(sePoseAct(kind), clip);
+  const local = sePoseLocal(kind, actT, clip);
+  return Math.floor(local * 1000 / info.ms);
+}
+function seHitSync(kind) {
+  const row = SE_TELL[kind];
+  if (!row) return null;
+  const info = seStrikeLead(sePoseAct(kind), null);
+  const frameOnAt = sePoseHold(kind, null) + (info.hf - 1) * info.ms / 1000;
+  return { act: sePoseAct(kind), frame: info.hf - 1, frameOnAt: frameOnAt, soundAt: row.dur, slack: row.dur - frameOnAt };
+}
 function sePose717(e) {
   const pack = seClip717(e.seId);
   if (!pack) return null;
   if (e.hp <= 0 && pack.death) return { clip: pack.death, t: e.seT || 0 };
   if (e.sePhase === 'taunt' && pack.taunt) return { clip: pack.taunt, t: e.seT || 0 };
-  if (e.seAct && pack[e.seAct]) return { clip: pack[e.seAct], t: e.seActT || 0 };
+  if (e.sePoseLeft > 0 && e.sePose) {
+    const posed = seActClip(pack, e.sePose);
+    if (posed) return { clip: posed, t: e.sePoseT || 0 };
+  }
+  if (e.seAct) {
+    const clip = seActClip(pack, e.seAct);
+    if (clip) return { clip: clip, t: sePoseLocal(e.seKind || 'swing', e.seActT || 0, clip) };
+  }
   const moving = e._seMoved && e.sePhase === 'fight';
   if (moving && pack.walk) return { clip: pack.walk, t: e.anim || 0 };
   return { clip: pack.idle || pack.walk, t: e.anim || 0 };
@@ -15430,12 +15477,22 @@ function seSpawnVfx717(id, x, y, face) {
 // Swing sidestep, power circle, and brand are the three Super Elite tells.
 // The mul on each row is the depth-5+ ratio (swing 1, power 1.7, brand 0.85). It is not a phase-wide buff.
 // Depths 1-4 scale power and brand in seTellMul. Depth 5+ uses these muls exactly, including brand 0.85.
-// A 0.2 move floor still walks out of power and brand. The swing locks after 0.25s so the lane can be left.
+// The radii and the 0.25s swing lock in this table are the depth 1-4 tells. Depth 5+ keeps the durations,
+// the lane, and the brand radius, and reads reach and lock from sePowerReach / seSwingLock.
+// A 0.2 move floor still walks out of the depth 1-4 power and out of the brand. It does not walk out of a depth-5 sword-reach power.
 const SE_TELL = {
   swing: { dur: 1.0, gap: 0.7, w: 16, len: 52, hit: 8, mul: 1, act: 'attack', col: '#ff4040' },
   power: { dur: 1.3, gap: 0.9, r: 10, mul: 1.7, act: 'powerup', col: '#ff8040' },
-  brand: { dur: 1.15, gap: 0.75, r: 8, mul: 0.85, act: 'attack', col: '#c080ff' }
+  brand: { dur: 1.15, gap: 0.75, r: 8, mul: 0.85, act: 'brand', col: '#c080ff' }
 };
+// Sword reach is weapon 24 plus the Super Elite body 12. Depth 5+ power uses that as the drawn hit radius.
+const SE_SWORD_REACH = 36;
+const SE_SWING_LOCK_DEEP = 0.80;
+const SE_HIT_EARLY = 0.06; // the strike frame is up this long before the impact cue
+const SE_HIT_FRAME = { attack: 3, powerup: 4, taunt: 4, brand: 4 };
+const SE_WIND_CUE = { swing: 'cbt_tell_melee_01', power: 'cbt_tell_melee_02', brand: 'cbt_proj_magic_bolt_fly_01' };
+const SE_KIND_CUE = { power: 'cbt_hit_heavy_01', brand: 'cbt_proj_magic_bolt_impact_01' };
+const seFxLog = [];
 function seTellMul(kind, d) {
   const row = SE_TELL[kind];
   if (!row) return 1;
@@ -15447,6 +15504,45 @@ function seTellMul(kind, d) {
   }
   return row.mul;
 }
+function seDeepCombat(d) {
+  d = d == null ? (depth || 1) : d;
+  return d >= 5;
+}
+function seSwingLock(d) { return seDeepCombat(d) ? SE_SWING_LOCK_DEEP : 0.25; }
+function sePowerReach(d) {
+  if (seDeepCombat(d)) return SE_SWORD_REACH;
+  return SE_TELL.power.r + (typeof bodyR === 'function' ? bodyR() : 5);
+}
+function seBrandReach() { return SE_TELL.brand.r + (typeof bodyR === 'function' ? bodyR() : 5); }
+function seCircleHit(cx, cy, r, x, y) { return Math.hypot(x - cx, y - cy) <= r + 1e-6; }
+function seSwingHit(spec, x, y) {
+  const row = SE_TELL.swing;
+  const a = spec && Number.isFinite(+spec.a) ? +spec.a : 0;
+  const len = spec && spec.len > 0 ? spec.len : row.len;
+  const half = spec && spec.w > 0 ? spec.w / 2 : row.hit;
+  const x1 = spec && Number.isFinite(+spec.x) ? +spec.x : 0;
+  const y1 = spec && Number.isFinite(+spec.y) ? +spec.y : 0;
+  return segDist(x, y, x1, y1, x1 + Math.cos(a) * len, y1 + Math.sin(a) * len) <= half + 1e-6;
+}
+function seTeleHit(kind, spec, x, y) {
+  if (kind === 'swing') return seSwingHit(spec, x, y);
+  const cx = spec && Number.isFinite(+spec.x) ? +spec.x : 0;
+  const cy = spec && Number.isFinite(+spec.y) ? +spec.y : 0;
+  const rad = spec && spec.r > 0 ? spec.r : (kind === 'power' ? sePowerReach(depth) : seBrandReach());
+  return seCircleHit(cx, cy, rad, x, y);
+}
+function seHear(phase, kind, id, x, y, vol) {
+  if (!id) return;
+  seFxLog.push({ phase: phase, kind: kind, id: id, vol: vol });
+  if (seFxLog.length > 32) seFxLog.shift();
+  if (typeof cueAt === 'function') cueAt(id, x, y, 320, vol);
+}
+function seTellVfx(e, kind) {
+  const info = seRoster717(e.seId);
+  if (kind === 'brand') { seSpawnVfx717('rune_slam', e.seMx, e.seMy, 1); return; }
+  const id = kind === 'power' ? info.powerupVfx : info.attackVfx;
+  seSpawnVfx717(id, e.x + (e.face || 1) * 16, e.y - 10, e.face || 1);
+}
 function seFightPhase(e) {
   if (!e || !(e.maxHp > 0)) return 1;
   const f = e.hp / e.maxHp;
@@ -15455,7 +15551,9 @@ function seFightPhase(e) {
   return 1;
 }
 function seNextKind(e) {
-  const phase = seFightPhase(e), step = e && e.seStep | 0;
+  const step = e && e.seStep | 0;
+  if (seDeepCombat(depth)) return ['swing', 'power', 'brand'][step % 3];
+  const phase = seFightPhase(e);
   if (phase >= 3) return ['swing', 'power', 'brand'][step % 3];
   if (phase === 2) return step % 3 === 2 ? 'power' : 'swing';
   return 'swing';
@@ -15463,30 +15561,23 @@ function seNextKind(e) {
 function seClearTell(e) {
   if (!e) return;
   clearActorWindup(e);
-  e.seAct = ''; e.seKind = '';
+  e.seAct = ''; e.seKind = ''; e.sePose = ''; e.sePoseLeft = 0;
 }
 function seResolveTell(e, kind, spec) {
   const row = SE_TELL[kind];
   if (!row || !e || e.dead || e.hp <= 0 || e.sePhase !== 'fight' || state !== 'play' || !player) return 0;
-  if (ccImmobilized(e) || e.fearT > 0) { e.seAct = ''; e.seKind = ''; e.seCd = row.gap; return 0; }
-  let hit = false;
-  if (kind === 'swing') {
-    const a = spec && Number.isFinite(+spec.a) ? +spec.a : (e.seAim || 0);
-    const len = spec && spec.len > 0 ? spec.len : row.len;
-    const half = spec && spec.w > 0 ? spec.w / 2 : row.hit;
-    const x1 = spec && Number.isFinite(+spec.x) ? spec.x : e.x, y1 = spec && Number.isFinite(+spec.y) ? spec.y : e.y;
-    hit = segDist(player.x, player.y, x1, y1, x1 + Math.cos(a) * len, y1 + Math.sin(a) * len) <= half;
-  } else if (kind === 'power' || kind === 'brand') {
-    const cx = spec && Number.isFinite(+spec.x) ? spec.x : (kind === 'power' ? e.x : e.seMx);
-    const cy = spec && Number.isFinite(+spec.y) ? spec.y : (kind === 'power' ? e.y : e.seMy);
-    const rad = spec && spec.r > 0 ? spec.r : row.r + bodyR();
-    hit = Math.hypot(player.x - cx, player.y - cy) <= rad;
-  }
-  const cueId = SE_ATK_CUE[e.seId] || 'enm_se_attack_01';
-  if (typeof cueAt === 'function') cueAt(cueId, e.x, e.y, 320, kind === 'power' ? 1 : 0.85);
-  const info = seRoster717(e.seId);
-  seSpawnVfx717(kind === 'power' ? info.powerupVfx : info.attackVfx, e.x + (e.face || 1) * 16, e.y - 10, e.face || 1);
+  if (ccImmobilized(e) || e.fearT > 0) { e.seAct = ''; e.seKind = ''; e.sePose = ''; e.sePoseLeft = 0; e.seCd = row.gap; return 0; }
+  const hit = !!seTeleHit(kind, spec, player.x, player.y);
+  const voice = SE_ATK_CUE[e.seId] || 'enm_se_attack_01';
+  const kindCue = SE_KIND_CUE[kind] || '';
+  if (kindCue) seHear('impact', kind, kindCue, e.x, e.y, 1);
+  seHear('impact', kind, voice, e.x, e.y, kindCue ? 0.35 : (kind === 'power' ? 1 : 0.85));
+  seTellVfx(e, kind);
   if (hit) hurtPlayer(e.dmg * seTellMul(kind, depth), e);
+  const clip = seActClip(seClip717(e.seId), row.act);
+  e.sePose = row.act;
+  e.sePoseT = seStrikeLead(row.act, clip).lead;
+  e.sePoseLeft = 0.18;
   e.seAct = ''; e.seKind = ''; e.seCd = row.gap;
   return hit ? 1 : 0;
 }
@@ -15496,10 +15587,13 @@ function seBeginTell(e, kind) {
   e.seAim = Math.atan2(player.y - e.y, player.x - e.x);
   e.seMx = player.x; e.seMy = player.y;
   e.seAct = row.act; e.seActT = 0; e.seHit = true; e.seKind = kind;
+  e.sePose = ''; e.sePoseLeft = 0;
   e.seStep = ((e.seStep | 0) + 1) % 6;
-  if (kind === 'swing') tele({ kind: 'line', x: e.x, y: e.y, w: row.w, len: row.len, dur: row.dur, a: e.seAim, col: row.col, src: e, lockAt: 0.25, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'swing', T2) });
-  else if (kind === 'power') tele({ kind: 'circle', x: e.x, y: e.y, r: row.r + bodyR(), dur: row.dur, follow: e, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'power', T2) });
-  else tele({ kind: 'circle', x: player.x, y: player.y, r: row.r + bodyR(), dur: row.dur, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'brand', T2) });
+  seHear('wind', kind, SE_WIND_CUE[kind], e.x, e.y, 0.8);
+  seTellVfx(e, kind);
+  if (kind === 'swing') tele({ kind: 'line', x: e.x, y: e.y, w: row.w, len: row.len, dur: row.dur, a: e.seAim, col: row.col, src: e, lockAt: seSwingLock(depth), seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'swing', T2) });
+  else if (kind === 'power') tele({ kind: 'circle', x: e.x, y: e.y, r: sePowerReach(depth), dur: row.dur, follow: e, col: row.col, src: e, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'power', T2) });
+  else tele({ kind: 'circle', x: player.x, y: player.y, r: seBrandReach(), dur: row.dur, col: row.col, src: e, pin: true, seTell: kind, match: true, onDone: T2 => seResolveTell(e, 'brand', T2) });
   return true;
 }
 function seTick717(dt) {
@@ -15508,6 +15602,11 @@ function seTick717(dt) {
   if (!enemies) return;
   for (const e of enemies) {
     if (!e.superElite || e.dead || e.hp <= 0) continue;
+    if (e.sePoseLeft > 0) {
+      e.sePoseLeft -= dt;
+      e.sePoseT = (e.sePoseT || 0) + dt;
+      if (e.sePoseLeft <= 0) { e.sePose = ''; e.sePoseLeft = 0; }
+    }
     e.state = 'chase';
     if (player) e.face = player.x < e.x ? -1 : 1;
     if (e.sePhase === 'drop') {
@@ -15804,6 +15903,8 @@ if (window.game) {
     BOSS_RESIST: BOSS_RESIST, SE_RESIST: SE_RESIST, BOSS_TELL: BOSS_TELL, BOSS_PHASE_HP: BOSS_PHASE_HP, SE_TELL: SE_TELL,
     HM_MARK: HM_MARK, HM_BITE: HM_BITE, heavyEncounter: heavyEncounter, hellmouthMark: hellmouthMark, hellmouthBite: hellmouthBite,
     bossResist: bossResist, seResist: seResist, seFightPhase: seFightPhase, seNextKind: seNextKind, seBeginTell: seBeginTell, seResolveTell: seResolveTell, seClearTell: seClearTell,
+    seDeepCombat: seDeepCombat, seSwingLock: seSwingLock, sePowerReach: sePowerReach, seBrandReach: seBrandReach, seCircleHit: seCircleHit, seSwingHit: seSwingHit, seTeleHit: seTeleHit,
+    seHitSync: seHitSync, sePoseLocal: sePoseLocal, seFrameAt: seFrameAt, sePoseAct: sePoseAct, SE_SWORD_REACH: SE_SWORD_REACH, SE_SWING_LOCK_DEEP: SE_SWING_LOCK_DEEP, SE_HIT_EARLY: SE_HIT_EARLY, SE_HIT_FRAME: SE_HIT_FRAME, SE_WIND_CUE: SE_WIND_CUE, SE_KIND_CUE: SE_KIND_CUE,
     AFFIX_MIN_DEPTH: AFFIX_MIN_DEPTH, AFFIX_PAIR_DEPTH: AFFIX_PAIR_DEPTH, AFFIX_GUARD_MUL: AFFIX_GUARD_MUL, AFFIX_GUARD_GAP: AFFIX_GUARD_GAP,
     AFFIX_PHASE_TELL: AFFIX_PHASE_TELL, AFFIX_PHASE_GAP: AFFIX_PHASE_GAP, AFFIX_VOL_HP: AFFIX_VOL_HP, AFFIX_VOL_TELL: AFFIX_VOL_TELL, AFFIX_VOL_R: AFFIX_VOL_R,
     AFFIX_MARK_TELL: AFFIX_MARK_TELL, AFFIX_BRAND_R: AFFIX_BRAND_R, AFFIX_RIME_R: AFFIX_RIME_R, AFFIX_RIME_SLOW: AFFIX_RIME_SLOW, AFFIX_WEB_GAP: AFFIX_WEB_GAP,
@@ -15818,6 +15919,7 @@ if (window.game) {
   Object.defineProperty(window.game, 'frameErr', { configurable: true, get() { return frameErr718; } });
   Object.defineProperty(window.game, 'SE717', { configurable: true, get() { return SE717; } });
   Object.defineProperty(window.game, 'SE_CLIP', { configurable: true, get() { return SE_CLIP; } });
+  Object.defineProperty(window.game, 'seFxLog', { configurable: true, get() { return seFxLog; } });
   Object.defineProperty(window.game, 'SE_VFX', { configurable: true, get() { return SE_VFX; } });
   Object.defineProperty(window.game, 'SE_SHIELD', { configurable: true, get() { return SE_SHIELD; } });
   Object.defineProperty(window.game, 'SE_ERR', { configurable: true, get() { return SE_ERR; } });

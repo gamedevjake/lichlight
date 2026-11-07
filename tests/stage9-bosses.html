@@ -187,8 +187,9 @@ function run(w) {
   check('every dangerous boss tell meets its windup', tells.length === 0, tells.join(' | '));
 
   const slow = 62 * 0.2;
-  check('super elite swing clears at the move floor', slow * (g.SE_TELL.swing.dur - 0.25) + 1e-6 >= g.SE_TELL.swing.hit, g.SE_TELL.swing.dur);
-  check('super elite power clears at the move floor', slow * g.SE_TELL.power.dur + 1e-6 >= g.SE_TELL.power.r + 5);
+  const swingWin = g.SE_TELL.swing.dur - g.seSwingLock(g.depth);
+  check('depth 5 swing step clears and a swinging step does not', g.depth === 5 && 62 * swingWin + 1e-6 >= g.SE_TELL.swing.hit && 62 * 0.55 * swingWin < g.SE_TELL.swing.hit, swingWin);
+  check('depth 5 power reaches a sword and a full step leaves the center', g.sePowerReach(5) === 36 && 62 * g.SE_TELL.power.dur > g.sePowerReach(5) && slow * g.SE_TELL.power.dur < g.sePowerReach(5));
   check('super elite brand clears at the move floor', slow * g.SE_TELL.brand.dur + 1e-6 >= g.SE_TELL.brand.r + 5);
 
   if (g.SE717) g.SE717.dead = false;
@@ -199,7 +200,7 @@ function run(w) {
   check('phase 1 read is a swing', g.seFightPhase(fighter) === 1 && g.seNextKind(fighter) === 'swing');
   g.seBeginTell(fighter, 'swing');
   const swing = g.teles.find(t => t.seTell === 'swing');
-  check('swing tell is one second and locked', swing && swing.dur === 1 && swing.lockAt === 0.25, swing && swing.dur);
+  check('swing tell is one second and locked', swing && swing.dur === 1 && swing.lockAt === g.seSwingLock(5) && swing.w === 16 && swing.len === 52, swing && (swing.dur + '/' + swing.lockAt));
   p.y = fighter.y + 24;
   swing.onDone(swing);
   check('sidestepping the swing deals nothing', p.hp === 400, p.hp);
@@ -211,9 +212,12 @@ function run(w) {
   check('standing in the swing deals the listed hit', p.hp === 390, p.hp);
 
   fighter.hp = 90; fighter.maxHp = 200;
-  check('phase 2 opens the power tell', g.seFightPhase(fighter) === 2);
-  fighter.seStep = 2; fighter.seAct = '';
-  check('the third phase 2 action is the power', g.seNextKind(fighter) === 'power');
+  check('phase 2 is still the half-life read', fighter.hp === 90 && g.seFightPhase(fighter) === 2);
+  fighter.hp = fighter.maxHp; fighter.seStep = 0;
+  const rot = [0, 1, 2].map(s => { fighter.seStep = s; return g.seNextKind(fighter); });
+  check('depth 5 rotates swing, power, and brand from full life', g.depth === 5 && rot.join(',') === 'swing,power,brand', rot.join(','));
+  fighter.hp = 90; fighter.maxHp = 200; fighter.seStep = 2; fighter.seAct = '';
+  check('depth 5 does not save power for phase 2', g.seNextKind(fighter) === 'brand');
   g.teles.length = 0; p.hp = 400; p.inv0 = 0; p.x = fighter.x; p.y = fighter.y;
   g.seBeginTell(fighter, 'power');
   const power = g.teles.find(t => t.seTell === 'power');
@@ -273,6 +277,10 @@ function run(w) {
   g.seBeginTell(lane, 'swing');
   const sw = g.teles.find(t => t.seTell === 'swing');
   check('swing stripe width is the hit half-width', sw && sw.w / 2 === g.SE_TELL.swing.hit && sw.match === true, sw && sw.w);
+  check('depth 1 swing still locks at a quarter second', sw && sw.lockAt === 0.25 && g.seSwingLock(1) === 0.25, sw && sw.lockAt);
+  check('depth 1 power is still the small circle', Math.abs(g.sePowerReach(1) - (g.SE_TELL.power.r + p.r)) < 1e-6, g.sePowerReach(1));
+  check('depth 1 swing still clears at the move floor', 62 * 0.2 * (g.SE_TELL.swing.dur - g.seSwingLock(1)) + 1e-6 >= g.SE_TELL.swing.hit);
+  check('depth 1 power still clears at the move floor', 62 * 0.2 * g.SE_TELL.power.dur + 1e-6 >= g.sePowerReach(1));
   const aim = sw.a, half = sw.w / 2;
   p.x = lane.x + Math.cos(aim) * 20; p.y = lane.y + Math.sin(aim) * 20; p.hp = 400; p.inv0 = 0;
   const inside = g.seResolveTell(lane, 'swing', sw);
@@ -335,7 +343,11 @@ function run(w) {
   for (let i = 0; i < 30; i++) g.step(0.05, { x: 0, y: 0 });
   check('a canceled swing deals nothing after the window', p.hp === 500, p.hp);
 
-  lane.seAct = ''; lane.seKind = ''; lane.seCd = 0.7; g.clearStatuses(lane); lane.staggerImmune = 0; g.teles.length = 0;
+  lane.hp = lane.maxHp; lane.seStep = 0; lane.seAct = '';
+  check('depth 1 above half life still swings', g.depth === 1 && g.seFightPhase(lane) === 1 && g.seNextKind(lane) === 'swing');
+  lane.seStep = 2;
+  check('depth 1 above half life does not brand', g.seNextKind(lane) === 'swing');
+  lane.seStep = 0; lane.seAct = ''; lane.seKind = ''; lane.seCd = 0.7; g.clearStatuses(lane); lane.staggerImmune = 0; g.teles.length = 0;
   w.seTick717(0.4);
   check('recovery holds the next super elite tell', lane.seCd > 0 && !g.teles.some(t => t.seTell), lane.seCd);
   w.seTick717(0.4);
