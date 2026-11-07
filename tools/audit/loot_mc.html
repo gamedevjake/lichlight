@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>loot-mc</title></head>
+<body>
+<iframe id="g" src="../../index.html?audit=loot" style="width:320px;height:180px"></iframe>
+<pre id="out">running</pre>
+<script>
+const SEEDS = 100;
+const DEPTHS = [1, 2, 3];
+function mulberry(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function finish(obj) {
+  const text = JSON.stringify(obj);
+  document.getElementById('out').textContent = text;
+  document.title = 'LOOT_MC_DONE';
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { finish(run(document.getElementById('g').contentWindow)); }
+  catch (e) { finish({ error: String(e && e.stack || e) }); }
+});
+function blank() {
+  return { n: 0, rare: 0, uniq: 0, magic: 0, white: 0, rarePlus: 0, reqOk: 0, ilvls: {} };
+}
+function addItem(bucket, it, lvl) {
+  if (!it) return;
+  bucket.n++;
+  const r = it.rarity | 0;
+  if (r === 0) bucket.white++;
+  else if (r === 1) bucket.magic++;
+  else if (r === 2) bucket.rare++;
+  else if (r >= 3) bucket.uniq++;
+  if (r >= 2) bucket.rarePlus++;
+  if (r >= 2 && (it.reqLvl | 0) <= lvl) bucket.reqOk++;
+  const k = String(it.lvl | 0);
+  bucket.ilvls[k] = (bucket.ilvls[k] || 0) + (r >= 2 ? 1 : 0);
+}
+function G(w) { return w.game; }
+function takeNew(w, seen, bucket, lvl) {
+  const ground = G(w).ground || [];
+  for (let i = 0; i < ground.length; i++) {
+    const it = ground[i] && ground[i].item;
+    if (!it || seen.has(it)) continue;
+    seen.add(it);
+    addItem(bucket, it, lvl);
+  }
+}
+function takeKeys(w) {
+  const p = G(w).player;
+  const ground = G(w).ground;
+  for (let i = ground.length - 1; i >= 0; i--) {
+    const g = ground[i];
+    if (g && g.key) { p.keys += g.key; ground.splice(i, 1); }
+  }
+}
+function inRoom(x, y, r) {
+  const tx = Math.floor(x / 16), ty = Math.floor(y / 16);
+  return tx >= r.x && tx < r.x + r.w && ty >= r.y && ty < r.y + r.h;
+}
+function clearFloor(w, mode) {
+  const p = G(w).player;
+  if (mode === 'locked') p.xp = -1e15;
+  const seen = new Set();
+  const phases = { gen: blank(), rooms: blank(), secrets: blank(), restChests: blank(), gilt: blank(), se: blank() };
+  takeNew(w, seen, phases.gen, p.lvl | 0);
+  const genRarePos = [];
+  for (const g of G(w).ground) if (g.item && (g.item.rarity | 0) >= 2) {
+    genRarePos.push({ tx: Math.floor(g.x / 16), ty: Math.floor(g.y / 16), ilvl: g.item.lvl | 0, req: g.item.reqLvl | 0, rar: g.item.rarity | 0 });
+  }
+  const rooms = G(w).rooms || [];
+  let earlyRoomRare = 0;
+  for (const pos of genRarePos) {
+    for (let i = 0; i < Math.min(3, rooms.length); i++) if (inRoom(pos.tx * 16 + 8, pos.ty * 16 + 8, rooms[i])) earlyRoomRare++;
+  }
+  for (const r of rooms) {
+    for (const e of (G(w).enemies || []).slice()) {
+      if (!e || e.dead || e.hp <= 0) continue;
+      if (e.superElite || (e.T && e.T.boss)) continue;
+      if (!inRoom(e.x, e.y, r)) continue;
+      w.killEnemy(e);
+    }
+    takeKeys(w);
+    for (const c of (G(w).chests || [])) {
+      if (!c || c.open) continue;
+      if (!inRoom(c.x, c.y, r)) continue;
+      if (c.free || p.keys > 0) w.openChest(c);
+    }
+    for (const o of (G(w).props || [])) {
+      if (!o || o.broken || o.wall) continue;
+      if (!inRoom(o.x, o.y, r)) continue;
+      w.breakPropsAt(o.x, o.y - 4, 8);
+    }
+  }
+  takeNew(w, seen, phases.rooms, p.lvl | 0);
+  for (const s of (G(w).secrets || [])) if (s && !s.broken) w.breakSecret(s);
+  takeKeys(w);
+  takeNew(w, seen, phases.secrets, p.lvl | 0);
+  for (const c of (G(w).chests || [])) if (c && !c.open && (c.free || p.keys > 0)) w.openChest(c);
+  takeNew(w, seen, phases.restChests, p.lvl | 0);
+  const schests = (w.v072Snap && w.v072Snap().schests) || [];
+  for (const c of schests) if (c && !c.open) w.openSecretChest(c);
+  takeNew(w, seen, phases.gilt, p.lvl | 0);
+  const snap = w.seSnap717 ? w.seSnap717() : null;
+  if (snap && snap.alive && !snap.dead) {
+    const e = w.seSpawn717(snap.id, 'fight');
+    if (e) w.killEnemy(e);
+  }
+  takeNew(w, seen, phases.se, p.lvl | 0);
+  const total = blank();
+  for (const k of Object.keys(phases)) {
+    const b = phases[k];
+    total.n += b.n; total.rare += b.rare; total.uniq += b.uniq; total.magic += b.magic; total.white += b.white; total.rarePlus += b.rarePlus; total.reqOk += b.reqOk;
+  }
+  return { phases, total, lvl: p.lvl | 0, keysLeft: p.keys | 0, earlyRoomRare, genRarePos };
+}
+function counts(w) {
+  const enemies = G(w).enemies || [];
+  let elites = 0, trash = 0;
+  for (const e of enemies) {
+    if (!e || (e.T && e.T.boss) || e.superElite) continue;
+    trash++;
+    if (e.elite) elites++;
+  }
+  const chests = G(w).chests || [];
+  let keyed = 0, free = 0, gated = 0;
+  for (const c of chests) { if (c.free) free++; else keyed++; if (c.gatedRare) gated++; }
+  let props = 0;
+  for (const o of (G(w).props || [])) if (o && !o.wall) props++;
+  const secList = G(w).secrets || [];
+  const secrets = secList.length;
+  let passage = 0, passageGated = 0, gatedSecrets = 0;
+  for (const s of secList) {
+    if (s && s.gatedRare) gatedSecrets++;
+    if (s && s.passage) { passage++; if (s.gatedRare) passageGated++; }
+  }
+  const snap72 = w.v072Snap ? w.v072Snap() : {};
+  const schests = (snap72.schests || []).length;
+  const islands = (snap72.islands || []).length;
+  let puzzleRooms = 0;
+  for (const d of (G(w).doors || [])) if (d && d.puzzle && d.rect && !d.open) puzzleRooms++;
+  return { rooms: (G(w).rooms || []).length, trash, elites, keyed, free, gatedChests: gated, props, secrets, passage, passageGated, gatedSecrets, schests, islands, puzzleRooms };
+}
+function run(w) {
+  w.__noSampleSfx = true;
+  const realRandom = Math.random;
+  const trials = [];
+  const pop = { order: [], locked: [] };
+  for (const mode of ['order', 'locked']) {
+    const acc = {};
+    for (const d of DEPTHS) acc[d] = { floors: 0, pop: [], clears: [] };
+    for (let s = 0; s < SEEDS; s++) {
+      for (const d of DEPTHS) {
+        w.Math.random = mulberry((s + 1) * 10007 + d * 17);
+        try {
+          w.newGame();
+          if (d !== 1) w.startFloor(d, true);
+          const popRow = counts(w);
+          const clear = clearFloor(w, mode);
+          acc[d].floors++;
+          acc[d].pop.push(popRow);
+          acc[d].clears.push(clear);
+        } catch (err) {
+          acc[d].floors++;
+          acc[d].errors = (acc[d].errors || 0) + 1;
+          acc[d].lastError = String(err && err.stack || err).slice(0, 400);
+        }
+        if ((s + d) % 15 === 0) document.title = mode + ' s' + s + ' d' + d;
+      }
+    }
+    pop[mode] = acc;
+  }
+  w.Math.random = realRandom;
+  function mean(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+  function pct(arr, p) {
+    if (!arr.length) return 0;
+    const s = arr.slice().sort((a, b) => a - b);
+    const i = Math.min(s.length - 1, Math.max(0, Math.ceil(p * s.length) - 1));
+    return s[i];
+  }
+  function sumBlank(list, pick) {
+    const o = blank();
+    const rares = [];
+    for (const c of list) {
+      const b = pick(c);
+      o.n += b.n; o.rare += b.rare; o.uniq += b.uniq; o.magic += b.magic; o.white += b.white; o.rarePlus += b.rarePlus; o.reqOk += b.reqOk;
+      rares.push(b.rarePlus);
+    }
+    const n = list.length || 1;
+    return {
+      meanItems: +(o.n / n).toFixed(3),
+      meanWhite: +(o.white / n).toFixed(3),
+      meanMagic: +(o.magic / n).toFixed(3),
+      meanRare: +(o.rare / n).toFixed(3),
+      meanUnique: +(o.uniq / n).toFixed(3),
+      meanRarePlus: +(o.rarePlus / n).toFixed(3),
+      meanWearableRarePlus: +(o.reqOk / n).toFixed(3),
+      p50RarePlus: pct(rares, 0.5),
+      p90RarePlus: pct(rares, 0.9),
+      floorsWith0: rares.filter(x => x === 0).length,
+      floorsWith1: rares.filter(x => x === 1).length,
+      floorsWith2plus: rares.filter(x => x >= 2).length,
+      maxRarePlus: rares.reduce((a, b) => Math.max(a, b), 0)
+    };
+  }
+  const out = { seeds: SEEDS, commit: '743c82602252546236fa8f468ae1556dbe7b9fcb', modes: {} };
+  for (const mode of ['order', 'locked']) {
+    out.modes[mode] = {};
+    for (const d of DEPTHS) {
+      const acc = pop[mode][d];
+      const popMean = {};
+      for (const k of ['rooms', 'trash', 'elites', 'keyed', 'free', 'gatedChests', 'props', 'secrets', 'passage', 'passageGated', 'gatedSecrets', 'schests', 'islands', 'puzzleRooms']) {
+        popMean[k] = +mean(acc.pop.map(p => p[k])).toFixed(3);
+      }
+      const phaseNames = ['gen', 'rooms', 'secrets', 'restChests', 'gilt', 'se'];
+      const phases = {};
+      for (const name of phaseNames) phases[name] = sumBlank(acc.clears, c => c.phases[name]);
+      const total = sumBlank(acc.clears, c => c.total);
+      const early = mean(acc.clears.map(c => c.earlyRoomRare));
+      out.modes[mode][d] = {
+        pop: popMean,
+        phases,
+        total,
+        errors: acc.errors || 0,
+        lastError: acc.lastError || '',
+        meanLevelAtEnd: acc.clears.length ? +mean(acc.clears.map(c => c.lvl)).toFixed(3) : 0,
+        meanEarlyRoomRares: +early.toFixed(3),
+        levelHist: acc.clears.map(c => c.lvl).reduce((m, l) => { m[l] = (m[l] || 0) + 1; return m; }, {})
+      };
+    }
+  }
+  // requirement table from the live formula
+  const req = [];
+  for (let L = 1; L <= 6; L++) {
+    for (const r of [0, 1, 2]) {
+      const it = { rarity: r, lvl: L, name: 'x' };
+      req.push({ ilvl: L, rarity: r, req: w.calcReqLvl(it), legacy: w.calcReqLvlLegacy(it) });
+    }
+  }
+  out.wrappedStart = String(w.startFloor).slice(0, 120);
+  out.req = req;
+  out.seChance = {};
+  for (let d = 1; d <= 6; d++) out.seChance[d] = w.seUniqueChance(d);
+  out.lootGate = w.player ? { lvl: 2 } : null;
+  return out;
+}
+</script>
+</body>
+</html>
