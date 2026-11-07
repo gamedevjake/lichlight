@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<!-- Loot economy: trash gear gone, boss purse is two pieces, one puzzle rare, shortcut flags pay gold. -->
+<html>
+<head><meta charset="utf-8"><title>loot-economy</title></head>
+<body>
+<iframe id="g" src="../index.html?v=loot-economy" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function mulberry(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function pin(p, lvl) { p.lvl = lvl; p.xp = -1e15; }
+function goldSum(g) { return (g.ground || []).reduce((n, x) => n + (x.gold || 0), 0); }
+function items(g) { return (g.ground || []).filter(x => x.item).map(x => x.item); }
+function inRect(obj, R) {
+  const tx = Math.floor(obj.x / 16), ty = Math.floor(obj.y / 16);
+  return tx >= R.x && tx < R.x + R.w && ty >= R.y && ty < R.y + R.h;
+}
+function run(w) {
+  w.__noSampleSfx = true;
+  const g = w.game;
+  const origRandom = w.Math.random;
+  g.newGame();
+  const p = g.player;
+  check('version stays 0.7.18', g.version === '0.7.18');
+
+  function withRandom(v, fn) {
+    w.Math.random = function () { return v; };
+    try { return fn(); }
+    finally { w.Math.random = origRandom; }
+  }
+  function spawn(type, elite) {
+    const e = w.spawnEnemy(type, p.x + 20, p.y, !!elite);
+    e.hp = 1; e.shield = 0; e.minion = false; e.xp = 0;
+    return e;
+  }
+  function kill(e) { w.damageEnemy(e, 99999, 0, 0, '#fff', false); }
+
+  pin(p, 6);
+  g.startFloor(4, true);
+  pin(p, 6);
+  g.ground.length = 0;
+  let trashItems = 0, hpHits = 0, mpHits = 0, whiteMiss = 0, highMiss = 0;
+  withRandom(0.02, () => { for (let i = 0; i < 12; i++) { g.ground.length = 0; kill(spawn('rat', false)); if (items(g).length) trashItems++; if (g.ground.some(x => x.pot === 'hp')) hpHits++; } });
+  withRandom(0.06, () => { for (let i = 0; i < 8; i++) { g.ground.length = 0; kill(spawn('bat', false)); if (items(g).length) trashItems++; if (g.ground.some(x => x.pot === 'mp')) mpHits++; } });
+  withRandom(0.10, () => { for (let i = 0; i < 16; i++) { g.ground.length = 0; kill(spawn('slime', false)); if (items(g).length) trashItems++; else whiteMiss++; } });
+  withRandom(0.20, () => { for (let i = 0; i < 8; i++) { g.ground.length = 0; kill(spawn('skel', false)); if (items(g).length) trashItems++; else highMiss++; } });
+  check('ordinary trash drops no equipment', trashItems === 0, trashItems);
+  check('trash life and mana bands are unchanged', hpHits === 12 && mpHits === 8 && whiteMiss === 16 && highMiss === 8, 'hp ' + hpHits + ' mp ' + mpHits + ' miss ' + whiteMiss + '/' + highMiss);
+
+  let packItems = 0;
+  withRandom(0.05, () => {
+    for (let i = 0; i < 10; i++) {
+      g.ground.length = 0;
+      const e = spawn('bat', false);
+      e.T = Object.assign({}, e.T, { pack: [2, 3], boss: false, disguise: false });
+      kill(e);
+      packItems += items(g).length;
+    }
+  });
+  check('pack members drop no equipment', packItems === 0, packItems);
+
+  g.ground.length = 0;
+  w.__goldRoll = 1;
+  withRandom(0.15, () => { kill(spawn('skel', true)); });
+  const champ = items(g);
+  check('champions still drop a white on the 20% band', champ.length === 1 && champ[0].rarity === 0, champ.map(it => it.rarity).join(','));
+  g.ground.length = 0;
+  withRandom(0.5, () => { kill(spawn('skel', true)); });
+  check('a champion miss above 20% drops no equipment', items(g).length === 0, items(g).length);
+
+  g.ground.length = 0;
+  withRandom(0.99, () => {
+    const e = spawn('bat', false);
+    e.T = Object.assign({}, e.T, { disguise: true, boss: false, revive: false, split: 0, pack: 0 });
+    e.elite = false;
+    kill(e);
+  });
+  const mimic = items(g);
+  check('a mimic still drops one white', mimic.length === 1 && mimic[0].rarity === 0, mimic.length && mimic[0].rarity);
+  delete w.__goldRoll;
+
+  function bossGear(depth, lvl, oswin, goldRoll) {
+    pin(p, lvl);
+    g.startFloor(depth, true);
+    pin(p, lvl);
+    const boss = g.enemies.find(e => e && e.T && e.T.boss) || w.spawnBoss(p.x + 24, p.y);
+    if (oswin) boss.B = Object.assign({}, boss.B, { oswin: true });
+    boss.hp = 1; boss.shield = 0; boss.xp = 0;
+    g.ground.length = 0;
+    w.__goldRoll = goldRoll;
+    kill(boss);
+    delete w.__goldRoll;
+    return {
+      gear: items(g),
+      gold: goldSum(g),
+      hp: g.ground.filter(x => x.pot === 'hp').length,
+      mp: g.ground.filter(x => x.pot === 'mp').length,
+      rp: g.ground.filter(x => x.pot === 'rp').length
+    };
+  }
+  const b6 = bossGear(5, 6, false, 1);
+  const b6r = b6.gear.map(it => it.rarity).sort((a, c) => a - c);
+  check('a level 6 boss drops the unique and the rare', b6.gear.length === 2 && b6r[0] === 2 && b6r[1] === 3 && b6.gold === 0 && b6.hp === 1 && b6.mp === 1 && b6.rp >= 1, 'n' + b6.gear.length + ' r' + b6r.join('/') + ' g' + b6.gold + ' pots ' + b6.hp + '/' + b6.mp + '/' + b6.rp);
+  const b6gold = bossGear(5, 6, false, 0);
+  const bossGold = Math.min(49, Math.max(1, Math.round(25 * 5)));
+  check('boss gold pile is unchanged', b6gold.gold === bossGold && b6gold.gear.length === 2, b6gold.gold + ' gear ' + b6gold.gear.length);
+  const osw = bossGear(5, 6, true, 1);
+  const osr = osw.gear.map(it => it.rarity).sort((a, c) => a - c);
+  check('Oswin keeps the extra unique', osw.gear.length === 3 && osr.join(',') === '2,3,3', osr.join(','));
+  for (const lvl of [1, 2]) {
+    const early = bossGear(5, lvl, false, 1);
+    const bad = early.gear.filter(it => it.rarity !== 1 || it.reqLvl > lvl || it.lore || (it.mods && (it.mods.maxResist || it.mods.penAll)));
+    check('level ' + lvl + ' boss purse is two wearable magics', early.gear.length === 2 && bad.length === 0 && early.hp === 1 && early.mp === 1, 'n' + early.gear.length + ' bad' + bad.length);
+  }
+
+  pin(p, 12);
+  const chance = { 1: 0, 2: 0, 3: 0.2, 4: 0.35, 5: 0.5, 6: 0.7, 9: 0.7, 10: 1, 12: 1 };
+  let chanceBad = '';
+  Object.keys(chance).forEach(d => { const got = g.seUniqueChance(+d); if (got !== chance[d]) chanceBad += d + '=' + got + ' '; });
+  check('super elite unique chances are unchanged', !chanceBad, chanceBad);
+  let wep = 0, other = 0, rareBad = 0, uniqBad = 0;
+  w.__seUnique = 0.99;
+  for (let i = 0; i < 40; i++) {
+    const it = g.seRollGear(5);
+    if (!it || it.rarity !== 2) rareBad++;
+    if (it && it.slot === 'weapon') wep++; else other++;
+  }
+  w.__seUnique = 0;
+  for (let i = 0; i < 40; i++) {
+    const it = g.seRollGear(5);
+    if (!it || it.rarity !== 3) uniqBad++;
+    if (it && it.slot === 'weapon') wep++; else other++;
+  }
+  delete w.__seUnique;
+  check('super elite gear stays on the old table and is not forced to a weapon', wep > 0 && other > 0 && rareBad === 0 && uniqBad === 0, 'wep ' + wep + ' other ' + other + ' rareBad ' + rareBad + ' uniqBad ' + uniqBad);
+  pin(p, 6);
+  g.startFloor(5, true);
+  pin(p, 6);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  w.__seUnique = 0.99;
+  w.__seGkey = 0;
+  g.ground.length = 0;
+  const se = g.seSpawn717('se_morbius', 'fight');
+  se.sePhase = 'fight'; se.hp = 1; se.shield = 0; se.xp = 0;
+  kill(se);
+  const seGear = items(g);
+  check('super elite kill still drops one piece plus the old purse', seGear.length === 1 && goldSum(g) === 25 && g.ground.some(x => x.ration) && g.ground.some(x => x.gkey), 'n' + seGear.length + ' g' + goldSum(g) + ' slot ' + (seGear[0] && seGear[0].slot));
+  delete w.__seUnique; delete w.__seGkey;
+  for (const lvl of [1, 2]) {
+    pin(p, lvl);
+    w.__seUnique = 0;
+    const it = g.seRollGear(10);
+    check('level ' + lvl + ' super elite stays a wearable magic', it && it.rarity === 1 && it.reqLvl <= lvl && !it.lore, it && ('r' + it.rarity + ' req' + it.reqLvl));
+  }
+  delete w.__seUnique;
+
+  pin(p, 6);
+  g.startFloor(6, true);
+  pin(p, 6);
+  const savedPuzzle = g.doors.map(d => d.puzzle);
+  g.doors.forEach(d => { d.puzzle = null; });
+  const rectA = { x: 1, y: 1, w: 3, h: 3 }, rectB = { x: 8, y: 1, w: 3, h: 3 };
+  const doorA = { puzzle: 'lever', open: false, rect: rectA };
+  const doorB = { puzzle: 'rune', open: false, rect: rectB };
+  g.doors.push(doorA, doorB);
+  function clearRects() {
+    for (let i = g.ground.length - 1; i >= 0; i--) if (inRect(g.ground[i], rectA) || inRect(g.ground[i], rectB)) g.ground.splice(i, 1);
+  }
+  clearRects();
+  w.markGatedLoot711();
+  const a1 = g.ground.filter(x => x.item && inRect(x, rectA));
+  const b1 = g.ground.filter(x => x.item && inRect(x, rectB));
+  check('one empty puzzle room gets the floor rare and the next does not', a1.length === 1 && a1[0].item.rarity >= 2 && b1.length === 0, 'a' + a1.length + ' b' + b1.length + ' r' + (a1[0] && a1[0].item.rarity));
+  const kept = a1[0].item;
+  w.markGatedLoot711();
+  const a2 = g.ground.filter(x => x.item && inRect(x, rectA));
+  const b2 = g.ground.filter(x => x.item && inRect(x, rectB));
+  check('a second pass does not add another puzzle rare', a2.length === 1 && a2[0].item === kept && b2.length === 0, 'a' + a2.length);
+  clearRects();
+  const magic = g.makeItem(3, 1, 'Cap');
+  g.ground.push({ x: (rectA.x + 1.5) * 16, y: (rectA.y + 1.5) * 16, item: magic, bob: 1, lock: false });
+  w.markGatedLoot711();
+  const a3 = g.ground.filter(x => x.item && inRect(x, rectA));
+  const b3 = g.ground.filter(x => x.item && inRect(x, rectB));
+  check('the first puzzle room upgrades a magic and the second room stays empty', a3.length === 1 && a3[0].item !== magic && a3[0].item.rarity >= 2 && b3.length === 0, 'r' + (a3[0] && a3[0].item.rarity));
+  pin(p, 1);
+  clearRects();
+  w.markGatedLoot711();
+  const aEarly = g.ground.filter(x => x.item && inRect(x, rectA)).map(x => x.item);
+  const bEarly = g.ground.filter(x => x.item && inRect(x, rectB));
+  check('level 1 puzzle injection is one wearable magic', aEarly.length === 1 && aEarly[0].rarity === 1 && aEarly[0].reqLvl <= 1 && !aEarly[0].lore && bEarly.length === 0, aEarly[0] && ('r' + aEarly[0].rarity + ' req' + aEarly[0].reqLvl));
+  g.doors.pop(); g.doors.pop();
+  g.doors.forEach((d, i) => { d.puzzle = savedPuzzle[i]; });
+
+  function shortcutSpan(depth) { return { lo: 6 * depth, hi: 10 * depth }; }
+  pin(p, 6);
+  g.startFloor(8, true);
+  pin(p, 6);
+  const span = shortcutSpan(g.depth);
+  w.__goldRoll = 1;
+  g.ground.length = 0;
+  p.keys = 4;
+  const chest = { open: false, free: false, x: p.x, y: p.y, tx: 3, ty: 3, gatedRare: 1 };
+  withRandom(0, () => w.openChest(chest));
+  const chestGold = goldSum(g);
+  check('a gated keyed chest keeps its own gear and pays shortcut gold', items(g).length === 1 && chestGold >= span.lo && chestGold <= span.hi && chest._gatedGave === 1, 'items ' + items(g).length + ' gold ' + chestGold);
+  const goldAfter = chestGold;
+  w.openChest(chest);
+  check('opening that chest again does not pay twice', goldSum(g) === goldAfter && items(g).length === 1, goldSum(g));
+
+  g.ground.length = 0;
+  const free = { open: false, free: true, x: p.x + 10, y: p.y, tx: 4, ty: 4, gatedRare: 1 };
+  withRandom(0, () => w.openChest(free));
+  const freeGold = goldSum(g);
+  check('a gated free chest stays gear-free and pays shortcut gold', items(g).length === 0 && freeGold >= span.lo && freeGold <= span.hi, 'items ' + items(g).length + ' gold ' + freeGold);
+
+  g.ground.length = 0;
+  const crack = { kind: 'floor', tx: 5, ty: 5, broken: false, gatedRare: 1, loot: 'key' };
+  withRandom(0.9, () => w.breakSecret(crack));
+  const crackGold = goldSum(g);
+  check('a gated crack keeps its key and pays gold instead of a rare', items(g).length === 0 && g.ground.some(x => x.key) && crackGold >= span.lo && crackGold <= span.hi, 'items ' + items(g).length + ' gold ' + crackGold + ' key ' + g.ground.some(x => x.key));
+
+  g.ground.length = 0;
+  const mouth = { kind: 'wall', passage: true, tx: 6, ty: 6, broken: false, gatedRare: 1, pair: { broken: true } };
+  const beforeMouth = goldSum(g);
+  w.breakSecret(mouth);
+  check('a flagged tunnel mouth still pays nothing', mouth.broken === true && items(g).length === 0 && goldSum(g) === beforeMouth && !mouth._gatedGave, 'gold ' + goldSum(g) + ' gave ' + mouth._gatedGave);
+
+  g.ground.length = 0;
+  w.__giltUnique = 0.5;
+  const plainSq = { open: 0, tx: 7, ty: 7 };
+  w.openSecretChest(plainSq);
+  const plainGear = items(g);
+  check('an unflagged squeeze chest is still one rare and no shortcut gold', plainGear.length === 1 && plainGear[0].rarity === 2 && goldSum(g) === 0, 'n' + plainGear.length + ' r' + (plainGear[0] && plainGear[0].rarity) + ' g' + goldSum(g));
+  g.ground.length = 0;
+  const flaggedSq = { open: 0, tx: 9, ty: 9, gatedRare: 1 };
+  withRandom(0, () => w.openSecretChest(flaggedSq));
+  const sqGear = items(g);
+  const sqGold = goldSum(g);
+  check('a flagged squeeze chest keeps one piece and converts the extra rare to gold', sqGear.length === 1 && sqGear[0].rarity >= 2 && sqGold >= span.lo && sqGold <= span.hi, 'n' + sqGear.length + ' r' + (sqGear[0] && sqGear[0].rarity) + ' g' + sqGold);
+  delete w.__giltUnique;
+  delete w.__goldRoll;
+
+  let mouths = 0, mouthFlags = 0, mouthLeak = 0, liveChest = 0, liveCrack = 0, liveSq = 0, liveBad = '';
+  for (let s = 1; s <= 16; s++) {
+    w.Math.random = mulberry(s * 7919 + 3);
+    pin(p, 6);
+    g.startFloor(8, true);
+    pin(p, 6);
+    const pass = (g.secrets || []).filter(sec => sec.passage);
+    mouths += pass.length;
+    mouthFlags += pass.filter(sec => sec.gatedRare).length;
+    const seenGold = goldSum(g), seenItems = new Set(g.ground.filter(x => x.item).map(x => x.item));
+    for (const sec of pass) if (!sec.broken) w.breakSecret(sec);
+    if (goldSum(g) !== seenGold) mouthLeak++;
+    for (const x of g.ground) if (x.item && !seenItems.has(x.item)) mouthLeak++;
+    if (!liveChest) {
+      const c = (g.chests || []).find(q => q && q.gatedRare && !q.free && !q.open);
+      if (c) {
+        liveChest++;
+        g.ground.length = 0;
+        p.keys = 3;
+        w.__goldRoll = 1;
+        w.openChest(c);
+        const n = items(g).length, gold = goldSum(g);
+        if (n !== 1 || gold < 48 || gold > 80) liveBad += 'chest n' + n + ' g' + gold + ' ';
+        delete w.__goldRoll;
+      }
+    }
+    if (!liveCrack) {
+      const sec = (g.secrets || []).find(q => q && q.gatedRare && !q.passage && !q.broken);
+      if (sec) {
+        liveCrack++;
+        g.ground.length = 0;
+        w.__goldRoll = 1;
+        w.breakSecret(sec);
+        const n = items(g).length, gold = goldSum(g);
+        if (n !== 0 || gold < 48 || gold > 80) liveBad += 'crack n' + n + ' g' + gold + ' ';
+        delete w.__goldRoll;
+      }
+    }
+    if (!liveSq) {
+      const c = (g.schests || []).find(q => q && !q.open);
+      if (c) {
+        liveSq++;
+        // genV072 places squeeze chests after markGatedLoot711, so the flag loop never sees them.
+        if (c.gatedRare) liveBad += 'squeeze flagged ';
+        g.ground.length = 0;
+        w.__goldRoll = 1;
+        w.openSecretChest(c);
+        const n = items(g).length, gold = goldSum(g);
+        if (n !== 1 || gold !== 0) liveBad += 'squeeze n' + n + ' g' + gold + ' ';
+        delete w.__goldRoll;
+      }
+    }
+  }
+  w.Math.random = origRandom;
+  check('generated tunnel mouths are not flagged and pay nothing', mouths >= 8 && mouthFlags === 0 && mouthLeak === 0, 'mouths ' + mouths + ' flags ' + mouthFlags + ' leak ' + mouthLeak);
+  check('a generated shortcut chest and crack pay gold for the old rare', liveChest === 1 && liveCrack === 1 && !liveBad, 'chest ' + liveChest + ' crack ' + liveCrack + ' ' + liveBad);
+  check('a generated squeeze chest is not a shortcut flag and still drops one piece', liveSq === 1 && !liveBad, 'sq ' + liveSq + ' ' + liveBad);
+
+  pin(p, 12);
+  w.__giltUnique = 0;
+  const giltU = g.giltGear(8);
+  w.__giltUnique = 0.2;
+  const giltR = g.giltGear(8);
+  delete w.__giltUnique;
+  check('squeeze rarity odds are unchanged', giltU.rarity === 3 && giltU.lvl === 9 && giltR.rarity === 2 && giltR.lvl === 9, (giltU && giltU.rarity) + '/' + (giltR && giltR.rarity));
+  const rareP = Math.min(0.6, 0.15 + 8 * 0.012);
+  let chestRare = 0, chestUniq = 0, chestN = 0;
+  for (let i = 0; i < 300; i++) {
+    const it = w.chestLoot(8);
+    chestN++;
+    if (it.rarity === 2) chestRare++;
+    else if (it.rarity >= 3) chestUniq++;
+  }
+  check('keyed chest rarity odds are unchanged', chestUniq === 0 && Math.abs(chestRare / chestN - rareP) < 0.08, (chestRare / chestN).toFixed(3) + ' vs ' + rareP.toFixed(3));
+
+  w.Math.random = origRandom;
+  finish();
+}
+</script>
+</body>
+</html>
