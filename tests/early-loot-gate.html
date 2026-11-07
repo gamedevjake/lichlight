@@ -245,10 +245,16 @@ function run(w) {
     const rnd = w.Math.random;
     w.Math.random = function () { return 0; };
     g.ground.length = 0;
+    let champRoll = null;
+    const origMake = w.makeItem;
+    w.makeItem = function (L, rar, base, promo) {
+      const it = origMake(L, rar, base, promo);
+      champRoll = it;
+      return it;
+    };
     try { slap(mimicOf(true)); }
-    finally { w.Math.random = rnd; }
-    const cit = gearOf()[0];
-    check('champion kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(cit, pre), cit && ('L' + cit.lvl + ' r' + cit.rarity));
+    finally { w.Math.random = rnd; w.makeItem = origMake; }
+    check('champion kill ' + pre + ' to ' + (pre + 1) + ' drops no gear and withholds the white at the earlier level', p.lvl === pre + 1 && gearOf().length === 0 && whiteOk(champRoll, pre), champRoll && ('L' + champRoll.lvl + ' r' + champRoll.rarity + ' n' + gearOf().length));
     arm(pre);
     g.ground.length = 0;
     const hm = mimicOf(false);

@@ -3051,3 +3051,59 @@ Level 1 depth 5, pinned: the boss line is 2 magics and 0 rares. The Super Elite 
 - `tests/early-loot-gate.html` — the two count locks above.
 - `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
 - `version.json` was not edited. Workflows were not edited. Combat math was not edited.
+
+---
+
+### 2026-11-07 — Loot follow-up option 1 (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Loot. Jake approved option 1 from `AUDIT_LOOT_FOLLOWUP.md` on PR #44. Implemented on PR #42. Not merged. Not deployed.
+- **Base:** `main` is still `e830a531865fbc72ea3db6a632d720e65ac524e2`. PR #43 is open and not merged, so nothing from that branch was taken.
+- **Version / Commit:** `version.json` was not edited. It is still `0.7.18`.
+
+#### What changed
+
+Island gear is not placed. Sealed rooms still get their potion, and the 60% chest-table piece is rolled and not placed. Vault annexes still roll that chest-table piece and still roll the ration, fragment, or potion, and the piece is not placed. The floor's one greater rare, from `markGatedLoot711`, is the vault and puzzle reward. Champion gold, keys, and potions stay. The 20% white is rolled and not dropped, so the next kill's random stream does not move. Keyed chests, mimics, squeeze chests, Super Elites, bosses, and the Rusty Sword are unchanged. The level 1–2 gate and `killLootLvl` are unchanged.
+
+A vault that no longer holds gear can fall through to `ensureSealedLoot` when it also missed the ration line. That room gets the sealed-room potion, which is the rule for an empty sealed room. It does not get a second piece of gear.
+
+#### Counts
+
+Eight clears, seeds `3000 + n × 97`, every enemy killed, Rusty Sword picked up once. Same method as the follow-up audit.
+
+| | Before option 1 | After | Audit target |
+| --- | ---: | ---: | ---: |
+| Equipment | 84.9 | 57.9 | about 59.4 |
+| Weapons | 29.0 | 18.4 | 20.1 |
+| Upgrades | 28.5 | 24.8 | 25.6 |
+| Gold | 2208 | 1835 | gold formulas unchanged |
+| Bag full | 4.25 (6 on 4, 2 on 5) | 4.75 (2 on 4, 6 on 5) | about 4.9, toward floor 5 |
+
+End of floor 4 the bag averages 17.4 slots. Six of eight clears fill on floor 5.
+
+Pieces removed were mostly redundant. Upgrades fell by 3.8 (28.5 to 24.8) while pieces fell by 27 (84.9 to 57.9). About 14% of the removed pieces were upgrades. The upgrade rate of what remains went from 34% to 43%.
+
+| Source | Pieces | Upgrades | Rarity (c / m / r / u) |
+| --- | ---: | ---: | --- |
+| Keyed chest | 23.5 | 6.3 | 0 / 17.6 / 5.9 / 0 |
+| Super Elite | 12.0 | 8.6 | 0 / 0 / 5.1 / 6.9 |
+| Puzzle rare | 8.4 | 4.8 | 0 / 0 / 8.4 / 0 |
+| Squeeze | 6.6 | 2.1 | 0 / 0 / 5.4 / 1.3 |
+| Boss | 4.0 | 2.0 | 0 / 0 / 2 / 2 |
+| Mimic | 2.4 | 0 | 2.4 / 0 / 0 / 0 |
+| Rusty Sword | 1.0 | 1.0 | 1 / 0 / 0 / 0 |
+| Island, sealed gear, extra vault, champion white | 0 | 0 | — |
+
+Gold at depth 12 is 1835 in this sample, against 2208 before. The gold formulas were not edited. Empty vaults now take the sealed-room roll they used to skip, so the later random stream moves and the realized total moves with it.
+
+#### Tests
+
+- `tests/loot-economy.html` — champions on the old white band drop no gear and still drop a consumable. A miss still drops gold. Islands, sealed rooms, and gate vaults drop no gear. Floors with a puzzle room keep exactly one rare. 36 checks.
+- `tests/early-loot-gate.html` — the champion level-up kill drops no gear. The white that was withheld is still rolled at the earlier cap, so `killLootLvl` is still covered. The mimic, boss, and Super Elite level checks are the same assertions.
+
+#### Files
+
+- `index.html` — island, sealed room, vault annex, champion white.
+- `tests/loot-economy.html`, `tests/early-loot-gate.html` — the locks above.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
+- `version.json` was not edited. Combat was not edited. PR #43 was not merged in.

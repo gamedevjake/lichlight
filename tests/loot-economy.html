@@ -83,11 +83,13 @@ function run(w) {
   g.ground.length = 0;
   w.__goldRoll = 1;
   withRandom(0.15, () => { kill(spawn('skel', true)); });
-  const champ = items(g);
-  check('champions still drop a white on the 20% band', champ.length === 1 && champ[0].rarity === 0, champ.map(it => it.rarity).join(','));
+  check('a champion on the old white band drops no equipment and still drops a consumable', items(g).length === 0 && g.ground.some(x => x.pot), items(g).length + ' pots ' + g.ground.filter(x => x.pot).length);
   g.ground.length = 0;
+  w.__goldRoll = 0;
   withRandom(0.5, () => { kill(spawn('skel', true)); });
-  check('a champion miss above 20% drops no equipment', items(g).length === 0, items(g).length);
+  const champGold = goldSum(g);
+  check('a champion miss drops gold and no equipment', items(g).length === 0 && champGold >= 2 * g.depth && champGold <= 4 * g.depth, 'items ' + items(g).length + ' gold ' + champGold);
+  w.__goldRoll = 1;
 
   g.ground.length = 0;
   withRandom(0.99, () => {
@@ -336,6 +338,42 @@ function run(w) {
     else if (it.rarity >= 3) chestUniq++;
   }
   check('keyed chest rarity odds are unchanged', chestUniq === 0 && Math.abs(chestRare / chestN - rareP) < 0.08, (chestRare / chestN).toFixed(3) + ' vs ' + rareP.toFixed(3));
+
+  function gearIn(rect) {
+    return (g.ground || []).filter(obj => {
+      if (!obj || !obj.item || !rect) return false;
+      const tx = Math.floor(obj.x / 16), ty = Math.floor(obj.y / 16);
+      return tx >= rect.x && tx < rect.x + rect.w && ty >= rect.y && ty < rect.y + rect.h;
+    });
+  }
+  let sawIsland = 0, islandGear = 0, sealedGear = 0, sealedSupply = 0;
+  let puzzleFloors = 0, badPuzzle = 0, gateVaultGear = 0;
+  for (let s = 1; s <= 16; s++) {
+    w.Math.random = mulberry(s * 6133 + 9);
+    pin(p, 6);
+    g.startFloor(6 + (s % 5), true);
+    pin(p, 6);
+    for (const isle of (g.islands || [])) {
+      sawIsland++;
+      islandGear += (g.ground || []).filter(obj => obj && obj.item && Math.floor(obj.x / 16) >= isle.tx && Math.floor(obj.x / 16) < isle.tx + 5 && Math.floor(obj.y / 16) >= isle.ty && Math.floor(obj.y / 16) < isle.ty + 5).length;
+    }
+    sealedGear += (g.ground || []).filter(obj => obj && obj.sealed && obj.item).length;
+    if ((g.ground || []).some(obj => obj && obj.sealed && (obj.pot || obj.ration || obj.torch))) sealedSupply++;
+    const puzzles = (g.doors || []).filter(d => d && d.puzzle && d.rect && !d.open);
+    if (puzzles.length) {
+      puzzleFloors++;
+      const withGear = puzzles.filter(d => gearIn(d.rect).length > 0);
+      const primary = withGear.filter(d => gearIn(d.rect).some(obj => (obj.item.rarity | 0) >= 2));
+      if (withGear.length !== 1 || primary.length !== 1) badPuzzle++;
+    }
+    for (const d of (g.doors || [])) {
+      if (!d || !d.rect || d.puzzle) continue;
+      gateVaultGear += gearIn(d.rect).length;
+    }
+  }
+  check('islands leave no equipment', sawIsland >= 1 && islandGear === 0, 'islands ' + sawIsland + ' gear ' + islandGear);
+  check('sealed rooms keep a supply and drop no equipment', sealedGear === 0 && sealedSupply >= 1, 'gear ' + sealedGear + ' supply floors ' + sealedSupply);
+  check('one puzzle rare remains and extra vaults have no gear', puzzleFloors >= 8 && badPuzzle === 0 && gateVaultGear === 0, 'floors ' + puzzleFloors + ' bad ' + badPuzzle + ' gate gear ' + gateVaultGear);
 
   w.Math.random = origRandom;
   finish();

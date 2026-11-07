@@ -3567,7 +3567,7 @@ function ensureSealedLoot() { let n = 0;
     let best = R[0], bd = -1; for (const k of R) { const x = k % MW, y = (k / MW) | 0; if (map[k] !== TILE.FLOOR || doorK.has(k)) continue; const dd = Math.min(Math.hypot(x - dt.x, y - dt.y), 6) + (d.rect ? -Math.hypot(x + .5 - (d.rect.x + d.rect.w / 2), y + .5 - (d.rect.y + d.rect.h / 2)) : 0); if (dd > bd) { bd = dd; best = k; } }
     const cx = (best % MW + .5) * TS, cy = (((best / MW) | 0) + .5) * TS, put = (o, dx, dy) => ground.push(Object.assign({ x: cx + dx, y: cy + dy, bob: Math.random() * 6, lock: false, sealed: true }, o));
     if (bookRoom) { const b = books.find(b => b.door === d); const bx = b ? b.x : cx, by = b ? b.y : cy; ground.push({ x: bx + 9, y: by + 3, bob: 2, lock: false, sealed: true, pot: Math.random() < .5 ? 'hp' : 'mp' }); n++; continue; }
-    put({ pot: Math.random() < .5 ? 'hp' : 'mp' }, 8, 2); if (Math.random() < .6) put({ item: chestLoot(depth) }, 0, -4); n++; } // v0.7.8.1 F1: sealed rooms keep pots and gear, not gold piles
+    put({ pot: Math.random() < .5 ? 'hp' : 'mp' }, 8, 2); if (Math.random() < .6) chestLoot(depth); n++; } // potion stays; the chest-table piece is not placed. The roll is still taken so later loot stays put.
   return n; }
 // ---------- shared combat systems: telegraphs, timers, hazards, blasts ----------
 let teles = [], hazards = [], timers = [], trauma = 0, bossIntro = 0, introBoss = null;
@@ -5340,7 +5340,7 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
 
 const BLOOD = { slime: '#50c040', slimelet: '#50c040', ooze: '#8aa060', bomber: '#8aa060', eel: '#48a8a0', drowned: '#48a8a0', siren: '#48a8a0', seer: '#48a8a0', crab: '#e0a040',
   bat: '#8040b0', spider: '#8040b0', rat: '#a06040', mage: '#8040b0', leech: '#c02020', ghoul: '#8aa060', crawler: '#a0e040', flies: '#404048', wisp: '#b0f0f0', ghost: '#d8e8f8', shade: '#3a3a4a', cantor: '#d8e8f8', exarch: '#e8c840' };
-// Champions and mimics still drop a normal (white) item. Ordinary trash and pack members do not.
+// Mimics still drop a normal (white) item. Champions, ordinary trash, and pack members do not.
 // DROP.white stays 0.05 so the life and mana bands above it are the same widths. That 5% is now a miss.
 const DROP = { gold: 0, hp: .045, mp: .04, white: .05 }; // v0.7.8.1 F1: normal enemies drop no gold (v0.7.8 chance was .035)
 const NECRO_CAP = 2, NECRO_DROP = .38; // v0.7.8 F7: bosses only, slightly rare, bag holds 2
@@ -5351,7 +5351,7 @@ function regularDrops(e, d) {
   if (e.minion) return; // v0.7.8.1 F1: minions are not champions
   if (!e.T.disguise && Math.random() < (e.elite ? REP_DROP.champ : REP_DROP.reg * (e.T.pack || e.type === 'slimelet' ? .5 : 1))) at({ pot: 'rp' });
   if (e.T.disguise) { at({ pot: Math.random() < .6 ? 'hp' : 'mp' }); white(); return; } // mimics are not champions or chests
-  if (e.elite) { if (goldKept()) at({ gold: irand(2, 4) * d }); if (champKeysFloor < CHAMP_KEY_CAP && Math.random() < CHAMP_KEY_P) { champKeysFloor++; at({ key: 1 }); } if (Math.random() < .28) at({ pot: Math.random() < .65 ? 'hp' : 'mp' }); if (Math.random() < .2 * (gate ? LOOT_GATE.champWhite : 1)) white(); return; } // v0.7.8.1 F1: champion gold 30% as often
+  if (e.elite) { if (goldKept()) at({ gold: irand(2, 4) * d }); if (champKeysFloor < CHAMP_KEY_CAP && Math.random() < CHAMP_KEY_P) { champKeysFloor++; at({ key: 1 }); } if (Math.random() < .28) at({ pot: Math.random() < .65 ? 'hp' : 'mp' }); if (Math.random() < .2 * (gate ? LOOT_GATE.champWhite : 1)) makeItem(d, 0); return; } // gold, key, and potion stay. The white is rolled and not dropped, so the next kill's random stream is unchanged.
   const swarm = e.T.pack || e.type === 'slimelet' ? .5 : 1; // packs give the same total per group, not per bug
   let r = Math.random() / swarm;
   if ((r -= DROP.gold) < 0) { if (!gate || Math.random() < LOOT_GATE.gold) at({ gold: irand(1, 4) * d }); } // v0.7.5 F2
@@ -6892,7 +6892,7 @@ function puzzleSpots(r, n, avoid) {
 }
 function vaultLoot(R) {
   const cx = (R.x + R.w / 2) * TS, cy = (R.y + R.h / 2) * TS, put = (o, dx, dy) => ground.push(Object.assign({ x: cx + dx, y: cy + dy, bob: Math.random() * 6, lock: false }, o));
-  put({ item: chestLoot(depth + 1) }, 0, -2); // v0.7.8.1 F1: vaults keep the gear, not a gold pile
+  chestLoot(depth + 1); // not placed. The floor's one greater rare is the vault reward. The roll keeps the ration line below on the old stream.
   const extra = Math.random(); if (extra < .3) put({ ration: 1 }, 12, 6); else if (extra < .45) put({ frag: 1 }, 12, 6); else if (extra < .6) put({ pot: Math.random() < .5 ? 'hp' : 'rp' }, 12, 6);
 }
 function placeVaults() {
@@ -9369,7 +9369,7 @@ function placeIsland(d) { if (d < 2 || Math.random() > .5) return false; const B
     spots.forEach((q, i) => V72.levers.push({ tx: q.tx, ty: q.ty, kind: 'pad', isl: ii, ord: i, on: 0, t: -1 }));
     V72.islands.push({ ix, iy, tx, ty, n: nL, prog: 0, solved: 0 });
     clearOff((x, y) => x >= tx && x < tx + 5 && y >= ty && y < ty + 5);
-    ground.push({ x: (ix + .5) * TS, y: (iy + .5) * TS + 2, bob: 1, lock: false, item: chestLoot(d + 1) }); // v0.7.8.1 F1: the island keeps its gear, not a gold pile
+    chestLoot(d + 1); // islands no longer leave gear. The roll is kept so the next room's random stream does not move.
     return true; }
   return false; }
 function leverLabel(L) { if (L.kind === 'sled') return 'PULL LEVER'; const I = V72.islands[L.isl]; if (!I || I.solved) return null; return I.n > 1 ? 'PULL LEVER ' + ['I', 'II'][L.ord] : 'PULL LEVER'; }
@@ -10112,7 +10112,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   setTile(tx, ty, t) { if (map && tx >= 0 && ty >= 0 && tx < MW && ty < MH) map[ty * MW + tx] = t | 0; },
   seeTile(tx, ty) { if (seen && ty >= 0 && tx >= 0 && ty < MH && tx < MW) seen[ty * MW + tx] = true; }, seenAt(tx, ty) { return !!(seen && seen[ty * MW + tx]); },
   setHaz(tx, ty, id) { if (V71 && V71.haz && ty >= 0 && tx >= 0 && ty < MH && tx < MW) V71.haz[ty * MW + tx] = id; },
-  get puzzles() { return puzzles; }, get torches() { return torches; }, get bprops() { return V72 && V72.bprops; }, get firepits() { return V71 && V71.firepits; }, get gaps() { return V72 && V72.gaps; }, get srooms() { return V72 && V72.srooms; }, get schests() { return V72 && V72.schests; }, get passages() { return passages; }, get artVar() { return ART_VAR; }, texFloor, texWall,
+  get puzzles() { return puzzles; }, get torches() { return torches; }, get bprops() { return V72 && V72.bprops; }, get firepits() { return V71 && V71.firepits; }, get gaps() { return V72 && V72.gaps; }, get srooms() { return V72 && V72.srooms; }, get schests() { return V72 && V72.schests; }, get islands() { return V72 && V72.islands; }, get passages() { return passages; }, get artVar() { return ART_VAR; }, texFloor, texWall,
   get amb() { return { bed: V73 && V73.bed, music: V73 && V73.music, fade: V73 && V73.fade, ones: V73 && V73.oneOrder, mix: SMP_MIX }; },
   get ios() { return { ios: isIOS(), safari: isIOSSafari(), fs: fsAvailable(), standalone: isStandalone(), appW, appH }; },
   get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings, musicSamples: { state: MUS.state, cur: MUS.cur && MUS.cur.id, p2: !!(MUS.cur && MUS.cur.p2), loaded: Object.keys(MUS.buf), failed: Object.keys(MUS.fail), played: MUS.played, err: MUS.err }, samples: { state: SMP.state, fmt: SMP.fmt, cues: SMP.man ? Object.keys(SMP.man.cues).length : 0, loaded: Object.keys(SMP.buf).length, failed: Object.keys(SMP.fail), loops: [...SMP.loops.keys()], played: SMP.played, err: SMP.err } }; } };
