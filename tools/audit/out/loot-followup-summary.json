@@ -1,0 +1,4464 @@
+{
+  "summary": {
+    "version": "0.7.18",
+    "clears": 8,
+    "seeds": [
+      3000,
+      3097,
+      3194,
+      3291,
+      3388,
+      3485,
+      3582,
+      3679
+    ],
+    "preserve": [
+      "keyed",
+      "mimic",
+      "puzzle",
+      "super"
+    ],
+    "baseline": {
+      "id": "baseline",
+      "label": "PR #42 as landed",
+      "fullAtMean": 4.25,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 6,
+        "5": 2
+      },
+      "neverFull": 0,
+      "equip": 84.88,
+      "weapons": 29,
+      "upgrades": 28.5,
+      "overflow": 64.88,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.63,
+          "red": 8.63,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 6.75,
+          "red": 17.13,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.13,
+          "red": 7.38,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.63,
+          "red": 2.5,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.38,
+          "red": 4.75,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.5,
+          "red": 4.5,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.63,
+          "weapon": 2,
+          "up": 3.13,
+          "filled": 10,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.88
+        },
+        {
+          "d": 3,
+          "equip": 5.88,
+          "weapon": 2.13,
+          "up": 3.13,
+          "filled": 15.88,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 10
+        },
+        {
+          "d": 4,
+          "equip": 5.63,
+          "weapon": 1.75,
+          "up": 2.88,
+          "filled": 19.75,
+          "overflow": 1.75,
+          "gold": 237.25,
+          "upgrades": 12.88
+        },
+        {
+          "d": 5,
+          "equip": 8.88,
+          "weapon": 2.25,
+          "up": 4,
+          "filled": 20,
+          "overflow": 10.38,
+          "gold": 375.5,
+          "upgrades": 16.88
+        },
+        {
+          "d": 6,
+          "equip": 6.25,
+          "weapon": 2,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 16.63,
+          "gold": 513,
+          "upgrades": 18.5
+        },
+        {
+          "d": 7,
+          "equip": 6,
+          "weapon": 2,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 22.63,
+          "gold": 915.13,
+          "upgrades": 19.75
+        },
+        {
+          "d": 8,
+          "equip": 7.25,
+          "weapon": 2.75,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 29.88,
+          "gold": 1156.13,
+          "upgrades": 21.63
+        },
+        {
+          "d": 9,
+          "equip": 8.63,
+          "weapon": 2.75,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 38.5,
+          "gold": 1470.25,
+          "upgrades": 23.38
+        },
+        {
+          "d": 10,
+          "equip": 11.5,
+          "weapon": 4.38,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 50,
+          "gold": 1783.75,
+          "upgrades": 25.88
+        },
+        {
+          "d": 11,
+          "equip": 8,
+          "weapon": 2.63,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 58,
+          "gold": 1979.25,
+          "upgrades": 27.63
+        },
+        {
+          "d": 12,
+          "equip": 6.88,
+          "weapon": 2.13,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 64.88,
+          "gold": 2208.25,
+          "upgrades": 28.5
+        }
+      ]
+    },
+    "policies": [
+      {
+        "id": "baseline",
+        "label": "PR #42 as landed",
+        "equip": 84.88,
+        "weapons": 29,
+        "upgrades": 28.5,
+        "gold": 2208.25,
+        "overflow": 64.88,
+        "fullAtMean": 4.25,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 6,
+          "5": 2
+        },
+        "removed": 0
+      },
+      {
+        "id": "loose",
+        "label": "Drop island / loose floor gear",
+        "equip": 75.38,
+        "weapons": 25.63,
+        "upgrades": 27.5,
+        "gold": 2208.25,
+        "overflow": 55.38,
+        "fullAtMean": 4.63,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 3,
+          "5": 5
+        },
+        "removed": 9.5
+      },
+      {
+        "id": "sealed",
+        "label": "Drop sealed-room chest-table gear",
+        "equip": 81.75,
+        "weapons": 28.25,
+        "upgrades": 28.13,
+        "gold": 2208.25,
+        "overflow": 61.75,
+        "fullAtMean": 4.25,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 6,
+          "5": 2
+        },
+        "removed": 3.13
+      },
+      {
+        "id": "vault",
+        "label": "Drop extra vault gear that is not the floor puzzle rare",
+        "equip": 81.25,
+        "weapons": 27.63,
+        "upgrades": 28.13,
+        "gold": 2208.25,
+        "overflow": 61.25,
+        "fullAtMean": 4.38,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 5,
+          "5": 3
+        },
+        "removed": 3.63
+      },
+      {
+        "id": "loose-sealed",
+        "label": "Drop loose and sealed gear",
+        "equip": 72.25,
+        "weapons": 24.88,
+        "upgrades": 27,
+        "gold": 2208.25,
+        "overflow": 52.25,
+        "fullAtMean": 4.63,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 3,
+          "5": 5
+        },
+        "removed": 12.63
+      },
+      {
+        "id": "generator",
+        "label": "Drop loose, sealed, and extra vault gear",
+        "equip": 68.63,
+        "weapons": 23.5,
+        "upgrades": 26.63,
+        "gold": 2208.25,
+        "overflow": 48.63,
+        "fullAtMean": 4.63,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 3,
+          "5": 5
+        },
+        "removed": 16.25
+      },
+      {
+        "id": "generator-half",
+        "label": "Drop half of loose, sealed, and extra vault gear",
+        "equip": 76.5,
+        "weapons": 26.38,
+        "upgrades": 27.38,
+        "gold": 2208.25,
+        "overflow": 56.5,
+        "fullAtMean": 4.25,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 6,
+          "5": 2
+        },
+        "removed": 8.38
+      },
+      {
+        "id": "generator-early",
+        "label": "Drop loose, sealed, and extra vault gear on floors 1-6 only",
+        "equip": 79.13,
+        "weapons": 27.5,
+        "upgrades": 27,
+        "gold": 2208.25,
+        "overflow": 59.13,
+        "fullAtMean": 4.63,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 3,
+          "5": 5
+        },
+        "removed": 5.75
+      },
+      {
+        "id": "champion",
+        "label": "Drop champion whites",
+        "equip": 75.63,
+        "weapons": 25.63,
+        "upgrades": 28,
+        "gold": 2208.25,
+        "overflow": 55.63,
+        "fullAtMean": 4.25,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 6,
+          "5": 2
+        },
+        "removed": 9.25
+      },
+      {
+        "id": "generator-champ",
+        "label": "Drop generator gear and champion whites",
+        "equip": 59.38,
+        "weapons": 20.13,
+        "upgrades": 25.63,
+        "gold": 2208.25,
+        "overflow": 39.38,
+        "fullAtMean": 4.88,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 1,
+          "5": 7
+        },
+        "removed": 25.5
+      },
+      {
+        "id": "squeeze",
+        "label": "Drop squeeze-chest gear",
+        "equip": 77.75,
+        "weapons": 26.38,
+        "upgrades": 27,
+        "gold": 2208.25,
+        "overflow": 57.75,
+        "fullAtMean": 4.5,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 4,
+          "5": 4
+        },
+        "removed": 7.13
+      },
+      {
+        "id": "generator-champ-squeeze",
+        "label": "Drop generator gear, champion whites, and squeeze gear",
+        "equip": 52.25,
+        "weapons": 17.5,
+        "upgrades": 23.63,
+        "gold": 2208.25,
+        "overflow": 32.25,
+        "fullAtMean": 5.25,
+        "fullAtMin": 5,
+        "fullAtMax": 6,
+        "fullAtHist": {
+          "5": 6,
+          "6": 2
+        },
+        "removed": 32.63
+      },
+      {
+        "id": "keyed-half",
+        "label": "Keep half of keyed-chest gear (identity thinned)",
+        "equip": 72.88,
+        "weapons": 25,
+        "upgrades": 26.75,
+        "gold": 2208.25,
+        "overflow": 52.88,
+        "fullAtMean": 4.75,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 2,
+          "5": 6
+        },
+        "removed": 12
+      },
+      {
+        "id": "generator-champ-half",
+        "label": "Drop generator gear and half of champion whites",
+        "equip": 63.88,
+        "weapons": 21.88,
+        "upgrades": 25.88,
+        "gold": 2208.25,
+        "overflow": 43.88,
+        "fullAtMean": 4.75,
+        "fullAtMin": 4,
+        "fullAtMax": 5,
+        "fullAtHist": {
+          "4": 2,
+          "5": 6
+        },
+        "removed": 21
+      },
+      {
+        "id": "generator-keyed-half",
+        "label": "Drop generator gear and half of keyed-chest gear",
+        "equip": 56.63,
+        "weapons": 19.5,
+        "upgrades": 24.88,
+        "gold": 2208.25,
+        "overflow": 36.63,
+        "fullAtMean": 5.5,
+        "fullAtMin": 5,
+        "fullAtMax": 6,
+        "fullAtHist": {
+          "5": 4,
+          "6": 4
+        },
+        "removed": 28.25
+      },
+      {
+        "id": "generator-champ-early-squeeze",
+        "label": "Drop generator gear, champion whites, and squeeze gear on floors 1-4",
+        "equip": 57.63,
+        "weapons": 19.5,
+        "upgrades": 25.13,
+        "gold": 2208.25,
+        "overflow": 37.63,
+        "fullAtMean": 5.25,
+        "fullAtMin": 5,
+        "fullAtMax": 6,
+        "fullAtHist": {
+          "5": 6,
+          "6": 2
+        },
+        "removed": 27.25
+      }
+    ],
+    "shopFloorsWithOffers": 16,
+    "shopOffersPerSuchFloor": 3
+  },
+  "results": [
+    {
+      "id": "baseline",
+      "label": "PR #42 as landed",
+      "fullAtMean": 4.25,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 6,
+        "5": 2
+      },
+      "neverFull": 0,
+      "equip": 84.88,
+      "weapons": 29,
+      "upgrades": 28.5,
+      "overflow": 64.88,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.63,
+          "red": 8.63,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 6.75,
+          "red": 17.13,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.13,
+          "red": 7.38,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.63,
+          "red": 2.5,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.38,
+          "red": 4.75,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.5,
+          "red": 4.5,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.63,
+          "weapon": 2,
+          "up": 3.13,
+          "filled": 10,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.88
+        },
+        {
+          "d": 3,
+          "equip": 5.88,
+          "weapon": 2.13,
+          "up": 3.13,
+          "filled": 15.88,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 10
+        },
+        {
+          "d": 4,
+          "equip": 5.63,
+          "weapon": 1.75,
+          "up": 2.88,
+          "filled": 19.75,
+          "overflow": 1.75,
+          "gold": 237.25,
+          "upgrades": 12.88
+        },
+        {
+          "d": 5,
+          "equip": 8.88,
+          "weapon": 2.25,
+          "up": 4,
+          "filled": 20,
+          "overflow": 10.38,
+          "gold": 375.5,
+          "upgrades": 16.88
+        },
+        {
+          "d": 6,
+          "equip": 6.25,
+          "weapon": 2,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 16.63,
+          "gold": 513,
+          "upgrades": 18.5
+        },
+        {
+          "d": 7,
+          "equip": 6,
+          "weapon": 2,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 22.63,
+          "gold": 915.13,
+          "upgrades": 19.75
+        },
+        {
+          "d": 8,
+          "equip": 7.25,
+          "weapon": 2.75,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 29.88,
+          "gold": 1156.13,
+          "upgrades": 21.63
+        },
+        {
+          "d": 9,
+          "equip": 8.63,
+          "weapon": 2.75,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 38.5,
+          "gold": 1470.25,
+          "upgrades": 23.38
+        },
+        {
+          "d": 10,
+          "equip": 11.5,
+          "weapon": 4.38,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 50,
+          "gold": 1783.75,
+          "upgrades": 25.88
+        },
+        {
+          "d": 11,
+          "equip": 8,
+          "weapon": 2.63,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 58,
+          "gold": 1979.25,
+          "upgrades": 27.63
+        },
+        {
+          "d": 12,
+          "equip": 6.88,
+          "weapon": 2.13,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 64.88,
+          "gold": 2208.25,
+          "upgrades": 28.5
+        }
+      ]
+    },
+    {
+      "id": "loose",
+      "label": "Drop island / loose floor gear",
+      "fullAtMean": 4.63,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 3,
+        "5": 5
+      },
+      "neverFull": 0,
+      "equip": 75.38,
+      "weapons": 25.63,
+      "upgrades": 27.5,
+      "overflow": 55.38,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 1,
+          "red": 8.25,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7,
+          "red": 16.88,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.38,
+          "red": 4,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.75,
+          "red": 2.38,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.5,
+          "red": 4.63,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.63,
+          "red": 4.38,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.25,
+          "weapon": 1.88,
+          "up": 3,
+          "filled": 9.63,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.75
+        },
+        {
+          "d": 3,
+          "equip": 4.63,
+          "weapon": 1.88,
+          "up": 2.5,
+          "filled": 14.25,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.25
+        },
+        {
+          "d": 4,
+          "equip": 5,
+          "weapon": 1.5,
+          "up": 2.75,
+          "filled": 18.5,
+          "overflow": 0.75,
+          "gold": 237.25,
+          "upgrades": 12
+        },
+        {
+          "d": 5,
+          "equip": 7.88,
+          "weapon": 1.75,
+          "up": 3.75,
+          "filled": 20,
+          "overflow": 7.13,
+          "gold": 375.5,
+          "upgrades": 15.75
+        },
+        {
+          "d": 6,
+          "equip": 5.88,
+          "weapon": 1.88,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 13,
+          "gold": 513,
+          "upgrades": 17.5
+        },
+        {
+          "d": 7,
+          "equip": 5.25,
+          "weapon": 1.63,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 18.25,
+          "gold": 915.13,
+          "upgrades": 18.75
+        },
+        {
+          "d": 8,
+          "equip": 6.25,
+          "weapon": 2.38,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 24.5,
+          "gold": 1156.13,
+          "upgrades": 20.5
+        },
+        {
+          "d": 9,
+          "equip": 8,
+          "weapon": 2.38,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 32.5,
+          "gold": 1470.25,
+          "upgrades": 22.25
+        },
+        {
+          "d": 10,
+          "equip": 10.13,
+          "weapon": 4,
+          "up": 2.63,
+          "filled": 20,
+          "overflow": 42.63,
+          "gold": 1783.75,
+          "upgrades": 24.88
+        },
+        {
+          "d": 11,
+          "equip": 7,
+          "weapon": 2.38,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 49.63,
+          "gold": 1979.25,
+          "upgrades": 26.63
+        },
+        {
+          "d": 12,
+          "equip": 5.75,
+          "weapon": 1.75,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 55.38,
+          "gold": 2208.25,
+          "upgrades": 27.5
+        }
+      ]
+    },
+    {
+      "id": "sealed",
+      "label": "Drop sealed-room chest-table gear",
+      "fullAtMean": 4.25,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 6,
+        "5": 2
+      },
+      "neverFull": 0,
+      "equip": 81.75,
+      "weapons": 28.25,
+      "upgrades": 28.13,
+      "overflow": 61.75,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.63,
+          "red": 8.63,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 6.88,
+          "red": 17,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.13,
+          "red": 7.38,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.38,
+          "red": 4,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.38,
+          "red": 4.75,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.5,
+          "red": 4.5,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.63,
+          "weapon": 2,
+          "up": 3.13,
+          "filled": 10,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.88
+        },
+        {
+          "d": 3,
+          "equip": 5.75,
+          "weapon": 2.13,
+          "up": 3,
+          "filled": 15.75,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.88
+        },
+        {
+          "d": 4,
+          "equip": 5.63,
+          "weapon": 1.75,
+          "up": 2.88,
+          "filled": 19.75,
+          "overflow": 1.63,
+          "gold": 237.25,
+          "upgrades": 12.75
+        },
+        {
+          "d": 5,
+          "equip": 7.75,
+          "weapon": 2.13,
+          "up": 3.75,
+          "filled": 20,
+          "overflow": 9.13,
+          "gold": 375.5,
+          "upgrades": 16.5
+        },
+        {
+          "d": 6,
+          "equip": 6.13,
+          "weapon": 2,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 15.25,
+          "gold": 513,
+          "upgrades": 18.25
+        },
+        {
+          "d": 7,
+          "equip": 5.88,
+          "weapon": 1.88,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 21.13,
+          "gold": 915.13,
+          "upgrades": 19.5
+        },
+        {
+          "d": 8,
+          "equip": 7.13,
+          "weapon": 2.75,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 28.25,
+          "gold": 1156.13,
+          "upgrades": 21.38
+        },
+        {
+          "d": 9,
+          "equip": 8.5,
+          "weapon": 2.63,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 36.75,
+          "gold": 1470.25,
+          "upgrades": 23.13
+        },
+        {
+          "d": 10,
+          "equip": 10.25,
+          "weapon": 4,
+          "up": 2.38,
+          "filled": 20,
+          "overflow": 47,
+          "gold": 1783.75,
+          "upgrades": 25.5
+        },
+        {
+          "d": 11,
+          "equip": 7.88,
+          "weapon": 2.63,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 54.88,
+          "gold": 1979.25,
+          "upgrades": 27.25
+        },
+        {
+          "d": 12,
+          "equip": 6.88,
+          "weapon": 2.13,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 61.75,
+          "gold": 2208.25,
+          "upgrades": 28.13
+        }
+      ]
+    },
+    {
+      "id": "vault",
+      "label": "Drop extra vault gear that is not the floor puzzle rare",
+      "fullAtMean": 4.38,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 5,
+        "5": 3
+      },
+      "neverFull": 0,
+      "equip": 81.25,
+      "weapons": 27.63,
+      "upgrades": 28.13,
+      "overflow": 61.25,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.75,
+          "red": 8.5,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 6.75,
+          "red": 17.13,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.25,
+          "red": 7.25,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.63,
+          "red": 2.5,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.38,
+          "red": 4.75,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.5,
+          "red": 4.5,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.38,
+          "weapon": 1.88,
+          "up": 3,
+          "filled": 9.75,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.75
+        },
+        {
+          "d": 3,
+          "equip": 5.88,
+          "weapon": 2.13,
+          "up": 3.13,
+          "filled": 15.63,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.88
+        },
+        {
+          "d": 4,
+          "equip": 5.5,
+          "weapon": 1.75,
+          "up": 2.88,
+          "filled": 19.5,
+          "overflow": 1.63,
+          "gold": 237.25,
+          "upgrades": 12.75
+        },
+        {
+          "d": 5,
+          "equip": 8.63,
+          "weapon": 2.25,
+          "up": 4,
+          "filled": 20,
+          "overflow": 9.75,
+          "gold": 375.5,
+          "upgrades": 16.75
+        },
+        {
+          "d": 6,
+          "equip": 6.13,
+          "weapon": 2,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 15.88,
+          "gold": 513,
+          "upgrades": 18.38
+        },
+        {
+          "d": 7,
+          "equip": 5.75,
+          "weapon": 1.88,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 21.63,
+          "gold": 915.13,
+          "upgrades": 19.63
+        },
+        {
+          "d": 8,
+          "equip": 6.63,
+          "weapon": 2.63,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 28.25,
+          "gold": 1156.13,
+          "upgrades": 21.5
+        },
+        {
+          "d": 9,
+          "equip": 8,
+          "weapon": 2.5,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 36.25,
+          "gold": 1470.25,
+          "upgrades": 23.13
+        },
+        {
+          "d": 10,
+          "equip": 11,
+          "weapon": 4.13,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 47.25,
+          "gold": 1783.75,
+          "upgrades": 25.63
+        },
+        {
+          "d": 11,
+          "equip": 7.5,
+          "weapon": 2.25,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 54.75,
+          "gold": 1979.25,
+          "upgrades": 27.25
+        },
+        {
+          "d": 12,
+          "equip": 6.5,
+          "weapon": 2,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 61.25,
+          "gold": 2208.25,
+          "upgrades": 28.13
+        }
+      ]
+    },
+    {
+      "id": "loose-sealed",
+      "label": "Drop loose and sealed gear",
+      "fullAtMean": 4.63,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 3,
+        "5": 5
+      },
+      "neverFull": 0,
+      "equip": 72.25,
+      "weapons": 24.88,
+      "upgrades": 27,
+      "overflow": 52.25,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 1,
+          "red": 8.25,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7.13,
+          "red": 16.75,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.5,
+          "red": 3.88,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.5,
+          "red": 4.63,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.63,
+          "red": 4.38,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.25,
+          "weapon": 1.88,
+          "up": 3,
+          "filled": 9.63,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.75
+        },
+        {
+          "d": 3,
+          "equip": 4.5,
+          "weapon": 1.88,
+          "up": 2.38,
+          "filled": 14.13,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.13
+        },
+        {
+          "d": 4,
+          "equip": 5,
+          "weapon": 1.5,
+          "up": 2.75,
+          "filled": 18.38,
+          "overflow": 0.75,
+          "gold": 237.25,
+          "upgrades": 11.88
+        },
+        {
+          "d": 5,
+          "equip": 6.75,
+          "weapon": 1.63,
+          "up": 3.5,
+          "filled": 20,
+          "overflow": 5.88,
+          "gold": 375.5,
+          "upgrades": 15.38
+        },
+        {
+          "d": 6,
+          "equip": 5.75,
+          "weapon": 1.88,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 11.63,
+          "gold": 513,
+          "upgrades": 17.13
+        },
+        {
+          "d": 7,
+          "equip": 5.13,
+          "weapon": 1.5,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 16.75,
+          "gold": 915.13,
+          "upgrades": 18.38
+        },
+        {
+          "d": 8,
+          "equip": 6.13,
+          "weapon": 2.38,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 22.88,
+          "gold": 1156.13,
+          "upgrades": 20.13
+        },
+        {
+          "d": 9,
+          "equip": 7.88,
+          "weapon": 2.25,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 30.75,
+          "gold": 1470.25,
+          "upgrades": 21.88
+        },
+        {
+          "d": 10,
+          "equip": 8.88,
+          "weapon": 3.63,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 39.63,
+          "gold": 1783.75,
+          "upgrades": 24.38
+        },
+        {
+          "d": 11,
+          "equip": 6.88,
+          "weapon": 2.38,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 46.5,
+          "gold": 1979.25,
+          "upgrades": 26.13
+        },
+        {
+          "d": 12,
+          "equip": 5.75,
+          "weapon": 1.75,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 52.25,
+          "gold": 2208.25,
+          "upgrades": 27
+        }
+      ]
+    },
+    {
+      "id": "generator",
+      "label": "Drop loose, sealed, and extra vault gear",
+      "fullAtMean": 4.63,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 3,
+        "5": 5
+      },
+      "neverFull": 0,
+      "equip": 68.63,
+      "weapons": 23.5,
+      "upgrades": 26.63,
+      "overflow": 48.63,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 1.13,
+          "red": 8.13,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7.25,
+          "red": 16.63,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.5,
+          "red": 3.88,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.5,
+          "red": 4.63,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.63,
+          "red": 4.38,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5,
+          "weapon": 1.75,
+          "up": 2.88,
+          "filled": 9.38,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.63
+        },
+        {
+          "d": 3,
+          "equip": 4.5,
+          "weapon": 1.88,
+          "up": 2.38,
+          "filled": 13.88,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9
+        },
+        {
+          "d": 4,
+          "equip": 4.88,
+          "weapon": 1.5,
+          "up": 2.75,
+          "filled": 18.13,
+          "overflow": 0.63,
+          "gold": 237.25,
+          "upgrades": 11.75
+        },
+        {
+          "d": 5,
+          "equip": 6.5,
+          "weapon": 1.63,
+          "up": 3.5,
+          "filled": 20,
+          "overflow": 5.25,
+          "gold": 375.5,
+          "upgrades": 15.25
+        },
+        {
+          "d": 6,
+          "equip": 5.63,
+          "weapon": 1.88,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 10.88,
+          "gold": 513,
+          "upgrades": 17
+        },
+        {
+          "d": 7,
+          "equip": 4.88,
+          "weapon": 1.38,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 15.75,
+          "gold": 915.13,
+          "upgrades": 18.25
+        },
+        {
+          "d": 8,
+          "equip": 5.5,
+          "weapon": 2.25,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 21.25,
+          "gold": 1156.13,
+          "upgrades": 20
+        },
+        {
+          "d": 9,
+          "equip": 7.25,
+          "weapon": 2,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 28.5,
+          "gold": 1470.25,
+          "upgrades": 21.63
+        },
+        {
+          "d": 10,
+          "equip": 8.38,
+          "weapon": 3.38,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 36.88,
+          "gold": 1783.75,
+          "upgrades": 24.13
+        },
+        {
+          "d": 11,
+          "equip": 6.38,
+          "weapon": 2,
+          "up": 1.5,
+          "filled": 20,
+          "overflow": 43.25,
+          "gold": 1979.25,
+          "upgrades": 25.63
+        },
+        {
+          "d": 12,
+          "equip": 5.38,
+          "weapon": 1.63,
+          "up": 1,
+          "filled": 20,
+          "overflow": 48.63,
+          "gold": 2208.25,
+          "upgrades": 26.63
+        }
+      ]
+    },
+    {
+      "id": "generator-half",
+      "label": "Drop half of loose, sealed, and extra vault gear",
+      "fullAtMean": 4.25,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 6,
+        "5": 2
+      },
+      "neverFull": 0,
+      "equip": 76.5,
+      "weapons": 26.38,
+      "upgrades": 27.38,
+      "overflow": 56.5,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.75,
+          "red": 8.5,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 6.88,
+          "red": 17,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 4.38,
+          "up": 1.13,
+          "red": 3.25,
+          "weapon": 1.75,
+          "rar": [
+            0,
+            3.88,
+            0.5,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 1.88,
+          "up": 0.38,
+          "red": 1.5,
+          "weapon": 0.38,
+          "rar": [
+            0,
+            1.25,
+            0.63,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.38,
+          "red": 4.75,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.63,
+          "red": 4.38,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 1.63,
+          "up": 0.38,
+          "red": 1.25,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            1.63,
+            0,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5.5,
+          "weapon": 2,
+          "up": 3.13,
+          "filled": 9.88,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.88
+        },
+        {
+          "d": 3,
+          "equip": 5.13,
+          "weapon": 1.88,
+          "up": 2.75,
+          "filled": 15,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.63
+        },
+        {
+          "d": 4,
+          "equip": 5.38,
+          "weapon": 1.63,
+          "up": 2.88,
+          "filled": 19.38,
+          "overflow": 1,
+          "gold": 237.25,
+          "upgrades": 12.5
+        },
+        {
+          "d": 5,
+          "equip": 7.75,
+          "weapon": 2,
+          "up": 3.63,
+          "filled": 20,
+          "overflow": 8.13,
+          "gold": 375.5,
+          "upgrades": 16.13
+        },
+        {
+          "d": 6,
+          "equip": 5.63,
+          "weapon": 1.88,
+          "up": 1.5,
+          "filled": 20,
+          "overflow": 13.75,
+          "gold": 513,
+          "upgrades": 17.63
+        },
+        {
+          "d": 7,
+          "equip": 5.25,
+          "weapon": 1.5,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 19,
+          "gold": 915.13,
+          "upgrades": 18.88
+        },
+        {
+          "d": 8,
+          "equip": 6.25,
+          "weapon": 2.5,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 25.25,
+          "gold": 1156.13,
+          "upgrades": 20.75
+        },
+        {
+          "d": 9,
+          "equip": 7.88,
+          "weapon": 2.38,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 33.13,
+          "gold": 1470.25,
+          "upgrades": 22.38
+        },
+        {
+          "d": 10,
+          "equip": 10.25,
+          "weapon": 4.13,
+          "up": 2.38,
+          "filled": 20,
+          "overflow": 43.38,
+          "gold": 1783.75,
+          "upgrades": 24.75
+        },
+        {
+          "d": 11,
+          "equip": 7,
+          "weapon": 2.25,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 50.38,
+          "gold": 1979.25,
+          "upgrades": 26.5
+        },
+        {
+          "d": 12,
+          "equip": 6.13,
+          "weapon": 2,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 56.5,
+          "gold": 2208.25,
+          "upgrades": 27.38
+        }
+      ]
+    },
+    {
+      "id": "generator-early",
+      "label": "Drop loose, sealed, and extra vault gear on floors 1-6 only",
+      "fullAtMean": 4.63,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 3,
+        "5": 5
+      },
+      "neverFull": 0,
+      "equip": 79.13,
+      "weapons": 27.5,
+      "upgrades": 27,
+      "overflow": 59.13,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 1,
+          "red": 8.25,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7,
+          "red": 16.88,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 5.88,
+          "up": 0.13,
+          "red": 5.75,
+          "weapon": 2.13,
+          "rar": [
+            0,
+            4.75,
+            1.13,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.38,
+          "red": 4,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 1.75,
+          "up": 0.25,
+          "red": 1.5,
+          "weapon": 0.63,
+          "rar": [
+            0,
+            1.13,
+            0.63,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.5,
+          "red": 4.63,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.63,
+          "red": 4.38,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 2.88,
+          "up": 0.5,
+          "red": 2.38,
+          "weapon": 1.25,
+          "rar": [
+            0,
+            2.5,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5,
+          "weapon": 1.75,
+          "up": 2.88,
+          "filled": 9.38,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.63
+        },
+        {
+          "d": 3,
+          "equip": 4.5,
+          "weapon": 1.88,
+          "up": 2.38,
+          "filled": 13.88,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9
+        },
+        {
+          "d": 4,
+          "equip": 4.88,
+          "weapon": 1.5,
+          "up": 2.75,
+          "filled": 18.13,
+          "overflow": 0.63,
+          "gold": 237.25,
+          "upgrades": 11.75
+        },
+        {
+          "d": 5,
+          "equip": 6.5,
+          "weapon": 1.63,
+          "up": 3.5,
+          "filled": 20,
+          "overflow": 5.25,
+          "gold": 375.5,
+          "upgrades": 15.25
+        },
+        {
+          "d": 6,
+          "equip": 5.63,
+          "weapon": 1.88,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 10.88,
+          "gold": 513,
+          "upgrades": 17
+        },
+        {
+          "d": 7,
+          "equip": 6,
+          "weapon": 2,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 16.88,
+          "gold": 915.13,
+          "upgrades": 18.25
+        },
+        {
+          "d": 8,
+          "equip": 7.25,
+          "weapon": 2.75,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 24.13,
+          "gold": 1156.13,
+          "upgrades": 20.13
+        },
+        {
+          "d": 9,
+          "equip": 8.63,
+          "weapon": 2.75,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 32.75,
+          "gold": 1470.25,
+          "upgrades": 21.88
+        },
+        {
+          "d": 10,
+          "equip": 11.5,
+          "weapon": 4.38,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 44.25,
+          "gold": 1783.75,
+          "upgrades": 24.38
+        },
+        {
+          "d": 11,
+          "equip": 8,
+          "weapon": 2.63,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 52.25,
+          "gold": 1979.25,
+          "upgrades": 26.13
+        },
+        {
+          "d": 12,
+          "equip": 6.88,
+          "weapon": 2.13,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 59.13,
+          "gold": 2208.25,
+          "upgrades": 27
+        }
+      ]
+    },
+    {
+      "id": "champion",
+      "label": "Drop champion whites",
+      "fullAtMean": 4.25,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 6,
+        "5": 2
+      },
+      "neverFull": 0,
+      "equip": 75.63,
+      "weapons": 25.63,
+      "upgrades": 28,
+      "overflow": 55.63,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 6.75,
+          "red": 17.13,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.13,
+          "red": 7.38,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.63,
+          "red": 2.5,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.5,
+          "red": 4.63,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.5,
+          "red": 4.5,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.25,
+          "weapon": 2.13,
+          "up": 3.63,
+          "filled": 4.25,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.63
+        },
+        {
+          "d": 2,
+          "equip": 5.25,
+          "weapon": 1.75,
+          "up": 3,
+          "filled": 9.5,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.63
+        },
+        {
+          "d": 3,
+          "equip": 5.25,
+          "weapon": 2,
+          "up": 3,
+          "filled": 14.75,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.63
+        },
+        {
+          "d": 4,
+          "equip": 5.38,
+          "weapon": 1.63,
+          "up": 2.75,
+          "filled": 19.5,
+          "overflow": 0.63,
+          "gold": 237.25,
+          "upgrades": 12.38
+        },
+        {
+          "d": 5,
+          "equip": 8.25,
+          "weapon": 2,
+          "up": 4,
+          "filled": 20,
+          "overflow": 8.38,
+          "gold": 375.5,
+          "upgrades": 16.38
+        },
+        {
+          "d": 6,
+          "equip": 5.13,
+          "weapon": 1.88,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 13.5,
+          "gold": 513,
+          "upgrades": 18
+        },
+        {
+          "d": 7,
+          "equip": 5.38,
+          "weapon": 1.88,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 18.88,
+          "gold": 915.13,
+          "upgrades": 19.25
+        },
+        {
+          "d": 8,
+          "equip": 6.5,
+          "weapon": 2.38,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 25.38,
+          "gold": 1156.13,
+          "upgrades": 21.13
+        },
+        {
+          "d": 9,
+          "equip": 7.13,
+          "weapon": 2.13,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 32.5,
+          "gold": 1470.25,
+          "upgrades": 22.88
+        },
+        {
+          "d": 10,
+          "equip": 10,
+          "weapon": 3.5,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 42.5,
+          "gold": 1783.75,
+          "upgrades": 25.38
+        },
+        {
+          "d": 11,
+          "equip": 6.88,
+          "weapon": 2.25,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 49.38,
+          "gold": 1979.25,
+          "upgrades": 27.13
+        },
+        {
+          "d": 12,
+          "equip": 6.25,
+          "weapon": 2.13,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 55.63,
+          "gold": 2208.25,
+          "upgrades": 28
+        }
+      ]
+    },
+    {
+      "id": "generator-champ",
+      "label": "Drop generator gear and champion whites",
+      "fullAtMean": 4.88,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 1,
+        "5": 7
+      },
+      "neverFull": 0,
+      "equip": 59.38,
+      "weapons": 20.13,
+      "upgrades": 25.63,
+      "overflow": 39.38,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7.25,
+          "red": 16.63,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.5,
+          "red": 3.88,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 2.63,
+          "red": 4.5,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.63,
+          "red": 4.38,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.25,
+          "weapon": 2.13,
+          "up": 3.63,
+          "filled": 4.25,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.63
+        },
+        {
+          "d": 2,
+          "equip": 4.63,
+          "weapon": 1.5,
+          "up": 2.75,
+          "filled": 8.88,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.38
+        },
+        {
+          "d": 3,
+          "equip": 3.88,
+          "weapon": 1.75,
+          "up": 2.13,
+          "filled": 12.75,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 8.5
+        },
+        {
+          "d": 4,
+          "equip": 4.63,
+          "weapon": 1.38,
+          "up": 2.63,
+          "filled": 17.25,
+          "overflow": 0.13,
+          "gold": 237.25,
+          "upgrades": 11.13
+        },
+        {
+          "d": 5,
+          "equip": 5.88,
+          "weapon": 1.38,
+          "up": 3.38,
+          "filled": 20,
+          "overflow": 3.25,
+          "gold": 375.5,
+          "upgrades": 14.5
+        },
+        {
+          "d": 6,
+          "equip": 4.5,
+          "weapon": 1.75,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 7.75,
+          "gold": 513,
+          "upgrades": 16.13
+        },
+        {
+          "d": 7,
+          "equip": 4.25,
+          "weapon": 1.25,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 12,
+          "gold": 915.13,
+          "upgrades": 17.38
+        },
+        {
+          "d": 8,
+          "equip": 4.75,
+          "weapon": 1.88,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 16.75,
+          "gold": 1156.13,
+          "upgrades": 19.13
+        },
+        {
+          "d": 9,
+          "equip": 5.75,
+          "weapon": 1.38,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 22.5,
+          "gold": 1470.25,
+          "upgrades": 20.75
+        },
+        {
+          "d": 10,
+          "equip": 6.88,
+          "weapon": 2.5,
+          "up": 2.38,
+          "filled": 20,
+          "overflow": 29.38,
+          "gold": 1783.75,
+          "upgrades": 23.13
+        },
+        {
+          "d": 11,
+          "equip": 5.25,
+          "weapon": 1.63,
+          "up": 1.5,
+          "filled": 20,
+          "overflow": 34.63,
+          "gold": 1979.25,
+          "upgrades": 24.63
+        },
+        {
+          "d": 12,
+          "equip": 4.75,
+          "weapon": 1.63,
+          "up": 1,
+          "filled": 20,
+          "overflow": 39.38,
+          "gold": 2208.25,
+          "upgrades": 25.63
+        }
+      ]
+    },
+    {
+      "id": "squeeze",
+      "label": "Drop squeeze-chest gear",
+      "fullAtMean": 4.5,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 4,
+        "5": 4
+      },
+      "neverFull": 0,
+      "equip": 77.75,
+      "weapons": 26.38,
+      "upgrades": 27,
+      "overflow": 57.75,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.63,
+          "red": 8.63,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7,
+          "red": 16.88,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.25,
+          "red": 7.25,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.63,
+          "red": 2.5,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.88,
+          "red": 4.13,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.75,
+          "red": 2.88,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.38,
+          "weapon": 2.25,
+          "up": 3.75,
+          "filled": 4.38,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.75
+        },
+        {
+          "d": 2,
+          "equip": 5,
+          "weapon": 1.88,
+          "up": 2.75,
+          "filled": 9.38,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.5
+        },
+        {
+          "d": 3,
+          "equip": 5.13,
+          "weapon": 1.88,
+          "up": 3,
+          "filled": 14.5,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 9.5
+        },
+        {
+          "d": 4,
+          "equip": 5.25,
+          "weapon": 1.5,
+          "up": 2.88,
+          "filled": 19.13,
+          "overflow": 0.63,
+          "gold": 237.25,
+          "upgrades": 12.38
+        },
+        {
+          "d": 5,
+          "equip": 8.5,
+          "weapon": 2.25,
+          "up": 3.88,
+          "filled": 20,
+          "overflow": 8.25,
+          "gold": 375.5,
+          "upgrades": 16.25
+        },
+        {
+          "d": 6,
+          "equip": 5.63,
+          "weapon": 1.75,
+          "up": 1.38,
+          "filled": 20,
+          "overflow": 13.88,
+          "gold": 513,
+          "upgrades": 17.63
+        },
+        {
+          "d": 7,
+          "equip": 5.38,
+          "weapon": 1.75,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 19.25,
+          "gold": 915.13,
+          "upgrades": 18.88
+        },
+        {
+          "d": 8,
+          "equip": 6.63,
+          "weapon": 2.38,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 25.88,
+          "gold": 1156.13,
+          "upgrades": 20.75
+        },
+        {
+          "d": 9,
+          "equip": 7.5,
+          "weapon": 2.38,
+          "up": 1.5,
+          "filled": 20,
+          "overflow": 33.38,
+          "gold": 1470.25,
+          "upgrades": 22.25
+        },
+        {
+          "d": 10,
+          "equip": 10.88,
+          "weapon": 4.25,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 44.25,
+          "gold": 1783.75,
+          "upgrades": 24.75
+        },
+        {
+          "d": 11,
+          "equip": 7.38,
+          "weapon": 2.38,
+          "up": 1.38,
+          "filled": 20,
+          "overflow": 51.63,
+          "gold": 1979.25,
+          "upgrades": 26.13
+        },
+        {
+          "d": 12,
+          "equip": 6.13,
+          "weapon": 1.75,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 57.75,
+          "gold": 2208.25,
+          "upgrades": 27
+        }
+      ]
+    },
+    {
+      "id": "generator-champ-squeeze",
+      "label": "Drop generator gear, champion whites, and squeeze gear",
+      "fullAtMean": 5.25,
+      "fullAtMin": 5,
+      "fullAtMax": 6,
+      "fullAtHist": {
+        "5": 6,
+        "6": 2
+      },
+      "neverFull": 0,
+      "equip": 52.25,
+      "weapons": 17.5,
+      "upgrades": 23.63,
+      "overflow": 32.25,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 23.88,
+          "up": 7.5,
+          "red": 16.38,
+          "weapon": 7.5,
+          "rar": [
+            0,
+            17.13,
+            6.75,
+            0
+          ]
+        },
+        "loose": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.5,
+          "red": 3.88,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 8,
+          "red": 4,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 0,
+          "up": 0,
+          "red": 0,
+          "weapon": 0,
+          "rar": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.25,
+          "weapon": 2.13,
+          "up": 3.63,
+          "filled": 4.25,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.63
+        },
+        {
+          "d": 2,
+          "equip": 4,
+          "weapon": 1.38,
+          "up": 2.38,
+          "filled": 8.25,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6
+        },
+        {
+          "d": 3,
+          "equip": 3.13,
+          "weapon": 1.5,
+          "up": 1.88,
+          "filled": 11.38,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 7.88
+        },
+        {
+          "d": 4,
+          "equip": 4.25,
+          "weapon": 1.13,
+          "up": 2.5,
+          "filled": 15.63,
+          "overflow": 0,
+          "gold": 237.25,
+          "upgrades": 10.38
+        },
+        {
+          "d": 5,
+          "equip": 5.5,
+          "weapon": 1.38,
+          "up": 3.25,
+          "filled": 19.63,
+          "overflow": 1.5,
+          "gold": 375.5,
+          "upgrades": 13.63
+        },
+        {
+          "d": 6,
+          "equip": 3.88,
+          "weapon": 1.5,
+          "up": 1.38,
+          "filled": 20,
+          "overflow": 5,
+          "gold": 513,
+          "upgrades": 15
+        },
+        {
+          "d": 7,
+          "equip": 3.63,
+          "weapon": 1,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 8.63,
+          "gold": 915.13,
+          "upgrades": 16.25
+        },
+        {
+          "d": 8,
+          "equip": 4.13,
+          "weapon": 1.5,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 12.75,
+          "gold": 1156.13,
+          "upgrades": 18
+        },
+        {
+          "d": 9,
+          "equip": 4.63,
+          "weapon": 1,
+          "up": 1.13,
+          "filled": 20,
+          "overflow": 17.38,
+          "gold": 1470.25,
+          "upgrades": 19.13
+        },
+        {
+          "d": 10,
+          "equip": 6.25,
+          "weapon": 2.38,
+          "up": 2.38,
+          "filled": 20,
+          "overflow": 23.63,
+          "gold": 1783.75,
+          "upgrades": 21.5
+        },
+        {
+          "d": 11,
+          "equip": 4.63,
+          "weapon": 1.38,
+          "up": 1.13,
+          "filled": 20,
+          "overflow": 28.25,
+          "gold": 1979.25,
+          "upgrades": 22.63
+        },
+        {
+          "d": 12,
+          "equip": 4,
+          "weapon": 1.25,
+          "up": 1,
+          "filled": 20,
+          "overflow": 32.25,
+          "gold": 2208.25,
+          "upgrades": 23.63
+        }
+      ]
+    },
+    {
+      "id": "keyed-half",
+      "label": "Keep half of keyed-chest gear (identity thinned)",
+      "fullAtMean": 4.75,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 2,
+        "5": 6
+      },
+      "neverFull": 0,
+      "equip": 72.88,
+      "weapons": 25,
+      "upgrades": 26.75,
+      "overflow": 52.88,
+      "gold": 2208.25,
+      "sources": {
+        "boss": {
+          "n": 4,
+          "up": 2.63,
+          "red": 1.38,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "champion": {
+          "n": 9.25,
+          "up": 0.75,
+          "red": 8.5,
+          "weapon": 3.38,
+          "rar": [
+            9.25,
+            0,
+            0,
+            0
+          ]
+        },
+        "keyed": {
+          "n": 11.88,
+          "up": 4.13,
+          "red": 7.75,
+          "weapon": 3.5,
+          "rar": [
+            0,
+            8.38,
+            3.5,
+            0
+          ]
+        },
+        "loose": {
+          "n": 9.5,
+          "up": 2.13,
+          "red": 7.38,
+          "weapon": 3.38,
+          "rar": [
+            0,
+            7.88,
+            1.63,
+            0
+          ]
+        },
+        "mimic": {
+          "n": 3,
+          "up": 0,
+          "red": 3,
+          "weapon": 1,
+          "rar": [
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "puzzle": {
+          "n": 8.38,
+          "up": 4.25,
+          "red": 4.13,
+          "weapon": 3,
+          "rar": [
+            0,
+            0,
+            8.38,
+            0
+          ]
+        },
+        "rusty": {
+          "n": 1,
+          "up": 1,
+          "red": 0,
+          "weapon": 1,
+          "rar": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "sealed": {
+          "n": 3.13,
+          "up": 0.63,
+          "red": 2.5,
+          "weapon": 0.75,
+          "rar": [
+            0,
+            2.13,
+            1,
+            0
+          ]
+        },
+        "squeeze": {
+          "n": 7.13,
+          "up": 3.13,
+          "red": 4,
+          "weapon": 2.63,
+          "rar": [
+            0,
+            0,
+            6.25,
+            0.88
+          ]
+        },
+        "super": {
+          "n": 12,
+          "up": 7.5,
+          "red": 4.5,
+          "weapon": 3.63,
+          "rar": [
+            0,
+            0,
+            5.5,
+            6.5
+          ]
+        },
+        "vault": {
+          "n": 3.63,
+          "up": 0.63,
+          "red": 3,
+          "weapon": 1.38,
+          "rar": [
+            0,
+            3.25,
+            0.38,
+            0
+          ]
+        }
+      },
+      "floors": [
+        {
+          "d": 1,
+          "equip": 3.75,
+          "weapon": 2,
+          "up": 3.38,
+          "filled": 3.75,
+          "overflow": 0,
+          "gold": 30.13,
+          "upgrades": 3.38
+        },
+        {
+          "d": 2,
+          "equip": 4.75,
+          "weapon": 1.88,
+          "up": 2.88,
+          "filled": 8.5,
+          "overflow": 0,
+          "gold": 72.63,
+          "upgrades": 6.25
+        },
+        {
+          "d": 3,
+          "equip": 5,
+          "weapon": 1.75,
+          "up": 2.63,
+          "filled": 13.5,
+          "overflow": 0,
+          "gold": 154.25,
+          "upgrades": 8.88
+        },
+        {
+          "d": 4,
+          "equip": 4.5,
+          "weapon": 1.38,
+          "up": 2.5,
+          "filled": 17.75,
+          "overflow": 0.25,
+          "gold": 237.25,
+          "upgrades": 11.38
+        },
+        {
+          "d": 5,
+          "equip": 7.75,
+          "weapon": 1.88,
+          "up": 4,
+          "filled": 20,
+          "overflow": 5.75,
+          "gold": 375.5,
+          "upgrades": 15.38
+        },
+        {
+          "d": 6,
+          "equip": 4.88,
+          "weapon": 1.38,
+          "up": 1.5,
+          "filled": 20,
+          "overflow": 10.63,
+          "gold": 513,
+          "upgrades": 16.88
+        },
+        {
+          "d": 7,
+          "equip": 4.88,
+          "weapon": 1.63,
+          "up": 1.25,
+          "filled": 20,
+          "overflow": 15.5,
+          "gold": 915.13,
+          "upgrades": 18.13
+        },
+        {
+          "d": 8,
+          "equip": 6.63,
+          "weapon": 2.63,
+          "up": 1.63,
+          "filled": 20,
+          "overflow": 22.13,
+          "gold": 1156.13,
+          "upgrades": 19.75
+        },
+        {
+          "d": 9,
+          "equip": 7.75,
+          "weapon": 2.63,
+          "up": 1.88,
+          "filled": 20,
+          "overflow": 29.88,
+          "gold": 1470.25,
+          "upgrades": 21.63
+        },
+        {
+          "d": 10,
+          "equip": 10.25,
+          "weapon": 3.88,
+          "up": 2.5,
+          "filled": 20,
+          "overflow": 40.13,
+          "gold": 1783.75,
+          "upgrades": 24.13
+        },
+        {
+          "d": 11,
+          "equip": 7,
+          "weapon": 2.25,
+          "up": 1.75,
+          "filled": 20,
+          "overflow": 47.13,
+          "gold": 1979.25,
+          "upgrades": 25.88
+        },
+        {
+          "d": 12,
+          "equip": 5.75,
+          "weapon": 1.75,
+          "up": 0.88,
+          "filled": 20,
+          "overflow": 52.88,
+          "gold": 2208.25,
+          "upgrades": 26.75
+        }
+      ]
+    },
+    {
+      "id": "generator-champ-half",
+      "label": "Drop generator gear and half of champion whites",
+      "fullAtMean": 4.75,
+      "fullAtMin": 4,
+      "fullAtMax": 5,
+      "fullAtHist": {
+        "4": 2,
+        "5": 6
+      },
+      "equip": 63.88,
+      "weapons": 21.88,
+      "upgrades": 25.88,
+      "overflow": 43.88,
+      "gold": 2208.25,
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.25,
+          "filled": 4.25,
+          "gold": 30.13,
+          "upgrades": 3.63,
+          "weapon": 2.13
+        },
+        {
+          "d": 2,
+          "equip": 4.88,
+          "filled": 9.13,
+          "gold": 72.63,
+          "upgrades": 6.38,
+          "weapon": 1.75
+        },
+        {
+          "d": 3,
+          "equip": 4.38,
+          "filled": 13.5,
+          "gold": 154.25,
+          "upgrades": 8.63,
+          "weapon": 1.88
+        },
+        {
+          "d": 4,
+          "equip": 4.63,
+          "filled": 17.75,
+          "gold": 237.25,
+          "upgrades": 11.25,
+          "weapon": 1.38
+        },
+        {
+          "d": 5,
+          "equip": 6.25,
+          "filled": 20,
+          "gold": 375.5,
+          "upgrades": 14.63,
+          "weapon": 1.63
+        },
+        {
+          "d": 6,
+          "equip": 5,
+          "filled": 20,
+          "gold": 513,
+          "upgrades": 16.25,
+          "weapon": 1.75
+        },
+        {
+          "d": 7,
+          "equip": 4.63,
+          "filled": 20,
+          "gold": 915.13,
+          "upgrades": 17.5,
+          "weapon": 1.38
+        },
+        {
+          "d": 8,
+          "equip": 5.13,
+          "filled": 20,
+          "gold": 1156.13,
+          "upgrades": 19.25,
+          "weapon": 2
+        },
+        {
+          "d": 9,
+          "equip": 6.38,
+          "filled": 20,
+          "gold": 1470.25,
+          "upgrades": 20.88,
+          "weapon": 1.63
+        },
+        {
+          "d": 10,
+          "equip": 7.5,
+          "filled": 20,
+          "gold": 1783.75,
+          "upgrades": 23.38,
+          "weapon": 3
+        },
+        {
+          "d": 11,
+          "equip": 5.75,
+          "filled": 20,
+          "gold": 1979.25,
+          "upgrades": 24.88,
+          "weapon": 1.75
+        },
+        {
+          "d": 12,
+          "equip": 5.13,
+          "filled": 20,
+          "gold": 2208.25,
+          "upgrades": 25.88,
+          "weapon": 1.63
+        }
+      ]
+    },
+    {
+      "id": "generator-keyed-half",
+      "label": "Drop generator gear and half of keyed-chest gear",
+      "fullAtMean": 5.5,
+      "fullAtMin": 5,
+      "fullAtMax": 6,
+      "fullAtHist": {
+        "5": 4,
+        "6": 4
+      },
+      "equip": 56.63,
+      "weapons": 19.5,
+      "upgrades": 24.88,
+      "overflow": 36.63,
+      "gold": 2208.25,
+      "floors": [
+        {
+          "d": 1,
+          "equip": 3.75,
+          "filled": 3.75,
+          "gold": 30.13,
+          "upgrades": 3.38,
+          "weapon": 2
+        },
+        {
+          "d": 2,
+          "equip": 4.13,
+          "filled": 7.88,
+          "gold": 72.63,
+          "upgrades": 6,
+          "weapon": 1.63
+        },
+        {
+          "d": 3,
+          "equip": 3.63,
+          "filled": 11.5,
+          "gold": 154.25,
+          "upgrades": 7.75,
+          "weapon": 1.5
+        },
+        {
+          "d": 4,
+          "equip": 3.75,
+          "filled": 15.25,
+          "gold": 237.25,
+          "upgrades": 10.38,
+          "weapon": 1.13
+        },
+        {
+          "d": 5,
+          "equip": 5.38,
+          "filled": 19.25,
+          "gold": 375.5,
+          "upgrades": 13.88,
+          "weapon": 1.25
+        },
+        {
+          "d": 6,
+          "equip": 4.25,
+          "filled": 20,
+          "gold": 513,
+          "upgrades": 15.5,
+          "weapon": 1.25
+        },
+        {
+          "d": 7,
+          "equip": 3.75,
+          "filled": 20,
+          "gold": 915.13,
+          "upgrades": 16.75,
+          "weapon": 1
+        },
+        {
+          "d": 8,
+          "equip": 4.88,
+          "filled": 20,
+          "gold": 1156.13,
+          "upgrades": 18.25,
+          "weapon": 2.13
+        },
+        {
+          "d": 9,
+          "equip": 6.38,
+          "filled": 20,
+          "gold": 1470.25,
+          "upgrades": 20,
+          "weapon": 1.88
+        },
+        {
+          "d": 10,
+          "equip": 7.13,
+          "filled": 20,
+          "gold": 1783.75,
+          "upgrades": 22.5,
+          "weapon": 2.88
+        },
+        {
+          "d": 11,
+          "equip": 5.38,
+          "filled": 20,
+          "gold": 1979.25,
+          "upgrades": 24,
+          "weapon": 1.63
+        },
+        {
+          "d": 12,
+          "equip": 4.25,
+          "filled": 20,
+          "gold": 2208.25,
+          "upgrades": 24.88,
+          "weapon": 1.25
+        }
+      ]
+    },
+    {
+      "id": "generator-champ-early-squeeze",
+      "label": "Drop generator gear, champion whites, and squeeze gear on floors 1-4",
+      "fullAtMean": 5.25,
+      "fullAtMin": 5,
+      "fullAtMax": 6,
+      "fullAtHist": {
+        "5": 6,
+        "6": 2
+      },
+      "equip": 57.63,
+      "weapons": 19.5,
+      "upgrades": 25.13,
+      "overflow": 37.63,
+      "gold": 2208.25,
+      "floors": [
+        {
+          "d": 1,
+          "equip": 4.25,
+          "filled": 4.25,
+          "gold": 30.13,
+          "upgrades": 3.63,
+          "weapon": 2.13
+        },
+        {
+          "d": 2,
+          "equip": 4,
+          "filled": 8.25,
+          "gold": 72.63,
+          "upgrades": 6,
+          "weapon": 1.38
+        },
+        {
+          "d": 3,
+          "equip": 3.13,
+          "filled": 11.38,
+          "gold": 154.25,
+          "upgrades": 7.88,
+          "weapon": 1.5
+        },
+        {
+          "d": 4,
+          "equip": 4.25,
+          "filled": 15.63,
+          "gold": 237.25,
+          "upgrades": 10.38,
+          "weapon": 1.13
+        },
+        {
+          "d": 5,
+          "equip": 5.88,
+          "filled": 19.75,
+          "gold": 375.5,
+          "upgrades": 13.88,
+          "weapon": 1.38
+        },
+        {
+          "d": 6,
+          "equip": 4.5,
+          "filled": 20,
+          "gold": 513,
+          "upgrades": 15.5,
+          "weapon": 1.75
+        },
+        {
+          "d": 7,
+          "equip": 4.25,
+          "filled": 20,
+          "gold": 915.13,
+          "upgrades": 16.88,
+          "weapon": 1.25
+        },
+        {
+          "d": 8,
+          "equip": 4.75,
+          "filled": 20,
+          "gold": 1156.13,
+          "upgrades": 18.63,
+          "weapon": 1.88
+        },
+        {
+          "d": 9,
+          "equip": 5.75,
+          "filled": 20,
+          "gold": 1470.25,
+          "upgrades": 20.25,
+          "weapon": 1.38
+        },
+        {
+          "d": 10,
+          "equip": 6.88,
+          "filled": 20,
+          "gold": 1783.75,
+          "upgrades": 22.63,
+          "weapon": 2.5
+        },
+        {
+          "d": 11,
+          "equip": 5.25,
+          "filled": 20,
+          "gold": 1979.25,
+          "upgrades": 24.13,
+          "weapon": 1.63
+        },
+        {
+          "d": 12,
+          "equip": 4.75,
+          "filled": 20,
+          "gold": 2208.25,
+          "upgrades": 25.13,
+          "weapon": 1.63
+        }
+      ]
+    }
+  ]
+}
