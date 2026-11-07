@@ -2958,3 +2958,152 @@ The Hollow Pedlar does not show sealed-unique rows until level 3, and `rollShopU
 #### Recorded level on a kill
 
 Jake approved using the level from immediately before that kill's XP for the gear that kill drops. `killEnemy` records `player.lvl` before `gainXp` and holds it only while that kill's drops roll: trash, champions, Super Elites, bosses (including Oswin's second unique), and a Hellmouth kill on its later frame. A nested kill saves and restores the outer value, and a throw while dropping clears it. Chests, cracks, the Pedlar, and gear rolled when the floor was built still use the level at that moment. XP, the level-up, the heal, and the death order are unchanged. `version.json` was not edited.
+
+---
+
+### 2026-11-07 — Equipment drop economy (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Loot. Jake approved a loot-only cut from `AUDIT_LOOT_ECONOMY.md` on `audit/se-loot-economy` at `c4b9aec`. Super Elite combat is a separate PR. This PR is not merged and it is not live.
+- **Base:** `main` at `e830a531865fbc72ea3db6a632d720e65ac524e2` (`Gate rare and unique gear until level 3`).
+- **Version / Commit:** `version.json` was not edited. It is still `0.7.18`. No tag. No deploy. No workflow edit. Saves were not migrated.
+
+#### What changed
+
+Ordinary trash and pack members no longer drop equipment. `DROP.white` stays `0.05`, so the life-potion band (`0.045`) and the mana-potion band (`0.04`) keep the same width. The old 5% white roll is a miss. Champions still roll a white at 20% (half of that while level ≤ 2). Mimics still drop one white. Repair potions on those kills are unchanged.
+
+A boss purse is two pieces: `bossUnique` and the guaranteed rare. The 50/50 rare-or-magic and the extra magic are gone. The gold pile, the life potion, the mana potion, and the repair potion are the same calls as before. Oswin's second unique is still there. It was not one of the four.
+
+The Super Elite still drops one piece from `seRollGear`. The unique-chance table is unchanged. The piece is not forced onto a weapon. Gold 25, the ration, and the gate-key chance are unchanged.
+
+Puzzle rooms get one `greaterRare711` per floor. A room that already holds a rare counts as that one. Later puzzle rooms keep the chest-table gear they already had. They are not stripped, and they are not given a second greater rare. The chest rare chance `min(0.6, 0.15 + depth × 0.012)` was not edited.
+
+`giveGated711` pays gold instead of a greater rare. The amount is `irand(6, 10) × depth`, every time the flag pays. It does not use the 30% `goldKept` roll, because the rare it replaces was guaranteed. A passage mouth is ignored even if something flags it.
+
+#### Shortcut tunnels, and the squeeze chest
+
+The level-gate change already skips `s.passage` in `markGatedLoot711`, so a shortcut mouth is not marked `gatedRare` and breaking one does not pay `greaterRare711`. This PR does not put that drop back, and it does not pay gold for it. `giveGated711` also returns on `obj.passage`, so a mouth cannot pay even if a later edit flags it. Sixteen generated depth-8 floors had 58 mouths, zero flags, and no new gear or gold when the mouths were broken.
+
+What still pays the shortcut reward: an unreachable keyed chest, an unreachable free chest, and a non-passage crack the generator marks unreachable. The chest or the crack still drops what it dropped before (gear, a key, or a torch). The extra greater rare on top of that is the gold.
+
+Squeeze chests do not overlap that path on a live floor. `markGatedLoot711` runs from `populate`, inside `startFloor`, and `genV072` carves the squeeze room after that. The schest loop in `markGatedLoot711` sees an empty list. A generated squeeze chest has no `gatedRare`. Opening it still drops one `giltGear` piece, with the old gold and repair-potion rolls. The 20% unique from depth 5 is unchanged. A chest that is flagged by hand pays the shortcut gold and still drops only the one gilt piece. That branch is not what a normal floor does.
+
+#### Left alone
+
+Keyed-chest drop chance, free chests, props, cracked walls that are not flagged, the prism chest, the Pedlar, island and sealed-room chest-table gear, champion whites, mimic whites, and the level 1–2 gate in `makeItem0`. No rare or unique while level ≤ 2, and required level stays at or under the character. Later rarity tables were not retuned. Combat, camera zoom, the HUD scale, WebGL lighting, `equipBow`, and the satchel tooltip were not edited.
+
+#### Counts
+
+Same method as the audit: 8 clears of floors 1–12 with level and a 20-slot bag carried forward, and 6 pinned floors at level 6. "Before" is the audit on this same `main`. Floor means move by about a piece between samples of 8. The zeros below did not.
+
+Play, equipment that hit the ground. Weapons in parentheses.
+
+| Floor | Before | After |
+| ---: | ---: | ---: |
+| 1 | 5.6 (2.4) | 4.5 (2.3) |
+| 2 | 7.9 (2.8) | 6.1 (2.5) |
+| 3 | 10.4 (3.5) | 6.3 (1.3) |
+| 4 | 8.9 (3.1) | 5.4 (1.4) |
+| 5 | 14.3 (4.9) | 8.8 (2.1) |
+| 6 | 8.8 (2.9) | 6.3 (2.3) |
+| 7 | 9.8 (3.3) | 7.3 (2.3) |
+| 8 | 11.5 (3.3) | 7.1 (2.4) |
+| 9 | 15.6 (6.1) | 8.4 (2.5) |
+| 10 | 17.8 (5.3) | 10.3 (3.6) |
+| 11 | 10.4 (2.8) | 7.9 (3.1) |
+| 12 | 12.1 (3.3) | 8.0 (1.6) |
+| 1–12 | 133 (43) | 86 (27) |
+
+The 20-slot bag filled on floor 3.25 before (every run by floor 4). After, it filled on floor 4 on average (one run on floor 3, one on floor 5). About 66 pieces did not fit by depth 12, against 113 before. Gold at depth 12 was about 1520 before and about 1958 after. The extra is the shortcut gold. Best-per-slot upgrades were about 32 before and about 30 after. The cut removed duplicates more than it removed the first good piece in a slot.
+
+Pinned level 6, equipment per floor by source. Trash is ordinary enemies plus pack members.
+
+| Source | Depth 1 before → after | Depth 5 | Depth 8 | Depth 12 |
+| --- | ---: | ---: | ---: | ---: |
+| Trash | 2.2 → 0 | 3.0 → 0 | 3.2 → 0 | 5.5 → 0 |
+| Boss | — | 4 → 2 | — | — |
+| Gated shortcut | 0 → 0 | 1.2 → 0 | 0.5 → 0 | 4.2 → 0 |
+| Super Elite | 1 → 1 | 1 → 1 | 1 → 1 | 1 → 1 |
+| Puzzle rooms | 0 → 0 | 0.7 → 0.7 | 1.3 → 1.3 | 1.2 → 1.2 |
+| Squeeze | 0 → 0 | 0.5 → 0.5 | 0.3 → 0.7 | 0.8 → 0.8 |
+| Keyed chest | 2.2 → 2.2 | 1.8 → 1.8 | 1.5 → 1.5 | 2.3 → 2.3 |
+| Champion | 0 → 0 | 1.3 → 0.8 | 0.5 → 1.2 | 0.7 → 0.8 |
+| Mimic | 0 → 0 | 0 → 0 | 0.8 → 0.8 | 0.3 → 0.3 |
+| Sealed + loose floor | 0 → 0 | 2.0 → 2.0 | 1.0 → 1.0 | 0.8 → 0.8 |
+| Rusty Sword | 1 → 1 | — | — | — |
+| Total | 6.3 → 4.2 | 15.5 → 8.8 | 10.2 → 7.5 | 16.8 → 7.3 |
+
+Puzzle piece counts did not fall. Vaults already had a chest-table item, and the greater rare was replacing it. Limiting that replacement to one room leaves the other rooms on the chest table, so some of those pieces are magic again. At level 6 depth 8 the puzzle line was 1.3 rares before and 1.0 rare plus 0.3 magic after. Depth 12 was 1.2 rares before and 0.7 rare plus 0.5 magic after.
+
+Level 1 depth 5, pinned: the boss line is 2 magics and 0 rares. The Super Elite line is 1 magic. Gated gear is 0. Trash gear is 0.
+
+#### Tests
+
+- `tests/loot-economy.html` — trash and packs in the old white band, the life and mana bands, champion 20%, mimic white, boss purse of 2 plus potions, boss gold, Oswin's third piece, level 1 and 2 boss magics, Super Elite table and a non-weapon roll, one puzzle rare, shortcut gold on a keyed chest, a free chest, and a crack, a flagged mouth paying nothing, squeeze gilt with and without a hand-set flag, generated mouths, a generated gated chest and crack, a generated squeeze chest that is not flagged, gilt odds, chest rare rate.
+- `tests/early-loot-gate.html` — two count locks updated, and nothing else.
+  - `a level 1 boss drops two wearable promo magics` was `gear.length >= 3` under the name "wearable magic and common gear". The old purse was four pieces. Both pieces that remain are promo magics, so the check is now exactly 2 and rarity 1. Commons no longer pass.
+  - `boss kill L to L+1 keeps the two purse magics and the Oswin extra` was `gear.length >= 5`. That was the four purse pieces plus Oswin's second unique. It is now exactly 3. The cap, the missing lore, and the two-affix check on the forced sword are the same assertions.
+
+#### Files
+
+- `index.html` — trash miss, boss purse, one puzzle rare, shortcut gold, passage guard, `schests` getter for the squeeze check.
+- `tests/loot-economy.html` — the new locks.
+- `tests/early-loot-gate.html` — the two count locks above.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
+- `version.json` was not edited. Workflows were not edited. Combat math was not edited.
+
+---
+
+### 2026-11-07 — Loot follow-up option 1 (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Loot. Jake approved option 1 from `AUDIT_LOOT_FOLLOWUP.md` on PR #44. Implemented on PR #42. Not merged. Not deployed.
+- **Base:** `main` is still `e830a531865fbc72ea3db6a632d720e65ac524e2`. PR #43 is open and not merged, so nothing from that branch was taken.
+- **Version / Commit:** `version.json` was not edited. It is still `0.7.18`.
+
+#### What changed
+
+Island gear is not placed. Sealed rooms still get their potion, and the 60% chest-table piece is rolled and not placed. Vault annexes still roll that chest-table piece and still roll the ration, fragment, or potion, and the piece is not placed. The floor's one greater rare, from `markGatedLoot711`, is the vault and puzzle reward. Champion gold, keys, and potions stay. The 20% white is rolled and not dropped, so the next kill's random stream does not move. Keyed chests, mimics, squeeze chests, Super Elites, bosses, and the Rusty Sword are unchanged. The level 1–2 gate and `killLootLvl` are unchanged.
+
+A vault that no longer holds gear can fall through to `ensureSealedLoot` when it also missed the ration line. That room gets the sealed-room potion, which is the rule for an empty sealed room. It does not get a second piece of gear.
+
+#### Counts
+
+Eight clears, seeds `3000 + n × 97`, every enemy killed, Rusty Sword picked up once. Same method as the follow-up audit.
+
+| | Before option 1 | After | Audit target |
+| --- | ---: | ---: | ---: |
+| Equipment | 84.9 | 57.9 | about 59.4 |
+| Weapons | 29.0 | 18.4 | 20.1 |
+| Upgrades | 28.5 | 24.8 | 25.6 |
+| Gold | 2208 | 1835 | gold formulas unchanged |
+| Bag full | 4.25 (6 on 4, 2 on 5) | 4.75 (2 on 4, 6 on 5) | about 4.9, toward floor 5 |
+
+End of floor 4 the bag averages 17.4 slots. Six of eight clears fill on floor 5.
+
+Pieces removed were mostly redundant. Upgrades fell by 3.8 (28.5 to 24.8) while pieces fell by 27 (84.9 to 57.9). About 14% of the removed pieces were upgrades. The upgrade rate of what remains went from 34% to 43%.
+
+| Source | Pieces | Upgrades | Rarity (c / m / r / u) |
+| --- | ---: | ---: | --- |
+| Keyed chest | 23.5 | 6.3 | 0 / 17.6 / 5.9 / 0 |
+| Super Elite | 12.0 | 8.6 | 0 / 0 / 5.1 / 6.9 |
+| Puzzle rare | 8.4 | 4.8 | 0 / 0 / 8.4 / 0 |
+| Squeeze | 6.6 | 2.1 | 0 / 0 / 5.4 / 1.3 |
+| Boss | 4.0 | 2.0 | 0 / 0 / 2 / 2 |
+| Mimic | 2.4 | 0 | 2.4 / 0 / 0 / 0 |
+| Rusty Sword | 1.0 | 1.0 | 1 / 0 / 0 / 0 |
+| Island, sealed gear, extra vault, champion white | 0 | 0 | — |
+
+Gold at depth 12 is 1835 in this sample, against 2208 before. The gold formulas were not edited. Empty vaults now take the sealed-room roll they used to skip, so the later random stream moves and the realized total moves with it.
+
+#### Tests
+
+- `tests/loot-economy.html` — champions on the old white band drop no gear and still drop a consumable. A miss still drops gold. Islands, sealed rooms, and gate vaults drop no gear. Floors with a puzzle room keep exactly one rare. 36 checks.
+- `tests/early-loot-gate.html` — the champion level-up kill drops no gear. The white that was withheld is still rolled at the earlier cap, so `killLootLvl` is still covered. The mimic, boss, and Super Elite level checks are the same assertions.
+
+#### Files
+
+- `index.html` — island, sealed room, vault annex, champion white.
+- `tests/loot-economy.html`, `tests/early-loot-gate.html` — the locks above.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
+- `version.json` was not edited. Combat was not edited. PR #43 was not merged in.

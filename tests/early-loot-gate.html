@@ -215,8 +215,9 @@ function run(w) {
     boss.hp = 1; boss.shield = 0;
     w.damageEnemy(boss, 20000, 0, 0, '#fff', false);
     const gear = g.ground.filter(x => x.item).map(x => x.item);
-    const badBoss = gear.filter(it => it.rarity >= 2 || it.reqLvl > 1 || it.lore || (it.mods && (it.mods.maxResist || it.mods.penAll)));
-    check('a level 1 boss drops only wearable magic and common gear', gear.length >= 3 && badBoss.length === 0, 'n' + gear.length + ' bad' + badBoss.length);
+    // Purse is two promo magics (unique slot and rare slot). Was four pieces, asserted as >= 3.
+    const badBoss = gear.filter(it => it.rarity !== 1 || it.reqLvl > 1 || it.lore || (it.mods && (it.mods.maxResist || it.mods.penAll)));
+    check('a level 1 boss drops two wearable promo magics', gear.length === 2 && badBoss.length === 0, 'n' + gear.length + ' bad' + badBoss.length);
   }
 
   function arm(lvl) { p.lvl = lvl; p.xp = w.xpNeed(lvl) - 1; p.xpBuffT = 0; }
@@ -244,10 +245,16 @@ function run(w) {
     const rnd = w.Math.random;
     w.Math.random = function () { return 0; };
     g.ground.length = 0;
+    let champRoll = null;
+    const origMake = w.makeItem;
+    w.makeItem = function (L, rar, base, promo) {
+      const it = origMake(L, rar, base, promo);
+      champRoll = it;
+      return it;
+    };
     try { slap(mimicOf(true)); }
-    finally { w.Math.random = rnd; }
-    const cit = gearOf()[0];
-    check('champion kill ' + pre + ' to ' + (pre + 1) + ' uses the earlier level', p.lvl === pre + 1 && whiteOk(cit, pre), cit && ('L' + cit.lvl + ' r' + cit.rarity));
+    finally { w.Math.random = rnd; w.makeItem = origMake; }
+    check('champion kill ' + pre + ' to ' + (pre + 1) + ' drops no gear and withholds the white at the earlier level', p.lvl === pre + 1 && gearOf().length === 0 && whiteOk(champRoll, pre), champRoll && ('L' + champRoll.lvl + ' r' + champRoll.rarity + ' n' + gearOf().length));
     arm(pre);
     g.ground.length = 0;
     const hm = mimicOf(false);
@@ -292,7 +299,8 @@ function run(w) {
     const gear = gearOf();
     const cap = g.earlyIlvlCap(1, pre);
     const bad = gear.filter(it => it.rarity !== 1 || it.lvl !== cap || it.reqLvl > pre || it.lore || (it.powers && it.powers.length) || legalMagicMods(it, g).length);
-    check('boss kill ' + pre + ' to ' + (pre + 1) + ' keeps the guaranteed rewards at the earlier cap', p.lvl === pre + 1 && gear.length >= 5 && bad.length === 0, gear.map(it => it.base + ' r' + it.rarity + ' L' + it.lvl + ' n' + affixCount(it, g)).join(' | '));
+    // Two purse magics plus Oswin's extra unique. Was four purse pieces plus that extra, asserted as >= 5.
+    check('boss kill ' + pre + ' to ' + (pre + 1) + ' keeps the two purse magics and the Oswin extra at the earlier cap', p.lvl === pre + 1 && gear.length === 3 && bad.length === 0, gear.map(it => it.base + ' r' + it.rarity + ' L' + it.lvl + ' n' + affixCount(it, g)).join(' | '));
     if (pre === 2) check('level 2 to 3 boss guaranteed reward is a two-affix magic', !!(forced && forced.rarity === 1 && forced.lvl === cap && affixCount(forced, g) === 2 && !forced.lore && !(forced.powers && forced.powers.length)), forced && ('n' + affixCount(forced, g) + ' L' + forced.lvl + ' r' + forced.rarity));
   }
   const laterRare = g.makeItem(9, 2, 'Short Sword');

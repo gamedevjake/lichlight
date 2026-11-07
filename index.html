@@ -3567,7 +3567,7 @@ function ensureSealedLoot() { let n = 0;
     let best = R[0], bd = -1; for (const k of R) { const x = k % MW, y = (k / MW) | 0; if (map[k] !== TILE.FLOOR || doorK.has(k)) continue; const dd = Math.min(Math.hypot(x - dt.x, y - dt.y), 6) + (d.rect ? -Math.hypot(x + .5 - (d.rect.x + d.rect.w / 2), y + .5 - (d.rect.y + d.rect.h / 2)) : 0); if (dd > bd) { bd = dd; best = k; } }
     const cx = (best % MW + .5) * TS, cy = (((best / MW) | 0) + .5) * TS, put = (o, dx, dy) => ground.push(Object.assign({ x: cx + dx, y: cy + dy, bob: Math.random() * 6, lock: false, sealed: true }, o));
     if (bookRoom) { const b = books.find(b => b.door === d); const bx = b ? b.x : cx, by = b ? b.y : cy; ground.push({ x: bx + 9, y: by + 3, bob: 2, lock: false, sealed: true, pot: Math.random() < .5 ? 'hp' : 'mp' }); n++; continue; }
-    put({ pot: Math.random() < .5 ? 'hp' : 'mp' }, 8, 2); if (Math.random() < .6) put({ item: chestLoot(depth) }, 0, -4); n++; } // v0.7.8.1 F1: sealed rooms keep pots and gear, not gold piles
+    put({ pot: Math.random() < .5 ? 'hp' : 'mp' }, 8, 2); if (Math.random() < .6) chestLoot(depth); n++; } // potion stays; the chest-table piece is not placed. The roll is still taken so later loot stays put.
   return n; }
 // ---------- shared combat systems: telegraphs, timers, hazards, blasts ----------
 let teles = [], hazards = [], timers = [], trauma = 0, bossIntro = 0, introBoss = null;
@@ -5340,7 +5340,8 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src, meta) {
 
 const BLOOD = { slime: '#50c040', slimelet: '#50c040', ooze: '#8aa060', bomber: '#8aa060', eel: '#48a8a0', drowned: '#48a8a0', siren: '#48a8a0', seer: '#48a8a0', crab: '#e0a040',
   bat: '#8040b0', spider: '#8040b0', rat: '#a06040', mage: '#8040b0', leech: '#c02020', ghoul: '#8aa060', crawler: '#a0e040', flies: '#404048', wisp: '#b0f0f0', ghost: '#d8e8f8', shade: '#3a3a4a', cantor: '#d8e8f8', exarch: '#e8c840' };
-// Regular enemies (incl. champions & mimics) drop only gold, potions and the odd NORMAL (white) item.
+// Mimics still drop a normal (white) item. Champions, ordinary trash, and pack members do not.
+// DROP.white stays 0.05 so the life and mana bands above it are the same widths. That 5% is now a miss.
 const DROP = { gold: 0, hp: .045, mp: .04, white: .05 }; // v0.7.8.1 F1: normal enemies drop no gold (v0.7.8 chance was .035)
 const NECRO_CAP = 2, NECRO_DROP = .38; // v0.7.8 F7: bosses only, slightly rare, bag holds 2
 const REP_DROP = { reg: .02, champ: .2, chest: .35, floor: .05 }; // per kill / per chest / per room; bosses: always one
@@ -5350,13 +5351,13 @@ function regularDrops(e, d) {
   if (e.minion) return; // v0.7.8.1 F1: minions are not champions
   if (!e.T.disguise && Math.random() < (e.elite ? REP_DROP.champ : REP_DROP.reg * (e.T.pack || e.type === 'slimelet' ? .5 : 1))) at({ pot: 'rp' });
   if (e.T.disguise) { at({ pot: Math.random() < .6 ? 'hp' : 'mp' }); white(); return; } // mimics are not champions or chests
-  if (e.elite) { if (goldKept()) at({ gold: irand(2, 4) * d }); if (champKeysFloor < CHAMP_KEY_CAP && Math.random() < CHAMP_KEY_P) { champKeysFloor++; at({ key: 1 }); } if (Math.random() < .28) at({ pot: Math.random() < .65 ? 'hp' : 'mp' }); if (Math.random() < .2 * (gate ? LOOT_GATE.champWhite : 1)) white(); return; } // v0.7.8.1 F1: champion gold 30% as often
+  if (e.elite) { if (goldKept()) at({ gold: irand(2, 4) * d }); if (champKeysFloor < CHAMP_KEY_CAP && Math.random() < CHAMP_KEY_P) { champKeysFloor++; at({ key: 1 }); } if (Math.random() < .28) at({ pot: Math.random() < .65 ? 'hp' : 'mp' }); if (Math.random() < .2 * (gate ? LOOT_GATE.champWhite : 1)) makeItem(d, 0); return; } // gold, key, and potion stay. The white is rolled and not dropped, so the next kill's random stream is unchanged.
   const swarm = e.T.pack || e.type === 'slimelet' ? .5 : 1; // packs give the same total per group, not per bug
   let r = Math.random() / swarm;
   if ((r -= DROP.gold) < 0) { if (!gate || Math.random() < LOOT_GATE.gold) at({ gold: irand(1, 4) * d }); } // v0.7.5 F2
   else if ((r -= DROP.hp) < 0) at({ pot: 'hp' });
   else if ((r -= DROP.mp) < 0) at({ pot: 'mp' });
-  else if ((r -= DROP.white) < 0) { if (!gate || Math.random() < LOOT_GATE.white) white(); } // v0.6.0 early loot gate
+  else if ((r -= DROP.white) < 0) { /* ordinary trash and packs: no equipment. Champions and mimics returned above. */ }
 }
 function runKillLoot(lootLvl, fn) {
   const prev = killLootLvl;
@@ -5398,11 +5399,10 @@ function killEnemy(e) {
   const L = depth + (e.elite ? 1 : 0) + (T.boss ? 2 : 0);
   if (T.boss) {
     const B = e.B, drop = (it, dx, dy) => { dropAt(ground, e.x + dx, e.y + dy, { item: it }); if (it.rarity === 3) uniqueDropFx(e.x + dx, e.y + dy); };
-    // bosses are the ONLY source of uniques, and the main source of magic/rare gear
+    // Two pieces: the unique and the guaranteed rare. The 50/50 piece and the extra magic are gone.
+    // Gold, the life potion, the mana potion, and the repair potion below are the old purse, unchanged.
     drop(bossUnique(L), 0, -14);                                 // guaranteed unique (promo magic while level <= 2)
     drop(makeItem(L, 2, null, true), -14, 0);                    // guaranteed rare
-    { const midRare = Math.random() < .5; drop(makeItem(L, midRare ? 2 : 1, null, midRare), 14, 0); } // rare or magic
-    drop(makeItem(L, 1), 0, 12);                                 // magic
     if (B.oswin) drop(bossUnique(L + 2), 0, -26);
     if (goldKept()) dropAt(ground, e.x - 8, e.y + 14, { gold: Math.min(49, Math.max(1, Math.round(25 * depth))) }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' }); if (Math.random() < NECRO_DROP) dropAt(ground, e.x + 16, e.y + 6, { pot: 'np' }); bossExtraDrops(e); // v0.7.8.1 F1: boss gold 30% as often; F7 necro, bosses only
     addTrauma(1); burst(e.x, e.y, B.pal[0], 40, 140); burst(e.x, e.y, '#ffe060', 20, 100); effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: .6, r: 50 });
@@ -6892,7 +6892,7 @@ function puzzleSpots(r, n, avoid) {
 }
 function vaultLoot(R) {
   const cx = (R.x + R.w / 2) * TS, cy = (R.y + R.h / 2) * TS, put = (o, dx, dy) => ground.push(Object.assign({ x: cx + dx, y: cy + dy, bob: Math.random() * 6, lock: false }, o));
-  put({ item: chestLoot(depth + 1) }, 0, -2); // v0.7.8.1 F1: vaults keep the gear, not a gold pile
+  chestLoot(depth + 1); // not placed. The floor's one greater rare is the vault reward. The roll keeps the ration line below on the old stream.
   const extra = Math.random(); if (extra < .3) put({ ration: 1 }, 12, 6); else if (extra < .45) put({ frag: 1 }, 12, 6); else if (extra < .6) put({ pot: Math.random() < .5 ? 'hp' : 'rp' }, 12, 6);
 }
 function placeVaults() {
@@ -9369,7 +9369,7 @@ function placeIsland(d) { if (d < 2 || Math.random() > .5) return false; const B
     spots.forEach((q, i) => V72.levers.push({ tx: q.tx, ty: q.ty, kind: 'pad', isl: ii, ord: i, on: 0, t: -1 }));
     V72.islands.push({ ix, iy, tx, ty, n: nL, prog: 0, solved: 0 });
     clearOff((x, y) => x >= tx && x < tx + 5 && y >= ty && y < ty + 5);
-    ground.push({ x: (ix + .5) * TS, y: (iy + .5) * TS + 2, bob: 1, lock: false, item: chestLoot(d + 1) }); // v0.7.8.1 F1: the island keeps its gear, not a gold pile
+    chestLoot(d + 1); // islands no longer leave gear. The roll is kept so the next room's random stream does not move.
     return true; }
   return false; }
 function leverLabel(L) { if (L.kind === 'sled') return 'PULL LEVER'; const I = V72.islands[L.isl]; if (!I || I.solved) return null; return I.n > 1 ? 'PULL LEVER ' + ['I', 'II'][L.ord] : 'PULL LEVER'; }
@@ -10112,7 +10112,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   setTile(tx, ty, t) { if (map && tx >= 0 && ty >= 0 && tx < MW && ty < MH) map[ty * MW + tx] = t | 0; },
   seeTile(tx, ty) { if (seen && ty >= 0 && tx >= 0 && ty < MH && tx < MW) seen[ty * MW + tx] = true; }, seenAt(tx, ty) { return !!(seen && seen[ty * MW + tx]); },
   setHaz(tx, ty, id) { if (V71 && V71.haz && ty >= 0 && tx >= 0 && ty < MH && tx < MW) V71.haz[ty * MW + tx] = id; },
-  get puzzles() { return puzzles; }, get torches() { return torches; }, get bprops() { return V72 && V72.bprops; }, get firepits() { return V71 && V71.firepits; }, get gaps() { return V72 && V72.gaps; }, get srooms() { return V72 && V72.srooms; }, get passages() { return passages; }, get artVar() { return ART_VAR; }, texFloor, texWall,
+  get puzzles() { return puzzles; }, get torches() { return torches; }, get bprops() { return V72 && V72.bprops; }, get firepits() { return V71 && V71.firepits; }, get gaps() { return V72 && V72.gaps; }, get srooms() { return V72 && V72.srooms; }, get schests() { return V72 && V72.schests; }, get islands() { return V72 && V72.islands; }, get passages() { return passages; }, get artVar() { return ART_VAR; }, texFloor, texWall,
   get amb() { return { bed: V73 && V73.bed, music: V73 && V73.music, fade: V73 && V73.fade, ones: V73 && V73.oneOrder, mix: SMP_MIX }; },
   get ios() { return { ios: isIOS(), safari: isIOSSafari(), fs: fsAvailable(), standalone: isStandalone(), appW, appH }; },
   get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings, musicSamples: { state: MUS.state, cur: MUS.cur && MUS.cur.id, p2: !!(MUS.cur && MUS.cur.p2), loaded: Object.keys(MUS.buf), failed: Object.keys(MUS.fail), played: MUS.played, err: MUS.err }, samples: { state: SMP.state, fmt: SMP.fmt, cues: SMP.man ? Object.keys(SMP.man.cues).length : 0, loaded: Object.keys(SMP.buf).length, failed: Object.keys(SMP.fail), loops: [...SMP.loops.keys()], played: SMP.played, err: SMP.err } }; } };
@@ -12405,15 +12405,20 @@ function markGatedLoot711() {
     }
     if (far) s.gatedRare = 1;
   }
+  // genV072 carves squeeze chests after this pass, so a live floor does not flag them. The gilt rare stays the squeeze reward.
   if (typeof V72 !== 'undefined' && V72 && V72.schests) for (const c of V72.schests) if (c && !reach(c.tx, c.ty)) c.gatedRare = 1;
+  // One greater rare per floor. A room that already holds a rare counts. Later puzzle rooms keep the gear they already had.
+  let gavePuzzleRare = false;
   for (const d of doors) {
     if (!d || !d.puzzle || d.open || !d.rect) continue;
     const R = d.rect;
     const pile = ground.filter(g => { const tx = Math.floor(g.x / TS), ty = Math.floor(g.y / TS); return tx >= R.x && tx < R.x + R.w && ty >= R.y && ty < R.y + R.h; });
-    if (pile.some(g => g.item && (g.item.rarity | 0) >= 2)) continue;
+    if (pile.some(g => g.item && (g.item.rarity | 0) >= 2)) { gavePuzzleRare = true; continue; }
+    if (gavePuzzleRare) continue;
     const it = pile.find(g => g.item);
     if (it) it.item = greaterRare711();
     else ground.push({ x: (R.x + R.w / 2) * TS, y: (R.y + R.h / 2) * TS, bob: 1, lock: false, item: greaterRare711() });
+    gavePuzzleRare = true;
   }
 }
 function rescueSealed711() {
@@ -12438,10 +12443,14 @@ function rescueSealed711() {
   }
   return true;
 }
+function shortcutGold711(d) { // replaces a shortcut greater rare: 6 to 10 gold per depth, every time the flag pays
+  d = Math.max(1, (d == null ? depth : d) | 0);
+  return irand(6, 10) * d;
+}
 function giveGated711(obj, x, y) {
-  if (!obj || !obj.gatedRare || obj._gatedGave) return;
+  if (!obj || !obj.gatedRare || obj._gatedGave || obj.passage) return; // tunnel mouths stay unpaid (early loot gate)
   obj._gatedGave = 1;
-  dropAt(ground, x, y, { item: greaterRare711() });
+  dropAt(ground, x, y, { gold: shortcutGold711(depth) });
 }
 const _openChest711 = openChest;
 openChest = function (c) { const r = _openChest711(c); if (c && c.open && c.gatedRare) giveGated711(c, c.x, c.y + 12); return r; };
