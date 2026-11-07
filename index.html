@@ -679,7 +679,8 @@ const TS = 16;
 
 // ---------- canvas scaling (integer device-pixel scale => crisp pixels) ----------
 const canvas = $('game');
-const ctx = canvas.getContext('2d');
+const screenCtx = canvas.getContext('2d');
+let ctx = screenCtx; // world draws on #game; a zoomed HUD pass may point ctx at the overlay, then put it back
 let VW = 320, VH = 180, SCALE = 1;
 const dark = document.createElement('canvas');
 const dctx = dark.getContext('2d');
@@ -697,19 +698,33 @@ function resize() {
   const dpr = window.devicePixelRatio || 1;
   const { w, h } = viewportSize(); appW = w; appH = h;
   document.body.style.height = h + 'px'; document.documentElement.style.setProperty('--app-h', h + 'px');
+  const prevW = (typeof viewWorldSize === 'function') ? viewWorldSize().w : VW;
+  const prevH = (typeof viewWorldSize === 'function') ? viewWorldSize().h : VH;
+  const prevZoom = (typeof ZOOM === 'number') ? ZOOM : 1;
   const minDim = Math.min(w, h) * dpr;
   SCALE = Math.max(1, Math.floor(minDim / 170));
   VW = Math.floor(w * dpr / SCALE);
   VH = Math.floor(h * dpr / SCALE);
-  canvas.width = VW; canvas.height = VH;
-  canvas.style.width = (VW * SCALE / dpr) + 'px';
-  canvas.style.height = (VH * SCALE / dpr) + 'px';
+  if (typeof syncZoomRatio === 'function') syncZoomRatio();
+  // Zoomed frames keep the same world point centered. At 1x the camera is left alone, as before.
+  if (prevZoom !== 1 && player && typeof viewWorldSize === 'function') {
+    const n = viewWorldSize();
+    cam.x += (prevW - n.w) / 2;
+    cam.y += (prevH - n.h) / 2;
+  }
+  if (typeof refitWorldBacking === 'function') refitWorldBacking();
+  else {
+    canvas.width = VW; canvas.height = VH;
+    canvas.style.width = (VW * SCALE / dpr) + 'px';
+    canvas.style.height = (VH * SCALE / dpr) + 'px';
+  }
   dark.width = VW; dark.height = VH;
   ctx.imageSmoothingEnabled = false;
   checkOrientation();
   if (typeof joyRest === 'function') joyRest();
   if (typeof readSafe074 === 'function') readSafe074(); // v0.7.4 B2
   if (typeof syncTextLayer718 === 'function') syncTextLayer718(); // v0.7.18 B1: text backing store tracks the screen
+  if (typeof layoutHudOverlay === 'function') layoutHudOverlay();
 }
 function checkOrientation() {
   const portrait = appH > appW;
@@ -738,7 +753,9 @@ function textW(s) {
 // v0.7.18 B1: Pixelify is rasterized on a 1:1 device-pixel layer. The playfield canvas stays
 // integer-scaled for the pixel art, which is what smeared fillText after v0.7.17.
 let textCan718 = null, textCtx718c = null;
+let textPixHold = 0; // HUD overlay pass: device pixels per logical pixel, so worldPix does not resize the bars
 function textPix718() {
+  if (textPixHold > 0) return textPixHold;
   const dpr = window.devicePixelRatio || 1;
   const cssW = parseFloat(canvas.style.width) || canvas.clientWidth || canvas.width || 1;
   const bw = canvas.width || 1;
@@ -2289,12 +2306,13 @@ function lightScale() { return lightingQ() === 'low' ? .5 : 1; }
 let lightFrame = null;
 function zoomVis(sx, sy) { // world rect currently on screen. Zoom-out sees more than VW×VH; the lightmap must cover that same rect.
   if (ZOOM === 1 || !player) return { x: sx, y: sy, w: VW, h: VH };
-  const w = VW / ZOOM, h = VH / ZOOM;
-  return { x: player.x - w / 2, y: (player.y - 4) - h / 2, w, h };
+  const v = viewWorldSize(), o = viewOrigin();
+  return { x: o.x, y: o.y, w: v.w, h: v.h };
 }
 function worldToScreen(wx, wy) {
   const p = player; if (!p || ZOOM === 1) return { x: wx - cam.x, y: wy - cam.y };
-  return { x: VW / 2 + ZOOM * (wx - p.x), y: VH / 2 + ZOOM * (wy - (p.y - 4)) };
+  const o = viewOrigin();
+  return { x: wx - o.x, y: wy - o.y }; // one backing pixel per world pixel
 }
 // v0.7.8 hybrid: shader path on High + GL LIGHT auto/on. Low, OFF, or a missing WebGL2 context keep lcan.
 const GL_MAX_LIGHTS = 32, GL_MAX_OCC = 24; // 32 keeps the default-uniform vec4 budget under the WebGL2 minimum (224)
@@ -2796,7 +2814,8 @@ function renderLightingGL(V, L) {
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, GL.sceneTex);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
   gl.flush();
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = false; ctx.drawImage(GL.glcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
+  const dw = (typeof ZOOM === 'number' && ZOOM !== 1) ? canvas.width : VW, dh = (typeof ZOOM === 'number' && ZOOM !== 1) ? canvas.height : VH;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = false; ctx.drawImage(GL.glcan, 0, 0, dw, dh); ctx.restore(); ctx.imageSmoothingEnabled = false;
   GL.gen++; GL.sampleGen = -1; GL.reason = '';
   return true;
 }
@@ -2846,7 +2865,9 @@ function plyConeClip(l) {
   lctx.beginPath(); lctx.moveTo(player.x, player.y - 2); lctx.arc(player.x, player.y - 2, 8000, ang - half, ang + half); lctx.closePath(); lctx.clip();
 }
 function renderLightingCanvas(V, L) {
-  const LQ = lightScale(), LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
+  const zoomed = typeof ZOOM === 'number' && ZOOM !== 1;
+  const baseW = zoomed ? canvas.width : VW, baseH = zoomed ? canvas.height : VH;
+  const LQ = lightScale(), LW = Math.max(1, Math.ceil(baseW * LQ)), LH = Math.max(1, Math.ceil(baseH * LQ));
   if (lcan.width !== LW || lcan.height !== LH) { lcan.width = LW; lcan.height = LH; }
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.globalCompositeOperation = 'source-over'; lctx.globalAlpha = 1;
   lctx.fillStyle = glCss('void', '#08070E'); lctx.fillRect(0, 0, LW, LH);
@@ -2863,7 +2884,9 @@ function renderLightingCanvas(V, L) {
       lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); }
     else { lctx.save(); plyConeClip(l); lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
   lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
+  // High is 1:1 (nearest or bilinear copies the same texels). Low upscales once, in world pixels, then the integer present stays nearest.
+  const up = LW !== baseW || LH !== baseH;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = zoomed ? up : true; ctx.drawImage(lcan, 0, 0, baseW, baseH); ctx.restore(); ctx.imageSmoothingEnabled = false;
 }
 function renderLighting(sx, sy) {
   const V = zoomVis(sx, sy); lightFrame = V; // v0.7.6 B1: fog / torch / shadows cover the zoomed camera, then blit 1:1 over the screen
@@ -3923,7 +3946,7 @@ function startFloor(d, fresh) {
   deathAct = null; depth = d; V73 = v073Empty(); DPLANE = null; genDungeon(depth); populate(); setFloorEntrance(d); genV071(d); genV072(d); genV073(d); genV075(d); populateCritters(); v074Floor(d); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
-  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; clearStatuses(player); player.freezeImmune = 0; resetPoise(player); ensurePoise(player); player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
+  debris = []; snapCam(player.x, player.y); bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; clearStatuses(player); player.freezeImmune = 0; resetPoise(player); ensurePoise(player); player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
   v077BuildRooms(); splitGoldPiles(); purgeBadSpawns(); save();
 }
 function badSpawnAt(x, y) {
@@ -3996,7 +4019,7 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   const p = player; applyBed(depth); sleep = null; p.barrier = 0; p.pcd = {}; v05Last.torch = p.torchT; v05Last.hpPot = p.hpPot;
   p.x = w.px; p.y = w.py; if (Number.isFinite(w.fx)) { p.fx = w.fx; p.fy = w.fy; }
   if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || solidAt(p.x, p.y) || pitHitAt(p.x, p.y, p.r)) { const r = rooms[0]; p.x = (r.cx + .5) * TS; p.y = (r.cy + .5) * TS; }
-  computeStats(); debrisFix(); cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; p.slowT = 0; p.walk = null; p.pickT = null; p.useT = null; clickMark = null;
+  computeStats(); debrisFix(); snapCam(p.x, p.y); bannerT = BANNER_T; trauma = 0; bossIntro = 0; p.slowT = 0; p.walk = null; p.pickT = null; p.useT = null; clickMark = null;
   ambEnsure(p); v077BuildRooms(); splitGoldPiles(); purgeBadSpawns(); /* v0.7.7: room letters from the saved seed; do not re-roll the bed */
   if (Array.isArray(enemies)) for (let si = 0; si < enemies.length; si++) { statusSanitize(enemies[si]); resistSanitize(enemies[si]); affixSanitize(enemies[si]); }
   return true; }
@@ -6738,8 +6761,7 @@ function update(dt) {
   tickTexts716(dt);
   for (let i = effects.length - 1; i >= 0; i--) { const q = effects[i]; q.t += dt; if (q.kind === 'spin') { q.x = p.x; q.y = p.y; } if (q.t >= q.dur) effects.splice(i, 1); }
   msg.life -= dt; bannerT -= dt; bossIntro -= dt; trauma = Math.max(0, trauma - dt * 1.3);
-  const tx = p.x - VW / 2, ty = p.y - VH / 2;
-  cam.x += (tx - cam.x) * Math.min(1, dt * 8); cam.y += (ty - cam.y) * Math.min(1, dt * 8);
+  followCam(dt, p.x, p.y);
 }
 // =====================================================================
 //  v0.4.0 — Feature Brief v1: wall-safe drops, Drop All, skill hotkeys, torches, doors & puzzles,
@@ -8581,13 +8603,14 @@ function closeProfiles() { profOpen = false; profEdit = null; $('profiles').clas
 $('profBtn').addEventListener('click', openProfiles); $('profX').addEventListener('click', closeProfiles);
 $('mDim').addEventListener('click', cycleDim);
 function render() {
+  ctx = screenCtx;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.imageSmoothingEnabled = false;
   if (typeof clearTextLayer718 === 'function') clearTextLayer718();
-  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!player) { drawMenuBg(); return; }
   const so = shakeOffset(), sx = Math.round(cam.x + so.x), sy = Math.round(cam.y + so.y);
   const p = player;
-  ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
+  ctx.save(); ctx.translate(-sx, -sy);
   const vis = zoomVis(sx, sy), t0x = Math.floor(vis.x / TS) - 1, t0y = Math.floor(vis.y / TS) - 1, t1x = Math.ceil((vis.x + vis.w) / TS) + 1, t1y = Math.ceil((vis.y + vis.h) / TS) + 1; // v0.7.6 B1: draw the zoomed frustum, not only the 1x window
   for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) {
     const t = tileAt(tx, ty), X = tx * TS, Y = ty * TS, v = mapVar[ty * MW + tx] || 0;
@@ -8632,7 +8655,7 @@ function render() {
   // lighting: WebGL2 multiply when High + GL LIGHT auto/on; else the occluded lcan lightmap. Emissive draws after this, above the darkness.
   renderLighting(sx, sy);
   // emissive + labels drawn above the darkness
-  ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
+  ctx.save(); ctx.translate(-sx, -sy);
   drawEmissive(sx, sy); v073Emissive(); v074Emissive(); drawBloom(); drawVisDebug(); drawV06Emissive(); drawCritters(true);
   for (const g of ground) { if (!g.item) continue; const d = Math.hypot(g.x - p.x, g.y - p.y);
     if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
@@ -8655,8 +8678,12 @@ function render() {
   for (const q of texts) drawFloater716(q);
   if (goldCombo.on && player) drawTextC(String(goldCombo.n), player.x, player.y - 22, '#ffe060');
   ctx.restore();
-  drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
-  UIA = uiAlpha(); ctx.globalAlpha = UIA; hudInset074(drawHUD); /* v0.7.4 B2: HUD inside the safe area */ drawZoomTag(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
+  if (typeof ZOOM === 'number' && ZOOM !== 1) paintHudOverlay();
+  else {
+    drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
+    UIA = uiAlpha(); ctx.globalAlpha = UIA; hudInset074(drawHUD); /* v0.7.4 B2: HUD inside the safe area */ drawZoomTag(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
+  }
+  ctx = screenCtx;
   if (typeof syncGlHud === 'function') syncGlHud();
   if (typeof syncGlDev === 'function' && $('glDev') && !$('glDev').classList.contains('hidden')) syncGlDev();
 }
@@ -8853,7 +8880,7 @@ function updateClimb(dt) { const c = climb, p = player; if (c.pre > 0) { c.pre -
   if (parts.length > MAX_PARTS) parts.splice(0, parts.length - MAX_PARTS);
   for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.ay) q.vy += q.ay * dt; if (!q.nd) { q.vx *= .9; q.vy *= .9; } if (q.life <= 0) parts.splice(i, 1); }
   updateEntranceFx(dt); msg.life -= dt; bannerT -= dt;
-  cam.x += (c.x - VW / 2 - cam.x) * Math.min(1, dt * 8); cam.y += (c.y - VH / 2 - cam.y) * Math.min(1, dt * 8);
+  followCam(dt, c.x, c.y);
   if (c.t >= c.dur) { climb = null; startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (UPD.pending && !UPD.shown) pauseGame(); } }
 function drawClimb() { const c = climb, i = climbFrame(), a = ART['player_' + c.sex + '_climb_down_0' + (i + 1)], p = player, X = Math.round(p.x - 6), Y = Math.round(p.y - 9);
   if (a) { ctx.drawImage(a, X + ((12 - a.width) >> 1), Y + (12 - a.height)); return; }
@@ -9066,7 +9093,7 @@ function updatePitAct(dt) { const a = pitAct, p = player; a.t += dt; p.walkT = 0
     if (!a.snd && a.t >= .12) { a.snd = 1; sfx('pitfall'); addTrauma(.45); buzz(120); }
     if (a.t >= PIT_FALL_T) endFall(); }
   partsTick(dt); updateEntranceFx(dt); msg.life -= dt; bannerT -= dt; tickTexts716(dt);
-  cam.x += (p.x - VW / 2 - cam.x) * Math.min(1, dt * 8); cam.y += (p.y - VH / 2 - cam.y) * Math.min(1, dt * 8); }
+  followCam(dt, p.x, p.y); }
 function inchFrame() { const a = pitAct; return a && a.kind === 'ledge' ? Math.floor(Math.max(0, a.t - LEDGE_GRAB_T) * INCH_FPS) % 6 : -1; }
 function fallFrame() { const a = pitAct; return a && a.kind === 'fall' ? Math.min(4, Math.floor(a.t / .15)) : -1; }
 function teeter() { return !!player && (player.pitPush || 0) > PIT_TEETER && !climb; }
@@ -9434,6 +9461,7 @@ function invDragEnd(e) { const D = invDrag; if (D.id === null || e.pointerId !==
 //  §14 flash text 2.2 -> 3.7s on screen, drawn low (68% of the screen height) instead of under the top HUD, clear of thought bubbles
 //  §15 door hum: silent + no glow past DOOR_HUM_R = 150px; k = (1 - (d - 16) / 134)^1.5; hum gain 0.9k, glow r 16 + 30k, a 0.75k (same k)
 const ZOOMS = [1, 1.5, 2, 2.5]; let ZOOM = 1;
+let zoomSixth = 6, zoomAdd = 0; // desktop: sixths of SCALE (6 = 1x, 2 = ~60 tiles on 1080p). touch: added device pixels.
 const WALL_BITE_N = 18, MOB_DENSITY_MAX = 2.5, MOB_DMG_STEP = .08, MOB_DMG_MAX = 2.5;
 const DP_MIN_DEPTH = 10, DP_CHANCE = .2, DP_TIME = 60, DP_WARN = [.3, .15, .05], DP_FPS = 8, DP_BIOMES = ['bloody', 'demonic', 'lava'];
 const SURV_MANA = { thirst: .6, fatigue: 1 }, SURV_DRAIN = { hunger: 1, thirst: 1, fatigue: 1.5 }, FIRE_RELIGHT_R = 10, DOOR_HUM_R = 150, MSG_DWELL = 5.7; // v0.7.10.1 B11
@@ -9453,14 +9481,167 @@ function v073Snap() { return { prism: V73.prism, dp: V73.dp, exit: V73.exit, che
 function v073Restore(o) { V73 = v073Empty(); if (o && typeof o === 'object') { for (const k of ['prism', 'dp', 'exit']) if (o[k] && typeof o[k] === 'object') V73[k] = o[k]; for (const k of ['chests', 'noSpawn']) if (Array.isArray(o[k])) V73[k] = o[k]; if (typeof o.bed === 'string') V73.bed = o.bed; if (typeof o.music === 'string') V73.music = o.music; if (typeof o.fade === 'number') V73.fade = o.fade; if (Array.isArray(o.oneOrder)) V73.oneOrder = o.oneOrder.slice(); if (typeof o.oneIdx === 'number') V73.oneIdx = o.oneIdx; }
   if (!V73.bed) V73.bed = ambBedFor(depth); const P = V73.prism; if (P) { P.turnT = -1; if (!P.skin) { P.skin = 'A'; P.bx = 8; P.by = 11; P.hgt = 24; P.F = P.F || 13; } if (P.plaque.burnT >= 0) { P.plaque.burnT = -1; P.plaque.clear = 1; } if (P.slideT >= 0) { P.slideT = -1; prismOpenWall(P); } }
   if (V73.dp) { if (V73.dp.st === 'opening') V73.dp.st = 'idle'; V73.dp.enterAt = null; } DPLANE = null; }
-// ---------- §1 test zoom ----------
-function zoomApply(c, sx, sy) { if (ZOOM === 1 || !player) return; c.translate(VW / 2, VH / 2); c.scale(ZOOM, ZOOM); c.translate(-(player.x - sx), -(player.y - 4 - sy)); }
-function scr2w(cx, cy) { if (ZOOM === 1 || !player) return null; return { x: player.x + (cx - VW / 2) / ZOOM, y: player.y - 4 + (cy - VH / 2) / ZOOM }; }
-function setZoom(z) { ZOOM = zoomSteps074().includes(z) ? z : 1; /* v0.7.4 F6 */ v073Stats.zoom++; syncZoomBtn(); }
-function cycleZoom(dir) { const Z = zoomSteps074(), i = Z.indexOf(ZOOM); setZoom(Z[(i + (dir || 1) + Z.length) % Z.length]); }
-function syncZoomBtn() { const b = $('mZoom'); if (b) b.textContent = 'TEST ZOOM: ' + ZOOM + 'X'; }
-function drawZoomTag() { if (ZOOM === 1 || !player) return; const t = 'ZOOM ' + ZOOM + 'X (TEST)'; drawTextC(t, VW / 2, VH - 8, '#8a90a8'); }
-if ($('mZoom')) $('mZoom').addEventListener('click', () => cycleZoom(touchMode ? 1 : -1)); // desktop: 1 → 0.75 → 0.5 → 0.35 → 0.25 → 1
+// ---------- §1 test zoom: integer device pixels per world texel ----------
+// The world is drawn 1:1 into a backing store of one pixel per world pixel, then CSS-scaled by
+// worldPix (an integer). The HUD stays in VW×VH and is presented at SCALE, on an overlay when those differ.
+function deskZoom() { return !!(window.__zoomDesk || (typeof touchMode !== 'undefined' && !touchMode)); }
+// Desktop pixels are sixths of SCALE. Never finer than one device pixel, and never wider than ~60 tiles (960 world px) on the long axis.
+function pixForSixth(S, vw, n) {
+  let wp = Math.max(1, Math.round(S * n / 6));
+  const cap = Math.max(1, Math.ceil((vw * S) / 960));
+  if (wp < cap) wp = cap;
+  return wp;
+}
+function pixForAdd(S, a) { return Math.max(1, S + a); }
+function worldPix() {
+  const S = SCALE || 1;
+  if (deskZoom()) return pixForSixth(S, VW, zoomSixth);
+  return pixForAdd(S, zoomAdd);
+}
+function syncZoomRatio() {
+  const S = SCALE || 1, r = worldPix() / S;
+  ZOOM = Math.abs(r - 1) < 1e-8 ? 1 : r;
+}
+function viewWorldSize() {
+  const S = SCALE || 1, wp = worldPix();
+  if (wp === S) return { w: VW, h: VH, pix: wp };
+  return { w: Math.max(1, Math.round(VW * S / wp)), h: Math.max(1, Math.round(VH * S / wp)), pix: wp };
+}
+function viewOrigin() {
+  const so = shakeOffset();
+  return { x: Math.round(cam.x + so.x), y: Math.round(cam.y + so.y) };
+}
+function followCam(dt, x, y) {
+  const hx = ZOOM === 1 ? VW / 2 : viewWorldSize().w / 2, hy = ZOOM === 1 ? VH / 2 : viewWorldSize().h / 2;
+  cam.x += (x - hx - cam.x) * Math.min(1, dt * 8);
+  cam.y += (y - hy - cam.y) * Math.min(1, dt * 8);
+}
+function snapCam(x, y) {
+  const hx = ZOOM === 1 ? VW / 2 : viewWorldSize().w / 2, hy = ZOOM === 1 ? VH / 2 : viewWorldSize().h / 2;
+  cam.x = x - hx; cam.y = y - hy;
+}
+function backingMetrics(cssW, cssH, dpr, sixth, mobAdd) {
+  dpr = dpr || 1;
+  const S = Math.max(1, Math.floor(Math.min(cssW, cssH) * dpr / 170));
+  const vw = Math.floor(cssW * dpr / S), vh = Math.floor(cssH * dpr / S);
+  const wp = mobAdd == null ? pixForSixth(S, vw, sixth == null ? 6 : sixth) : pixForAdd(S, mobAdd);
+  const bw = wp === S ? vw : Math.max(1, Math.round(vw * S / wp));
+  const bh = wp === S ? vh : Math.max(1, Math.round(vh * S / wp));
+  return { scale: S, vw: vw, vh: vh, worldPix: wp, bw: bw, bh: bh, tilesX: bw / 16, tilesY: bh / 16, devW: bw * wp, devH: bh * wp };
+}
+function refitWorldBacking() {
+  const dpr = window.devicePixelRatio || 1;
+  syncZoomRatio();
+  const wp = worldPix(), v = viewWorldSize(), bw = v.w, bh = v.h;
+  if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; }
+  canvas.style.width = (bw * wp / dpr) + 'px';
+  canvas.style.height = (bh * wp / dpr) + 'px';
+  screenCtx.imageSmoothingEnabled = false;
+  if (ctx === screenCtx) ctx.imageSmoothingEnabled = false;
+}
+let hudCan718 = null, hudCtx718 = null;
+function ensureHudOverlay() {
+  if (hudCan718) return;
+  hudCan718 = document.createElement('canvas');
+  hudCan718.id = 'hudLayer';
+  hudCan718.setAttribute('aria-hidden', 'true');
+  hudCan718.style.position = 'absolute';
+  hudCan718.style.pointerEvents = 'none';
+  hudCan718.style.zIndex = '2';
+  hudCan718.style.imageRendering = 'pixelated';
+  hudCan718.style.display = 'none';
+  canvas.insertAdjacentElement('afterend', hudCan718);
+  hudCtx718 = hudCan718.getContext('2d');
+}
+function layoutHudOverlay() {
+  ensureHudOverlay();
+  if (worldPix() === (SCALE || 1)) { hudCan718.style.display = 'none'; return; }
+  if (hudCan718.width !== VW || hudCan718.height !== VH) { hudCan718.width = Math.max(1, VW); hudCan718.height = Math.max(1, VH); }
+  hudCan718.style.display = 'block';
+  hudCan718.style.width = canvas.style.width;
+  hudCan718.style.height = canvas.style.height;
+  hudCan718.style.left = canvas.style.left || '0px';
+  hudCan718.style.top = canvas.style.top || '0px';
+  hudCan718.style.transform = 'none';
+  hudCtx718.setTransform(1, 0, 0, 1, 0, 0);
+  hudCtx718.imageSmoothingEnabled = false;
+}
+function hudPresentScale() {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = parseFloat(canvas.style.width) || (VW * (SCALE || 1) / dpr);
+  const s = (cssW * dpr) / (VW || 1);
+  return s > 0 ? s : (SCALE || 1);
+}
+function paintHudOverlay() {
+  layoutHudOverlay();
+  const h = hudCtx718;
+  h.setTransform(1, 0, 0, 1, 0, 0);
+  h.globalAlpha = 1; h.globalCompositeOperation = 'source-over'; h.imageSmoothingEnabled = false;
+  h.clearRect(0, 0, hudCan718.width, hudCan718.height);
+  const prev = ctx;
+  ctx = h;
+  textPixHold = hudPresentScale();
+  try {
+    drawVignette(); drawPlaneFX();
+    UIA = uiAlpha(); ctx.globalAlpha = UIA; hudInset074(drawHUD); drawZoomTag(); ctx.globalAlpha = 1; drawSleep();
+  } finally {
+    textPixHold = 0; ctx = prev; h.imageSmoothingEnabled = false;
+  }
+}
+function zoomLabel() {
+  const r = worldPix() / (SCALE || 1);
+  if (Math.abs(r - 1) < 1e-6) return '1';
+  const t = Math.round(r * 100) / 100;
+  return Math.abs(t - Math.round(t)) < 1e-6 ? String(Math.round(t)) : t.toFixed(2);
+}
+function zoomApply() { /* retired: fractional ctx.scale blurred 1px art. The backing store is the zoom. */ }
+function scr2w(cx, cy) {
+  if (ZOOM === 1 || !player) return null;
+  const o = viewOrigin(), v = viewWorldSize();
+  return { x: o.x + (cx / (VW || 1)) * v.w, y: o.y + (cy / (VH || 1)) * v.h };
+}
+function applyZoomToken(z) {
+  const steps = zoomSteps074();
+  let use = steps.find(s => Math.abs(s - z) < 1e-6);
+  if (use == null) {
+    let best = steps[steps.length - 1], bd = Infinity;
+    for (const s of steps) { const d = Math.abs(s - z); if (d < bd) { bd = d; best = s; } }
+    use = best;
+  }
+  const S = SCALE || 1;
+  if (deskZoom()) {
+    let picked = 6;
+    for (const n of ZOOM_DESK_N) {
+      const wp = pixForSixth(S, VW, n);
+      const ratio = wp === S ? 1 : wp / S;
+      if (Math.abs(ratio - use) < 1e-6) picked = n;
+    }
+    zoomSixth = picked;
+  } else {
+    let picked = 0;
+    for (const a of ZOOM_MOB_ADD) {
+      const wp = pixForAdd(S, a);
+      const ratio = wp === S ? 1 : wp / S;
+      if (Math.abs(ratio - use) < 1e-6) picked = a;
+    }
+    zoomAdd = picked;
+  }
+  syncZoomRatio();
+}
+function setZoom(z) {
+  applyZoomToken(z);
+  v073Stats.zoom++;
+  refitWorldBacking();
+  if (typeof syncTextLayer718 === 'function') syncTextLayer718();
+  layoutHudOverlay();
+  if (typeof placeDesk101 === 'function') placeDesk101();
+  syncZoomBtn();
+  if (player) snapCam(player.x, player.y);
+}
+function cycleZoom(dir) { const Z = zoomSteps074(), i = Z.findIndex(s => Math.abs(s - ZOOM) < 1e-6); setZoom(Z[(i + (dir || 1) + Z.length) % Z.length]); }
+function syncZoomBtn() { const b = $('mZoom'); if (b) b.textContent = 'TEST ZOOM: ' + zoomLabel() + 'X'; }
+function drawZoomTag() { if (ZOOM === 1 || !player) return; const t = 'ZOOM ' + zoomLabel() + 'X (TEST)'; drawTextC(t, VW / 2, VH - 8, '#8a90a8'); }
+if ($('mZoom')) $('mZoom').addEventListener('click', () => cycleZoom(touchMode ? 1 : -1)); // desktop zooms out; touch zooms in
 window.addEventListener('keydown', e => { if (e.repeat || state !== 'play' || UPD.shown) return; const k = e.key;
   if (k === '=' || k === '+') cycleZoom(1); else if (k === '-' || k === '_') cycleZoom(-1); else if (k === '0') setZoom(1); }); // v0.7.5 F1: minus zooms out from 1x
 // ---------- §3 castle floors ----------
@@ -9617,7 +9798,7 @@ function genPlane(b) { const p = player; genDungeon(depth); populate(); enemies 
     if (Math.random() < .55) { const q = at(); dropAt(ground, q.x, q.y, { pot: 'hp' }); } if (Math.random() < .55) { const q = at(); dropAt(ground, q.x, q.y, { pot: 'mp' }); }
     if (nc < 4 && i % 3 === 0) { const tx = irand(r.x, r.x + r.w - 1), ty = r.y; if (tileAt(tx, ty) === TILE.FLOOR) { V73.chests.push({ tx, ty, open: 0 }); nc++; } } });
   mapVer++; polyCache.clear(); if (typeof setVineGrid === 'function') setVineGrid(); p.x = (r0.cx + .5) * TS; p.y = (r0.cy + .5) * TS; p.walk = null; p.safeX = p.x; p.safeY = p.y;
-  cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; v077BuildRooms(); }
+  snapCam(p.x, p.y); bannerT = BANNER_T; trauma = 0; v077BuildRooms(); }
 function dpReturn(early) { if (!DPLANE) return; const h = DPLANE.home; DPLANE = null; cue('wld_dark_portal_close_01', { vol: 1 }); let ok = false; try { ok = worldRestore(h, h.depth); } catch (e) { ok = false; }
   if (!ok) startFloor(depth + 1); v073Stats.returns++; exitFlashAt = time; cue('wld_dark_portal_return_01', { vol: .9, delay: .25 });
   flashMsg(early ? 'You step back through the tear.' : 'The plane collapses. You are back where the boss fell.', '#c8a0ff'); save(); }
@@ -9832,7 +10013,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   get chests() { return chests; }, get secrets() { return secrets; }, openChest, breakSecret, breakSecretsAt, placeTreasure,
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
   newGame, continueGame, itemLines, UNIQUES, eligibleUniques, pickUnique, openInv, closeInv, makeItem, renderInv, gainXp, startFloor, sortInventory, compareItems, itemPower,
-  get prism() { return V73 && V73.prism; }, get shop() { return shop; }, get spikes() { return V75 && V75.spikes; }, get doors() { return doors; }, get ground() { return ground; }, get gilt() { return V73 && V73.chests; }, get thought() { return thought; }, get pitAct() { return pitAct; }, get zoom() { return ZOOM; }, setZoom, cycleZoom, zoomSteps: zoomSteps074, compareHTML, updateEnemyAI, createEnemyAI, aiMap074, tileAt, walkable, prismOpenWall, prismWant, killEnemy, updateSurvival, sellAll, sellAllPreview, openShop, renderShop,
+  get prism() { return V73 && V73.prism; }, get shop() { return shop; }, get spikes() { return V75 && V75.spikes; }, get doors() { return doors; }, get ground() { return ground; }, get gilt() { return V73 && V73.chests; }, get thought() { return thought; }, get pitAct() { return pitAct; }, get zoom() { return ZOOM; }, setZoom, cycleZoom, zoomSteps: zoomSteps074, worldPix, viewWorldSize, viewOrigin, backingMetrics, zoomLabel, cursorWorld, clientToWorld, groundWalk, doAttack, weaponReach713, get zoomSixth() { return zoomSixth; }, get zoomAdd() { return zoomAdd; }, get hudLayer() { return hudCan718; }, compareHTML, updateEnemyAI, createEnemyAI, aiMap074, tileAt, walkable, prismOpenWall, prismWant, killEnemy, updateSurvival, sellAll, sellAllPreview, openShop, renderShop,
   zoomVis, worldToScreen, lightSample, get lightFrame() { return lightFrame; }, get vw() { return VW; }, get vh() { return VH; }, get hrooms() { return V71 && V71.hrooms; }, get stones() { return V71 && V71.stones; }, get setp() { return setp; }, get mapAlpha() { return MAP_ALPHA * mapOpacity(); }, get mapBg() { return MAP_BG * mapOpacity(); }, get mapOp() { return Math.round(mapOpacity() * 100); }, eatRation, drinkWater, get sfxCues() { return { gulp: SFX_CUE.gulp, eat: SFX_CUE.eat, sink: SFX_CUE.sink }; }, get sfxLog() { return sfxLog; }, get snoreId() { return 'player_rest_snore_v2_loop_01'; }, get refreshedId() { return 'player_rest_refreshed_v2_01'; },
   step(dt, mv) { moveOverride = mv || { x: 0, y: 0 }; try { if (state === 'dying') updateDeath(dt); else update(dt); } finally { moveOverride = null; } }, mapMarks: mapMarks077, roomLetter, roomLetterOf, v077Rooms: v077BuildRooms, ambChoose, ambCueReady, fallHazardAt, fallArtKey, varyTile, setBiome(b) { if (V72) V72.biome = b; }, get rooms() { return rooms; }, get artStem() { return ART_STEM; },
   die, resurrect, get deathAct() { return deathAct; }, get books() { return books; }, nearSpawnTile, purgeBadSpawns, rollShopUnique, shopUniquePrice, rollShopOffers, buyUnique, burstCoins, splitGoldPiles, lethalFloor, badSpawnAt, nextBook, get necroCap() { return NECRO_CAP; }, get necroDrop() { return NECRO_DROP; },
@@ -9853,12 +10034,12 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
 //      axis-aligned enemy state machine (F11) ----
 // Tunables (call-outs in CHANGELOG / playtest focus):
 //  F1 SECRET_GLIM: sparkles only within r 110px of the player; alpha .12 far -> .7 at <= 28px (curve ^1.4); one twinkle every ~1.5s per secret (2 near)
-//  F6 ZOOM_MOBILE 1 / 1.15 / 1.25 / 1.35 (touch); desktop v0.7.5 is 0.25 / 0.35 / 0.5 / 0.75 / 1
+//  F6 zoom: desktop sixths of SCALE (2..6, 6 = 1x, 2 = ~60 tiles on 1080p); touch adds 0..3 device pixels to SCALE
 //  F9 PWR: hold >= .35s = power attack; full charge at .9s; damage x1.5 (min charge) -> x2.25 (full), +6px reach, x2 knockback; tap (< .35s) = normal swing
 //  F11 AI_CFG: patrol 400ms / tile, axis detect <= 6 tiles (clear straight line), alert pause 800ms ("!"), charge 80ms / tile, wall stun 1200ms -> patrol
 //      frost-slowed mobs tick x1.8 slower; ranged / caster mobs keep their shots, but only while engaged (alerted <= 4s ago, never on patrol)
 var SAFE74 = { l: 0, r: 0, t: 0, b: 0, css: { l: 0, r: 0, t: 0, b: 0 } }, HUDI = { l: 0, r: 0, t: 0, b: 0 };
-const ZOOM_MOBILE = [1, 1.15, 1.25, 1.35], ZOOM_DESKTOP = [0.25, 0.35, 0.5, 0.75, 1]; // v0.7.5 F1: desktop zooms out; phones stay 1 / 1.15 / 1.25 / 1.35
+const ZOOM_DESK_N = [2, 3, 4, 5, 6], ZOOM_MOB_ADD = [0, 1, 2, 3]; // sixths of SCALE, and phone pixels added to SCALE. 1x is 6 and 0. Farthest desktop step is 2/6, ~60×34 tiles on 1080p.
 const PWR = { min: .35, full: .9, mulMin: 1.5, mulMax: 2.25, reach: 6, kb: 2 };
 const SECRET_GLIM = { r: 110, near: 28, aFar: .12, aNear: .7, period: 1.5 };
 const AI_CFG = { patrolMs: 400, alertMs: 800, chargeMs: 80, stunMs: 1200, detect: 6, engagedMs: 4000, chaseMs: 160, escape: 12, near: 5 }; // v0.7.5 B1: close LOS + sustained chase
@@ -9932,7 +10113,26 @@ function drawSnake074(c) { const S = c.sq; if (!S) return false; const C = CRITT
   ctx.translate(Math.round(c.x), Math.round(c.y)); const ang = Math.atan2(c.vy, c.vx); if (Math.abs(c.vy) > Math.abs(c.vx)) ctx.rotate(ang); else if (c.vx < 0) ctx.scale(-1, 1);
   ctx.drawImage(a, -C.w / 2, -C.h / 2); ctx.restore(); return true; }
 // ---------- F6 zoom steps ----------
-function zoomSteps074() { if (window.__zoomDesk) return ZOOM_DESKTOP; return touchMode ? ZOOM_MOBILE : ZOOM_DESKTOP; }
+function zoomSteps074() {
+  const S = SCALE || 1, out = [], seen = new Set();
+  if (deskZoom()) {
+    for (const n of ZOOM_DESK_N) {
+      const wp = pixForSixth(S, VW, n);
+      if (seen.has(wp)) continue;
+      seen.add(wp);
+      out.push(wp === S ? 1 : wp / S);
+    }
+  } else {
+    for (const a of ZOOM_MOB_ADD) {
+      const wp = pixForAdd(S, a);
+      if (seen.has(wp)) continue;
+      seen.add(wp);
+      out.push(wp === S ? 1 : wp / S);
+    }
+  }
+  if (!out.length || out[out.length - 1] !== 1 && !out.some(s => s === 1)) out.push(1);
+  return out;
+}
 // ---------- F7 squeeze tip once ----------
 function sqTipSeen074() { const p = player; if (p && p.v74 && p.v74.sqTip) return true; try { return localStorage.getItem(SQTIP_KEY) === '1'; } catch (_) { return false; } }
 function sqTipMark074() { const p = player; if (p) { if (!p.v74 || typeof p.v74 !== 'object') p.v74 = {}; p.v74.sqTip = 1; } try { localStorage.setItem(SQTIP_KEY, '1'); } catch (_) {} }
@@ -10135,7 +10335,9 @@ function drawAlertIcon074(e) { if (!e.showAlertIcon || e.hidden || e.disg) retur
   const a = ART.alert_icon || ART.enemy_alert_icon; if (a) { ctx.drawImage(a, X - (a.width >> 1), Y - a.height + 2); return; }
   ctx.fillStyle = '#000'; ctx.fillRect(X - 2, Y - 8, 5, 7); ctx.fillRect(X - 2, Y, 5, 3); ctx.fillStyle = '#ffe040'; ctx.fillRect(X - 1, Y - 7, 3, 5); ctx.fillRect(X - 1, Y + 1, 3, 1); ctx.fillStyle = '#fff8c0'; ctx.fillRect(X - 1, Y - 7, 1, 2); }
 // ---------- per-frame hooks ----------
-function v074Update(dt) { aiClock += dt * 1000; const p = player; if (p && p.mchg >= 0 && !(p.walk && p.walk.kind === 'enemy')) p.mchg = -1; /* click charge ends with the enemy walk */ if (!zoomSteps074().includes(ZOOM)) ZOOM = 1; updateFx074(dt); descendTick074(); if (touchMode) syncSkillBtns074(); }
+function v074Update(dt) { aiClock += dt * 1000; const p = player; if (p && p.mchg >= 0 && !(p.walk && p.walk.kind === 'enemy')) p.mchg = -1; /* click charge ends with the enemy walk */
+  syncZoomRatio(); if (!zoomSteps074().some(s => Math.abs(s - ZOOM) < 1e-6)) { zoomSixth = 6; zoomAdd = 0; ZOOM = 1; refitWorldBacking(); if (typeof syncTextLayer718 === 'function') syncTextLayer718(); layoutHudOverlay(); if (player) snapCam(player.x, player.y); syncZoomBtn(); }
+  updateFx074(dt); descendTick074(); if (touchMode) syncSkillBtns074(); }
 function v074Floor(d) { fixGlimmerTorches074(); descIdx = -1; descNear = false; for (const e of enemies) delete e.ai; aiGrid = null; }
 function v074Emissive() { drawSecretGlimmer074(); drawFx074(); }
 function v074World() { for (const e of enemies) drawAlertIcon074(e); drawCharge074(); }
