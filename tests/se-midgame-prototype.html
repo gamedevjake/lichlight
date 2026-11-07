@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<!-- Super Elite midgame prototype. Half-step durability, full outgoing curve, tells unchanged. -->
+<html>
+<head><meta charset="utf-8"><title>se-proto</title></head>
+<body>
+<iframe id="g" src="../index.html?v=se-proto" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { document.getElementById('out').textContent = 'FAIL harness :: ' + (e && e.stack || e); document.title = 'FAIL 1'; }
+});
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 420) : ''));
+}
+function finish(extra) {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n') + (extra ? '\n' + extra : '');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+function r3(n) { return Math.round(n * 1000) / 1000; }
+function med(a, b) {
+  const n = b - a + 1;
+  if (n <= 1) return a;
+  if (n % 2) return a + (n >> 1);
+  return Math.round(((a + (n >> 1) - 1) + (a + (n >> 1))) / 2);
+}
+
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  w.__hurtSpread = 1;
+  w.__champCrit = 1;
+  w.__critRoll = 1;
+  delete w.__seTune;
+  const src = fetchText('../index.html?v=se-proto-src');
+  const ver = fetchText('../version.json');
+  g.newGame();
+  const p = g.player;
+  check('version untouched', g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, g.version);
+  check('early life is exact', g.seMaxHp717(1) === 80 && g.seMaxHp717(2) === 102 && g.seMaxHp717(3) === 119 && g.seMaxHp717(4) === 133, [1, 2, 3, 4].map(d => g.seMaxHp717(d)).join(','));
+  check('early shields stay 8/10/12/13', [8, 10, 12, 13].every((n, i) => Math.round(g.seMaxHp717(i + 1) * g.SE_SHIELD_FRAC) === n));
+  check('life and taken are different tables', g.SE_LIFE_TABLE !== g.SE_TAKEN_TABLE && g.SE_LIFE_TABLE[1].mul === 4 && g.SE_TAKEN_TABLE.some(row => row.d === 12 && row.mul < 0.25 && row.mul > 0.1));
+  check('outgoing table is the full curve', g.SE_DMG_TABLE.some(row => row.d === 5 && row.mul === 2.5) && g.SE_DMG_TABLE.some(row => row.d === 12 && row.mul === 5.5) && g.SE_DMG_TABLE.some(row => row.d === 16 && row.mul === 7));
+  check('depths 1-4 multipliers are 1', [1, 2, 3, 4].every(d => g.seLifeMul(d) === 1 && g.seTakenMul(d) === 1 && g.seDmgMul(d) === 1));
+  check('tell geometry is unchanged', g.SE_TELL.swing.dur === 1 && g.SE_TELL.swing.gap === 0.7 && g.SE_TELL.swing.w === 16 && g.SE_TELL.swing.len === 52 && g.SE_TELL.swing.hit === 8 && g.SE_TELL.swing.mul === 1 && g.SE_TELL.power.dur === 1.3 && g.SE_TELL.power.gap === 0.9 && g.SE_TELL.power.r === 10 && g.SE_TELL.power.mul === 1.7 && g.SE_TELL.brand.dur === 1.15 && g.SE_TELL.brand.gap === 0.75 && g.SE_TELL.brand.r === 8 && g.SE_TELL.brand.mul === 0.85);
+  check('depth 5+ tell ratios stay', g.seTellMul('power', 5) === 1.7 && g.seTellMul('brand', 5) === 0.85 && g.seTellMul('swing', 12) === 1 && Math.abs(g.seTellMul('power', 1) - 3) < 1e-9);
+  check('crab debt and pre-mitigation leech stay', src.indexOf("!(e.T.ai === 'crab' && e.mode === 'open')") >= 0 && src.indexOf('leech(leechBase') >= 0 && src.indexOf('Life steal does not see this multiplier') >= 0);
+
+  g.startFloor(1, true);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const lane = g.seSpawn717('se_nyx', 'fight');
+  lane.sePhase = 'fight'; lane.x = p.x; lane.y = p.y; lane.spd = 0; lane.dmg = g.seDmg717(1);
+  p.hp = 400; p.inv0 = 0; p.st.def = 0; p.st.block = 0;
+  p.x = lane.x + 40; p.y = lane.y + 40;
+  const missed = g.seResolveTell(lane, 'swing', { x: lane.x, y: lane.y, a: 0, len: 52, w: 16 });
+  check('a sidestepped swing still deals 0', missed === 0 && p.hp === 400, p.hp);
+  p.x = lane.x + 10; p.y = lane.y; p.hp = 400; p.inv0 = 0;
+  const landed = g.seResolveTell(lane, 'swing', { x: lane.x, y: lane.y, a: 0, len: 52, w: 16 });
+  check('standing in the depth 1 swing still deals 6', landed === 1 && p.hp === 394, p.hp);
+  g.teles.length = 0;
+  lane.seAct = ''; lane.sePhase = 'fight';
+  g.seBeginTell(lane, 'swing');
+  const tel = g.teles[0];
+  check('swing windup and lock are unchanged', tel && tel.dur === 1 && tel.lockAt === 0.25 && tel.w === 16 && tel.len === 52, tel && (tel.dur + '/' + tel.lockAt));
+  g.teles.length = 0; lane.seAct = '';
+  g.seBeginTell(lane, 'power');
+  const pow = g.teles[0];
+  check('power windup and radius are unchanged', pow && pow.dur === 1.3 && pow.follow === lane && Math.abs(pow.r - (10 + p.r)) < 1e-6, pow && pow.dur);
+  g.teles.length = 0; lane.seAct = '';
+  g.seBeginTell(lane, 'brand');
+  const brand = g.teles[0];
+  check('brand windup does not follow', brand && brand.dur === 1.15 && !brand.follow && Math.abs(brand.r - (8 + p.r)) < 1e-6, brand && brand.dur);
+
+  const BASE_PICK = [
+    { slot: 'weapon', icon: 'sword', name: 'Short Sword', lvl: 1, min: 2 },
+    { slot: 'weapon', icon: 'sword', name: 'Broad Sword', lvl: 3, min: 5 },
+    { slot: 'weapon', icon: 'sword', name: 'Rune Blade', lvl: 9, min: 12 },
+    { slot: 'armor', name: 'Leather Armor', lvl: 1, def: 3 },
+    { slot: 'armor', name: 'Chain Mail', lvl: 3, def: 7 },
+    { slot: 'armor', name: 'Plate Mail', lvl: 6, def: 12 },
+    { slot: 'armor', name: 'Dusk Shroud', lvl: 9, def: 18 },
+    { slot: 'helm', name: 'Cap', lvl: 1, def: 1 },
+    { slot: 'helm', name: 'Helm', lvl: 2, def: 3 },
+    { slot: 'helm', name: 'Great Helm', lvl: 5, def: 6 },
+    { slot: 'helm', name: 'Bone Visage', lvl: 8, def: 9 },
+    { slot: 'boots', name: 'Boots', lvl: 1, def: 1 },
+    { slot: 'boots', name: 'Greaves', lvl: 4, def: 4 },
+    { slot: 'shield', name: 'Wooden Buckler', lvl: 1, def: 2 },
+    { slot: 'shield', name: 'Round Shield', lvl: 3, def: 4 },
+    { slot: 'shield', name: 'Kite Shield', lvl: 6, def: 7 },
+    { slot: 'shield', name: 'Tower Shield', lvl: 10, def: 11 },
+    { slot: 'shield', name: 'Gothic Shield', lvl: 14, def: 14 },
+    { slot: 'amulet', name: 'Copper Charm', lvl: 1 },
+    { slot: 'amulet', name: 'Bone Pendant', lvl: 4 },
+    { slot: 'amulet', name: 'Silver Locket', lvl: 7 },
+    { slot: 'amulet', name: 'Choir Medallion', lvl: 10 },
+    { slot: 'amulet', name: 'Jade Talisman', lvl: 14 },
+    { slot: 'amulet', name: 'Drowned Pearl', lvl: 18 }
+  ];
+  const UNIQUE_FOR = { 'Short Sword': 'Grandsire Oswin', 'Broad Sword': 'Oathbreaker', 'Rune Blade': 'The Ninth Psalm' };
+  function best(slot, d, pred) {
+    let win = null, sc = -1;
+    BASE_PICK.forEach(b => {
+      if (b.slot !== slot || b.lvl > d + 1) return;
+      if (pred && !pred(b)) return;
+      const s = b.lvl * 1000 + (b.min || 0) * 10 + (b.def || 0);
+      if (s > sc) { sc = s; win = b; }
+    });
+    return win;
+  }
+  function forge(baseName, L, rarity, extra) {
+    const it = w.makeItem(L, 0, baseName);
+    it.rarity = rarity;
+    it.name = baseName;
+    if (!it.mods) it.mods = {};
+    if (it.slot === 'ring') it.mods = {};
+    if (extra) for (const k in extra) it.mods[k] = (it.mods[k] || 0) + extra[k];
+    it.reqLvl = w.calcReqLvl(it);
+    if (it.maxDur) it.dur = it.maxDur;
+    return it;
+  }
+  function forgeUnique(name, L) {
+    const prev = p.found.slice();
+    p.found = g.UNIQUES.map(u => u.name).filter(n => n !== name);
+    let it = null;
+    for (let i = 0; i < 80 && !it; i++) {
+      const c = w.makeItem(L, 3);
+      if (c && c.name === name && c.rarity === 3) it = c;
+    }
+    p.found = prev;
+    if (!it) throw new Error('missing ' + name + ' @' + L);
+    return it;
+  }
+  function kit(d, kind) {
+    const L = d;
+    const sword = best('weapon', d, b => b.icon === 'sword');
+    const items = [];
+    if (kind === 'unique') items.push(forgeUnique(UNIQUE_FOR[sword.name], L));
+    else if (kind === 'ninth') items.push(forgeUnique('The Ninth Psalm', Math.max(L, 8)));
+    else if (kind === 'white') items.push(forge(sword.name, L, 0, null));
+    else items.push(forge(sword.name, L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2), crit: med(3, 6 + L) }));
+    const rar = kind === 'white' ? 0 : 2;
+    const armor = best('armor', d), helm = best('helm', d), boots = best('boots', d), shield = best('shield', d), amulet = best('amulet', d);
+    if (rar === 0) {
+      [armor, helm, boots, shield, amulet].forEach(b => items.push(forge(b.name, L, 0, null)));
+    } else {
+      items.push(forge(armor.name, L, 2, { def: med(1, 2 + L), hp: med(4, 8 + L * 3) }));
+      items.push(forge(helm.name, L, 2, { hp: med(4, 8 + L * 3), resFire: med(6, 8 + Math.floor(L / 2)) }));
+      items.push(forge(boots.name, L, 2, { def: med(1, 2 + L), hp: Math.round(med(4, 8 + L * 3) / 2) }));
+      items.push(forge(shield.name, L, 2, { def: med(1, 2 + L) }));
+      items.push(forge(amulet.name, L, 2, { hp: med(4, 8 + L * 3), fire: Math.max(2, Math.round(med(2, 4 + L * 2) / 3)) }));
+      items.push(forge('Ring', L, 2, { dmg: med(1, 2 + L), ias: Math.max(5, Math.round(med(5, 10 + L * 2) / 2)) }));
+    }
+    return items;
+  }
+  function equip(items) {
+    ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet'].forEach(s => { p.equip[s] = null; });
+    items.forEach(it => { p.equip[it.slot] = it; });
+    w.computeStats();
+    p.hp = p.st.maxHp; p.mp = p.st.maxMp; p.inv0 = 0; p.roll = 0;
+    w.clearStatuses(p);
+  }
+  function setLevel(lv) { p.lvl = lv; w.computeStats(); p.hp = p.st.maxHp; p.mp = p.st.maxMp; }
+  function actor() {
+    g.startFloor(g.depth, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_nyx', 'fight');
+    e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.x = p.x + 24; e.y = p.y;
+    return e;
+  }
+  function meanHit(e, more) {
+    const s = p.st;
+    let sum = 0, crit = 0, n = 0;
+    const mul = s.critMul;
+    for (let base = s.min; base <= s.max; base++) {
+      e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+      sum += g.damageEnemy(e, base, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: more, critApplied: true, skill: 'melee', scale: true, weaponFamily: w.weaponFamilyOf(p).id }).amount;
+      e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+      crit += g.damageEnemy(e, base * mul, 0, 0, '#fff', true, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: more, critApplied: true, skill: 'melee', scale: true, weaponFamily: w.weaponFamilyOf(p).id }).amount;
+      n++;
+    }
+    const pc = Math.min(1, Math.max(0, s.crit) / 100);
+    return { hit: sum / n, exp: (sum / n) * (1 - pc) + (crit / n) * pc };
+  }
+  function fbHit(e, resist) {
+    const saved = Object.assign({}, e.resists);
+    e.resists = Object.assign({}, saved, { Fire: resist });
+    const pw = p.st.fire + p.lvl * 2;
+    const amp = 1 + w.skillAmp(0) / 100;
+    const fb = (8 + pw * 1.4) * amp;
+    e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+    const dealt = g.damageEnemy(e, fb, 0, 0, '#ffa040', false, null, { type: 'Fire', tags: ['Spell', 'Projectile', 'AoE'], more: 1, critApplied: true, skill: 'fireball', scale: true }).amount;
+    e.resists = saved;
+    return { dealt: dealt, pre: fb };
+  }
+  function hybrid(pool, hit, period, bolt, mana, regen) {
+    let hp = pool, t = 0, m = mana, nextM = 0, nextF = 0;
+    for (let n = 0; n < 250000 && hp > 0 && t < 600; n++) {
+      const tn = Math.min(nextM, nextF);
+      m = Math.min(mana, m + regen * Math.max(0, tn - t));
+      t = tn;
+      if (nextM <= t + 1e-9) { hp -= hit; nextM += period; }
+      if (hp <= 0) break;
+      if (nextF <= t + 1e-9) {
+        if (m + 1e-6 >= 4 && bolt > 0) { m -= 4; hp -= bolt; nextF += 0.45; }
+        else nextF = t + (regen > 0 ? Math.max(0.05, (4 - m) / regen) : 30);
+      }
+    }
+    return r3(t);
+  }
+  function hurt(e, kind) {
+    const hold = w.Math.random;
+    w.Math.random = () => 0.999;
+    p.hp = 100000; p.inv0 = 0; p.st.block = p.st.block;
+    let dealt = 0;
+    try { dealt = w.hurtPlayer(e.dmg * g.seTellMul(kind, g.depth), e).dealt; }
+    finally { w.Math.random = hold; }
+    p.hp = p.st.maxHp; p.inv0 = 0;
+    return dealt;
+  }
+
+  const DEPTHS = [1, 4, 5, 9, 12, 16, 20];
+  const LEVEL = { 1: 3, 4: 7, 5: 9, 9: 15, 12: 20, 16: 26, 20: 31 };
+  const rows = [];
+  const flags = [];
+  DEPTHS.forEach(d => {
+    ['white', 'rare', 'unique'].concat(d >= 9 ? ['ninth'] : []).forEach(kind => {
+      setLevel(LEVEL[d]);
+      equip(kit(d, kind));
+      g.depth; // depth is set by startFloor inside actor via the getter only
+      // Measure the live (after) fight, then the pre-tune fight with the hook.
+      function pass(mode) {
+        if (mode === 'before') w.__seTune = 'before'; else delete w.__seTune;
+        // startFloor sets depth. actor() does that.
+        const savedDepth = d;
+        // seTakenMul and seDmg read the global depth, which startFloor sets.
+        g.startFloor(savedDepth, true);
+        if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+        const e = g.seSpawn717('se_nyx', 'fight');
+        e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.affix = null;
+        const pool = e.maxHp + (e.maxShield || 0);
+        const melee = meanHit(e, 1);
+        const charged = meanHit(e, 2.25);
+        const bolt = fbHit(e, 0);
+        const hard = fbHit(e, 20);
+        const period = w.attackPeriod();
+        const tap = melee.exp > 0 ? pool / (melee.exp / period) : null;
+        const hy = hybrid(pool, melee.exp, period, bolt.dealt, p.st.maxMp, 1.4 + p.lvl * 0.1);
+        const swing = hurt(e, 'swing'), power = hurt(e, 'power');
+        return {
+          hp: e.maxHp, shield: e.maxShield || 0, pool: pool,
+          hit: r3(melee.exp), charge: r3(charged.exp), fb: bolt.dealt, fbHard: hard.dealt,
+          tap: r3(tap), hy: hy, period: r3(period),
+          swing: swing, power: power,
+          swingPct: r3(100 * swing / p.st.maxHp), powerPct: r3(100 * power / p.st.maxHp),
+          php: p.st.maxHp, def: p.st.def
+        };
+      }
+      const after = pass('after');
+      const before = pass('before');
+      delete w.__seTune;
+      rows.push({ d: d, kind: kind, level: LEVEL[d], weapon: p.equip.weapon && p.equip.weapon.name, before: before, after: after });
+    });
+  });
+  delete w.__seTune;
+  rows.forEach(r => {
+    const rare = rows.find(q => q.d === r.d && q.kind === 'rare');
+    if (!rare) return;
+    if (r.kind === 'white' && r.after.tap > rare.after.tap * 2.2) flags.push('d' + r.d + ' white tap ' + r.after.tap + ' is ' + r3(r.after.tap / rare.after.tap) + 'x the rare sword');
+    if ((r.kind === 'ninth' || r.kind === 'unique') && r.after.hy * 2 < rare.after.tap) flags.push('d' + r.d + ' ' + r.kind + ' hybrid ' + r.after.hy + ' is ' + r3(rare.after.tap / r.after.hy) + 'x faster than the rare sword');
+  });
+
+  const d12 = rows.find(r => r.d === 12 && r.kind === 'rare');
+  check('depth 12 rare sword is about 35s and not the full band', d12 && d12.after.tap >= 32 && d12.after.tap <= 40 && d12.after.tap < 60, d12 && d12.after.tap);
+  check('depth 12 before the tune is still about 1.6s', d12 && d12.before.tap > 1.2 && d12.before.tap < 2.2, d12 && d12.before.tap);
+  check('depth 1 rare sword was not lengthened', rows.find(r => r.d === 1 && r.kind === 'rare').after.tap === rows.find(r => r.d === 1 && r.kind === 'rare').before.tap);
+  check('depth 5 life moved and depth 4 did not', g.seFadeHp717(5) === 141 && g.seMaxHp717(5) !== 141 && g.seMaxHp717(4) === g.seFadeHp717(4));
+  const d16 = rows.find(r => r.d === 16 && r.kind === 'rare');
+  check('depth 16 stays under the 85-105 band', d16 && d16.after.tap < 70, d16 && d16.after.tap);
+
+  // Damage math on the depth-12 rare kit. Taken is in force.
+  setLevel(20);
+  equip(kit(12, 'rare'));
+  g.startFloor(12, true);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const e = g.seSpawn717('se_nyx', 'fight');
+  e.sePhase = 'fight'; e.hp = 1e7; e.shield = 0; e.dead = false;
+  const keep = g.seTakenMul(12);
+  e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+  const phys = g.damageEnemy(e, 100, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], more: 1, critApplied: true, skill: 'melee', scale: false }).amount;
+  check('physical 100 is kept by the taken fraction', phys === Math.max(1, Math.round(100 * keep)), phys + ' vs ' + keep);
+  e.resists = Object.assign({}, e.resists, { Fire: 20 });
+  e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+  const fire = g.damageEnemy(e, 100, 0, 0, '#fff', false, null, { type: 'Fire', tags: ['Spell'], more: 1, critApplied: true, skill: 'fireball', scale: false }).amount;
+  check('fire resist happens before fortitude', fire === Math.max(1, Math.round(80 * keep)), fire);
+  e.resists = Object.assign({}, e.resists, { Fire: 0 });
+  e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+  const scaledCharge = w.scaleAmount(20, 'Physical', 2.25);
+  const charge = g.damageEnemy(e, 20, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], more: 2.25, critApplied: true, skill: 'melee', scale: true }).amount;
+  check('a full charge is 2.25 then fortitude', charge === Math.max(1, Math.round(scaledCharge * keep)), charge + ' vs ' + r3(scaledCharge));
+  w.applyStatus(e, 'shock', { takenPct: 10, duration: 4, attacker: 'player' });
+  e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+  const shocked = g.damageEnemy(e, 100, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], more: 1, critApplied: true, skill: 'melee', scale: false }).amount;
+  check('shock then fortitude', shocked === Math.max(1, Math.round(110 * keep)), shocked);
+  w.clearStatuses(e);
+  w.applyStatus(e, 'burning', { base: 40, duration: 3, attacker: 'player', scale: false });
+  e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight';
+  const tick = w.tickStatuses(e, 1);
+  const burn = tick && tick.ticks && tick.ticks[0] && tick.ticks[0].dealt;
+  check('a burn tick is fortified and not wiped to zero', burn === Math.max(1, Math.round(40 * keep)), burn);
+  // Life steal still uses the pre-mitigation number. Equip 8% and compare.
+  p.equip.weapon.mods.ls = 8;
+  w.computeStats();
+  const pre = w.scaleAmount(40, 'Physical', 1);
+  p.hp = 1;
+  const healed = w.leech(pre, 'melee').healed;
+  e.hp = 1e7; e.shield = 0; e.dead = false; e.sePhase = 'fight'; w.clearStatuses(e);
+  const landedHit = g.damageEnemy(e, 40, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee'], more: 1, critApplied: true, skill: 'melee', scale: true }).amount;
+  check('life steal ignores fortitude', Math.abs(healed - pre * 0.08) < 0.05 && healed > landedHit * 0.08 + 0.5, 'heal ' + r3(healed) + ' pre ' + r3(pre) + ' hit ' + landedHit);
+
+  g.startFloor(5, true);
+  const boss = g.enemies.find(en => en.T && en.T.boss);
+  check('mother murk is still 840', boss && boss.maxHp === 840 && boss.name.indexOf('MOTHER MURK') === 0, boss && boss.maxHp);
+  check('a super elite still has no affix', !e.affix);
+
+  // Level 19, same rare kit, so the reported case is next to the level-20 baseline.
+  setLevel(19);
+  equip(kit(12, 'rare'));
+  delete w.__seTune;
+  g.startFloor(12, true);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const e19 = g.seSpawn717('se_nyx', 'fight');
+  e19.sePhase = 'fight'; e19.dead = false;
+  const m19 = meanHit(e19, 1);
+  const tap19 = (e19.maxHp + e19.maxShield) / (m19.exp / w.attackPeriod());
+  check('level 19 rare sword is still about 35s', tap19 >= 32 && tap19 <= 40, r3(tap19));
+
+  const brief = rows.map(r => [r.d, r.kind, 'lv' + r.level, 'tap ' + r.before.tap + '->' + r.after.tap, 'hy ' + r.before.hy + '->' + r.after.hy, 'hit ' + r.before.hit + '->' + r.after.hit, 'fb ' + r.before.fb + '->' + r.after.fb, 'swing ' + r.before.swing + '->' + r.after.swing + ' (' + r.after.swingPct + '%)', 'power ' + r.before.power + '->' + r.after.power + ' (' + r.after.powerPct + '%)', 'hp ' + r.before.hp + '->' + r.after.hp, 'def ' + r.after.def, 'php ' + r.after.php].join(' | ')).join('\n');
+  finish('\nMEASURE\n' + brief + '\nFLAGS ' + (flags.join(' || ') || 'none') + '\nD12TAP ' + d12.after.tap + '\nD12L19 ' + r3(tap19) + '\nKEEP12 ' + g.seTakenMul(12) + '\nLIFE12 ' + g.seLifeMul(12) + '\nDMG12 ' + g.seDmgMul(12));
+}
+</script>
+</body>
+</html>

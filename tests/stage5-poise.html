@@ -268,8 +268,9 @@ function run(w) {
   w.damageEnemy(se, 30, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false });
   check('super elite intro blocks HP and poise', se.hp === 400 && se.shield === 40 && se.poise === sePoise && w.__lastDamage.prevented === 'super-elite', 'hp ' + se.hp + ' poise ' + se.poise);
   se.sePhase = 'fight'; se.seUnlocked = true;
+  const kept = Math.max(1, Math.round(30 * g.seTakenMul(g.depth)));
   w.damageEnemy(se, 30, 0, 0, '#fff', false, null, { type: 'Physical', tags: ['Melee', 'Direct'], skill: 'melee', critApplied: true, scale: false });
-  check('super elite fight shield does not stop poise', se.hp === 400 && se.shield === 10 && Math.abs(w.__lastPoise.dealt - 18 * 0.3) < 1e-6 && g.poiseTierName(se) === 'super', 'sh ' + se.shield + ' dealt ' + (w.__lastPoise && w.__lastPoise.dealt));
+  check('super elite fight shield does not stop poise', se.hp === 400 && se.shield === 40 - kept && kept < 40 && Math.abs(w.__lastPoise.dealt - 18 * 0.3) < 1e-6 && g.poiseTierName(se) === 'super', 'sh ' + se.shield + ' kept ' + kept + ' dealt ' + (w.__lastPoise && w.__lastPoise.dealt));
   const seFr = g.applyStatus(se, 'freeze');
   check('super elite stays freeze immune', seFr.reason === 'immune' && !g.getStatus(se, 'freeze'), seFr.reason);
   se.poise = 1; se.staggerImmune = 0; se.poiseBreaks = 0;

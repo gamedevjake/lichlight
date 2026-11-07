@@ -5168,8 +5168,11 @@ function resolveEnemyDamage(e, packet) {
   }
   if (T.armor && e.mode !== 'stun') dmg *= T.armor;
   if (e.mawVuln > 0) dmg *= 1.1;
-  const taken = shockTakenMul(e);
-  if (taken !== 1) dmg *= taken;
+  const shock = shockTakenMul(e);
+  if (shock !== 1) dmg *= shock;
+  // Super Elite fortitude. Player damage only, after resist and shock, before the one round.
+  // Life steal does not see this multiplier. It still uses the pre-mitigation number. That debt stays open.
+  if (fromPlayer && e.superElite) dmg *= seTakenMul(depth);
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
   let hpDmg = dmg, shieldAbs = 0;
@@ -14754,17 +14757,67 @@ function seBaseHp717(d) {
   const champ = Math.round(base * 2.2);
   return Math.round(champ * 1.4); // pre-tune body: 1.4× champion. Depth 5+ stays on this number.
 }
-function seMaxHp717(d) {
+// Midgame prototype. Three independent tables. None of them is derived from the others at runtime.
+// Depths 1-4 read the first anchor, which is 1, so the early tune is unchanged.
+// Life lengthens the bar. Taken is the fraction of a player hit the Super Elite keeps.
+// Damage is how hard the Super Elite hits. It is the full proposed curve, not the half-step.
+// The half-step is only life-versus-taken: together they are about 35s for a rare sword at depth 12, not 65-85s.
+// __seTune === 'before' is a measurement hook. It forces every multiplier to 1.
+const SE_LIFE_TABLE = [
+  { d: 4, mul: 1 },
+  { d: 12, mul: 4 },
+  { d: 16, mul: 4 }
+];
+const SE_TAKEN_TABLE = [
+  { d: 4, mul: 1 },
+  { d: 5, mul: 0.55 },
+  { d: 9, mul: 0.20 },
+  { d: 12, mul: 0.186 },
+  { d: 16, mul: 0.146 }
+];
+const SE_DMG_TABLE = [
+  { d: 4, mul: 1 },
+  { d: 5, mul: 2.5 },
+  { d: 12, mul: 5.5 },
+  { d: 16, mul: 7 }
+];
+function seLerpTable(table, d) {
+  d = Math.max(1, Math.floor(+d || 1));
+  if (window.__seTune === 'before') return 1;
+  if (d <= table[0].d) return table[0].mul;
+  const last = table[table.length - 1];
+  if (d >= last.d) return last.mul;
+  for (let i = 1; i < table.length; i++) {
+    const a = table[i - 1], b = table[i];
+    if (d <= b.d) return a.mul + (b.mul - a.mul) * ((d - a.d) / (b.d - a.d));
+  }
+  return last.mul;
+}
+function seLifeMul(d) { return seLerpTable(SE_LIFE_TABLE, d); }
+function seTakenMul(d) { return seLerpTable(SE_TAKEN_TABLE, d); }
+function seDmgMul(d) { return seLerpTable(SE_DMG_TABLE, d); }
+function seFadeHp717(d) {
   d = d || depth || 1;
   const cur = seBaseHp717(d);
   const fade = seEarlyFade(d);
-  if (!(fade > 0)) return cur; // depth 5+ life is the current formula, exactly
+  if (!(fade > 0)) return cur; // depth 5+ body is the pre-prototype formula, exactly
   return Math.round(cur * (1 + (80 / 56 - 1) * fade)); // depth 1 is 80, then the bump fades out
 }
-function seDmg717(d) {
+function seMaxHp717(d) {
+  d = d || depth || 1;
+  const body = seFadeHp717(d);
+  const mul = seLifeMul(d);
+  if (mul === 1) return body;
+  return Math.round(body * mul);
+}
+function seBaseDmg717(d) {
   d = d || depth || 1;
   const bump = (typeof dmgBump === 'function') ? dmgBump(d) : 1;
   return (3.2 + 0.85 * (d - 1)) * bump * 1.4 * 1.15;
+}
+function seDmg717(d) {
+  d = d || depth || 1;
+  return seBaseDmg717(d) * seDmgMul(d);
 }
 function sePickShield717() {
   let sh = SE_SHIELD_IDS[Math.floor(Math.random() * SE_SHIELD_IDS.length)];
@@ -15264,7 +15317,8 @@ if (window.game) {
     addFoeText: addFoeText, targetedEnemy717: targetedEnemy717, noteTarget717: noteTarget717, activeSuper717: activeSuper717, enemyHpShown717: enemyHpShown717,
     drawFloater716: drawFloater716, drawBigMap: drawBigMap, drawBossBar: drawBossBar,
     SE_ROSTER: SE_ROSTER, SE_IDS: SE_IDS, SE_SHIELD_IDS: SE_SHIELD_IDS, SE_SHIELD_FRAC: SE_SHIELD_FRAC, SE_GKEY_P: SE_GKEY_P,
-    sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seBaseHp717: seBaseHp717, seEarlyFade: seEarlyFade, seTellMul: seTellMul, seUniqueChance: seUniqueChance, seRollGear: seRollGear, seLoot717: seLoot717, seSnap717: seSnap717,
+    sePlan717: sePlan717, seSpawn717: seSpawn717, seMaxHp717: seMaxHp717, seBaseHp717: seBaseHp717, seFadeHp717: seFadeHp717, seEarlyFade: seEarlyFade, seTellMul: seTellMul, seUniqueChance: seUniqueChance, seRollGear: seRollGear, seLoot717: seLoot717, seSnap717: seSnap717,
+    SE_LIFE_TABLE: SE_LIFE_TABLE, SE_TAKEN_TABLE: SE_TAKEN_TABLE, SE_DMG_TABLE: SE_DMG_TABLE, seLifeMul: seLifeMul, seTakenMul: seTakenMul, seDmgMul: seDmgMul, seBaseDmg717: seBaseDmg717, seDmg717: seDmg717,
     giltGear: giltGear, calcReqLvl: calcReqLvl, calcReqLvlLegacy: calcReqLvlLegacy, stampReq: stampReq, REQ_POLICY: REQ_POLICY,
     WARD_MIG: WARD_MIG, migrateGearWard: migrateGearWard,
     seBlocksDescend717: seBlocksDescend717, seGateAlive717: seGateAlive717, seRecover717: seRecover717, seMarkDead717: seMarkDead717,

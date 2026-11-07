@@ -462,7 +462,12 @@ function run(w) {
   g.startFloor(5, true);
   const boss = g.enemies.find(e => e.T && e.T.boss) || g.spawnBoss(240, 180);
   check('mother murk pool and contact are not raised', boss && boss.maxHp === 840 && boss.maxShield === 210 && Math.abs(boss.dmg - 18.144) < 0.02, boss && (boss.name + ' hp ' + boss.maxHp + ' sh ' + boss.maxShield + ' dmg ' + boss.dmg));
-  check('super elite life follows the early-balance curve', g.seMaxHp717(1) === 80 && g.seMaxHp717(5) === 141 && g.seMaxHp717(10) === 249, [g.seMaxHp717(1), g.seMaxHp717(5), g.seMaxHp717(10)].join(','));
+  function seHpAt(d) {
+    const body = g.seFadeHp717(d);
+    const mul = g.seLifeMul(d);
+    return mul === 1 ? body : Math.round(body * mul);
+  }
+  check('super elite life keeps the early body and applies the life table', g.seFadeHp717(1) === 80 && g.seMaxHp717(1) === 80 && seHpAt(1) === 80 && g.seFadeHp717(5) === 141 && g.seMaxHp717(5) === seHpAt(5) && seHpAt(5) !== 141 && g.seFadeHp717(10) === 249 && g.seMaxHp717(10) === seHpAt(10) && seHpAt(10) !== 249, [g.seMaxHp717(1), g.seMaxHp717(5), g.seMaxHp717(10)].join(','));
   const crab = g.spawnEnemy('crab', 80, 80, false);
   crab.mode = 'shell'; crab.hp = 40;
   w.damageEnemy(crab, 20, 0, 0, '#fff', false);
