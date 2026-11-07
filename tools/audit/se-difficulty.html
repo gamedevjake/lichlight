@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<!-- Headless Super Elite measurement. Does not change the game. Reads live tables and resolves live hits. -->
+<html>
+<head><meta charset="utf-8"><title>se-audit</title></head>
+<body>
+<iframe id="g" src="../../index.html?v=se-audit" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { fail(e); }
+});
+function fail(e) {
+  document.getElementById('out').textContent = JSON.stringify({ error: String(e && e.stack || e) });
+  document.title = 'FAIL 1';
+}
+function r1(n) { return Math.round(n * 10) / 10; }
+function r3(n) { return Math.round(n * 1000) / 1000; }
+function med(a, b) {
+  const n = b - a + 1;
+  if (n <= 1) return a;
+  if (n % 2) return a + (n >> 1);
+  return Math.round(((a + (n >> 1) - 1) + (a + (n >> 1))) / 2);
+}
+function lerp(table, d) {
+  d = Math.max(1, Math.floor(+d || 1));
+  if (d <= table[0].d) return table[0].mul;
+  const last = table[table.length - 1];
+  if (d >= last.d) return last.mul;
+  for (let i = 1; i < table.length; i++) {
+    const a = table[i - 1], b = table[i];
+    if (d <= b.d) return a.mul + (b.mul - a.mul) * ((d - a.d) / (b.d - a.d));
+  }
+  return last.mul;
+}
+// Depth 12 anchors stay put. Depth 5 gets a longer bar and slightly smaller kept hits.
+// Outgoing SE_DMG_TABLE is intentionally not in this proposal.
+const PROP_LIFE = [{ d: 4, mul: 1 }, { d: 5, mul: 2.4 }, { d: 8, mul: 3.3 }, { d: 12, mul: 4 }, { d: 16, mul: 4 }];
+const PROP_TAKEN = [{ d: 4, mul: 1 }, { d: 5, mul: 0.45 }, { d: 8, mul: 0.28 }, { d: 12, mul: 0.186 }, { d: 16, mul: 0.146 }];
+
+const BASE_PICK = [
+  { slot: 'weapon', icon: 'sword', name: 'Short Sword', lvl: 1 },
+  { slot: 'weapon', icon: 'sword', name: 'Broad Sword', lvl: 3 },
+  { slot: 'weapon', icon: 'sword', name: 'Rune Blade', lvl: 9 },
+  { slot: 'weapon', icon: 'staff', name: 'Gnarled Staff', lvl: 2 },
+  { slot: 'weapon', icon: 'staff', name: 'Archon Staff', lvl: 9 },
+  { slot: 'armor', name: 'Leather Armor', lvl: 1 },
+  { slot: 'armor', name: 'Chain Mail', lvl: 3 },
+  { slot: 'armor', name: 'Plate Mail', lvl: 6 },
+  { slot: 'armor', name: 'Dusk Shroud', lvl: 9 },
+  { slot: 'helm', name: 'Cap', lvl: 1 },
+  { slot: 'helm', name: 'Helm', lvl: 2 },
+  { slot: 'helm', name: 'Great Helm', lvl: 5 },
+  { slot: 'helm', name: 'Bone Visage', lvl: 8 },
+  { slot: 'boots', name: 'Boots', lvl: 1 },
+  { slot: 'boots', name: 'Greaves', lvl: 4 },
+  { slot: 'shield', name: 'Wooden Buckler', lvl: 1 },
+  { slot: 'shield', name: 'Round Shield', lvl: 3 },
+  { slot: 'shield', name: 'Kite Shield', lvl: 6 },
+  { slot: 'shield', name: 'Tower Shield', lvl: 10 },
+  { slot: 'shield', name: 'Gothic Shield', lvl: 14 },
+  { slot: 'amulet', name: 'Copper Charm', lvl: 1 },
+  { slot: 'amulet', name: 'Bone Pendant', lvl: 4 },
+  { slot: 'amulet', name: 'Silver Locket', lvl: 7 },
+  { slot: 'amulet', name: 'Choir Medallion', lvl: 10 }
+];
+
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  w.__hurtSpread = 1;
+  w.__champCrit = 1;
+  delete w.__seTune;
+  g.newGame();
+  const p = g.player;
+  p.learned = [true, true, true];
+  const src = (() => {
+    try { const x = new XMLHttpRequest(); x.open('GET', '../../index.html?v=se-audit-src', false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+    catch (e) { return ''; }
+  })();
+
+  function best(slot, d, icon) {
+    let win = null;
+    BASE_PICK.forEach(b => {
+      if (b.slot !== slot || b.lvl > d + 1) return;
+      if (icon && b.icon !== icon) return;
+      if (!win || b.lvl > win.lvl) win = b;
+    });
+    return win;
+  }
+  function forge(baseName, L, rarity, extra) {
+    const it = w.makeItem(L, 0, baseName);
+    it.rarity = rarity;
+    it.name = baseName;
+    it.mods = it.mods || {};
+    if (it.slot === 'ring') it.mods = {};
+    if (extra) for (const k in extra) it.mods[k] = (it.mods[k] || 0) + extra[k];
+    it.reqLvl = w.calcReqLvl(it);
+    if (it.maxDur) it.dur = it.maxDur;
+    return it;
+  }
+  function equip(items) {
+    ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet'].forEach(s => { p.equip[s] = null; });
+    items.forEach(it => { p.equip[it.slot] = it; });
+    w.computeStats();
+    p.hp = p.st.maxHp; p.mp = p.st.maxMp; p.inv0 = 0; p.roll = 0;
+    w.clearStatuses(p);
+  }
+  function setLevel(lv) { p.lvl = lv; p.xp = -1e12; w.computeStats(); p.hp = p.st.maxHp; p.mp = p.st.maxMp; }
+  function kit(d, kind) {
+    const L = d;
+    if (kind === 'under') return [forge('Rusty Sword', 1, 0, null)];
+    if (kind === 'cloth') return [forge(best('weapon', d, 'sword').name, L, 0, null)];
+    const rar = 2;
+    const items = [];
+    if (kind === 'caster') {
+      const st = best('weapon', d, 'staff');
+      items.push(forge(st.name, L, rar, { fire: med(2, 4 + L * 2), ias: med(5, 10 + L * 2) }));
+    } else {
+      const sw = best('weapon', d, 'sword');
+      items.push(forge(sw.name, L, rar, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2), crit: med(3, 6 + L) }));
+    }
+    const armor = best('armor', d), helm = best('helm', d), boots = best('boots', d), shield = best('shield', d), amulet = best('amulet', d);
+    items.push(forge(armor.name, L, 2, { def: med(1, 2 + L), hp: med(4, 8 + L * 3) }));
+    items.push(forge(helm.name, L, 2, { hp: med(4, 8 + L * 3), resFire: med(6, 8 + Math.floor(L / 2)) }));
+    items.push(forge(boots.name, L, 2, { def: med(1, 2 + L), hp: Math.round(med(4, 8 + L * 3) / 2) }));
+    items.push(forge(shield.name, L, 2, { def: med(1, 2 + L) }));
+    items.push(forge(amulet.name, L, 2, { hp: med(4, 8 + L * 3), fire: Math.max(2, Math.round(med(2, 4 + L * 2) / 3)) }));
+    if (kind !== 'caster') items.push(forge('Ring', L, 2, { dmg: med(1, 2 + L), ias: Math.max(5, Math.round(med(5, 10 + L * 2) / 2)) }));
+    else items.push(forge('Ring', L, 2, { fire: med(2, 4 + L * 2), mp: med(4, 8 + L * 2) }));
+    return items;
+  }
+  function actor(d, id) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717(id || 'se_nyx', 'fight');
+    e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.hp = e.maxHp; e.shield = e.maxShield;
+    e.x = p.x + 24; e.y = p.y; e.seStep = 0; e.seAct = ''; e.seCd = 0.6;
+    w.clearStatuses(e);
+    g.ensurePoise(e);
+    e.poise = e.poiseMax; e.poiseBreaks = 0; e.poiseDelay = 0; e.staggerImmune = 0;
+    return e;
+  }
+  function place(e, mode) {
+    if (mode === 'stand') { p.x = e.x + 14; p.y = e.y; }
+    else { p.x = e.x + 28; p.y = e.y + 20; }
+    p.inv0 = 0; p.roll = 0;
+    if (g.state !== 'play') w.setState('play');
+  }
+  function strike(e, kind, mode) {
+    place(e, mode);
+    p.hp = 1e6; p.inv0 = 0; w.__hurtSpread = 1;
+    if (g.state !== 'play') w.setState('play');
+    const row = g.SE_TELL[kind];
+    let spec = null;
+    if (kind === 'swing') spec = { x: e.x, y: e.y, a: 0, len: row.len, w: row.w };
+    else if (kind === 'power') spec = { x: e.x, y: e.y, r: row.r + p.r };
+    else spec = { x: mode === 'stand' ? p.x : e.x + 14, y: mode === 'stand' ? p.y : e.y, r: row.r + p.r };
+    const hit = g.seResolveTell(e, kind, spec);
+    const dealt = Math.max(0, 1e6 - p.hp);
+    p.hp = 1e6;
+    return { hit: hit, dealt: dealt };
+  }
+
+  // Intro length, live tick, fight phase only.
+  g.startFloor(5, true);
+  setLevel(9);
+  if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+  const introE = g.seSpawn717('se_nyx', 'drop');
+  w.setState('play');
+  let introT = 0;
+  while (introE.sePhase !== 'fight' && introT < 5) { w.seTick717(0.02); introT += 0.02; }
+  introT = r3(introT);
+
+  // Shield does not regenerate. Half shield, 8s of live SE ticks, no player damage into it.
+  const shE = actor(5, 'se_nyx');
+  shE.shield = Math.round(shE.maxShield * 0.5);
+  const shBefore = shE.shield;
+  p.x = shE.x + 400; p.y = shE.y;
+  w.setState('play');
+  for (let i = 0; i < 160; i++) w.seTick717(0.05);
+  const shieldTick = { before: shBefore, after: shE.shield, max: shE.maxShield, moved: r1(Math.hypot(shE.x - (p.x - 400), shE.y - p.y)) };
+
+  const shieldWrites = (src.match(/\.shield\s*(\+?=|-)=/g) || []).length;
+  const poseSrc = w.sePose717.toString();
+  const resolveSrc = g.seResolveTell.toString();
+  const cues = {};
+  g.SE_ROSTER.forEach(s => {
+    const m = src.match(new RegExp(s.id + ": '([^']+)'"));
+    const id = m ? m[1] : 'missing';
+    cues[id] = (cues[id] || 0) + 1;
+  });
+  const vfxUsed = {};
+  g.SE_ROSTER.forEach(s => { vfxUsed[s.attackVfx] = 1; vfxUsed[s.powerupVfx] = 1; });
+  const feedback = {
+    tells: g.SE_TELL,
+    attackAnimMs: 95,
+    attackFrames: 4,
+    hitFrameSec: r3(3 * 0.095),
+    swingResolvesAt: g.SE_TELL.swing.dur,
+    powerResolvesAt: g.SE_TELL.power.dur,
+    brandResolvesAt: g.SE_TELL.brand.dur,
+    swingAndBrandShareAnim: g.SE_TELL.swing.act === g.SE_TELL.brand.act,
+    brandUsesAttackVfx: true,
+    posePlaysHurt: poseSrc.indexOf('hurt') >= 0,
+    resolveCallsImpact: resolveSrc.indexOf('impactFeedback') >= 0,
+    resolveSpawnsVfx: resolveSrc.indexOf('seSpawnVfx717') >= 0,
+    oneCuePerElite: Object.keys(cues).length,
+    cueUses: cues,
+    distinctAttackVfx: Object.keys(vfxUsed).length,
+    roster: g.SE_ROSTER.length,
+    shieldArt: g.SE_SHIELD_IDS.length,
+    playerHurtOnConnect: true,
+    whooshLeftAlone: true,
+    shieldWriteSites: shieldWrites
+  };
+
+  const depths = [3, 5, 8, 12];
+  const levels = { 3: 6, 5: 9, 8: 13, 12: 20 };
+  const builds = ['melee', 'caster', 'under', 'cloth'];
+  const rows = [];
+
+  function fight(d, lv, kind, style) {
+    setLevel(lv);
+    equip(kit(d, kind));
+    const e = actor(d, 'se_nyx');
+    const block = p.st.block;
+    p.st.block = 0;
+    const sheet = { dmg: p.st.min + '-' + p.st.max, aspd: r3(p.st.aspd), crit: r1(p.st.crit), def: p.st.def, life: p.st.maxHp, mp: p.st.maxMp, spell: p.st.fire || 0, weapon: (p.equip.weapon && p.equip.weapon.base) || 'fists' };
+    const cast = kind === 'caster';
+    const meleeOn = style !== 'ranged';
+    const dodge = style === 'kite' || style === 'ranged';
+    const period = g.attackPeriod();
+    const reach = g.weaponReach713();
+    const powerR = g.SE_TELL.power.r + p.r;
+    const brandR = g.SE_TELL.brand.r + p.r;
+    const spd = 62 * (p.st.ms || 1);
+    const swingSpd = spd * 0.55;
+    const lock = 0.25;
+    const clearFull = spd * lock;
+    const clearSwing = swingSpd * lock;
+    let t = 0;
+    const dt = 0.05;
+    const cap = 360;
+    let atkCd = 0, fbCd = 0, seCd = 0.6, seStep = 0, tell = null;
+    let shadow = p.st.maxHp, pots = 3, potsUsed = 0, diedAt = null, shieldAt = null;
+    let meleeN = 0, fbN = 0, dmgIn = 0, healed = 0, staggerT = 0;
+    const tells = { swing: 0, power: 0, brand: 0, hit: 0 };
+    const phaseT = { 1: 0, 2: 0, 3: 0 };
+    let critAcc = 0, baseI = 0;
+    const b0 = p.st.min, b1 = p.st.max;
+    const pc = Math.min(1, Math.max(0, p.st.crit) / 100);
+    const mul = p.st.critMul || 2;
+    const pool0 = e.maxHp + e.maxShield;
+    const shield0 = e.maxShield;
+    p.mp = p.st.maxMp;
+    while (e.hp > 0 && !e.dead && t < cap) {
+      const phase = g.seFightPhase(e);
+      phaseT[phase] = (phaseT[phase] || 0) + dt;
+      shadow = Math.min(p.st.maxHp, shadow + p.st.regen * dt);
+      p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * 0.1) * dt);
+      if (shadow < p.st.maxHp * 0.4 && shadow > 0 && pots > 0) {
+        pots--; potsUsed++;
+        shadow = Math.min(p.st.maxHp, shadow + p.st.maxHp * 0.45 + 10);
+      }
+      g.tickStatuses(e, dt);
+      const locked = g.ccImmobilized(e);
+      if (locked) { staggerT += dt; tell = null; }
+      atkCd -= dt;
+      if (meleeOn && atkCd <= 0 && e.hp > 0 && !e.dead) {
+        const base = b0 + ((baseI++) % (b1 - b0 + 1));
+        critAcc += pc;
+        let roll = base, isCrit = false;
+        if (critAcc >= 1) { critAcc -= 1; roll = base * mul; isCrit = true; }
+        p.hp = Math.min(shadow, p.st.maxHp);
+        const info = w.leech(g.scaleAmount(roll, 'Physical', 1), 'melee');
+        healed += info.healed || 0;
+        shadow = Math.min(p.st.maxHp, shadow + (info.healed || 0));
+        p.hp = 1e6;
+        g.damageEnemy(e, roll, 0, 0, '#fff', isCrit, null, {
+          type: 'Physical', tags: ['Melee', 'Direct'], more: 1, critApplied: true, skill: 'melee', scale: true,
+          weaponFamily: w.weaponFamilyOf(p).id
+        });
+        meleeN++;
+        atkCd += period;
+        if (shieldAt == null && (e.shield || 0) <= 0) shieldAt = t;
+      }
+      if (cast) fbCd -= dt;
+      if (cast && fbCd <= 0 && p.mp >= 4 && e.hp > 0 && !e.dead) {
+        p.mp -= 4; fbCd += 0.45; fbN++;
+        p.hp = 1e6;
+        const pw = p.st.fire + p.lvl * 2;
+        const amp = 1 + w.skillAmp(0) / 100;
+        const fb = (8 + pw * 1.4) * amp;
+        g.damageEnemy(e, fb, 0, 0, '#ffa030', false, null, {
+          type: 'Fire', tags: ['Spell', 'Projectile'], critApplied: true, skill: 'fireball', scale: true,
+          weaponFamily: w.weaponFamilyOf(p).id
+        });
+        w.igniteFromSkill(e, pw, 1, g.skillBuild(0));
+        if (shieldAt == null && (e.shield || 0) <= 0) shieldAt = t;
+      }
+      if (e.hp <= 0 || e.dead) break;
+      if (tell) {
+        tell.t += dt;
+        if (tell.t >= tell.dur - 1e-6) {
+          const mode = dodge ? 'kite' : 'stand';
+          const res = locked ? { hit: 0, dealt: 0 } : strike(e, tell.kind, mode);
+          tells[tell.kind]++;
+          if (res.hit) { tells.hit++; dmgIn += res.dealt; shadow -= res.dealt; }
+          if (shadow <= 0 && diedAt == null) diedAt = t;
+          seCd = g.SE_TELL[tell.kind].gap;
+          tell = null;
+        }
+      } else if (!locked) {
+        seCd -= dt;
+        if (seCd <= 0) {
+          e.seStep = seStep;
+          const kind = g.seNextKind(e);
+          seStep = (seStep + 1) % 6;
+          e.seStep = seStep;
+          tell = { kind: kind, t: 0, dur: g.SE_TELL[kind].dur };
+        }
+      }
+      t += dt;
+    }
+    const done = e.hp <= 0 || e.dead;
+    const ttk = done ? t : null;
+    return {
+      depth: d, level: lv, build: kind, style: style,
+      weapon: sheet.weapon, dmg: sheet.dmg, aspd: sheet.aspd, crit: sheet.crit, def: sheet.def,
+      block: block, life: sheet.life, mp: sheet.mp, spell: sheet.spell,
+      seHp: e.maxHp, seShield: shield0, pool: pool0,
+      lifeMul: r3(g.seLifeMul(d)), taken: r3(g.seTakenMul(d)), dmgMul: r3(g.seDmgMul(d)),
+      reach: reach, powerR: r1(powerR), brandR: r1(brandR),
+      clearFull: r1(clearFull), clearSwing: r1(clearSwing), swingHalf: g.SE_TELL.swing.hit,
+      ttk: ttk == null ? null : r1(ttk), capped: !done,
+      shieldBreak: shieldAt == null ? null : r1(shieldAt),
+      ttkHp: (ttk != null && shieldAt != null) ? r1(Math.max(0, ttk - shieldAt)) : null,
+      melee: meleeN, fireballs: fbN, healed: r1(healed),
+      tells: tells, phaseT: { 1: r1(phaseT[1] || 0), 2: r1(phaseT[2] || 0), 3: r1(phaseT[3] || 0) },
+      dmgIn: r1(dmgIn), dpsIn: ttk ? r3(dmgIn / ttk) : null,
+      diedAt: diedAt == null ? null : r1(diedAt),
+      pots: potsUsed,
+      poiseBreaks: e.poiseBreaks | 0,
+      stagger: r1(staggerT),
+      period: r3(period)
+    };
+  }
+
+  for (const d of depths) {
+    const lv = levels[d];
+    for (const b of builds) {
+      rows.push(fight(d, lv, b, 'stand'));
+      rows.push(fight(d, lv, b, 'kite'));
+      if (b === 'caster') rows.push(fight(d, lv, b, 'ranged'));
+    }
+  }
+
+  // One-hit threat samples, block off, spread 1, Nyx. Plus Magmafiend fire resist for the caster bolt.
+  const samples = [];
+  for (const d of depths) {
+    const lv = levels[d];
+    for (const b of builds) {
+      setLevel(lv); equip(kit(d, b));
+      const e = actor(d, 'se_nyx');
+      const block = p.st.block;
+      p.st.block = 0;
+      const kinds = ['swing', 'power', 'brand'];
+      const hit = {};
+      kinds.forEach(k => { hit[k] = strike(e, k, 'stand').dealt; });
+      const miss = {};
+      kinds.forEach(k => { miss[k] = strike(e, k, 'kite').dealt; });
+      let fbKept = null, fbMagma = null;
+      if (b === 'caster') {
+        const pw = p.st.fire + p.lvl * 2;
+        const amp = 1 + w.skillAmp(0) / 100;
+        const fb = (8 + pw * 1.4) * amp;
+        e.hp = 1e7; e.shield = 0;
+        fbKept = g.damageEnemy(e, fb, 0, 0, '#ffa030', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, skill: 'fireball', scale: true }).amount;
+        const mag = actor(d, 'se_magmafiend');
+        p.st.block = 0;
+        mag.hp = 1e7; mag.shield = 0;
+        fbMagma = g.damageEnemy(mag, fb, 0, 0, '#ffa030', false, null, { type: 'Fire', tags: ['Spell'], critApplied: true, skill: 'fireball', scale: true }).amount;
+      }
+      const life = p.st.maxHp;
+      const pot = life * 0.45 + 10;
+      function endure(dmg, pots0) {
+        let hp = life, pots = pots0, hits = 0;
+        const heal = life * 0.45 + 10;
+        while (hp > 0 && hits < 80) {
+          hits++;
+          hp -= dmg;
+          if (hp <= 0) return { dead: true, hits: hits, pots: pots0 - pots };
+          if (hp < life * 0.4 && pots > 0) { pots--; hp = Math.min(life, hp + heal); }
+        }
+        return { dead: false, hits: null, pots: pots0 - pots };
+      }
+      samples.push({
+        depth: d, level: lv, build: b, life: life, def: p.st.def, block: block,
+        swing: hit.swing, power: hit.power, brand: hit.brand,
+        kiteSwing: miss.swing, kitePower: miss.power, kiteBrand: miss.brand,
+        swingPct: r1(100 * hit.swing / life), powerPct: r1(100 * hit.power / life), brandPct: r1(100 * hit.brand / life),
+        noPot: { swing: endure(hit.swing, 0), power: endure(hit.power, 0) },
+        pot3: { swing: endure(hit.swing, 3), power: endure(hit.power, 3) },
+        fb: fbKept, fbMagma: fbMagma
+      });
+    }
+  }
+
+  // Poise: continuous sword taps, delay resets every hit, how many until the first stagger.
+  function poiseBreaks(kind) {
+    setLevel(9); equip(kit(5, kind));
+    const e = actor(5, 'se_nyx');
+    p.st.block = 0;
+    const period = g.attackPeriod();
+    const fam = w.weaponFamilyOf(p).id;
+    let n = 0, t = 0;
+    while (n < 400 && (e.poiseBreaks | 0) < 1) {
+      g.damageEnemy(e, 10, 0, 0, '#fff', false, null, {
+        type: 'Physical', tags: ['Melee', 'Direct'], more: 1, critApplied: true, skill: 'melee', scale: false,
+        weaponFamily: fam
+      });
+      n++;
+      for (let k = 0; k < period; k += 0.05) g.tickStatuses(e, 0.05);
+      t += period;
+      if (e.hp < e.maxHp * 0.5) { e.hp = e.maxHp; e.shield = 0; }
+    }
+    return { build: kind, hits: n, sec: r1(t), broke: e.poiseBreaks | 0, poise: r1(e.poise), max: e.poiseMax, tier: g.poiseTierName(e) };
+  }
+  const poise = ['melee', 'caster', 'under'].map(poiseBreaks);
+
+  rows.forEach(row => {
+    const fLife = lerp(PROP_LIFE, row.depth) / row.lifeMul;
+    const fTaken = row.taken / lerp(PROP_TAKEN, row.depth);
+    const f = fLife * fTaken;
+    row.projLife = r3(lerp(PROP_LIFE, row.depth));
+    row.projTaken = r3(lerp(PROP_TAKEN, row.depth));
+    row.projTtk = row.ttk == null ? null : r1(row.ttk * f);
+    row.projFactor = r3(f);
+    if (row.style === 'stand' && row.ttk) {
+      const cadence = (row.tells.swing + row.tells.power + row.tells.brand) / row.ttk;
+      row.projTells = r1(cadence * row.projTtk);
+      row.projDmgIn = r1(row.dmgIn * f);
+    }
+    if ((row.style === 'kite' || row.style === 'ranged') && row.ttk) {
+      const every = 4.5;
+      const swing = samples.find(s => s.depth === row.depth && s.build === row.build);
+      row.patternHits = Math.floor(row.ttk / every);
+      row.patternDmg = swing ? r1(row.patternHits * swing.swing) : null;
+      row.patternPct = swing ? r1(100 * row.patternDmg / swing.life) : null;
+    }
+  });
+
+  const out = {
+    version: g.version,
+    introSec: introT,
+    shieldTick: shieldTick,
+    feedback: feedback,
+    levels: levels,
+    proposal: { life: PROP_LIFE, taken: PROP_TAKEN, dmg: 'unchanged' },
+    rows: rows,
+    samples: samples,
+    poise: poise
+  };
+  document.getElementById('out').textContent = JSON.stringify(out);
+  document.title = 'PASS / ' + rows.length;
+}
+</script>
+</body>
+</html>
