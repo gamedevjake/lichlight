@@ -1,0 +1,2911 @@
+{
+  "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "dprHere": 1,
+  "formulaCheck": {
+    "desk1920": {
+      "w": 1920,
+      "h": 1080,
+      "dpr": 1,
+      "SCALE": 6,
+      "VW": 320,
+      "VH": 180,
+      "cssW": 1920,
+      "cssH": 1080,
+      "deviceW": 1920,
+      "deviceH": 1080,
+      "backingToDevice": 6,
+      "cssFractional": false
+    },
+    "s25guess832x384at3": {
+      "w": 832,
+      "h": 384,
+      "dpr": 3,
+      "SCALE": 6,
+      "VW": 416,
+      "VH": 192,
+      "cssW": 832,
+      "cssH": 384,
+      "deviceW": 2496,
+      "deviceH": 1152,
+      "backingToDevice": 6,
+      "cssFractional": false
+    },
+    "zoom1tilesDesk": {
+      "zoom": 1,
+      "worldW": 320,
+      "worldH": 180,
+      "tilesX": 20,
+      "tilesY": 11.25,
+      "tileDraws": 360,
+      "backingPxPerWorld": 1,
+      "devicePxPerWorld": 6,
+      "deviceInteger": true,
+      "tileDestBacking": 16,
+      "tileDestInteger": true
+    },
+    "zoom025tilesDesk": {
+      "zoom": 0.25,
+      "worldW": 1280,
+      "worldH": 720,
+      "tilesX": 80,
+      "tilesY": 45,
+      "tileDraws": 4116,
+      "backingPxPerWorld": 0.25,
+      "devicePxPerWorld": 1.5,
+      "deviceInteger": false,
+      "tileDestBacking": 4,
+      "tileDestInteger": true
+    },
+    "zoom125tilesPhone": {
+      "zoom": 1.25,
+      "worldW": 332.8,
+      "worldH": 153.6,
+      "tilesX": 20.8,
+      "tilesY": 9.6,
+      "tileDraws": 336,
+      "backingPxPerWorld": 1.25,
+      "devicePxPerWorld": 7.5,
+      "deviceInteger": false,
+      "tileDestBacking": 20,
+      "tileDestInteger": true
+    }
+  },
+  "edgeRamp": [
+    {
+      "zoom": 1,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -32,
+      "marker": {
+        "expX": 168,
+        "expY": 101,
+        "bx": 1,
+        "by": 0,
+        "n": 221,
+        "cx": 160.04,
+        "cy": 93.04
+      }
+    },
+    {
+      "zoom": 1,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -32,
+      "marker": null
+    },
+    {
+      "zoom": 1,
+      "mode": "smooth",
+      "ramp": 0,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -32,
+      "marker": null
+    },
+    {
+      "zoom": 1,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -32,
+      "marker": null
+    },
+    {
+      "zoom": 0.75,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      "edgeScreen": 15.7,
+      "marker": {
+        "expX": 165.7,
+        "expY": 98.48,
+        "bx": 0,
+        "by": 0,
+        "n": 0,
+        "cx": null,
+        "cy": null
+      }
+    },
+    {
+      "zoom": 0.75,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      "edgeScreen": 16,
+      "marker": null
+    },
+    {
+      "zoom": 0.75,
+      "mode": "smooth",
+      "ramp": 44,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1
+      ],
+      "edgeScreen": 15.7,
+      "marker": null
+    },
+    {
+      "zoom": 0.75,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      "edgeScreen": 16,
+      "marker": null
+    },
+    {
+      "zoom": 0.5,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        48
+      ],
+      "interiorWidths": [
+        48
+      ],
+      "interiorRuns": [
+        48
+      ],
+      "edgeScreen": 63.8,
+      "marker": {
+        "expX": 163.8,
+        "expY": 95.65,
+        "bx": 0,
+        "by": 0,
+        "n": 0,
+        "cx": null,
+        "cy": null
+      }
+    },
+    {
+      "zoom": 0.5,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        48
+      ],
+      "interiorWidths": [
+        48
+      ],
+      "interiorRuns": [
+        48
+      ],
+      "edgeScreen": 64,
+      "marker": null
+    },
+    {
+      "zoom": 0.5,
+      "mode": "smooth",
+      "ramp": 48,
+      "widthKinds": [],
+      "interiorWidths": [],
+      "interiorRuns": [],
+      "edgeScreen": 63.8,
+      "marker": null
+    },
+    {
+      "zoom": 0.5,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        48
+      ],
+      "interiorWidths": [
+        48
+      ],
+      "interiorRuns": [
+        48
+      ],
+      "edgeScreen": 64,
+      "marker": null
+    },
+    {
+      "zoom": 0.35,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2
+      ],
+      "edgeScreen": 92.66,
+      "marker": {
+        "expX": 162.66,
+        "expY": 93.95,
+        "bx": 1,
+        "by": 0,
+        "n": 312,
+        "cx": 159.5,
+        "cy": 89.62
+      }
+    },
+    {
+      "zoom": 0.35,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1
+      ],
+      "edgeScreen": 92.8,
+      "marker": null
+    },
+    {
+      "zoom": 0.35,
+      "mode": "smooth",
+      "ramp": 40,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": 92.66,
+      "marker": null
+    },
+    {
+      "zoom": 0.35,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1
+      ],
+      "edgeScreen": 92.8,
+      "marker": null
+    },
+    {
+      "zoom": 0.25,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        48
+      ],
+      "interiorWidths": [
+        48
+      ],
+      "interiorRuns": [
+        48
+      ],
+      "edgeScreen": 111.9,
+      "marker": {
+        "expX": 161.9,
+        "expY": 92.83,
+        "bx": 162,
+        "by": 92,
+        "n": 0,
+        "cx": null,
+        "cy": null
+      }
+    },
+    {
+      "zoom": 0.25,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        48
+      ],
+      "interiorWidths": [
+        48
+      ],
+      "interiorRuns": [
+        48
+      ],
+      "edgeScreen": 112,
+      "marker": null
+    },
+    {
+      "zoom": 0.25,
+      "mode": "smooth",
+      "ramp": 48,
+      "widthKinds": [],
+      "interiorWidths": [],
+      "interiorRuns": [],
+      "edgeScreen": 111.9,
+      "marker": null
+    },
+    {
+      "zoom": 0.25,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        48
+      ],
+      "interiorWidths": [
+        48
+      ],
+      "interiorRuns": [
+        48
+      ],
+      "edgeScreen": 112,
+      "marker": null
+    },
+    {
+      "zoom": 1.15,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2
+      ],
+      "edgeScreen": -61.26,
+      "marker": {
+        "expX": 168.74,
+        "expY": 103,
+        "bx": 0,
+        "by": 0,
+        "n": 217,
+        "cx": 159.65,
+        "cy": 90.89
+      }
+    },
+    {
+      "zoom": 1.15,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -60.8,
+      "marker": null
+    },
+    {
+      "zoom": 1.15,
+      "mode": "smooth",
+      "ramp": 35,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -61.26,
+      "marker": null
+    },
+    {
+      "zoom": 1.15,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -60.8,
+      "marker": null
+    },
+    {
+      "zoom": 1.25,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        2,
+        1
+      ],
+      "edgeScreen": -80.5,
+      "marker": {
+        "expX": 169.5,
+        "expY": 104.13,
+        "bx": 1,
+        "by": 0,
+        "n": 144,
+        "cx": 160,
+        "cy": 94
+      }
+    },
+    {
+      "zoom": 1.25,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        2,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -80,
+      "marker": null
+    },
+    {
+      "zoom": 1.25,
+      "mode": "smooth",
+      "ramp": 36,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -80.5,
+      "marker": null
+    },
+    {
+      "zoom": 1.25,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        2,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -80,
+      "marker": null
+    },
+    {
+      "zoom": 1.35,
+      "mode": "game",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        1,
+        2
+      ],
+      "edgeScreen": -99.74,
+      "marker": {
+        "expX": 170.26,
+        "expY": 105.26,
+        "bx": 2,
+        "by": 0,
+        "n": 209,
+        "cx": 161.32,
+        "cy": 88.73
+      }
+    },
+    {
+      "zoom": 1.35,
+      "mode": "snapped",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1
+      ],
+      "edgeScreen": -99.2,
+      "marker": null
+    },
+    {
+      "zoom": 1.35,
+      "mode": "smooth",
+      "ramp": 38,
+      "widthKinds": [
+        1
+      ],
+      "interiorWidths": [
+        1
+      ],
+      "interiorRuns": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "edgeScreen": -99.74,
+      "marker": null
+    },
+    {
+      "zoom": 1.35,
+      "mode": "offscreen",
+      "ramp": 0,
+      "widthKinds": [
+        1,
+        2
+      ],
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "interiorRuns": [
+        2,
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        2,
+        1,
+        1,
+        2
+      ],
+      "edgeScreen": -99.2,
+      "marker": null
+    }
+  ],
+  "phase": [
+    {
+      "zoom": 0.25,
+      "frac": 0,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 112
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 112
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.25,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 111.938
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.25,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 112
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.4,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 111.9
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.4,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 112
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.63,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 111.843
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.63,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 112
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.9,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 111.775
+    },
+    {
+      "zoom": 0.25,
+      "frac": 0.9,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 112
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 64
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 64
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.25,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 63.875
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.25,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 64
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.4,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 63.8
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.4,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 64
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.63,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 63.685
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.63,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 64
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.9,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 63.55
+    },
+    {
+      "zoom": 0.5,
+      "frac": 0.9,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        48
+      ],
+      "edge": 64
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 16
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 16
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.25,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 15.813
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.25,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 16
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.4,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 15.7
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.4,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 16
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.63,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 15.528
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.63,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 16
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.9,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 15.325
+    },
+    {
+      "zoom": 0.75,
+      "frac": 0.9,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": 15
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.25,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80.313
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.25,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.4,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80.5
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.4,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.63,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -80.787
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.63,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -81
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.9,
+      "mode": "game",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -81.125
+    },
+    {
+      "zoom": 1.25,
+      "frac": 0.9,
+      "mode": "snapped",
+      "ramp": 0,
+      "interiorWidths": [
+        1,
+        2
+      ],
+      "edge": -81
+    }
+  ],
+  "light": {
+    "zoom1": {
+      "sceneEdgeRamp": 0,
+      "afterMultiplyEdgeRamp": 1,
+      "shadowCutRamp": 1,
+      "lightmap": [
+        160,
+        90
+      ]
+    },
+    "zoom05": {
+      "sceneEdgeRamp": 0,
+      "afterMultiplyEdgeRamp": 0,
+      "shadowCutRamp": 0,
+      "lightmap": [
+        160,
+        90
+      ]
+    },
+    "zoom035": {
+      "sceneEdgeRamp": 0,
+      "afterMultiplyEdgeRamp": 1,
+      "shadowCutRamp": 1,
+      "lightmap": [
+        160,
+        90
+      ]
+    }
+  },
+  "cssIntegerBlit": {
+    "integer6xSmoothOff": 0,
+    "integer6xSmoothOn": 5,
+    "frac7_5SmoothOff": 0,
+    "frac7_5SmoothOn": 6
+  },
+  "fillVsImage": [
+    {
+      "zoom": 1,
+      "frac": false,
+      "fillRectRamp": 0,
+      "drawImageRamp": 0
+    },
+    {
+      "zoom": 0.5,
+      "frac": true,
+      "fillRectRamp": 2,
+      "drawImageRamp": 0
+    },
+    {
+      "zoom": 0.5,
+      "frac": false,
+      "fillRectRamp": 1,
+      "drawImageRamp": 0
+    },
+    {
+      "zoom": 0.75,
+      "frac": true,
+      "fillRectRamp": 2,
+      "drawImageRamp": 0
+    },
+    {
+      "zoom": 1.25,
+      "frac": true,
+      "fillRectRamp": 2,
+      "drawImageRamp": 0
+    },
+    {
+      "zoom": 0.35,
+      "frac": true,
+      "fillRectRamp": 1,
+      "drawImageRamp": 0
+    }
+  ],
+  "viewports": [
+    {
+      "viewport": "1920x1080 @1",
+      "SCALE": 6,
+      "VW": 320,
+      "VH": 180,
+      "css": [
+        1920,
+        1080
+      ],
+      "cssFractional": false,
+      "backingToDevice": 6,
+      "backingPx": 57600,
+      "lightHigh": 57600,
+      "lightLow": 14400,
+      "occBytes": 1382400,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1280,
+          "worldH": 720,
+          "tilesX": 80,
+          "tilesY": 45,
+          "tileDraws": 4116,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 1.5,
+          "deviceInteger": false,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 914.29,
+          "worldH": 514.29,
+          "tilesX": 57.14,
+          "tilesY": 32.14,
+          "tileDraws": 2232,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 2.1,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 640,
+          "worldH": 360,
+          "tilesX": 40,
+          "tilesY": 22.5,
+          "tileDraws": 1188,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 3,
+          "deviceInteger": true,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 426.67,
+          "worldH": 240,
+          "tilesX": 26.67,
+          "tilesY": 15,
+          "tileDraws": 570,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 4.5,
+          "deviceInteger": false,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 320,
+          "worldH": 180,
+          "tilesX": 20,
+          "tilesY": 11.25,
+          "tileDraws": 360,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "1920x1080 @1.25",
+      "SCALE": 7,
+      "VW": 342,
+      "VH": 192,
+      "css": [
+        1915.2,
+        1075.2
+      ],
+      "cssFractional": true,
+      "backingToDevice": 7,
+      "backingPx": 65664,
+      "lightHigh": 65664,
+      "lightLow": 16416,
+      "occBytes": 1575936,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1368,
+          "worldH": 768,
+          "tilesX": 85.5,
+          "tilesY": 48,
+          "tileDraws": 4680,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 1.75,
+          "deviceInteger": false,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 977.14,
+          "worldH": 548.57,
+          "tilesX": 61.07,
+          "tilesY": 34.29,
+          "tileDraws": 2508,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 2.45,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 684,
+          "worldH": 384,
+          "tilesX": 42.75,
+          "tilesY": 24,
+          "tileDraws": 1288,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 3.5,
+          "deviceInteger": false,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 456,
+          "worldH": 256,
+          "tilesX": 28.5,
+          "tilesY": 16,
+          "tileDraws": 640,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 5.25,
+          "deviceInteger": false,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 342,
+          "worldH": 192,
+          "tilesX": 21.38,
+          "tilesY": 12,
+          "tileDraws": 416,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 7,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "1920x1080 @1.5",
+      "SCALE": 9,
+      "VW": 320,
+      "VH": 180,
+      "css": [
+        1920,
+        1080
+      ],
+      "cssFractional": false,
+      "backingToDevice": 9,
+      "backingPx": 57600,
+      "lightHigh": 57600,
+      "lightLow": 14400,
+      "occBytes": 1382400,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1280,
+          "worldH": 720,
+          "tilesX": 80,
+          "tilesY": 45,
+          "tileDraws": 4116,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 2.25,
+          "deviceInteger": false,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 914.29,
+          "worldH": 514.29,
+          "tilesX": 57.14,
+          "tilesY": 32.14,
+          "tileDraws": 2232,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 3.15,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 640,
+          "worldH": 360,
+          "tilesX": 40,
+          "tilesY": 22.5,
+          "tileDraws": 1188,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 4.5,
+          "deviceInteger": false,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 426.67,
+          "worldH": 240,
+          "tilesX": 26.67,
+          "tilesY": 15,
+          "tileDraws": 570,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 6.75,
+          "deviceInteger": false,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 320,
+          "worldH": 180,
+          "tilesX": 20,
+          "tilesY": 11.25,
+          "tileDraws": 360,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 9,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "1920x1080 @2",
+      "SCALE": 12,
+      "VW": 320,
+      "VH": 180,
+      "css": [
+        1920,
+        1080
+      ],
+      "cssFractional": false,
+      "backingToDevice": 12,
+      "backingPx": 57600,
+      "lightHigh": 57600,
+      "lightLow": 14400,
+      "occBytes": 1382400,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1280,
+          "worldH": 720,
+          "tilesX": 80,
+          "tilesY": 45,
+          "tileDraws": 4116,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 3,
+          "deviceInteger": true,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 914.29,
+          "worldH": 514.29,
+          "tilesX": 57.14,
+          "tilesY": 32.14,
+          "tileDraws": 2232,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 4.2,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 640,
+          "worldH": 360,
+          "tilesX": 40,
+          "tilesY": 22.5,
+          "tileDraws": 1188,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 426.67,
+          "worldH": 240,
+          "tilesX": 26.67,
+          "tilesY": 15,
+          "tileDraws": 570,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 9,
+          "deviceInteger": true,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 320,
+          "worldH": 180,
+          "tilesX": 20,
+          "tilesY": 11.25,
+          "tileDraws": 360,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 12,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "2560x1440 @1",
+      "SCALE": 8,
+      "VW": 320,
+      "VH": 180,
+      "css": [
+        2560,
+        1440
+      ],
+      "cssFractional": false,
+      "backingToDevice": 8,
+      "backingPx": 57600,
+      "lightHigh": 57600,
+      "lightLow": 14400,
+      "occBytes": 1382400,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1280,
+          "worldH": 720,
+          "tilesX": 80,
+          "tilesY": 45,
+          "tileDraws": 4116,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 2,
+          "deviceInteger": true,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 914.29,
+          "worldH": 514.29,
+          "tilesX": 57.14,
+          "tilesY": 32.14,
+          "tileDraws": 2232,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 2.8,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 640,
+          "worldH": 360,
+          "tilesX": 40,
+          "tilesY": 22.5,
+          "tileDraws": 1188,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 4,
+          "deviceInteger": true,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 426.67,
+          "worldH": 240,
+          "tilesX": 26.67,
+          "tilesY": 15,
+          "tileDraws": 570,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 320,
+          "worldH": 180,
+          "tilesX": 20,
+          "tilesY": 11.25,
+          "tileDraws": 360,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 8,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "2560x1440 @1.5",
+      "SCALE": 12,
+      "VW": 320,
+      "VH": 180,
+      "css": [
+        2560,
+        1440
+      ],
+      "cssFractional": false,
+      "backingToDevice": 12,
+      "backingPx": 57600,
+      "lightHigh": 57600,
+      "lightLow": 14400,
+      "occBytes": 1382400,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1280,
+          "worldH": 720,
+          "tilesX": 80,
+          "tilesY": 45,
+          "tileDraws": 4116,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 3,
+          "deviceInteger": true,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 914.29,
+          "worldH": 514.29,
+          "tilesX": 57.14,
+          "tilesY": 32.14,
+          "tileDraws": 2232,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 4.2,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 640,
+          "worldH": 360,
+          "tilesX": 40,
+          "tilesY": 22.5,
+          "tileDraws": 1188,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 426.67,
+          "worldH": 240,
+          "tilesX": 26.67,
+          "tilesY": 15,
+          "tileDraws": 570,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 9,
+          "deviceInteger": true,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 320,
+          "worldH": 180,
+          "tilesX": 20,
+          "tilesY": 11.25,
+          "tileDraws": 360,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 12,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "2560x1440 @2",
+      "SCALE": 16,
+      "VW": 320,
+      "VH": 180,
+      "css": [
+        2560,
+        1440
+      ],
+      "cssFractional": false,
+      "backingToDevice": 16,
+      "backingPx": 57600,
+      "lightHigh": 57600,
+      "lightLow": 14400,
+      "occBytes": 1382400,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1280,
+          "worldH": 720,
+          "tilesX": 80,
+          "tilesY": 45,
+          "tileDraws": 4116,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 4,
+          "deviceInteger": true,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 914.29,
+          "worldH": 514.29,
+          "tilesX": 57.14,
+          "tilesY": 32.14,
+          "tileDraws": 2232,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 5.6,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 640,
+          "worldH": 360,
+          "tilesX": 40,
+          "tilesY": 22.5,
+          "tileDraws": 1188,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 8,
+          "deviceInteger": true,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 426.67,
+          "worldH": 240,
+          "tilesX": 26.67,
+          "tilesY": 15,
+          "tileDraws": 570,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 12,
+          "deviceInteger": true,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 320,
+          "worldH": 180,
+          "tilesX": 20,
+          "tilesY": 11.25,
+          "tileDraws": 360,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 16,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "1512x982 @2",
+      "SCALE": 11,
+      "VW": 274,
+      "VH": 178,
+      "css": [
+        1507,
+        979
+      ],
+      "cssFractional": false,
+      "backingToDevice": 11,
+      "backingPx": 48772,
+      "lightHigh": 48772,
+      "lightLow": 12193,
+      "occBytes": 1170528,
+      "steps": [
+        {
+          "zoom": 0.25,
+          "worldW": 1096,
+          "worldH": 712,
+          "tilesX": 68.5,
+          "tilesY": 44.5,
+          "tileDraws": 3528,
+          "backingPxPerWorld": 0.25,
+          "devicePxPerWorld": 2.75,
+          "deviceInteger": false,
+          "tileDestBacking": 4,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.35,
+          "worldW": 782.86,
+          "worldH": 508.57,
+          "tilesX": 48.93,
+          "tilesY": 31.79,
+          "tileDraws": 1872,
+          "backingPxPerWorld": 0.35,
+          "devicePxPerWorld": 3.85,
+          "deviceInteger": false,
+          "tileDestBacking": 5.6,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 0.5,
+          "worldW": 548,
+          "worldH": 356,
+          "tilesX": 34.25,
+          "tilesY": 22.25,
+          "tileDraws": 988,
+          "backingPxPerWorld": 0.5,
+          "devicePxPerWorld": 5.5,
+          "deviceInteger": false,
+          "tileDestBacking": 8,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 0.75,
+          "worldW": 365.33,
+          "worldH": 237.33,
+          "tilesX": 22.83,
+          "tilesY": 14.83,
+          "tileDraws": 494,
+          "backingPxPerWorld": 0.75,
+          "devicePxPerWorld": 8.25,
+          "deviceInteger": false,
+          "tileDestBacking": 12,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1,
+          "worldW": 274,
+          "worldH": 178,
+          "tilesX": 17.13,
+          "tilesY": 11.13,
+          "tileDraws": 330,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 11,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        }
+      ]
+    },
+    {
+      "viewport": "390x844 @3",
+      "SCALE": 6,
+      "VW": 195,
+      "VH": 422,
+      "css": [
+        390,
+        844
+      ],
+      "cssFractional": false,
+      "backingToDevice": 6,
+      "backingPx": 82290,
+      "lightHigh": 82290,
+      "lightLow": 20678,
+      "occBytes": 1974960,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 195,
+          "worldH": 422,
+          "tilesX": 12.19,
+          "tilesY": 26.38,
+          "tileDraws": 496,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 169.57,
+          "worldH": 366.96,
+          "tilesX": 10.6,
+          "tilesY": 22.93,
+          "tileDraws": 378,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 6.9,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 156,
+          "worldH": 337.6,
+          "tilesX": 9.75,
+          "tilesY": 21.1,
+          "tileDraws": 350,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 7.5,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 144.44,
+          "worldH": 312.59,
+          "tilesX": 9.03,
+          "tilesY": 19.54,
+          "tileDraws": 299,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 8.1,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "844x390 @3",
+      "SCALE": 6,
+      "VW": 422,
+      "VH": 195,
+      "css": [
+        844,
+        390
+      ],
+      "cssFractional": false,
+      "backingToDevice": 6,
+      "backingPx": 82290,
+      "lightHigh": 82290,
+      "lightLow": 20678,
+      "occBytes": 1974960,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 422,
+          "worldH": 195,
+          "tilesX": 26.38,
+          "tilesY": 12.19,
+          "tileDraws": 510,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 366.96,
+          "worldH": 169.57,
+          "tilesX": 22.93,
+          "tilesY": 10.6,
+          "tileDraws": 390,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 6.9,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 337.6,
+          "worldH": 156,
+          "tilesX": 21.1,
+          "tilesY": 9.75,
+          "tileDraws": 364,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 7.5,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 312.59,
+          "worldH": 144.44,
+          "tilesX": 19.54,
+          "tilesY": 9.03,
+          "tileDraws": 312,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 8.1,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "384x824 @3",
+      "SCALE": 6,
+      "VW": 192,
+      "VH": 412,
+      "css": [
+        384,
+        824
+      ],
+      "cssFractional": false,
+      "backingToDevice": 6,
+      "backingPx": 79104,
+      "lightHigh": 79104,
+      "lightLow": 19776,
+      "occBytes": 1898496,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 192,
+          "worldH": 412,
+          "tilesX": 12,
+          "tilesY": 25.75,
+          "tileDraws": 464,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 166.96,
+          "worldH": 358.26,
+          "tilesX": 10.43,
+          "tilesY": 22.39,
+          "tileDraws": 364,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 6.9,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 153.6,
+          "worldH": 329.6,
+          "tilesX": 9.6,
+          "tilesY": 20.6,
+          "tileDraws": 350,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 7.5,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 142.22,
+          "worldH": 305.19,
+          "tilesX": 8.89,
+          "tilesY": 19.07,
+          "tileDraws": 276,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 8.1,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "824x384 @3",
+      "SCALE": 6,
+      "VW": 412,
+      "VH": 192,
+      "css": [
+        824,
+        384
+      ],
+      "cssFractional": false,
+      "backingToDevice": 6,
+      "backingPx": 79104,
+      "lightHigh": 79104,
+      "lightLow": 19776,
+      "occBytes": 1898496,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 412,
+          "worldH": 192,
+          "tilesX": 25.75,
+          "tilesY": 12,
+          "tileDraws": 480,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 358.26,
+          "worldH": 166.96,
+          "tilesX": 22.39,
+          "tilesY": 10.43,
+          "tileDraws": 390,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 6.9,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 329.6,
+          "worldH": 153.6,
+          "tilesX": 20.6,
+          "tilesY": 9.6,
+          "tileDraws": 336,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 7.5,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 305.19,
+          "worldH": 142.22,
+          "tilesX": 19.07,
+          "tilesY": 8.89,
+          "tileDraws": 312,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 8.1,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "412x915 @3",
+      "SCALE": 7,
+      "VW": 176,
+      "VH": 392,
+      "css": [
+        410.6667,
+        914.6667
+      ],
+      "cssFractional": true,
+      "backingToDevice": 7,
+      "backingPx": 68992,
+      "lightHigh": 68992,
+      "lightLow": 17248,
+      "occBytes": 1655808,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 176,
+          "worldH": 392,
+          "tilesX": 11,
+          "tilesY": 24.5,
+          "tileDraws": 406,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 7,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 153.04,
+          "worldH": 340.87,
+          "tilesX": 9.57,
+          "tilesY": 21.3,
+          "tileDraws": 350,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 8.05,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 140.8,
+          "worldH": 313.6,
+          "tilesX": 8.8,
+          "tilesY": 19.6,
+          "tileDraws": 288,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 8.75,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 130.37,
+          "worldH": 290.37,
+          "tilesX": 8.15,
+          "tilesY": 18.15,
+          "tileDraws": 264,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 9.45,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "915x412 @3",
+      "SCALE": 7,
+      "VW": 392,
+      "VH": 176,
+      "css": [
+        914.6667,
+        410.6667
+      ],
+      "cssFractional": true,
+      "backingToDevice": 7,
+      "backingPx": 68992,
+      "lightHigh": 68992,
+      "lightLow": 17248,
+      "occBytes": 1655808,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 392,
+          "worldH": 176,
+          "tilesX": 24.5,
+          "tilesY": 11,
+          "tileDraws": 420,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 7,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 340.87,
+          "worldH": 153.04,
+          "tilesX": 21.3,
+          "tilesY": 9.57,
+          "tileDraws": 338,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 8.05,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 313.6,
+          "worldH": 140.8,
+          "tilesX": 19.6,
+          "tilesY": 8.8,
+          "tileDraws": 312,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 8.75,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 290.37,
+          "worldH": 130.37,
+          "tilesX": 18.15,
+          "tilesY": 8.15,
+          "tileDraws": 264,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 9.45,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "480x1044 @3",
+      "SCALE": 8,
+      "VW": 180,
+      "VH": 391,
+      "css": [
+        480,
+        1042.6667
+      ],
+      "cssFractional": true,
+      "backingToDevice": 8,
+      "backingPx": 70380,
+      "lightHigh": 70380,
+      "lightLow": 17640,
+      "occBytes": 1689120,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 180,
+          "worldH": 391,
+          "tilesX": 11.25,
+          "tilesY": 24.44,
+          "tileDraws": 464,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 8,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 156.52,
+          "worldH": 340,
+          "tilesX": 9.78,
+          "tilesY": 21.25,
+          "tileDraws": 350,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 9.2,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 144,
+          "worldH": 312.8,
+          "tilesX": 9,
+          "tilesY": 19.55,
+          "tileDraws": 299,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 10,
+          "deviceInteger": true,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 133.33,
+          "worldH": 289.63,
+          "tilesX": 8.33,
+          "tilesY": 18.1,
+          "tileDraws": 264,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 10.8,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "1044x480 @3",
+      "SCALE": 8,
+      "VW": 391,
+      "VH": 180,
+      "css": [
+        1042.6667,
+        480
+      ],
+      "cssFractional": true,
+      "backingToDevice": 8,
+      "backingPx": 70380,
+      "lightHigh": 70380,
+      "lightLow": 17640,
+      "occBytes": 1689120,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 391,
+          "worldH": 180,
+          "tilesX": 24.44,
+          "tilesY": 11.25,
+          "tileDraws": 420,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 8,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 340,
+          "worldH": 156.52,
+          "tilesX": 21.25,
+          "tilesY": 9.78,
+          "tileDraws": 364,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 9.2,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 312.8,
+          "worldH": 144,
+          "tilesX": 19.55,
+          "tilesY": 9,
+          "tileDraws": 312,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 10,
+          "deviceInteger": true,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 289.63,
+          "worldH": 133.33,
+          "tilesX": 18.1,
+          "tilesY": 8.33,
+          "tileDraws": 264,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 10.8,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "360x780 @3.75",
+      "SCALE": 7,
+      "VW": 192,
+      "VH": 417,
+      "css": [
+        358.4,
+        778.4
+      ],
+      "cssFractional": true,
+      "backingToDevice": 7,
+      "backingPx": 80064,
+      "lightHigh": 80064,
+      "lightLow": 20064,
+      "occBytes": 1921536,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 192,
+          "worldH": 417,
+          "tilesX": 12,
+          "tilesY": 26.06,
+          "tileDraws": 480,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 7,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 166.96,
+          "worldH": 362.61,
+          "tilesX": 10.43,
+          "tilesY": 22.66,
+          "tileDraws": 378,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 8.05,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 153.6,
+          "worldH": 333.6,
+          "tilesX": 9.6,
+          "tilesY": 20.85,
+          "tileDraws": 350,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 8.75,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 142.22,
+          "worldH": 308.89,
+          "tilesX": 8.89,
+          "tilesY": 19.31,
+          "tileDraws": 276,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 9.45,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "780x360 @3.75",
+      "SCALE": 7,
+      "VW": 417,
+      "VH": 192,
+      "css": [
+        778.4,
+        358.4
+      ],
+      "cssFractional": true,
+      "backingToDevice": 7,
+      "backingPx": 80064,
+      "lightHigh": 80064,
+      "lightLow": 20064,
+      "occBytes": 1921536,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 417,
+          "worldH": 192,
+          "tilesX": 26.06,
+          "tilesY": 12,
+          "tileDraws": 480,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 7,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 362.61,
+          "worldH": 166.96,
+          "tilesX": 22.66,
+          "tilesY": 10.43,
+          "tileDraws": 390,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 8.05,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 333.6,
+          "worldH": 153.6,
+          "tilesX": 20.85,
+          "tilesY": 9.6,
+          "tileDraws": 336,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 8.75,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 308.89,
+          "worldH": 142.22,
+          "tilesX": 19.31,
+          "tilesY": 8.89,
+          "tileDraws": 312,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 9.45,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "412x892 @2.625",
+      "SCALE": 6,
+      "VW": 180,
+      "VH": 390,
+      "css": [
+        411.4286,
+        891.4286
+      ],
+      "cssFractional": true,
+      "backingToDevice": 6,
+      "backingPx": 70200,
+      "lightHigh": 70200,
+      "lightLow": 17550,
+      "occBytes": 1684800,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 180,
+          "worldH": 390,
+          "tilesX": 11.25,
+          "tilesY": 24.38,
+          "tileDraws": 464,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 156.52,
+          "worldH": 339.13,
+          "tilesX": 9.78,
+          "tilesY": 21.2,
+          "tileDraws": 350,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 6.9,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 144,
+          "worldH": 312,
+          "tilesX": 9,
+          "tilesY": 19.5,
+          "tileDraws": 299,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 7.5,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 133.33,
+          "worldH": 288.89,
+          "tilesX": 8.33,
+          "tilesY": 18.06,
+          "tileDraws": 264,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 8.1,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    },
+    {
+      "viewport": "892x412 @2.625",
+      "SCALE": 6,
+      "VW": 390,
+      "VH": 180,
+      "css": [
+        891.4286,
+        411.4286
+      ],
+      "cssFractional": true,
+      "backingToDevice": 6,
+      "backingPx": 70200,
+      "lightHigh": 70200,
+      "lightLow": 17550,
+      "occBytes": 1684800,
+      "steps": [
+        {
+          "zoom": 1,
+          "worldW": 390,
+          "worldH": 180,
+          "tilesX": 24.38,
+          "tilesY": 11.25,
+          "tileDraws": 420,
+          "backingPxPerWorld": 1,
+          "devicePxPerWorld": 6,
+          "deviceInteger": true,
+          "tileDestBacking": 16,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.15,
+          "worldW": 339.13,
+          "worldH": 156.52,
+          "tilesX": 21.2,
+          "tilesY": 9.78,
+          "tileDraws": 364,
+          "backingPxPerWorld": 1.15,
+          "devicePxPerWorld": 6.9,
+          "deviceInteger": false,
+          "tileDestBacking": 18.4,
+          "tileDestInteger": false
+        },
+        {
+          "zoom": 1.25,
+          "worldW": 312,
+          "worldH": 144,
+          "tilesX": 19.5,
+          "tilesY": 9,
+          "tileDraws": 312,
+          "backingPxPerWorld": 1.25,
+          "devicePxPerWorld": 7.5,
+          "deviceInteger": false,
+          "tileDestBacking": 20,
+          "tileDestInteger": true
+        },
+        {
+          "zoom": 1.35,
+          "worldW": 288.89,
+          "worldH": 133.33,
+          "tilesX": 18.06,
+          "tilesY": 8.33,
+          "tileDraws": 264,
+          "backingPxPerWorld": 1.35,
+          "devicePxPerWorld": 8.1,
+          "deviceInteger": false,
+          "tileDestBacking": 21.6,
+          "tileDestInteger": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<!-- Throwaway audit harness. Not loaded by the game.
+     google-chrome --headless --no-sandbox --disable-gpu --user-data-dir=/tmp/zoom-chrome
+       --force-device-scale-factor=1 --window-size=420,900 --virtual-time-budget=6000
+       --screenshot=tools/audit/out/zoom-edge-sheet.png --dump-dom
+       file://$PWD/tools/audit/measure-zoom-blur.html
+     Chrome 156 does not exit after --dump-dom; timeout 30 is enough. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>zoom blur audit</title>
+<style>
+  html,body{margin:0;background:#111;color:#eee;font:12px/1.35 ui-monospace,monospace}
+  canvas.sheet{display:block}
+  #json{white-space:pre-wrap;font-size:11px;padding:8px}
+</style>
+</head>
+<body>
+<canvas id="sheet" class="sheet"></canvas>
+<pre id="json"></pre>
+<script>
+"use strict";
+const TS = 16;
+const ZOOMS = [1, 0.75, 0.5, 0.35, 0.25, 1.15, 1.25, 1.35];
+
+function layout(w, h, dpr) {
+  const minDim = Math.min(w, h) * dpr;
+  const SCALE = Math.max(1, Math.floor(minDim / 170));
+  const VW = Math.floor(w * dpr / SCALE);
+  const VH = Math.floor(h * dpr / SCALE);
+  const cssW = VW * SCALE / dpr;
+  const cssH = VH * SCALE / dpr;
+  const deviceW = cssW * dpr;
+  const deviceH = cssH * dpr;
+  return {
+    w, h, dpr, SCALE, VW, VH,
+    cssW: +cssW.toFixed(4), cssH: +cssH.toFixed(4),
+    deviceW: +deviceW.toFixed(4), deviceH: +deviceH.toFixed(4),
+    backingToDevice: +(deviceW / VW).toFixed(6),
+    cssFractional: Math.abs(cssW - Math.round(cssW)) > 1e-6 || Math.abs(cssH - Math.round(cssH)) > 1e-6
+  };
+}
+function zoomVis(L, zoom, player) {
+  if (zoom === 1) {
+    const sx = Math.round(player.x - L.VW / 2), sy = Math.round(player.y - L.VH / 2);
+    return { x: sx, y: sy, w: L.VW, h: L.VH };
+  }
+  const w = L.VW / zoom, h = L.VH / zoom;
+  return { x: player.x - w / 2, y: (player.y - 4) - h / 2, w, h };
+}
+function tileSpan(vis) {
+  const t0x = Math.floor(vis.x / TS) - 1, t0y = Math.floor(vis.y / TS) - 1;
+  const t1x = Math.ceil((vis.x + vis.w) / TS) + 1, t1y = Math.ceil((vis.y + vis.h) / TS) + 1;
+  return { nx: t1x - t0x + 1, ny: t1y - t0y + 1, calls: (t1x - t0x + 1) * (t1y - t0y + 1) };
+}
+function fovRow(L, zoom) {
+  const player = { x: 200.4, y: 160.7 };
+  const vis = zoomVis(L, zoom, player);
+  const span = tileSpan(vis);
+  const dev = L.SCALE * zoom;
+  return {
+    zoom,
+    worldW: +vis.w.toFixed(2), worldH: +vis.h.toFixed(2),
+    tilesX: +(vis.w / TS).toFixed(2), tilesY: +(vis.h / TS).toFixed(2),
+    tileDraws: span.calls,
+    backingPxPerWorld: +zoom.toFixed(4),
+    devicePxPerWorld: +dev.toFixed(4),
+    deviceInteger: Math.abs(dev - Math.round(dev)) < 1e-6,
+    tileDestBacking: +(TS * zoom).toFixed(3),
+    tileDestInteger: Math.abs(TS * zoom - Math.round(TS * zoom)) < 1e-6
+  };
+}
+
+function edgeTile() {
+  const c = document.createElement("canvas");
+  c.width = c.height = TS;
+  const x = c.getContext("2d");
+  x.imageSmoothingEnabled = false;
+  for (let i = 0; i < TS; i++) {
+    x.fillStyle = i % 2 ? "#fff" : "#000";
+    x.fillRect(i, 0, 1, TS);
+  }
+  x.fillStyle = "#f00"; x.fillRect(0, 0, 1, 1);
+  x.fillStyle = "#0f0"; x.fillRect(1, 0, 1, 1);
+  x.fillStyle = "#00f"; x.fillRect(2, 0, 1, 1);
+  return c;
+}
+function lum(d, i) { return d[i] * 0.2126 + d[i + 1] * 0.7152 + d[i + 2] * 0.0722; }
+function analyze(canvas, x0, y, w) {
+  const ctx = canvas.getContext("2d");
+  const img = ctx.getImageData(x0, y, w, 1).data;
+  let mid = 0, ramp = 0, prev = null;
+  const runs = [];
+  for (let i = 0; i < w; i++) {
+    const L = lum(img, i * 4);
+    const k = L < 18 ? 0 : L > 237 ? 2 : 1;
+    if (k === 1) { ramp++; mid++; }
+    if (prev === null || prev !== k) { runs.push({ k, n: 1, L: +L.toFixed(1) }); prev = k; }
+    else runs[runs.length - 1].n++;
+  }
+  const solid = runs.filter(r => r.k !== 1);
+  const interior = solid.length > 2 ? solid.slice(1, -1) : solid;
+  const kinds = arr => [...new Set(arr.map(r => r.n))].sort((a, b) => a - b);
+  return {
+    ramp,
+    runs: runs.slice(0, 16),
+    widthKinds: kinds(solid),
+    interiorWidths: kinds(interior),
+    interiorRuns: interior.map(r => r.n).slice(0, 12)
+  };
+}
+function findMarker(canvas, rgb) {
+  const ctx = canvas.getContext("2d");
+  const { width, height } = canvas;
+  const img = ctx.getImageData(0, 0, width, height).data;
+  let best = -1, bx = -1, by = -1, n = 0, sx = 0, sy = 0;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const i = (y * width + x) * 4;
+    const s = img[i] * rgb[0] + img[i + 1] * rgb[1] + img[i + 2] * rgb[2];
+    if (img[i] > 180 && rgb[0] && img[i + 1] < 40 && img[i + 2] < 40) { n++; sx += x; sy += y; }
+    if (s > best) { best = s; bx = x; by = y; }
+  }
+  return { bx, by, n, cx: n ? +(sx / n).toFixed(2) : null, cy: n ? +(sy / n).toFixed(2) : null };
+}
+
+function gameDraw(c, opts) {
+  const { VW, VH, zoom, player, tile, smooth, mode } = opts;
+  c.width = VW; c.height = VH;
+  const ctx = c.getContext("2d");
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+  ctx.imageSmoothingEnabled = !!smooth;
+  ctx.fillStyle = "#404040";
+  ctx.fillRect(0, 0, VW, VH);
+  const sx = Math.round(player.x - VW / 2), sy = Math.round((player.y - 4) - VH / 2);
+  let anchor = player;
+  if (mode === "snapped" && zoom !== 1) {
+    const ox = VW / 2 - zoom * player.x;
+    const oy = VH / 2 - zoom * (player.y - 4);
+    const px = (VW / 2 - Math.round(ox)) / zoom;
+    const py = (VH / 2 - Math.round(oy)) / zoom + 4;
+    anchor = { x: px, y: py };
+  }
+  ctx.save();
+  if (zoom !== 1 && mode !== "offscreen") {
+    ctx.translate(VW / 2, VH / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-(anchor.x - sx), -(anchor.y - 4 - sy));
+  }
+  if (mode !== "offscreen") ctx.translate(-sx, -sy);
+  if (mode === "offscreen") {
+    const bw = Math.max(1, Math.round(VW / zoom));
+    const bh = Math.max(1, Math.round(VH / zoom));
+    const off = document.createElement("canvas");
+    off.width = bw; off.height = bh;
+    const o = off.getContext("2d");
+    o.imageSmoothingEnabled = false;
+    o.fillStyle = "#404040";
+    o.fillRect(0, 0, bw, bh);
+    const vis = zoomVis({ VW, VH }, zoom, anchor);
+    const originX = Math.round(vis.x), originY = Math.round(vis.y);
+    const t0x = Math.floor(originX / TS) - 1, t0y = Math.floor(originY / TS) - 1;
+    const t1x = Math.ceil((originX + bw) / TS) + 1, t1y = Math.ceil((originY + bh) / TS) + 1;
+    for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) {
+      o.drawImage(tile, tx * TS - originX, ty * TS - originY);
+    }
+    ctx.imageSmoothingEnabled = false;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(off, 0, 0, bw, bh, 0, 0, VW, VH);
+  } else {
+    const vis = zoomVis({ VW, VH }, zoom === 1 ? 1 : zoom, zoom === 1 ? { x: sx + VW / 2, y: sy + VH / 2 + 4 } : anchor);
+    const t0x = Math.floor(vis.x / TS) - 2, t0y = Math.floor(vis.y / TS) - 2;
+    const t1x = Math.ceil((vis.x + vis.w) / TS) + 2, t1y = Math.ceil((vis.y + vis.h) / TS) + 2;
+    for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) ctx.drawImage(tile, tx * TS, ty * TS);
+    if (opts.marker) {
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(opts.marker.x, opts.marker.y, 1, 1);
+    }
+  }
+  ctx.restore();
+  ctx.imageSmoothingEnabled = false;
+  return { anchor, sx, sy };
+}
+
+function expectedScreen(VW, VH, zoom, anchor, wx, wy) {
+  if (zoom === 1) {
+    const sx = Math.round(anchor.x - VW / 2), sy = Math.round((anchor.y - 4) - VH / 2);
+    return { x: wx - sx, y: wy - sy };
+  }
+  return { x: VW / 2 + zoom * (wx - anchor.x), y: VH / 2 + zoom * (wy - (anchor.y - 4)) };
+}
+
+function sampleRow(c, zoom, anchor) {
+  const exp = expectedScreen(c.width, c.height, zoom, anchor, 8, 8);
+  const y = Math.max(0, Math.min(c.height - 1, Math.round(exp.y)));
+  const x0 = Math.max(0, Math.floor(exp.x) - 18);
+  const w = Math.min(48, c.width - x0);
+  const a = analyze(c, x0, y, w);
+  a.y = y; a.x0 = x0; a.edgeScreen = +exp.x.toFixed(3);
+  return a;
+}
+
+function lightBlur(VW, VH, zoom) {
+  const scene = document.createElement("canvas");
+  scene.width = VW; scene.height = VH;
+  const tile = edgeTile();
+  const player = { x: 200, y: 160 };
+  gameDraw(scene, { VW, VH, zoom, player, tile, smooth: false, mode: "game" });
+  const LQ = 0.5;
+  const LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
+  const lcan = document.createElement("canvas");
+  lcan.width = LW; lcan.height = LH;
+  const lctx = lcan.getContext("2d");
+  lctx.fillStyle = "#fff";
+  lctx.fillRect(0, 0, LW, LH);
+  lctx.fillStyle = "#000";
+  lctx.fillRect(0, 0, Math.floor(LW / 2), LH);
+  const out = document.createElement("canvas");
+  out.width = VW; out.height = VH;
+  const ctx = out.getContext("2d");
+  ctx.drawImage(scene, 0, 0);
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = "multiply";
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(lcan, 0, 0, VW, VH);
+  ctx.restore();
+  const y = Math.floor(VH / 2);
+  const hard = analyze(scene, Math.floor(VW / 2) - 8, y, 16);
+  const mul = analyze(out, Math.floor(VW / 2) - 8, y, 16);
+  const shadow = analyze(out, Math.floor(VW / 2) - 6, y, 12);
+  return { sceneEdgeRamp: hard.ramp, afterMultiplyEdgeRamp: mul.ramp, shadowCutRamp: shadow.ramp, lightmap: [LW, LH] };
+}
+
+function cssScaleBlur() {
+  const src = document.createElement("canvas");
+  src.width = 32; src.height = 16;
+  const s = src.getContext("2d");
+  s.fillStyle = "#000"; s.fillRect(0, 0, 16, 16);
+  s.fillStyle = "#fff"; s.fillRect(16, 0, 16, 16);
+  function blit(dw, smooth) {
+    const d = document.createElement("canvas");
+    d.width = dw; d.height = 16;
+    const x = d.getContext("2d");
+    x.imageSmoothingEnabled = smooth;
+    x.drawImage(src, 0, 0, dw, 16);
+    return analyze(d, 0, 8, dw).ramp;
+  }
+  return {
+    integer6xSmoothOff: blit(32 * 6, false),
+    integer6xSmoothOn: blit(32 * 6, true),
+    frac7_5SmoothOff: blit(Math.round(32 * 7.5), false),
+    frac7_5SmoothOn: blit(Math.round(32 * 7.5), true)
+  };
+}
+
+function fillRectVsImage(zoom, frac) {
+  const VW = 180, VH = 80;
+  const c = document.createElement("canvas");
+  c.width = VW; c.height = VH;
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, VW, VH);
+  const player = { x: frac ? 40.4 : 40, y: 20 };
+  const sx = Math.round(player.x - VW / 2), sy = Math.round((player.y - 4) - VH / 2);
+  ctx.save();
+  if (zoom !== 1) {
+    ctx.translate(VW / 2, VH / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-(player.x - sx), -(player.y - 4 - sy));
+  }
+  ctx.translate(-sx, -sy);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(48, 16, 1, 8);
+  const tile = document.createElement("canvas");
+  tile.width = tile.height = 8;
+  const t = tile.getContext("2d");
+  t.fillStyle = "#fff"; t.fillRect(0, 0, 1, 8);
+  t.fillStyle = "#000"; t.fillRect(1, 0, 7, 8);
+  ctx.drawImage(tile, 64, 16);
+  ctx.restore();
+  const expR = expectedScreen(VW, VH, zoom, player, 48, 20);
+  const expI = expectedScreen(VW, VH, zoom, player, 64, 20);
+  const yR = Math.max(0, Math.min(VH - 1, Math.round(expR.y)));
+  const yI = Math.max(0, Math.min(VH - 1, Math.round(expI.y)));
+  return {
+    zoom, frac,
+    fillRectRamp: analyze(c, Math.max(0, Math.floor(expR.x) - 3), yR, 12).ramp,
+    drawImageRamp: analyze(c, Math.max(0, Math.floor(expI.x) - 3), yI, 12).ramp
+  };
+}
+
+const tile = edgeTile();
+const playerFrac = { x: 200.4, y: 160.7 };
+const playerInt = { x: 200, y: 160 };
+const VW = 320, VH = 180;
+const modes = ["game", "snapped", "smooth", "offscreen"];
+const cells = [];
+for (const zoom of ZOOMS) {
+  for (const mode of modes) {
+    const c = document.createElement("canvas");
+    const player = mode === "game" || mode === "smooth" ? playerFrac : playerInt;
+    const smooth = mode === "smooth";
+    const info = gameDraw(c, { VW, VH, zoom, player, tile, smooth, mode, marker: mode === "game" ? { x: 208, y: 168 } : null });
+    const anchor = mode === "game" || mode === "smooth" ? playerFrac : info.anchor;
+    const useAnchor = zoom === 1 ? { x: info.sx + VW / 2, y: info.sy + VH / 2 + 4 } : (mode === "offscreen" ? info.anchor : anchor);
+    let metrics;
+    if (zoom === 1 && (mode === "snapped" || mode === "offscreen")) {
+      metrics = sampleRow(c, 1, { x: info.sx + VW / 2, y: info.sy + VH / 2 + 4 });
+    } else if (mode === "offscreen") {
+      metrics = sampleRow(c, zoom, info.anchor);
+    } else {
+      metrics = sampleRow(c, zoom, useAnchor);
+    }
+    let marker = null;
+    if (mode === "game") {
+      const exp = expectedScreen(VW, VH, zoom, playerFrac, 208, 168);
+      marker = Object.assign({ expX: +exp.x.toFixed(2), expY: +exp.y.toFixed(2) }, findMarker(c, [1, 0, 0]));
+    }
+    cells.push({ zoom, mode, ramp: metrics.ramp, widthKinds: metrics.widthKinds, interiorWidths: metrics.interiorWidths, interiorRuns: metrics.interiorRuns, edgeScreen: metrics.edgeScreen, marker, canvas: c });
+  }
+}
+
+const desk = layout(1920, 1080, 1);
+const phone = layout(832, 384, 3);
+const viewports = [
+  [1920, 1080, 1], [1920, 1080, 1.25], [1920, 1080, 1.5], [1920, 1080, 2],
+  [2560, 1440, 1], [2560, 1440, 1.5], [2560, 1440, 2],
+  [1512, 982, 2],
+  [390, 844, 3], [844, 390, 3],
+  [384, 824, 3], [824, 384, 3],
+  [412, 915, 3], [915, 412, 3],
+  [480, 1044, 3], [1044, 480, 3],
+  [360, 780, 3.75], [780, 360, 3.75],
+  [412, 892, 2.625], [892, 412, 2.625]
+].map(([w, h, dpr]) => {
+  const L = layout(w, h, dpr);
+  const steps = (Math.min(w, h) < 700 ? [1, 1.15, 1.25, 1.35] : [0.25, 0.35, 0.5, 0.75, 1]).map(z => fovRow(L, z));
+  return {
+    viewport: w + "x" + h + " @" + dpr,
+    SCALE: L.SCALE, VW: L.VW, VH: L.VH,
+    css: [L.cssW, L.cssH], cssFractional: L.cssFractional,
+    backingToDevice: L.backingToDevice,
+    backingPx: L.VW * L.VH,
+    lightHigh: L.VW * L.VH,
+    lightLow: Math.ceil(L.VW * 0.5) * Math.ceil(L.VH * 0.5),
+    occBytes: L.VW * L.VH * 24,
+    steps
+  };
+});
+
+function phaseSwim() {
+  const out = [];
+  for (const zoom of [0.25, 0.5, 0.75, 1.25]) {
+    for (const frac of [0, 0.25, 0.4, 0.63, 0.9]) {
+      for (const mode of ["game", "snapped"]) {
+        const c = document.createElement("canvas");
+        const player = { x: 200 + frac, y: 160 + frac * 0.5 };
+        const info = gameDraw(c, { VW, VH, zoom, player, tile, smooth: false, mode });
+        const anchor = mode === "offscreen" ? info.anchor : (mode === "snapped" ? info.anchor : player);
+        const m = sampleRow(c, zoom, anchor);
+        out.push({ zoom, frac, mode, ramp: m.ramp, interiorWidths: m.interiorWidths, edge: m.edgeScreen });
+      }
+    }
+  }
+  return out;
+}
+
+const report = {
+  chrome: navigator.userAgent,
+  dprHere: window.devicePixelRatio || 1,
+  formulaCheck: {
+    desk1920: desk,
+    s25guess832x384at3: phone,
+    zoom1tilesDesk: fovRow(desk, 1),
+    zoom025tilesDesk: fovRow(desk, 0.25),
+    zoom125tilesPhone: fovRow(phone, 1.25)
+  },
+  edgeRamp: cells.map(({ canvas, ...r }) => r),
+  phase: phaseSwim(),
+  light: {
+    zoom1: lightBlur(320, 180, 1),
+    zoom05: lightBlur(320, 180, 0.5),
+    zoom035: lightBlur(320, 180, 0.35)
+  },
+  cssIntegerBlit: cssScaleBlur(),
+  fillVsImage: [
+    fillRectVsImage(1, false),
+    fillRectVsImage(0.5, true),
+    fillRectVsImage(0.5, false),
+    fillRectVsImage(0.75, true),
+    fillRectVsImage(1.25, true),
+    fillRectVsImage(0.35, true)
+  ],
+  viewports
+};
+
+const cellW = 96, cellH = 72, labelH = 28, cols = modes.length;
+const sheet = document.getElementById("sheet");
+sheet.width = cols * cellW;
+sheet.height = ZOOMS.length * (cellH + labelH) + 8;
+const sx = sheet.getContext("2d");
+sx.imageSmoothingEnabled = false;
+sx.fillStyle = "#111";
+sx.fillRect(0, 0, sheet.width, sheet.height);
+sx.font = "11px monospace";
+cells.forEach((cell, i) => {
+  const col = i % cols, row = (i / cols) | 0;
+  const x = col * cellW, y = row * (cellH + labelH);
+  sx.fillStyle = "#ccc";
+  sx.fillText(cell.zoom + " " + cell.mode + " r" + cell.ramp, x + 2, y + 12);
+  sx.imageSmoothingEnabled = false;
+  sx.drawImage(cell.canvas, 150, 70, 48, 36, x + 4, y + labelH, cellW - 8, cellH - 4);
+});
+document.getElementById("json").textContent = JSON.stringify(report, null, 2);
+window.__AUDIT__ = report;
+</script>
+</body>
+</html>
