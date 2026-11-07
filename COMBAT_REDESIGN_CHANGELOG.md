@@ -2958,3 +2958,122 @@ The Hollow Pedlar does not show sealed-unique rows until level 3, and `rollShopU
 #### Recorded level on a kill
 
 Jake approved using the level from immediately before that kill's XP for the gear that kill drops. `killEnemy` records `player.lvl` before `gainXp` and holds it only while that kill's drops roll: trash, champions, Super Elites, bosses (including Oswin's second unique), and a Hellmouth kill on its later frame. A nested kill saves and restores the outer value, and a throw while dropping clears it. Chests, cracks, the Pedlar, and gear rolled when the floor was built still use the level at that moment. XP, the level-up, the heal, and the death order are unchanged. `version.json` was not edited.
+
+---
+
+### 2026-11-07 — Super Elite combat behavior (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Combat behavior only. Jake approved the combat half of `AUDIT_SE_DIFFICULTY.md` (`c4b9aec` on `audit/se-loot-economy`). Loot is a separate PR. This is not merged and it is not live.
+- **Base:** `main` at `e830a531865fbc72ea3db6a632d720e65ac524e2`.
+- **Version / Commit:** `version.json` was not edited. It is still `0.7.18`. No tag. No deploy. `pages-publish.yml` was not dispatched.
+
+#### What changed
+
+Depths 1–4 keep the life-phase script, the 0.25s swing lock, and the power radius of 10 plus the body. From depth 5 the Super Elite opens on swing, power, brand, and repeats that, including at full life.
+
+The depth-5 power circle is drawn at sword reach, 36px (sword 24 plus the Super Elite body 12), and it follows the body. A center on that outline is hit. A center 2px outside is not. A staff at its own reach (52) and a bow at range stay outside it. The circle does not follow the player.
+
+The depth-5 swing tracks for 0.80s and then locks. The remaining 0.20s is the step. Full speed covers about 12.4px of the 8px half-width, so a player who stops and steps leaves the lane. Swing speed (×0.55) covers about 6.8px, so a player who keeps swinging is still inside. The lane does not track through the step. Depth 1–4 still lock at 0.25s, and the 0.2 move floor still clears that older lane and the small power circle.
+
+The brand stays a pinned circle of radius 8 plus the body. It does not follow the body or the player. The hit uses that drawn circle. A player standing in it is hit even when the Super Elite is far away. A center outside the outline is not. Walking out still works: the 0.2 floor covers the 13px radius inside the 1.15s tell.
+
+Each attack has its own clip and its own impact cue, and the strike frame is on screen when the cue and the damage land. The old attack clip reached its hit frame at 0.285s and the cue waited for the end of the 1.00s tell, about 0.7s later. The clip now holds its first frame and reaches the hit frame about 0.06s before the tell ends. Damage is still dealt when the tell ends, so the dodge window is the telegraph, not an early invisible hit.
+
+- Swing plays `attack` and `enm_se_attack_XX` (the per-elite cue).
+- Power plays `powerup` and `cbt_hit_heavy_01`, with the elite cue quieter underneath.
+- Brand plays the taunt clip (there is no third body strip) and `cbt_proj_magic_bolt_impact_01`. The rune-slam VFX is spawned on the mark.
+- A short wind cue plays when the tell starts: `cbt_tell_melee_01`, `cbt_tell_melee_02`, or `cbt_proj_magic_bolt_fly_01`.
+
+No new audio files. The player whoosh, `playSwingCue`, and `equipBow` were not edited. `SE_LIFE_TABLE`, `SE_TAKEN_TABLE`, and `SE_DMG_TABLE` were not edited. Depth 5 is still 194 life and a 19 shield. Depth 12 is still 1172 and 117. Tell ratios stay 1 / 1.7 / 0.85. Crab bite, uncapped crit, curse life drain, and pre-mitigation life steal stay open. WebGL lighting still defaults off. Satchel tooltip logic was not edited.
+
+#### Projected encounters
+
+`tests/se-combat.html` runs the live hit. Spread is 1, block is 0, the Super Elite is Nyx, and the levels are the audit's clear levels (6 / 9 / 13 / 20). Stand for a sword, staff, or rusty blade is 14px out on the swing line. Kite for those three is the old safe spot, about 34px out and off the lane, and they stay there. A bow stands 140px out. A kiting bow steps off the brand. Kill time does not include the 1.14s intro. Potions fire at 40% life.
+
+| Depth | Build | Stand kill | Stand damage | Stand pots | Stand dies | Kite damage | Kite dies |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 3 | Melee | 2.6s | 5 | 0 | no | 0 | no |
+| 3 | Bow | 2.8s | 0 | 0 | no | 0 | no |
+| 3 | Caster | 0.9s | 0 | 0 | no | 0 | no |
+| 3 | Rusty | 9.9s | 50 | 0 | no | 0 | no |
+| 5 | Melee | 6.0s | 45 | 0 | no | 32 | no |
+| 5 | Bow | 6.1s | 11 | 0 | no | 0 | no |
+| 5 | Caster | 2.3s | 13 | 0 | no | 0 | no |
+| 5 | Rusty | 26.1s | 475 | 3 | 21s | 320 | no |
+| 8 | Melee | 13.9s | 162 | 1 | no | 102 | no |
+| 8 | Bow | 22.7s | 51 | 0 | no | 0 | no |
+| 8 | Caster | 6.9s | 71 | 0 | no | 51 | no |
+| 8 | Rusty | 96.3s | 3584 | 2 | 9.4s | 2576 | 17.3s |
+| 12 | Melee | 35.2s | 629 | 3 | no | 437 | no |
+| 12 | Bow | 52.6s | 243 | 0 | no | 0 | no |
+| 12 | Caster | 18.0s | 342 | 1 | no | 246 | no |
+| 12 | Rusty | 246.6s | — | 0 | 3.6s | — | 9.4s |
+
+Depth 3 matches the audit, because the new reach and the new rotation start at depth 5. Depth 12 melee is still 35.2s. The depth-5 rare sword is still a 6.0s kill. Standing damage there is 45 instead of the audit's 47 because the rotation is one swing, one power, and one brand, not two swings and a power. The old kite spot is no longer free for a sword: power and brand land, swing does not, and the player takes 32. A bow only eats the brand if they stand in it, and they can step off. A caster at depth 5 still ends during the first swing, so a caster who is off that lane takes 0.
+
+Depth 5 stays under 15s for every strong build (melee 6.0s, bow 6.1s, caster 2.3s). More balance work is needed. This PR does not raise life to get there. Options that do not touch `SE_LIFE_TABLE`:
+
+1. One slow bolt per cycle, about brand damage, so a bow or a Fireball has a tell at range. The audit asked for this. It is not in this PR.
+2. Leave spell damage and weapon damage as their own dial. Stretching life until the depth-5 caster takes 8s is the sponge the audit rejected.
+3. If a playtest of the closed ring still feels thin, shorten the swing gap from 0.70s toward 0.40s. The audit's estimate was about 58 incoming instead of 47, still short of a potion.
+4. A player who keeps swinging can still walk out of the 36px power circle (about 44px of travel in 1.30s). A later pass can lock that circle the way the swing locks, without adding life.
+
+#### Tests
+
+`tests/se-combat.html` is 42/0. It locks the depth-3 script, the depth-5 rotation, sword-reach power, the brand circle far from the body, the swing lock and the step, hit timing, the three cues, the unchanged depth-5 damage, the life anchors, and the projection above.
+
+`tests/stage9-bosses.html` is 84/0. The depth-5 checks now expect the rotation and the 0.80s lock. Depth 1 still locks 0.25s, the small power circle, and the move-floor escape. The brand floor escape is unchanged.
+
+`tests/camera-zoom.html` is 125/0. `tests/hud-scale.html` is 263/0. `tests/early-loot-gate.html` is 43/0. `tests/early-balance.html` is 50/0. `tests/se-midgame-prototype.html` is 28/0. Stages 1–8, 10, and 11 match `e830a53`: 71/0, 73/0, 58/0, 75/0, 78/0, 47/0, 70/0, 64/0, 64/0, 32/0.
+
+Legacy failure names match `e830a53` on a rerun. `v0714` footer names and the stage 9 slam windup are the same flakes already on main: one pass shows them, the next does not. No new failure name stayed after the rerun. `v0711` is 5 failures either way; the check count drifted by one, which that file already does.
+
+#### Files
+
+- `index.html` — depth-5 rotation, power reach, swing lock, brand hit, pose timing, impact cues.
+- `tests/se-combat.html` — the combat locks and the projection.
+- `tests/stage9-bosses.html` — depth-5 expectations, depth-1 script kept.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only. Earlier entries were not rewritten.
+- `version.json` was not edited. Loot, saves, and workflows were not edited.
+
+---
+
+### 2026-11-07 — Super Elite ranged bolt (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** Combat behavior on the depth-5 rotation. Jake approved the bolt from `SE_RANGED_RETALIATION_DESIGN.md`. Not merged. Not deployed.
+- **Version:** `version.json` was not edited. It is still `0.7.18`.
+
+From depth 5, a Super Elite that has stayed with the player more than 64px away for 0.35s arms a bolt. The mode turns off only after the player has stayed at or inside 40px for 0.35s. The band between those distances holds the current mode. A stay of 0.2s on either side does not flip it. Exactly 64px does not count as far.
+
+The windup is 0.90s. The line tracks until 0.50s and then locks, leaving 0.40s to step. Width is 16, so the half-width is the hit radius of 8. On release, line of sight along the locked ray is checked again. A wall there fires nothing. A clear ray shoots a physical projectile at 160 px/s, radius 3, damage `e.dmg × 0.85`. `solidAt` deletes it. The 2.6s cooldown starts when the windup resolves, including a ray that was blocked, so a corner dip cannot restart the telegraph immediately. Closing the gap does not erase a line that is already out.
+
+The body holds the attack strip's drawn-back frame, not the swing's anticipate frame and not the brand's taunt. The wind cue is `enm_ranged_attack_01`. Release is `cbt_proj_arrow_fly_01`. A hit on the player is `cbt_proj_arrow_impact_01`. The player whoosh is not used. Bosses do not run this. Life, taken, and damage tables are unchanged.
+
+`tests/se-bolt.html` covers the dwell, the 0.2s flicker, the dive, the lock, the hit radius, damage at depths 5, 8, and 12, the wall, the cues, and the boss.
+
+#### Files
+
+- `index.html` — the bolt, its hysteresis, and the projectile hit radius.
+- `tests/se-bolt.html` — the locks above.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only.
+
+---
+
+### 2026-11-07 — Super Elite swing step (review only)
+
+- **Date:** 2026-11-07.
+- **Stage:** The depth-5 swing lock only. Not merged. Not deployed.
+- **Version:** `version.json` was not edited. It is still `0.7.18`.
+
+The depth-5 swing lock moves from 0.80s to **0.68s**. The tell is still 1.00s, so the step is **0.32s**. The lane half-width stays 8px.
+
+A stopped player at 30 fps with 100 ms of input still has about 0.187s of movement, about 11.6px, which clears the lane. The same sum at 60 fps clears by more. A player who waits 150 ms and is still swinging covers about 5.8px and does not clear. Depths 1–4 stay locked at 0.25s. Life tables are unchanged.
+
+#### Files
+
+- `index.html` — `SE_SWING_LOCK_DEEP` is 0.68.
+- `tests/se-combat.html` — the 0.68s lock, the late swing, and the 30 fps dodge.
+- `tests/stage9-bosses.html` — the depth-5 step check uses the same window.
+- `COMBAT_REDESIGN_CHANGELOG.md` — this entry only.

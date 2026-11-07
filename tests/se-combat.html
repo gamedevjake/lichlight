@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<!-- Super Elite combat behavior. Attack rotation, reach, telegraphs, tracking, hit timing, damage, sound sync. No loot and no extra life. -->
+<html>
+<head><meta charset="utf-8"><title>se-combat</title></head>
+<body>
+<iframe id="g" src="../index.html?v=se-combat" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); finish(); }
+});
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 420) : ''));
+}
+function finish(extra) {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n') + (extra ? '\n' + extra : '');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+function r1(n) { return Math.round(n * 10) / 10; }
+function r3(n) { return Math.round(n * 1000) / 1000; }
+function med(a, b) {
+  const n = b - a + 1;
+  if (n <= 1) return a;
+  if (n % 2) return a + (n >> 1);
+  return Math.round(((a + (n >> 1) - 1) + (a + (n >> 1))) / 2);
+}
+const BASE_PICK = [
+  { slot: 'weapon', icon: 'sword', name: 'Short Sword', lvl: 1 },
+  { slot: 'weapon', icon: 'sword', name: 'Broad Sword', lvl: 3 },
+  { slot: 'weapon', icon: 'sword', name: 'Rune Blade', lvl: 9 },
+  { slot: 'weapon', icon: 'staff', name: 'Gnarled Staff', lvl: 2 },
+  { slot: 'weapon', icon: 'staff', name: 'Archon Staff', lvl: 9 },
+  { slot: 'weapon', icon: 'bow', name: 'Short Bow', lvl: 2 },
+  { slot: 'armor', name: 'Leather Armor', lvl: 1 },
+  { slot: 'armor', name: 'Chain Mail', lvl: 3 },
+  { slot: 'armor', name: 'Plate Mail', lvl: 6 },
+  { slot: 'armor', name: 'Dusk Shroud', lvl: 9 },
+  { slot: 'helm', name: 'Cap', lvl: 1 },
+  { slot: 'helm', name: 'Helm', lvl: 2 },
+  { slot: 'helm', name: 'Great Helm', lvl: 5 },
+  { slot: 'helm', name: 'Bone Visage', lvl: 8 },
+  { slot: 'boots', name: 'Boots', lvl: 1 },
+  { slot: 'boots', name: 'Greaves', lvl: 4 },
+  { slot: 'shield', name: 'Wooden Buckler', lvl: 1 },
+  { slot: 'shield', name: 'Round Shield', lvl: 3 },
+  { slot: 'shield', name: 'Kite Shield', lvl: 6 },
+  { slot: 'shield', name: 'Tower Shield', lvl: 10 },
+  { slot: 'shield', name: 'Gothic Shield', lvl: 14 },
+  { slot: 'amulet', name: 'Copper Charm', lvl: 1 },
+  { slot: 'amulet', name: 'Bone Pendant', lvl: 4 },
+  { slot: 'amulet', name: 'Silver Locket', lvl: 7 },
+  { slot: 'amulet', name: 'Choir Medallion', lvl: 10 }
+];
+
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  w.__hurtSpread = 1;
+  w.__champCrit = 1;
+  delete w.__seTune;
+  const src = fetchText('../index.html?v=se-combat-src');
+  const ver = fetchText('../version.json');
+  g.newGame();
+  const p = g.player;
+  p.learned = [true, true, true];
+  check('version stays 0.7.18', g.version === '0.7.18' && ver.indexOf('"0.7.18"') >= 0, g.version);
+  check('life table was not raised', g.seMaxHp717(3) === 119 && g.seMaxHp717(5) === 194 && g.seMaxHp717(8) === 515 && g.seMaxHp717(12) === 1172, [3, 5, 8, 12].map(d => g.seMaxHp717(d)).join(','));
+  check('shields stay a tenth of that life', [3, 5, 8, 12].every(d => Math.round(g.seMaxHp717(d) * g.SE_SHIELD_FRAC) === { 3: 12, 5: 19, 8: 52, 12: 117 }[d]));
+  check('taken and outgoing anchors stay', g.seTakenMul(5) === 0.55 && g.seTakenMul(12) === 0.186 && g.seDmgMul(5) === 2.5 && g.seDmgMul(12) === 5.5 && g.seDmgMul(3) === 1);
+  check('tell ratios stay on the table', g.seTellMul('swing', 5) === 1 && g.seTellMul('power', 5) === 1.7 && g.seTellMul('brand', 5) === 0.85 && g.SE_TELL.brand.r === 8 && g.SE_TELL.power.r === 10);
+  check('loot odds were not retuned', g.seUniqueChance(1) === 0 && g.seUniqueChance(2) === 0 && g.seUniqueChance(3) === 0.2 && g.seUniqueChance(5) === 0.5 && g.seUniqueChance(12) === 1);
+  check('whoosh workstream is not on the super elite strike', src.indexOf("case 'whoosh'") >= 0 && g.seResolveTell.toString().indexOf('whoosh') < 0 && g.seBeginTell.toString().indexOf('playSwingCue') < 0);
+
+  function openFloor(d) {
+    g.startFloor(d, true);
+    if (g.state !== 'play') w.setState('play');
+    const home = g.rooms && g.rooms[0];
+    if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+    const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+    for (let y = -8; y <= 8; y++) for (let x = -8; x <= 14; x++) g.setTile(tx + x, ty + y, 1);
+    g.enemies.forEach(e => { e.hp = 0; e.dead = true; });
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_nyx', 'fight');
+    e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.spd = 0; e.seAct = ''; e.seCd = 9; e.seStep = 0;
+    e.x = p.x; e.y = p.y; e.fearT = 0;
+    g.teles.length = 0; g.projs.length = 0;
+    p.st.regen = 0; p.st.def = 0; p.st.block = 0; p.inv0 = 0; p.roll = 0; p.swing = 0; p.hp = 500; p.st.maxHp = 500;
+    w.clearStatuses(p); w.clearStatuses(e);
+    return e;
+  }
+
+  const early = openFloor(3);
+  early.hp = early.maxHp; early.seStep = 0;
+  const earlyRot = [0, 1, 2].map(s => { early.seStep = s; return g.seNextKind(early); });
+  check('depth 3 above half life is still swings', g.depth === 3 && g.seFightPhase(early) === 1 && earlyRot.join(',') === 'swing,swing,swing', earlyRot.join(','));
+  early.hp = early.maxHp * 0.4; early.seStep = 2;
+  check('depth 3 phase 2 still saves power for the third step', g.seFightPhase(early) === 2 && g.seNextKind(early) === 'power');
+  early.hp = early.maxHp * 0.2; early.seStep = 2;
+  check('depth 3 phase 3 still brands', g.seFightPhase(early) === 3 && g.seNextKind(early) === 'brand');
+
+  const deep = openFloor(5);
+  deep.hp = deep.maxHp;
+  const deepRot = [0, 1, 2, 3].map(s => { deep.seStep = s; return g.seNextKind(deep); });
+  check('depth 5 rotates swing, power, brand from full life', deepRot.join(',') === 'swing,power,brand,swing', deepRot.join(','));
+  deep.hp = deep.maxHp * 0.9; deep.seStep = 1;
+  check('depth 5 does not wait for half life', g.seFightPhase(deep) === 1 && g.seNextKind(deep) === 'power');
+  const late = openFloor(12);
+  late.hp = late.maxHp; late.seStep = 2;
+  check('depth 12 keeps the same rotation and the same life', g.seNextKind(late) === 'brand' && late.maxHp === 1172 && late.maxShield === 117);
+
+  const lane = openFloor(5);
+  lane.dmg = 20; lane.seAct = '';
+  p.x = lane.x + 90; p.y = lane.y; p.hp = 500; p.inv0 = 0;
+  g.seFxLog.length = 0;
+  g.seBeginTell(lane, 'brand');
+  const brand = g.teles.find(t => t.seTell === 'brand');
+  const brandR = g.seBrandReach();
+  check('brand is a pinned circle on the player, matching the drawn radius', brand && brand.pin && !brand.follow && brand.match === true && Math.abs(brand.r - brandR) < 1e-6 && Math.abs(brand.x - (lane.x + 90)) < 1e-6, brand && brand.r);
+  const movedX = lane.x;
+  lane.x += 40;
+  check('moving the body does not move the brand', Math.abs(brand.x - (movedX + 90)) < 1e-6);
+  p.x = brand.x; p.y = brand.y; p.inv0 = 0;
+  check('a player inside the brand, far from the body, is hit', g.seTeleHit('brand', brand, p.x, p.y) && g.seResolveTell(lane, 'brand', brand) === 1 && p.hp < 500, p.hp);
+  lane.seAct = ''; g.teles.length = 0; p.hp = 500; p.inv0 = 0;
+  p.x = lane.x + 90; p.y = lane.y;
+  g.seBeginTell(lane, 'brand');
+  const brandOut = g.teles.find(t => t.seTell === 'brand');
+  p.x = brandOut.x + brandOut.r + 2; p.y = brandOut.y;
+  check('a center outside the brand outline is not hit', g.seResolveTell(lane, 'brand', brandOut) === 0 && p.hp === 500, p.hp);
+  check('brand outline is the hit radius', Math.abs(brandOut.r - g.seBrandReach()) < 1e-6 && g.seCircleHit(brandOut.x, brandOut.y, brandOut.r, brandOut.x + brandOut.r, brandOut.y) && !g.seCircleHit(brandOut.x, brandOut.y, brandOut.r, brandOut.x + brandOut.r + 2, brandOut.y));
+
+  lane.seAct = ''; g.teles.length = 0; p.hp = 500; p.inv0 = 0;
+  p.x = lane.x + 36; p.y = lane.y;
+  g.seBeginTell(lane, 'power');
+  const pow = g.teles.find(t => t.seTell === 'power');
+  check('depth 5 power circle is sword reach and follows the body', pow && pow.follow === lane && pow.match === true && Math.abs(pow.r - 36) < 1e-6 && Math.abs(pow.r - g.sePowerReach(5)) < 1e-6, pow && pow.r);
+  p.x = lane.x + pow.r; p.y = lane.y; p.inv0 = 0;
+  check('a sword-range center on the power outline is hit', g.seResolveTell(lane, 'power', pow) === 1 && p.hp < 500, p.hp);
+  lane.seAct = ''; g.teles.length = 0; p.hp = 500; p.inv0 = 0;
+  g.seBeginTell(lane, 'power');
+  const powOut = g.teles.find(t => t.seTell === 'power');
+  p.x = lane.x + powOut.r + 2; p.y = lane.y;
+  check('a center two pixels outside the power outline is not hit', g.seResolveTell(lane, 'power', powOut) === 0 && p.hp === 500, p.hp);
+
+  const shallow = openFloor(1);
+  shallow.seAct = ''; p.x = shallow.x + 34; p.y = shallow.y; p.hp = 500; p.inv0 = 0;
+  g.seBeginTell(shallow, 'power');
+  const small = g.teles.find(t => t.seTell === 'power');
+  check('depth 1 power stays the small circle and misses a sword kite', small && small.lockAt == null && Math.abs(small.r - (10 + p.r)) < 1e-6 && g.seResolveTell(shallow, 'power', small) === 0 && p.hp === 500, small && small.r);
+  shallow.seAct = ''; g.teles.length = 0;
+  g.seBeginTell(shallow, 'swing');
+  const earlySwing = g.teles[0];
+  check('depth 1 swing still locks at 0.25s', earlySwing && earlySwing.lockAt === 0.25 && earlySwing.dur === 1);
+
+  const track = openFloor(5);
+  track.dmg = 30; track.spd = 0; track.seAct = '';
+  p.x = track.x + 18; p.y = track.y; p.hp = 800; p.st.maxHp = 800; p.inv0 = 0; p.swing = 0; p.st.ms = 1;
+  g.seBeginTell(track, 'swing');
+  const sw = g.teles.find(t => t.seTell === 'swing');
+  check('depth 5 swing tracks and then locks', sw && sw.dur === 1 && Math.abs(sw.lockAt - 0.68) < 1e-9 && sw.w === 16 && sw.len === 52 && sw.match === true, sw && sw.lockAt);
+  const aim0 = sw.a;
+  for (let i = 0; i < 6; i++) g.step(0.05, { x: 0, y: 1 });
+  const aimMid = sw.a;
+  check('the lane follows a step taken before the lock', sw.t < sw.lockAt && Math.abs(aimMid - aim0) > 0.15, 't ' + sw.t.toFixed(2) + ' aim ' + aimMid.toFixed(2));
+  track.seAct = ''; g.teles.length = 0;
+  p.x = track.x + 18; p.y = track.y; p.hp = 800; p.inv0 = 0; p.swing = 0;
+  g.seBeginTell(track, 'swing');
+  const swLock = g.teles.find(t => t.seTell === 'swing');
+  while (swLock.t < swLock.lockAt - 1e-6) g.step(0.05, { x: 0, y: 0 });
+  const lockedAim = swLock.a;
+  const yLocked = p.y;
+  while (g.teles.indexOf(swLock) >= 0 && swLock.t < 1.2) g.step(0.05, { x: 0, y: 1 });
+  const fullMove = p.y - yLocked;
+  check('after the lock a full step leaves the lane', Math.abs(swLock.a - lockedAim) < 1e-6 && fullMove > g.SE_TELL.swing.hit && p.hp === 800, 'y ' + fullMove.toFixed(1) + ' hp ' + p.hp);
+
+  const trackHit = openFloor(5);
+  trackHit.dmg = 30; trackHit.spd = 0; trackHit.seAct = '';
+  p.x = trackHit.x + 18; p.y = trackHit.y; p.hp = 800; p.st.maxHp = 800; p.inv0 = 0; p.swing = 0; p.st.ms = 1;
+  g.seBeginTell(trackHit, 'swing');
+  const sw2 = g.teles.find(t => t.seTell === 'swing');
+  while (sw2.t < sw2.lockAt - 1e-6) g.step(0.05, { x: 0, y: 0 });
+  while (sw2.t < sw2.lockAt + 0.15 - 1e-6 && g.teles.indexOf(sw2) >= 0) g.step(0.05, { x: 0, y: 0 });
+  const y2 = p.y;
+  let swingAt = null;
+  while (g.teles.indexOf(sw2) >= 0 && sw2.t < 1.2) {
+    const yBefore = p.y;
+    p.swing = 2;
+    g.step(0.05, { x: 0, y: 1 });
+    if (p.hp < 800) { swingAt = (yBefore - y2) + 62 * 0.55 * 0.05; break; }
+  }
+  check('a late swing does not clear the locked lane', swingAt != null && swingAt < g.SE_TELL.swing.hit && p.hp < 800, 'y ' + (swingAt == null ? 'none' : swingAt.toFixed(2)) + ' hp ' + p.hp);
+
+  const trackDodge = openFloor(5);
+  trackDodge.dmg = 30; trackDodge.spd = 0; trackDodge.seAct = '';
+  p.x = trackDodge.x + 18; p.y = trackDodge.y; p.hp = 800; p.st.maxHp = 800; p.inv0 = 0; p.swing = 0; p.st.ms = 1;
+  g.seBeginTell(trackDodge, 'swing');
+  const swD = g.teles.find(t => t.seTell === 'swing');
+  while (swD.t < swD.lockAt - 1e-6) g.step(0.05, { x: 0, y: 0 });
+  let waited = 0;
+  while (waited < (1 / 30 + 0.10) - 1e-6 && g.teles.indexOf(swD) >= 0) { g.step(1 / 30, { x: 0, y: 0 }); waited += 1 / 30; }
+  const yD = p.y;
+  while (g.teles.indexOf(swD) >= 0 && swD.t < 1.2) g.step(0.016, { x: 0, y: 1 });
+  const dodgeMove = p.y - yD;
+  const win = g.SE_TELL.swing.dur - g.seSwingLock(5);
+  const afterLag = Math.max(0, win - (1 / 30 + 0.10));
+  const after60 = Math.max(0, win - (1 / 60 + 0.10));
+  check('a 30fps dodge with 100ms of input leaves the lane', Math.abs(g.seSwingLock(5) - 0.68) < 1e-9 && 62 * afterLag >= g.SE_TELL.swing.hit && 62 * after60 >= g.SE_TELL.swing.hit && dodgeMove > g.SE_TELL.swing.hit && p.hp === 800, 'y ' + dodgeMove.toFixed(1) + ' win ' + win.toFixed(3) + ' 60 ' + (62 * after60).toFixed(1));
+
+  const timing = openFloor(5);
+  timing.dmg = 25; timing.seAct = '';
+  p.x = timing.x + 16; p.y = timing.y; p.hp = 700; p.st.maxHp = 700; p.inv0 = 0; p.swing = 0;
+  const swingsBefore = (g.sfxLog || []).filter(s => s === 'swing' || s === 'whoosh').length;
+  const cueBefore = (w.__swingCueLog || []).length;
+  g.seFxLog.length = 0;
+  g.seBeginTell(timing, 'swing');
+  const wind = g.seFxLog.filter(q => q.phase === 'wind').map(q => q.id);
+  check('swing wind cue is the melee tell, not an impact', wind.join(',') === g.SE_WIND_CUE.swing && !g.seFxLog.some(q => q.phase === 'impact'), wind.join(','));
+  for (let i = 0; i < 18; i++) g.step(0.05, { x: 0, y: 0 });
+  check('damage waits for the end of the swing tell', p.hp === 700 && g.teles.some(t => t.seTell === 'swing') && !g.seFxLog.some(q => q.phase === 'impact'), p.hp);
+  const pack = {
+    attack: { frames: [0, 1, 2, 3].map(() => ({ r: 1 })), ms: 95, hitFrame: 3, loop: false },
+    powerup: { frames: [0, 1, 2, 3, 4, 5].map(() => ({ r: 1 })), ms: 100, hitFrame: 4, loop: false },
+    taunt: { frames: [0, 1, 2, 3, 4, 5].map(() => ({ r: 1 })), ms: 110, loop: false },
+    idle: { frames: [{ r: 1 }], ms: 200, loop: true }
+  };
+  g.SE_CLIP.se_nyx = pack;
+  timing.seActT = 0.285;
+  const earlyPose = w.sePose717(timing);
+  check('the old 0.285s mark is still the anticipate frame', g.seFrameAt('swing', 0.285, pack.attack) === 0 && earlyPose && earlyPose.clip === pack.attack && earlyPose.t < 0.02, g.seFrameAt('swing', 0.285, pack.attack));
+  timing.seActT = g.SE_TELL.swing.dur - 0.04;
+  const latePose = w.sePose717(timing);
+  const swingSync = g.seHitSync('swing');
+  check('the strike frame is up when the tell ends', g.seFrameAt('swing', timing.seActT, pack.attack) === 2 && latePose && latePose.clip === pack.attack && swingSync.slack < 0.1 && swingSync.slack > 0.02, swingSync && r3(swingSync.slack));
+  g.step(0.16, { x: 0, y: 0 });
+  const swingImp = g.seFxLog.filter(q => q.phase === 'impact').map(q => q.id);
+  check('swing impact cue lands with the damage', p.hp < 700 && swingImp.indexOf('enm_se_attack_05') >= 0 && swingImp.indexOf('cbt_hit_heavy_01') < 0 && swingImp.indexOf('cbt_proj_magic_bolt_impact_01') < 0, swingImp.join(','));
+  check('no player whoosh was added', (g.sfxLog || []).filter(s => s === 'swing' || s === 'whoosh').length === swingsBefore && (w.__swingCueLog || []).length === cueBefore);
+
+  function impacts(kind) {
+    const e = openFloor(5);
+    e.dmg = 10; e.seAct = '';
+    p.x = e.x + 80; p.y = e.y + 80; p.hp = 500; p.inv0 = 0;
+    g.seFxLog.length = 0;
+    g.seBeginTell(e, kind);
+    const tel = g.teles.find(t => t.seTell === kind);
+    const pose = w.sePose717(e);
+    tel.onDone(tel);
+    return { wind: g.seFxLog.filter(q => q.phase === 'wind').map(q => q.id), impact: g.seFxLog.filter(q => q.phase === 'impact').map(q => q.id), pose: pose, sync: g.seHitSync(kind) };
+  }
+  const powerFx = impacts('power');
+  const brandFx = impacts('brand');
+  check('power and brand wind cues differ from the swing', powerFx.wind.join(',') === 'cbt_tell_melee_02' && brandFx.wind.join(',') === 'cbt_proj_magic_bolt_fly_01');
+  check('power impact is the heavy hit', powerFx.impact[0] === 'cbt_hit_heavy_01' && powerFx.impact.indexOf('cbt_proj_magic_bolt_impact_01') < 0, powerFx.impact.join(','));
+  check('brand impact is the magic hit', brandFx.impact[0] === 'cbt_proj_magic_bolt_impact_01' && brandFx.impact.indexOf('cbt_hit_heavy_01') < 0, brandFx.impact.join(','));
+  g.SE_CLIP.se_nyx = pack;
+  const posed = openFloor(5);
+  posed.seKind = 'swing'; posed.seAct = 'attack'; posed.seActT = 0.2;
+  const aPose = w.sePose717(posed);
+  posed.seKind = 'power'; posed.seAct = 'powerup'; posed.seActT = 0.2;
+  const pPose = w.sePose717(posed);
+  posed.seKind = 'brand'; posed.seAct = 'brand'; posed.seActT = 0.2;
+  const bPose = w.sePose717(posed);
+  check('the three attacks use three clips', aPose && pPose && bPose && aPose.clip === pack.attack && pPose.clip === pack.powerup && bPose.clip === pack.taunt && aPose.clip !== pPose.clip && pPose.clip !== bPose.clip);
+  check('power and brand strikes are also within a tenth of the cue', powerFx.sync.slack < 0.1 && brandFx.sync.slack < 0.1 && powerFx.sync.soundAt === 1.3 && brandFx.sync.soundAt === 1.15, r3(powerFx.sync.slack) + '/' + r3(brandFx.sync.slack));
+
+  const naked = openFloor(5);
+  naked.dmg = g.seDmg717(5);
+  p.x = naked.x + 12; p.y = naked.y;
+  p.st.def = 0; p.st.block = 0; p.hp = 100000; p.inv0 = 0;
+  function nakedHit(kind, spec) {
+    p.hp = 100000; p.inv0 = 0;
+    naked.seAct = ''; naked.sePhase = 'fight';
+    g.seResolveTell(naked, kind, spec);
+    return Math.round(100000 - p.hp);
+  }
+  const swingD = nakedHit('swing', { x: naked.x, y: naked.y, a: 0, len: 80, w: 40 });
+  const powerD = nakedHit('power', { x: p.x, y: p.y, r: 40 });
+  const brandD = nakedHit('brand', { x: p.x, y: p.y, r: 40 });
+  function expect(kind) { return Math.max(1, Math.round(g.seBaseDmg717(5) * g.seDmgMul(5) * g.seTellMul(kind, 5))); }
+  check('depth 5 damage stays on the tables', swingD === expect('swing') && powerD === expect('power') && brandD === expect('brand') && brandD !== expect('swing'), swingD + '/' + powerD + '/' + brandD);
+
+  function best(slot, d, icon) {
+    let win = null;
+    BASE_PICK.forEach(b => {
+      if (b.slot !== slot || b.lvl > d + 1) return;
+      if (icon && b.icon !== icon) return;
+      if (!win || b.lvl > win.lvl) win = b;
+    });
+    return win;
+  }
+  function forge(baseName, L, rarity, extra) {
+    const it = w.makeItem(L, 0, baseName);
+    it.rarity = rarity;
+    it.name = baseName;
+    it.mods = it.mods || {};
+    if (it.slot === 'ring') it.mods = {};
+    if (extra) for (const k in extra) it.mods[k] = (it.mods[k] || 0) + extra[k];
+    it.reqLvl = w.calcReqLvl(it);
+    if (it.maxDur) it.dur = it.maxDur;
+    return it;
+  }
+  function equip(items) {
+    ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet'].forEach(s => { p.equip[s] = null; });
+    items.forEach(it => { p.equip[it.slot] = it; });
+    w.computeStats();
+    p.hp = p.st.maxHp; p.mp = p.st.maxMp; p.inv0 = 0; p.roll = 0;
+    w.clearStatuses(p);
+  }
+  function setLevel(lv) { p.lvl = lv; p.xp = -1e12; w.computeStats(); p.hp = p.st.maxHp; p.mp = p.st.maxMp; }
+  function kit(d, kind) {
+    const L = d;
+    if (kind === 'under') return [forge('Rusty Sword', 1, 0, null)];
+    const items = [];
+    if (kind === 'bow') items.push(forge('Short Bow', L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2), crit: med(3, 6 + L) }));
+    else if (kind === 'caster') items.push(forge(best('weapon', d, 'staff').name, L, 2, { fire: med(2, 4 + L * 2), ias: med(5, 10 + L * 2) }));
+    else items.push(forge(best('weapon', d, 'sword').name, L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2), crit: med(3, 6 + L) }));
+    if (kind === 'under') return items;
+    const armor = best('armor', d), helm = best('helm', d), boots = best('boots', d), shield = best('shield', d), amulet = best('amulet', d);
+    items.push(forge(armor.name, L, 2, { def: med(1, 2 + L), hp: med(4, 8 + L * 3) }));
+    items.push(forge(helm.name, L, 2, { hp: med(4, 8 + L * 3), resFire: med(6, 8 + Math.floor(L / 2)) }));
+    items.push(forge(boots.name, L, 2, { def: med(1, 2 + L), hp: Math.round(med(4, 8 + L * 3) / 2) }));
+    items.push(forge(shield.name, L, 2, { def: med(1, 2 + L) }));
+    items.push(forge(amulet.name, L, 2, { hp: med(4, 8 + L * 3), fire: Math.max(2, Math.round(med(2, 4 + L * 2) / 3)) }));
+    if (kind === 'caster') items.push(forge('Ring', L, 2, { fire: med(2, 4 + L * 2), mp: med(4, 8 + L * 2) }));
+    else if (kind !== 'bow') items.push(forge('Ring', L, 2, { dmg: med(1, 2 + L), ias: Math.max(5, Math.round(med(5, 10 + L * 2) / 2)) }));
+    else items.push(forge('Ring', L, 2, { dmg: med(1, 2 + L), ias: med(5, 10 + L * 2) }));
+    return items;
+  }
+  function actor(d) {
+    g.startFloor(d, true);
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_nyx', 'fight');
+    e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.hp = e.maxHp; e.shield = e.maxShield;
+    e.x = p.x + 24; e.y = p.y; e.seStep = 0; e.seAct = ''; e.seCd = 0.6; e.spd = 0;
+    w.clearStatuses(e); g.ensurePoise(e);
+    e.poise = e.poiseMax; e.staggerImmune = 0;
+    if (g.state !== 'play') w.setState('play');
+    return e;
+  }
+  function place(e, build, style) {
+    if (build === 'bow') {
+      p.x = e.x + 140; p.y = e.y + (style === 'kite' ? 24 : 0);
+    } else if (style === 'kite') {
+      p.x = e.x + 28; p.y = e.y + 20;
+    } else {
+      p.x = e.x + 14; p.y = e.y;
+    }
+    p.inv0 = 0; p.roll = 0;
+  }
+  function strike(e, kind, build, style) {
+    place(e, build, style);
+    p.hp = 1e6; p.inv0 = 0;
+    const row = g.SE_TELL[kind];
+    let spec = null;
+    if (kind === 'swing') spec = { x: e.x, y: e.y, a: 0, len: row.len, w: row.w };
+    else if (kind === 'power') spec = { x: e.x, y: e.y, r: g.sePowerReach(g.depth) };
+    else {
+      const dodge = style === 'kite' && build === 'bow';
+      spec = { x: p.x, y: dodge ? p.y + 40 : p.y, r: g.seBrandReach() };
+      if (dodge) { /* the archer steps off the mark */ }
+    }
+    e.seAct = ''; e.sePhase = 'fight'; e.dead = false;
+    const hit = g.seResolveTell(e, kind, spec);
+    const dealt = Math.max(0, 1e6 - p.hp);
+    p.hp = 1e6; p.inv0 = 0;
+    return { hit: hit, dealt: dealt };
+  }
+
+  const depths = [3, 5, 8, 12];
+  const levels = { 3: 6, 5: 9, 8: 13, 12: 20 };
+  const builds = ['melee', 'bow', 'caster', 'under'];
+  const proj = [];
+  function fight(d, lv, kind, style) {
+    setLevel(lv);
+    equip(kit(d, kind));
+    const e = actor(d);
+    const block = p.st.block;
+    p.st.block = 0;
+    const cast = kind === 'caster';
+    const bow = kind === 'bow';
+    const period = g.attackPeriod();
+    let t = 0;
+    const dt = 0.05;
+    const cap = 360;
+    let atkCd = 0, fbCd = 0, seCd = 0.6, seStep = 0, tell = null;
+    let shadow = p.st.maxHp, pots = 3, potsUsed = 0, diedAt = null, shieldAt = null, dmgIn = 0;
+    const tells = { swing: 0, power: 0, brand: 0, hit: 0 };
+    let critAcc = 0, baseI = 0;
+    const b0 = p.st.min, b1 = Math.max(p.st.min, p.st.max);
+    const pc = Math.min(1, Math.max(0, p.st.crit) / 100);
+    const mul = p.st.critMul || 2;
+    const shield0 = e.maxShield;
+    p.mp = p.st.maxMp;
+    while (e.hp > 0 && !e.dead && t < cap) {
+      shadow = Math.min(p.st.maxHp, shadow + (p.st.regen || 0) * dt);
+      p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * 0.1) * dt);
+      if (shadow < p.st.maxHp * 0.4 && shadow > 0 && pots > 0) {
+        pots--; potsUsed++;
+        shadow = Math.min(p.st.maxHp, shadow + p.st.maxHp * 0.45 + 10);
+      }
+      g.tickStatuses(e, dt);
+      const locked = g.ccImmobilized(e);
+      if (locked) tell = null;
+      atkCd -= dt;
+      if (atkCd <= 0 && e.hp > 0 && !e.dead) {
+        const base = b0 + ((baseI++) % (b1 - b0 + 1));
+        critAcc += pc;
+        let roll = base, isCrit = false;
+        if (critAcc >= 1) { critAcc -= 1; roll = base * mul; isCrit = true; }
+        if (!bow) {
+          p.hp = Math.min(shadow, p.st.maxHp);
+          const info = w.leech(g.scaleAmount(roll, 'Physical', 1), 'melee');
+          shadow = Math.min(p.st.maxHp, shadow + (info.healed || 0));
+        }
+        p.hp = 1e6;
+        g.damageEnemy(e, roll, 0, 0, '#fff', isCrit, null, {
+          type: 'Physical', tags: bow ? ['Ranged', 'Projectile', 'Direct'] : ['Melee', 'Direct'],
+          more: 1, critApplied: true, skill: bow ? 'bow' : 'melee', scale: true,
+          weaponFamily: w.weaponFamilyOf(p).id
+        });
+        atkCd += period;
+        if (shieldAt == null && (e.shield || 0) <= 0) shieldAt = t;
+      }
+      if (cast) fbCd -= dt;
+      if (cast && fbCd <= 0 && p.mp >= 4 && e.hp > 0 && !e.dead) {
+        p.mp -= 4; fbCd += 0.45;
+        p.hp = 1e6;
+        const pw = p.st.fire + p.lvl * 2;
+        const amp = 1 + w.skillAmp(0) / 100;
+        g.damageEnemy(e, (8 + pw * 1.4) * amp, 0, 0, '#ffa030', false, null, {
+          type: 'Fire', tags: ['Spell', 'Projectile'], critApplied: true, skill: 'fireball', scale: true
+        });
+        w.igniteFromSkill(e, pw, 1, g.skillBuild(0));
+        if (shieldAt == null && (e.shield || 0) <= 0) shieldAt = t;
+      }
+      if (e.hp <= 0 || e.dead) break;
+      if (tell) {
+        tell.t += dt;
+        if (tell.t >= tell.dur - 1e-6) {
+          const res = locked ? { hit: 0, dealt: 0 } : strike(e, tell.kind, kind, style);
+          tells[tell.kind]++;
+          if (res.hit) { tells.hit++; dmgIn += res.dealt; shadow -= res.dealt; }
+          if (shadow <= 0 && diedAt == null) diedAt = t;
+          seCd = g.SE_TELL[tell.kind].gap;
+          tell = null;
+        }
+      } else if (!locked) {
+        seCd -= dt;
+        if (seCd <= 0) {
+          e.seStep = seStep;
+          const next = g.seNextKind(e);
+          seStep = (seStep + 1) % 6;
+          e.seStep = seStep;
+          tell = { kind: next, t: 0, dur: g.SE_TELL[next].dur };
+        }
+      }
+      t += dt;
+    }
+    const done = e.hp <= 0 || e.dead;
+    return {
+      depth: d, build: kind, style: style, weapon: (p.equip.weapon && p.equip.weapon.name) || 'fists',
+      life: p.st.maxHp, def: p.st.def, block: block,
+      seHp: e.maxHp, seShield: shield0,
+      ttk: done ? r1(t) : null, capped: !done,
+      dmgIn: r1(dmgIn), diedAt: diedAt == null ? null : r1(diedAt), pots: potsUsed,
+      tells: tells.swing + '/' + tells.power + '/' + tells.brand
+    };
+  }
+  for (const d of depths) {
+    for (const b of builds) {
+      for (const style of ['stand', 'kite']) proj.push(fight(d, levels[d], b, style));
+    }
+  }
+  const strong = proj.filter(r => r.depth === 5 && (r.build === 'melee' || r.build === 'bow' || r.build === 'caster') && r.style === 'stand');
+  const short = strong.filter(r => r.ttk != null && r.ttk < 15);
+  check('projection ran for every build and depth', proj.length === 32 && proj.every(r => r.seHp === g.seMaxHp717(r.depth)), proj.length);
+  check('depth 5 life is still 194 after the projection', g.seMaxHp717(5) === 194 && g.seMaxHp717(12) === 1172);
+  const body = proj.map(r => 'PROJ d' + r.depth + ' ' + r.build + ' ' + r.style + ' ttk=' + (r.ttk == null ? 'capped' : r.ttk) + 's in=' + r.dmgIn + ' pots=' + r.pots + ' died=' + (r.diedAt == null ? 'no' : r.diedAt + 's') + ' tells=' + r.tells + ' hp=' + r.seHp + ' plife=' + r.life + ' ' + r.weapon).join('\n');
+  const note = 'BALANCE depth5-stand-under-15s ' + short.map(r => r.build + '=' + r.ttk + 's').join(',') + (short.length ? ' more-balance-work-needed hp-not-raised' : ' within-15s');
+  lines.push('PASS ' + note);
+  finish('\n' + body + '\n' + note);
+}
+</script>
+</body>
+</html>

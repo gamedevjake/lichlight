@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!-- Super Elite ranged bolt. Depth 5+, hysteresis, walls, and the brand-ratio hit. -->
+<html>
+<head><meta charset="utf-8"><title>se-bolt</title></head>
+<body>
+<iframe id="g" src="../index.html?v=se-bolt" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); finish(); }
+});
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 420) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  w.__hurtSpread = 1;
+  w.__champCrit = 1;
+  g.newGame();
+  const p = g.player;
+  check('bolt constants', g.SE_BOLT && g.SE_BOLT.near === 40 && g.SE_BOLT.far === 64 && g.SE_BOLT.dwell === 0.35 && g.SE_BOLT.gap === 2.6 && g.SE_BOLT.wind === 0.9 && g.SE_BOLT.lock === 0.5 && g.SE_BOLT.speed === 160 && g.SE_BOLT.radius === 3 && g.SE_BOLT.hit === 8 && g.SE_BOLT.mul === 0.85);
+  check('bolt cues are not the whoosh', g.seBeginBolt.toString().indexOf('whoosh') < 0 && g.seBeginBolt.toString().indexOf('playSwingCue') < 0 && g.seFireBolt.toString().indexOf('whoosh') < 0);
+
+  function open(d) {
+    g.startFloor(d, true);
+    if (g.state !== 'play') w.setState('play');
+    const home = g.rooms && g.rooms[0];
+    if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+    const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+    for (let y = -12; y <= 12; y++) for (let x = -4; x <= 18; x++) g.setTile(tx + x, ty + y, 1);
+    g.enemies.forEach(e => { e.hp = 0; e.dead = true; });
+    if (g.SE717) { g.SE717.dead = false; g.SE717.alive = true; }
+    const e = g.seSpawn717('se_nyx', 'fight');
+    g.enemies.forEach(o => { if (o !== e) { o.hp = 0; o.dead = true; } });
+    e.sePhase = 'fight'; e.dead = false; e.hidden = false; e.spd = 0; e.seAct = ''; e.seCd = 99;
+    e.seFar = false; e.seFarT = 0; e.seNearT = 0; e.seBoltCd = 0; e.hp = e.maxHp;
+    e.x = p.x; e.y = p.y;
+    g.teles.length = 0; g.projs.length = 0;
+    if (g.hazards) g.hazards.length = 0;
+    p.st.def = 0; p.st.block = 0; p.st.regen = 0; p.st.maxHp = 5000; p.hp = 5000; p.inv0 = 0; p.roll = 0; p.swing = 0;
+    w.clearStatuses(p); w.clearStatuses(e);
+    return e;
+  }
+  function place(e, dist) { p.x = e.x + dist; p.y = e.y; p.inv0 = 0; }
+  function tick(e, dist) {
+    place(e, dist);
+    if (!e.seAct) e.seCd = e.seFar ? 0 : 8;
+    e.spd = 0;
+    g.step(0.05, { x: 0, y: 0 });
+  }
+  function countBolts(e, distAt, seconds) {
+    e.seFar = false; e.seFarT = 0; e.seNearT = 0; e.seBoltCd = 0; e.seAct = ''; e.seKind = ''; e.seCd = 8;
+    g.teles.length = 0; g.projs.length = 0; g.seFxLog.length = 0;
+    let n = 0, had = false;
+    const times = [];
+    for (let t = 0; t < seconds; t += 0.05) {
+      tick(e, distAt(t));
+      const on = g.teles.some(q => q && q.seTell === 'bolt');
+      if (on && !had) { n++; times.push(Math.round(t * 10) / 10); }
+      had = on;
+    }
+    return { bolts: n, times: times, far: !!e.seFar };
+  }
+
+  const early = open(3);
+  const earlyRun = countBolts(early, () => 180, 2);
+  check('depth 3 does not arm a bolt', earlyRun.bolts === 0 && !early.seFar, earlyRun.bolts);
+
+  const lane = open(5);
+  const hold = countBolts(lane, () => 180, 3);
+  check('staying past 64px arms one bolt', hold.bolts === 1 && hold.far === true, JSON.stringify(hold));
+  const exact = countBolts(lane, () => 64, 2);
+  check('exactly 64px does not count as far', exact.bolts === 0 && !lane.seFar, JSON.stringify(exact));
+  const flicker = countBolts(lane, t => (Math.floor(t / 0.2) % 2 === 0 ? 30 : 180), 4);
+  check('a 0.2s range flicker never arms', flicker.bolts === 0, JSON.stringify(flicker));
+  const dive = countBolts(lane, t => (t < 0.5 ? 180 : 20), 2);
+  check('diving in does not cancel a bolt that already started', dive.bolts === 1, JSON.stringify(dive));
+
+  lane.seFar = false; lane.seFarT = 0; lane.seNearT = 0; lane.seBoltCd = 0; lane.seAct = ''; lane.seCd = 8;
+  g.teles.length = 0; g.projs.length = 0;
+  for (let i = 0; i < 7; i++) tick(lane, 180);
+  check('0.35s past 64 turns far mode on', lane.seFar === true, lane.seFarT);
+  for (let i = 0; i < 8; i++) tick(lane, 20);
+  check('0.35s inside 40 turns far mode off', lane.seFar === false, lane.seNearT);
+  lane.seFar = true; lane.seFarT = 0; lane.seNearT = 0;
+  for (let i = 0; i < 6; i++) tick(lane, 50);
+  check('the dead band holds far mode', lane.seFar === true);
+
+  place(lane, 180); lane.seFar = true; lane.seBoltCd = 0; lane.seAct = ''; lane.seCd = 0; lane.spd = 0;
+  g.teles.length = 0; g.projs.length = 0; g.seFxLog.length = 0; p.hp = 5000; p.inv0 = 0;
+  g.step(0.05, { x: 0, y: 0 });
+  const wind = g.teles.find(t => t.seTell === 'bolt');
+  check('the bolt windup is 0.9s and locks at 0.5s', wind && wind.dur === 0.9 && wind.lockAt === 0.5 && wind.w === 16 && wind.match === true, wind && wind.lockAt);
+  check('the wind cue is the ranged attack', g.seFxLog.some(q => q.phase === 'wind' && q.id === 'enm_ranged_attack_01' && q.kind === 'bolt'));
+  const aim0 = wind.a;
+  while (wind.t < wind.lockAt - 0.08 && g.teles.indexOf(wind) >= 0) { p.y = lane.y + 36; g.step(0.05, { x: 0, y: 0 }); }
+  const aimMid = wind.a;
+  check('aim tracks before the lock', wind.t < wind.lockAt && Math.abs(aimMid - aim0) > 0.05, wind.t + ' ' + aimMid);
+  while (wind.t < wind.lockAt && g.teles.indexOf(wind) >= 0) g.step(0.05, { x: 0, y: 0 });
+  const locked = wind.a;
+  p.y = lane.y + 90;
+  let guard = 0;
+  while (wind.t < wind.lockAt + 0.2 && g.teles.indexOf(wind) >= 0 && guard++ < 12) g.step(0.05, { x: 0, y: 0 });
+  check('aim stays locked after 0.5s', wind.t >= wind.lockAt && Math.abs(wind.a - locked) < 1e-6, wind.t + ' a ' + wind.a);
+  p.y = lane.y + 200;
+  while (g.teles.indexOf(wind) >= 0 && wind.t < 1.2) g.step(0.05, { x: 0, y: 0 });
+  const shot = g.projs.find(q => q && q.seBolt);
+  check('release plays the arrow fly and spawns the bolt', !!shot && shot.hitR === 8 && shot.r === 3 && Math.abs(Math.hypot(shot.vx, shot.vy) - 160) < 0.01 && g.seFxLog.some(q => q.id === 'cbt_proj_arrow_fly_01'), shot && Math.hypot(shot.vx, shot.vy));
+  check('cooldown starts at 2.6s', Math.abs(lane.seBoltCd - 2.6) < 0.08, lane.seBoltCd);
+  const cd0 = lane.seBoltCd;
+  p.y = lane.y; lane.seAct = ''; lane.seCd = 0; lane.seFar = true;
+  for (let i = 0; i < 10; i++) { place(lane, 180); if (!lane.seAct) lane.seCd = 0; g.step(0.05, { x: 0, y: 0 }); }
+  check('cooldown blocks a second windup', !g.teles.some(t => t.seTell === 'bolt') && lane.seBoltCd < cd0 && lane.seBoltCd > 1.5, lane.seBoltCd);
+
+  // Hit radius 8, and a center 2px outside is not hit. Damage is e.dmg × 0.85.
+  function shotAt(e, ox, oy) {
+    g.projs.length = 0; p.hp = 5000; p.inv0 = 0; p.st.def = 0; p.st.block = 0;
+    const pr = { x: e.x + 20, y: e.y, vx: 160, vy: 0, r: 3, dmg: e.dmg * g.SE_BOLT.mul, owner: 'e', kind: 'bolt', life: 2, from: e, seBolt: true, hitR: 8 };
+    p.x = pr.x + ox; p.y = pr.y + oy;
+    g.projs.push(pr);
+    const before = p.hp;
+    g.step(0.01, { x: 0, y: 0 });
+    return { loss: before - p.hp, alive: g.projs.indexOf(pr) >= 0, impact: g.seFxLog.some(q => q.id === 'cbt_proj_arrow_impact_01') };
+  }
+  [5, 8, 12].forEach(d => {
+    const e = open(d);
+    e.dmg = g.seDmg717(d);
+    g.seFxLog.length = 0;
+    const hit = shotAt(e, 6, 0);
+    const expect = Math.max(1, Math.round(e.dmg * 0.85));
+    check('depth ' + d + ' bolt damage is e.dmg × 0.85', hit.loss === expect && !hit.alive && hit.impact, hit.loss + ' vs ' + expect);
+    g.seFxLog.length = 0; p.inv0 = 0;
+    const miss = shotAt(e, 0, 10);
+    check('depth ' + d + ' a center outside hit radius 8 is not hit', miss.loss === 0 && miss.alive && !miss.impact, miss.loss);
+  });
+
+  const wall = open(5);
+  place(wall, 96);
+  const wx = Math.floor((wall.x + 48) / 16), wy = Math.floor(wall.y / 16);
+  g.setTile(wx, wy, 0);
+  wall.seFar = true; wall.seBoltCd = 0; wall.seAct = ''; wall.seCd = 0;
+  const armed = g.seBeginBolt(wall);
+  check('a wall blocks arming', armed === false && !g.teles.some(t => t.seTell === 'bolt'), armed);
+  g.setTile(wx, wy, 1);
+  place(wall, 96);
+  g.seFxLog.length = 0;
+  check('a clear lane can arm', g.seBeginBolt(wall) === true);
+  const tel = g.teles.find(t => t.seTell === 'bolt');
+  g.setTile(wx, wy, 0);
+  const fired = g.seFireBolt(wall, tel);
+  check('a wall on the locked ray blocks the shot and still spends the cooldown', fired === 0 && g.projs.length === 0 && wall.seBoltCd === g.SE_BOLT.gap, fired + ' cd ' + wall.seBoltCd);
+  g.setTile(wx, wy, 1);
+
+  const pack = {
+    attack: { frames: [0, 1, 2, 3].map(() => ({ r: 1 })), ms: 95, hitFrame: 3, loop: false },
+    powerup: { frames: [0, 1, 2, 3, 4, 5].map(() => ({ r: 1 })), ms: 100, hitFrame: 4, loop: false },
+    taunt: { frames: [0, 1, 2, 3, 4, 5].map(() => ({ r: 1 })), ms: 110, loop: false },
+    idle: { frames: [{ r: 1 }], ms: 200, loop: true }
+  };
+  g.SE_CLIP.se_nyx = pack;
+  const posed = open(5);
+  posed.seKind = 'bolt'; posed.seAct = 'bolt'; posed.seActT = 0.2; posed.sePhase = 'fight'; posed.hp = 10;
+  const boltPose = w.sePose717(posed);
+  posed.seKind = 'swing'; posed.seAct = 'attack'; posed.seActT = 0.2;
+  const swingPose = w.sePose717(posed);
+  posed.seKind = 'brand'; posed.seAct = 'brand'; posed.seActT = 0.2;
+  const brandPose = w.sePose717(posed);
+  check('the bolt draw is not the swing anticipate or the brand taunt', boltPose && swingPose && brandPose && boltPose.clip === pack.attack && g.seFrameAt('bolt', 0.2, pack.attack) === 1 && g.seFrameAt('swing', 0.2, pack.attack) === 0 && brandPose.clip === pack.taunt, g.seFrameAt('bolt', 0.2, pack.attack));
+  const sync = g.seHitSync('bolt');
+  check('the bolt strike frame meets the release', sync && sync.act === 'bolt' && sync.soundAt === 0.9 && sync.slack < 0.1 && sync.slack > 0.02, sync && sync.slack);
+
+  g.startFloor(5, true);
+  if (g.state !== 'play') w.setState('play');
+  p.x += 40;
+  let boss = g.enemies.find(e => e.T && e.T.boss && e.hp > 0);
+  if (!boss) boss = g.spawnBoss(p.x + 80, p.y);
+  boss.x = p.x + 30; boss.y = p.y; boss.hp = 500; boss.spd = 0; boss.seFar = true;
+  g.projs.length = 0; g.teles.length = 0;
+  for (let i = 0; i < 20; i++) g.step(0.05, { x: 0, y: 0 });
+  check('a boss does not gain the super elite bolt', !g.projs.some(q => q && q.seBolt) && !g.teles.some(t => t && t.seTell === 'bolt'));
+
+  const whoosh = (g.sfxLog || []).filter(s => s === 'whoosh' || s === 'swing').length;
+  check('the bolt tests did not play a player whoosh', whoosh === 0, whoosh);
+  finish();
+}
+</script>
+</body>
+</html>
