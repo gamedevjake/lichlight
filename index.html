@@ -7783,10 +7783,26 @@ function cycleHudScale() {
   syncHudBtn();
   if (typeof resize === 'function') resize();
 }
+function hudCapNote() {
+  const v = String(settings.hudScale || 'auto');
+  if (v === 'auto') return '';
+  const dpr = window.devicePixelRatio || 1;
+  const w = appW || window.innerWidth || 800, h = appH || window.innerHeight || 450;
+  const wanted = computeHudScale(w, h, dpr, v);
+  const applied = fitHudScale(w, h, dpr, v);
+  const autoK = fitHudScale(w, h, dpr, 'auto');
+  if (applied < wanted && autoK > 0) {
+    const pct = Math.round(applied / autoK * 100);
+    return ' (CAPPED AT ' + pct + '% ON THIS SCREEN)';
+  }
+  return '';
+}
 function syncHudBtn() {
   const b = $('mHud'); if (!b) return;
   const v = String(settings.hudScale || 'auto');
-  b.textContent = 'HUD SCALE: ' + (v === 'auto' ? 'AUTO' : (v + '%'));
+  const label = 'HUD SCALE: ' + (v === 'auto' ? 'AUTO' : (v + '%' + hudCapNote()));
+  b.textContent = label;
+  b.title = label;
 }
 if ($('mHud')) $('mHud').addEventListener('click', cycleHudScale);
 syncHudBtn();
@@ -11351,6 +11367,7 @@ function placeDesk101() {
   el.style.width = availW + 'px';
   el.style.height = band + 'px';
   el.style.top = top + 'px';
+  if (typeof syncHudBtn === 'function') syncHudBtn();
 }
 function syncUseArt() {
   const b = $('bUse'); if (!b) return;
@@ -11473,7 +11490,7 @@ function buildDesk(el, k, artW) {
     d.innerHTML = '<i class="cd"></i><span class="key">' + key + '</span>';
     const lab = d.querySelector('.key');
     lab.style.fontSize = px(6); lab.style.bottom = '0'; lab.style.height = px(7); lab.style.lineHeight = px(7);
-    if (act) d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); });
+    if (act) { d.dataset.act = act; d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); }); }
     return d;
   };
   comp.appendChild(globeEl('hp', 0));

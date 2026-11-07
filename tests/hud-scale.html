@@ -166,6 +166,41 @@ async function run(w) {
     const b = assertFit(name + ' 150');
     const bh = b.slots[0] ? box(b.slots[0]).h : 0;
     check(name + ' 150 >= auto', bh + 0.5 >= ah, ah + ' -> ' + bh);
+    if (name === '1440') {
+      const desk = w.document.getElementById('deskHud');
+      const measure = (sel) => {
+        const el = desk.querySelector(sel);
+        const cs = w.getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return { font: +parseFloat(cs.fontSize).toFixed(1), h: +r.height.toFixed(1) };
+      };
+      g.settings.hudScale = 'auto';
+      w.resize(); w.syncDesk(); w.render();
+      const lv = measure('.n-lv'), key = measure('.dh-slot .key'), num = measure('.dh-globe b');
+      check('1440 well glyph', lv.font >= 24 && lv.h >= 18, JSON.stringify(lv));
+      check('1440 hotkey glyph', key.font >= 20 && key.h >= 14, JSON.stringify(key));
+      check('1440 globe numeral', num.font >= 36 && num.h >= 24, JSON.stringify(num));
+      perfRows.push({ glyphs: { lv, key, num } });
+      const xp = desk.querySelector('.dh-xp').getBoundingClientRect();
+      const hpG = desk.querySelector('.dh-globe.hp').getBoundingClientRect();
+      const mpG = desk.querySelector('.dh-globe.mp').getBoundingClientRect();
+      const db = desk.getBoundingClientRect();
+      check('1440 xp on the frame', xp.height >= 4 && xp.height < hpG.height * 0.25 && xp.top > hpG.top && xp.bottom < hpG.bottom, Math.round(xp.height) + 'px');
+      check('1440 globes on the ends', hpG.left <= db.left + 1 && Math.abs(mpG.right - db.right) <= 2);
+      const hit = (el) => {
+        const r = el.getBoundingClientRect();
+        const node = w.document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!(node && (node === el || el.contains(node)));
+      };
+      desk.querySelectorAll('.dh-slot').forEach((el, i) => check('1440 click slot ' + (el.dataset.act || el.dataset.bar || i), hit(el)));
+      desk.querySelectorAll('.dh-globe').forEach((el, i) => check('1440 click globe ' + i, hit(el)));
+      check('1440 click center well', hit(desk.querySelector('.dh-well')));
+      g.settings.hudScale = '150';
+      w.resize(); w.syncDesk();
+    }
+    const capLabel = w.document.getElementById('mHud').textContent;
+    if (name === '1440') check('1440 150 cap label', capLabel === 'HUD SCALE: 150% (CAPPED AT 100% ON THIS SCREEN)', capLabel);
+    if (name === '4k') check('4k 150 not capped', capLabel === 'HUD SCALE: 150%', capLabel);
     const t0 = performance.now();
     for (let i = 0; i < 12; i++) w.render();
     const avg = (performance.now() - t0) / 12;
