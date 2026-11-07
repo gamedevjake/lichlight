@@ -373,7 +373,12 @@ function run(w) {
       g.step(0.05, { x: 0, y: 0 });
       dealt = loss(be);
     } else {
-      if (row.name) p.equip.weapon = g.makeItem(1, 0, row.name);
+      if (row.name) {
+        const was = p.lvl;
+        if (row.name === 'Great Maul') p.lvl = Math.max(was | 0, 3);
+        p.equip.weapon = g.makeItem(1, 0, row.name);
+        p.lvl = was;
+      }
       p.st.min = row.pin; p.st.max = row.pin; p.st.aspd = row.spd;
       const e = foe(g, p, p.x + 12);
       w.doAttack(true);
